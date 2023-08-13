@@ -10,6 +10,7 @@ class PostgresController : public DatabaseControllerInterface {
   Q_OBJECT
 
  private:
+  QString ConnectionName;
   QHostAddress HostAddress;
   uint32_t Port;
   QString DatabaseName;
@@ -20,37 +21,35 @@ class PostgresController : public DatabaseControllerInterface {
   QSqlQuery* CurrentRequest;
 
  public:
-  explicit PostgresController(QObject* parent);
+  explicit PostgresController(QObject* parent, const QString& connectionName);
+  ~PostgresController();
 
+ public:
+  // DatabaseControllerInterface interface
   virtual void connect(void) override;
   virtual void disconnect(void) override;
 
-  virtual void getObuByPAN(const QString& pan,
-                           QVector<QString>* result) override;
-  virtual void getObuBySerialNumber(const uint32_t serial,
-                                    QVector<QString>* result) override;
+  virtual void getObuByPAN(const QString& pan, DatabaseBuffer* buffer) override;
   virtual void getObuByUCID(const QString& ucid,
-                            QVector<QString>* result) override;
-
-  virtual void getObuListByContextMark(
-      const QString& cm,
-      QVector<QVector<QString>>* result) override;
-  virtual void getObuListBySerialNumber(
-      const uint32_t serialBegin,
-      const uint32_t serialEnd,
-      QVector<QVector<QString>>* result) override;
+                            DatabaseBuffer* buffer) override;
+  virtual void getObuBySerialNumber(const uint32_t serial,
+                                    DatabaseBuffer* buffer) override;
+  virtual void getObuListByContextMark(const QString& cm,
+                                       DatabaseBuffer* buffer) override;
+  virtual void getObuListBySerialNumber(const uint32_t serialBegin,
+                                        const uint32_t serialEnd,
+                                        DatabaseBuffer* buffer) override;
   virtual void getObuListByPAN(const uint32_t panBegin,
                                const uint32_t panEnd,
-                               QVector<QVector<QString>>* result) override;
-
+                               DatabaseBuffer* buffer) override;
   virtual void execCustomRequest(const QString& req,
-                                 QVector<QVector<QString>>* result) override;
+                                 DatabaseBuffer* buffer) override;
 
-  virtual void applySettings(UserSettings* settings) override;
+  virtual void applySettings(QSettings* settings) override;
 
  private:
   void createDatabase(void);
-  void checkConnection(void);
+  void convertResponseToBuffer(DatabaseBuffer* buffer);
 };
 
 #endif  // POSTGRESCONTROLLER_H

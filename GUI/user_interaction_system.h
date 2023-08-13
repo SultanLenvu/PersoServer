@@ -28,7 +28,7 @@ class UserInteractionSystem : public QWidget {
   void generateError(const QString& data);
   void getUserInputKey(QString& key);
 
-  void getPersoInitData(QString& data);
+  void getPathToFile(QString& data);
 
  private:
   void createPersoInitWindow(void);

@@ -33,6 +33,16 @@ void MainWindowKernel::openMasterInterface_slot() {
   createMasterInterface();
 }
 
+void MainWindowKernel::startServer_slot() {
+  CurrentGUI->clearLogDisplay();
+  Manager->startServer();
+}
+
+void MainWindowKernel::stopServer_slot() {
+  CurrentGUI->clearLogDisplay();
+  Manager->stopServer();
+}
+
 void MainWindowKernel::connectDataBase_slot() {
   CurrentGUI->clearLogDisplay();
 
@@ -50,6 +60,11 @@ void MainWindowKernel::transamitCustomRequest_slot() {
 
   Manager->performCustomSqlRequest(
       dynamic_cast<GUI_Master*>(CurrentGUI)->CustomRequestLineEdit->text());
+
+  //  dynamic_cast<GUI_Master*>(CurrentGUI)->DataBaseBufferView->setModel(nullptr);
+  //  dynamic_cast<GUI_Master*>(CurrentGUI)
+  //      ->DataBaseBufferView->setModel(Manager->buffer());
+  CurrentGUI->update();
 }
 
 void MainWindowKernel::applyUserSettings_slot() {}
@@ -92,6 +107,10 @@ void MainWindowKernel::connectInitialInterface() {
 
   connect(gui->OpenMasterPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::openMasterInterface_slot);
+  connect(gui->StartServerPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::startServer_slot);
+  connect(gui->StopServerPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::stopServer_slot);
 }
 
 void MainWindowKernel::createMasterInterface() {
@@ -119,9 +138,6 @@ void MainWindowKernel::createMasterInterface() {
 
     // Создаем систему логгирования
     setupLogSystem();
-
-    // Пользовательские настройки
-    Settings = new UserSettings(this);
   } else
     emit notifyUserAboutError("Неверный код доступа");
 }
@@ -142,6 +158,7 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::applyUserSettings_slot);
 
   // Соединяем модели и представления
+  gui->DataBaseBufferView->setModel(Manager->buffer());
 
   // Связываем отображения графиков с логикой их формирования
 }

@@ -28,6 +28,10 @@ void GUI_Initial::createInitialMenu() {
   InitialMenuLayout = new QVBoxLayout();
   InitialMenuGroup->setLayout(InitialMenuLayout);
 
+  StartServerPushButton = new QPushButton("Запустить сервер");
+  InitialMenuLayout->addWidget(StartServerPushButton);
+  StopServerPushButton = new QPushButton("Остановить сервер");
+  InitialMenuLayout->addWidget(StopServerPushButton);
   OpenMasterPushButton = new QPushButton("Открыть мастер интерфейс");
   InitialMenuLayout->addWidget(OpenMasterPushButton);
 

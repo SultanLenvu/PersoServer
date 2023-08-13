@@ -2,6 +2,7 @@
 #define MAINWINDOWKERNEL_H
 
 #include <QMainWindow>
+#include <QSettings>
 #include <QString>
 
 #include "gui.h"
@@ -32,7 +33,7 @@ class MainWindowKernel : public QMainWindow {
   GlobalLogSystem* LogSystem;
   UserInteractionSystem* InteractionSystem;
 
-  UserSettings* Settings;
+  QSettings* Settings;
 
  public:
   MainWindowKernel(QWidget* parent = nullptr);
@@ -42,6 +43,9 @@ class MainWindowKernel : public QMainWindow {
 
  public slots:
   void openMasterInterface_slot(void);
+
+  void startServer_slot(void);
+  void stopServer_slot(void);
 
   // Функционал для работы с базой данных
   void connectDataBase_slot(void);

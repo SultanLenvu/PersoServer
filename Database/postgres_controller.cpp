@@ -1,9 +1,11 @@
 #include "postgres_controller.h"
 
-PostgresController::PostgresController(QObject* parent)
+PostgresController::PostgresController(QObject* parent,
+                                       const QString& connectionName)
     : DatabaseControllerInterface(parent) {
   setObjectName("PostgresController");
 
+  ConnectionName = connectionName;
   HostAddress = POSTGRES_SERVER_DEFAULT_IP;
   Port = POSTGRES_SERVER_DEFAULT_PORT;
   DatabaseName = POSTGRES_DATABASE_DEFAULT_NAME;
@@ -13,6 +15,15 @@ PostgresController::PostgresController(QObject* parent)
   createDatabase();
 
   CurrentRequest = nullptr;
+}
+
+PostgresController::~PostgresController() {
+  if (Postgres.isValid()) {
+    // Закрываем соединение
+    Postgres.close();
+    // Удаляем соединение
+    Postgres.removeDatabase(ConnectionName);
+  }
 }
 
 void PostgresController::connect() {
@@ -36,29 +47,27 @@ void PostgresController::disconnect() {
 }
 
 void PostgresController::getObuByPAN(const QString& pan,
-                                     QVector<QString>* result) {}
+                                     DatabaseBuffer* buffer) {}
 
 void PostgresController::getObuBySerialNumber(const uint32_t serial,
-                                              QVector<QString>* result) {}
+                                              DatabaseBuffer* buffer) {}
 
 void PostgresController::getObuByUCID(const QString& ucid,
-                                      QVector<QString>* result) {}
+                                      DatabaseBuffer* buffer) {}
 
-void PostgresController::getObuListByContextMark(
-    const QString& cm,
-    QVector<QVector<QString>>* result) {}
+void PostgresController::getObuListByContextMark(const QString& cm,
+                                                 DatabaseBuffer* buffer) {}
 
-void PostgresController::getObuListBySerialNumber(
-    const uint32_t serialBegin,
-    const uint32_t serialEnd,
-    QVector<QVector<QString>>* result) {}
+void PostgresController::getObuListBySerialNumber(const uint32_t serialBegin,
+                                                  const uint32_t serialEnd,
+                                                  DatabaseBuffer* buffer) {}
 
 void PostgresController::getObuListByPAN(const uint32_t panBegin,
                                          const uint32_t panEnd,
-                                         QVector<QVector<QString>>* result) {}
+                                         DatabaseBuffer* buffer) {}
 
 void PostgresController::execCustomRequest(const QString& req,
-                                           QVector<QVector<QString>>* result) {
+                                           DatabaseBuffer* buffer) {
   if (!Postgres.isOpen()) {
     emit logging("Соединение с Postgres не установлено. ");
     return;
@@ -71,20 +80,8 @@ void PostgresController::execCustomRequest(const QString& req,
 
   if (CurrentRequest->exec(req)) {
     emit logging("Ответ получен. ");
-    // Обработка результатов запроса
-
-    QSqlRecord record = CurrentRequest->record();
-
-    for (int32_t i = 0; i < CurrentRequest->record().count(); i++)
-      emit logging(CurrentRequest->record().fieldName(i));
-
-    while (CurrentRequest->next()) {
-      emit logging("Значение: " + CurrentRequest->value(0).toString());
-    }
-    //    emit operationExecutionEnd(Complete,
-    //                               CurrentRequest->value());
-    // SELECT column_name FROM information_schema.columns WHERE
-    // table_name='obulist';
+    // Преобразование результатов запроса
+    convertResponseToBuffer(buffer);
   } else {
     // Обработка ошибки выполнения запроса
     emit logging("Ошибка выполнения запроса: " +
@@ -92,10 +89,16 @@ void PostgresController::execCustomRequest(const QString& req,
   }
 }
 
-void PostgresController::applySettings(UserSettings* settings) {}
+void PostgresController::applySettings(QSettings* settings) {
+  HostAddress = settings->value("Database/Server/HostAddress").toString();
+  Port = settings->value("Database/Server/Port").toInt();
+  DatabaseName = settings->value("Database/Name").toString();
+  UserName = settings->value("Database/User/Name").toString();
+  Password = settings->value("Database/User/Password").toString();
+}
 
 void PostgresController::createDatabase() {
-  Postgres = QSqlDatabase::addDatabase("QPSQL", "postgres");
+  Postgres = QSqlDatabase::addDatabase("QPSQL", ConnectionName);
 
   Postgres.setHostName(HostAddress.toString());
   Postgres.setPort(Port);
@@ -104,4 +107,33 @@ void PostgresController::createDatabase() {
   Postgres.setPassword(Password);
 }
 
-void PostgresController::checkConnection() {}
+void PostgresController::convertResponseToBuffer(DatabaseBuffer* buffer) {
+  int32_t i = 0, j = 0;
+
+  QVector<QVector<QString>*>* data = new QVector<QVector<QString>*>();
+  QVector<QString>* headers = new QVector<QString>();
+
+  // Заголовки таблицы
+  for (i = 0; i < CurrentRequest->record().count(); i++)
+    headers->append(CurrentRequest->record().fieldName(i));
+
+  // Данные таблицы
+  i = 0;
+  while (CurrentRequest->next()) {
+    // Получение информации о столбцах записи
+    QSqlRecord record = CurrentRequest->record();
+
+    QVector<QString>* row = new QVector<QString>;
+
+    // Перебор столбцов записи и вывод в лог
+    for (j = 0; j < record.count(); ++j) {
+      row->append(CurrentRequest->value(j).toString());
+    }
+    data->append(row);
+
+    i++;
+  }
+
+  // Строим буффер для отображения
+  buffer->build(headers, data);
+}

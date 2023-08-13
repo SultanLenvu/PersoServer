@@ -11,6 +11,8 @@ class GUI_Initial : public GUI {
  public:
   QGroupBox* InitialMenuGroup;
   QVBoxLayout* InitialMenuLayout;
+  QPushButton* StartServerPushButton;
+  QPushButton* StopServerPushButton;
   QPushButton* OpenMasterPushButton;
   QSpacerItem* ConnectButtonSpacer;
 

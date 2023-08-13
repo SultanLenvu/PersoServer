@@ -4,14 +4,16 @@
 #include <QElapsedTimer>
 #include <QList>
 #include <QObject>
+#include <QSettings>
+#include <QTcpServer>
 #include <QThread>
 #include <QTimer>
-#include <Qvector>
+#include <QVector>
 
-#include <QDebug>
-
+#include "Database/database_buffer.h"
 #include "Database/database_controller_interface.h"
 #include "Database/postgres_controller.h"
+#include "perso_server.h"
 #include "user_settings.h"
 
 /* Ядро управления сервером */
@@ -20,49 +22,48 @@
 class PersoManager : public QObject {
   Q_OBJECT
 
- public:
-  enum OperationStatus { Completed, Failed };
-
  private:
-  OperationStatus LastOperationStatus;
-  QThread* ExecutionThread;
+  PersoServer* Server;
+  QThread* ServerThread;
 
   DatabaseControllerInterface* DatabaseController;
-  QVector<QVector<QString>> DatabaseLastResponse;
+  DatabaseBuffer* Buffer;
 
-  QTimer* DelayTimer;
-  bool ReadyFlag;
-  QElapsedTimer DurationTimer;
-  bool EndlessOption;
+  QSettings* UserSettings;
 
  public:
   PersoManager(QObject* parent);
   ~PersoManager();
+
+  DatabaseBuffer* buffer(void);
+
+  // Функции для работы с сервером
+  void startServer(void);
+  void stopServer(void);
 
   // Функции для работы с контроллером базы данных
   void connectDatabase(void);
   void disconnectDatabase(void);
   void performCustomSqlRequest(const QString& req);
 
-  void applySettings(UserSettings* settings) const;
-
- public slots:
+  void userSettings(void);
 
  private:
   // Фабричные функции
+  void createServerInstance(void);
 
  private slots:
-  void delayEnd(void);
   void proxyLogging(const QString& log);
 
- private:
-  void clearDatabaseLastResponse(void);
-  void logDatabaseReponse(void);
+  void serverThreadFinished(void);
 
  signals:
   void logging(const QString& log);
   void notifyUser(const QString& data);
   void notifyUserAboutError(const QString& data);
+
+  void serverStart_request(void);
+  void serverStop_request(void);
 };
 
 //==================================================================================

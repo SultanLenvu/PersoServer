@@ -18,7 +18,13 @@ QWidget* GUI_Master::create() {
   return MainWidget;
 }
 
-void GUI_Master::update() {}
+void GUI_Master::update() {
+  DataBaseBufferView->resizeColumnsToContents();
+  DataBaseBufferView->update();
+
+  NewObuListTableView->resizeColumnsToContents();
+  NewObuListTableView->update();
+}
 
 void GUI_Master::createTabs() {
   Tabs = new QTabWidget();
@@ -29,6 +35,9 @@ void GUI_Master::createTabs() {
 
   // Контруируем вкладку для настройки DTR
   createDataBaseTab();
+
+  // Конструируем вкладку интерфейса инициализации транспондеров
+  createObuInitializationTab();
 
   // Конструируем вкладку настроек
   createSettingsTab();
@@ -81,6 +90,64 @@ void GUI_Master::createDataBaseTab() {
   // Настройка пропорции между объектами на макете
   DataBaseMainLayout->setStretch(0, 1);
   DataBaseMainLayout->setStretch(1, 3);
+}
+
+void GUI_Master::createObuInitializationTab() {
+  ObuInitTab = new QWidget();
+  Tabs->addTab(ObuInitTab, "Инициализация");
+
+  // Основной макет для интерфейса инициализации транспондеров
+  ObuInitTabMainLayout = new QHBoxLayout();
+  ObuInitTab->setLayout(ObuInitTabMainLayout);
+
+  // Панель управления инициализацией транспондеров
+  ObuInitControlPanel = new QGroupBox("Панель управления");
+  ObuInitTabMainLayout->addWidget(ObuInitControlPanel);
+
+  ObuInitControlPanelLayout = new QVBoxLayout();
+  ObuInitControlPanel->setLayout(ObuInitControlPanelLayout);
+
+  PanFormatRadioButton = new QRadioButton("Формат PAN");
+  ObuInitControlPanelLayout->addWidget(PanFormatRadioButton);
+  PanFormatRadioButton = new QRadioButton("Формат SN+PAN");
+  ObuInitControlPanelLayout->addWidget(PanFormatRadioButton);
+
+  ObuInitControlPanelSubLayout = new QHBoxLayout();
+  ObuInitControlPanelLayout->addLayout(ObuInitControlPanelSubLayout);
+
+  InitFilePathLabel = new QLabel("Путь к файлу инициализации");
+  ObuInitControlPanelSubLayout->addWidget(InitFilePathLabel);
+
+  InitFilePathLineEdit = new QLineEdit();
+  ObuInitControlPanelSubLayout->addWidget(InitFilePathLineEdit);
+  InitNewObuListPushButton = new QPushButton("Обзор");
+  ObuInitControlPanelSubLayout->addWidget(InitNewObuListPushButton);
+
+  InitNewObuListPushButton = new QPushButton("Инициализировать транспондеры");
+  ObuInitControlPanelLayout->addWidget(InitNewObuListPushButton);
+
+  ObuInitControlPanelVS =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  ObuInitControlPanelLayout->addItem(ObuInitControlPanelVS);
+
+  // Панель управления инициализацией транспондеров
+  NewObuListPanel = new QGroupBox("Список инициализации");
+  ObuInitTabMainLayout->addWidget(NewObuListPanel);
+
+  NewObuListLayout = new QVBoxLayout();
+  NewObuListPanel->setLayout(NewObuListLayout);
+
+  NewObuListTableView = new QTableView();
+  NewObuListLayout->addWidget(NewObuListTableView);
+
+  // Сжатие по горизонтали
+  ObuInitTabMainLayoutHS =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  ObuInitTabMainLayout->addItem(ObuInitTabMainLayoutHS);
+
+  // Настройка пропорции между объектами на макете
+  ObuInitTabMainLayout->setStretch(0, 2);
+  ObuInitTabMainLayout->setStretch(1, 2);
 }
 
 void GUI_Master::createSecurityTab(void) {

@@ -19,5 +19,6 @@ void UserInteractionSystem::getUserInputKey(QString& key) {
                               nullptr);
 }
 
-void UserInteractionSystem::getPersoInitData(QString& data) {
+void UserInteractionSystem::getPathToFile(QString& filePath) {
+  filePath = QFileDialog::getOpenFileName(0, "Выберите файл", "", "*.csv");
 }

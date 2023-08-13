@@ -14,7 +14,10 @@ SOURCES += \
     GUI/gui_initial.cpp \
     GUI/gui_master.cpp \
     Database/postgres_controller.cpp \
+    Management/obu_initializator.cpp \
+    Management/perso_client_connection.cpp \
     Management/perso_manager.cpp \
+    Management/perso_server.cpp \
     main.cpp \
     GUI/main_window_kernel.cpp \
     GUI/gui.cpp \
@@ -35,7 +38,10 @@ HEADERS += \
     General/definitions.h \
     Database/postgres_controller.h \
     Management/log_system.h \
+    Management/obu_initializator.h \
+    Management/perso_client_connection.h \
     Management/perso_manager.h \
+    Management/perso_server.h \
     Management/user_settings.h
 
 # Default rules for deployment.

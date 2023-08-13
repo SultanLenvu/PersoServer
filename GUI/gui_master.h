@@ -34,6 +34,33 @@ class GUI_Master : public GUI {
   QTableView* DataBaseBufferView;
   //============================================================
 
+  /* Меню инициализации транспондеров */
+  //============================================================
+  QWidget* ObuInitTab;
+  QHBoxLayout* ObuInitTabMainLayout;
+
+  QGroupBox* ObuInitControlPanel;
+  QVBoxLayout* ObuInitControlPanelLayout;
+
+  QLabel* InitFilePathLabel;
+  QButtonGroup* InitFileFormatChoiceButtonGroup;
+  QRadioButton* PanFormatRadioButton;
+  QRadioButton* SnPanFormatRadioButton;
+
+  QHBoxLayout* ObuInitControlPanelSubLayout;
+  QLineEdit* InitFilePathLineEdit;
+  QPushButton* InitFileExplorePushButton;
+
+  QPushButton* InitNewObuListPushButton;
+  QSpacerItem* ObuInitControlPanelVS;
+
+  QGroupBox* NewObuListPanel;
+  QVBoxLayout* NewObuListLayout;
+  QTableView* NewObuListTableView;
+
+  QSpacerItem* ObuInitTabMainLayoutHS;
+  //============================================================
+
   /* Настройки безопасности */
   //============================================================
   QWidget* SecurityTab;
@@ -80,6 +107,7 @@ class GUI_Master : public GUI {
  private:
   void createTabs(void);
   void createDataBaseTab(void);
+  void createObuInitializationTab(void);
   void createSecurityTab(void);
   void createSettingsTab(void);
 
