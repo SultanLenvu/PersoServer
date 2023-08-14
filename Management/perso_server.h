@@ -20,6 +20,8 @@ class PersoServer : public QTcpServer {
   QList<PersoClientConnection*> Clients;
   bool PauseIndicator;
 
+  DatabaseControllerInterface* Database;
+
   QSettings* Settings;
   QMutex* Mutex;
 

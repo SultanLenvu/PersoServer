@@ -24,15 +24,6 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
           &PersoClientConnection::on_SocketDisconnected_slot);
   connect(Socket, &QTcpSocket::disconnected, Socket, &QTcpSocket::deleteLater);
 
-  // Интерфейс для доступа к базе данных
-  Database = new PostgresController(
-      this, QString("Client %1 database connection").arg(QString::number(ID)));
-  connect(Database, &DatabaseControllerInterface::logging, this,
-          &PersoClientConnection::proxyLogging);
-  // Настраиваем контроллер базы данных
-  Database->applySettings(Settings);
-  Database->connect();
-
   // Таймер для отсчета времени экспирации
   ExpirationTimer = new QTimer(this);
   ExpirationTimer->setInterval(CLIENT_CONNECTION_MAX_DURATION);
@@ -47,10 +38,6 @@ uint32_t PersoClientConnection::getId() {
   return ID;
 }
 
-void PersoClientConnection::startInctance() {
-  emit logging("Среда выполнения запущена. ");
-}
-
 void PersoClientConnection::instanceTesting() {
   if (thread() != QApplication::instance()->thread())
     emit logging("Отдельный поток выделен. ");
@@ -58,11 +45,72 @@ void PersoClientConnection::instanceTesting() {
     emit logging("Отдельный поток не выделен. ");
 }
 
-void PersoClientConnection::echoRequestProcessing() {
-  Socket->write(ReceivedData);
+void PersoClientConnection::processingReceivedRawData() {
+  QJsonParseError status;
+  CurrentCommand = QJsonDocument::fromJson(ReceivedRawData, &status);
+
+  // Если пришел некорректный JSON
+  if (status.error != QJsonParseError::NoError) {
+    emit logging("Ошибка парсинга JSON команды. ");
+    return;
+  }
+
+  // Выделяем список пар ключ-значение из JSON-файла
+  QJsonObject CommandObject = CurrentCommand.object();
+
+  // Синтаксическая проверка
+  if (CommandObject.value("CommandName") != QJsonValue::Undefined) {
+    emit logging(
+        "Обнаружена синтаксическая ошибка: в запросе отсутствует название "
+        "команды. ");
+    return;
+  }
+
+  // Вызываем соответствующий обработчик команды
+  if (CommandObject.value("CommandName").toString() == "EchoRequest") {
+    echoRequestProcessing(&CommandObject);
+  } else {
+    emit logging(
+        "Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
+  }
+
+  // Отправляем ответ на команду
+  transmitResponseRawData();
 }
 
-void PersoClientConnection::getFirmwareProcessing() {}
+void PersoClientConnection::transmitResponseRawData() {
+  QByteArray transmittedRawData;
+  QDataStream serializator(transmittedRawData);
+  serializator.setVersion(QDataStream::Qt_5_12);
+
+  // Формируем единый блок данных для отправки
+  serializator << uint32_t(0) << CurrentResponse;
+  serializator.device()->seek(0);
+  serializator << uint32_t(transmittedRawData.size() - sizeof(uint32_t));
+
+  // Отправляем сформируем блок данных
+  Socket->write(transmittedRawData);
+}
+
+void PersoClientConnection::echoRequestProcessing(QJsonObject* commandJson) {
+  CurrentResponse.setObject(QJsonObject());
+  QJsonObject responseJson = CurrentResponse.object();
+
+  // Заголовок ответа на команду
+  responseJson["CommandName"] = "EchoResponse";
+
+  if (commandJson->value("EchoData") != QJsonValue::Undefined) {
+    responseJson["EchoData"] = commandJson->value("EchoData");
+  } else {
+    emit logging(
+        "Обнаружена синтаксическая ошибка в команде EchoRequest: отсутствуют "
+        "эхо-данные. ");
+  }
+
+  Socket->write(ReceivedRawData);
+}
+
+void PersoClientConnection::getFirmwareProcessing(QJsonObject* json) {}
 
 void PersoClientConnection::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PostgresController")
@@ -72,11 +120,42 @@ void PersoClientConnection::proxyLogging(const QString& log) {
 }
 
 void PersoClientConnection::on_SocketReadyRead_slot() {
-  ReceivedData = Socket->readAll();
+  uint32_t blockSize = 0;              // Размер блока
+  QDataStream deserializator(Socket);  // Дессериализатор
+  deserializator.setVersion(
+      QDataStream::Qt_5_12);  // Настраиваем версию сериализатора
 
-  emit logging("Получены данные: " + ReceivedData);
+  while (true) {
+    // Если блок данных еще не начал формироваться
+    if (!blockSize) {
+      // Если размер поступивших байт меньше размера поля с размером байт, то
+      // блок поступившие данные отбрасываются
+      if (Socket->bytesAvailable() < sizeof(uint32_t)) {
+        break;
+      }
+      deserializator >> blockSize;
 
-  echoRequestProcessing();
+      emit logging(QString("Размер полученного блока данных: %1.")
+                       .arg(QString::number(blockSize)));
+    }
+
+    // Дожидаемся пока весь блок данных придет целиком
+    if (Socket->bytesAvailable() < blockSize) {
+      emit logging(
+          "Блок получен не целиком. Ожидается прием следующих частей. ");
+      break;
+    }
+
+    // Если блок был получен целиком, то осуществляем его дессериализацию
+    deserializator >> ReceivedRawData;
+    emit logging("Блок полученных данных: " + ReceivedRawData);
+
+    // Выходим
+    break;
+  }
+
+  // Осуществляем обработку полученных данных
+  processingReceivedRawData();
 }
 
 void PersoClientConnection::on_SocketDisconnected_slot() {

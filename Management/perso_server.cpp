@@ -7,6 +7,13 @@ PersoServer::PersoServer(QObject* parent, QSettings* settings)
   Settings = settings;
 
   PauseIndicator = false;
+
+  // Интерфейс для централизованного доступа к базе данных
+  Database = new PostgresController(this, QString("ServerConnection"));
+  connect(Database, &DatabaseControllerInterface::logging, this,
+          &PersoServer::proxyLogging);
+  // Настраиваем контроллер базы данных
+  Database->applySettings(Settings);
 }
 
 PersoServer::~PersoServer() {
@@ -26,6 +33,9 @@ void PersoServer::start() {
     emit logging("Сервер запущен в главном потоке. ");
   else
     emit logging("Сервер запущен в отдельном потоке. ");
+
+  // Подключаемся к базе данных
+  Database->connect();
 }
 
 void PersoServer::stop() {

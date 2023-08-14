@@ -2,6 +2,9 @@
 #define PERSOCLIENTCONNECTION_H
 
 #include <QApplication>
+#include <QDataStream>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QObject>
 #include <QTcpSocket>
 #include <QThread>
@@ -20,8 +23,10 @@ class PersoClientConnection : public QObject {
   QSettings* Settings;
 
   QTcpSocket* Socket;
-  QByteArray ReceivedData;
-  DatabaseControllerInterface* Database;
+
+  QByteArray ReceivedRawData;
+  QJsonDocument CurrentCommand;
+  QJsonDocument CurrentResponse;
 
   QTimer* ExpirationTimer;
 
@@ -34,12 +39,14 @@ class PersoClientConnection : public QObject {
   uint32_t getId(void);
 
  public slots:
-  void startInctance(void);
   void instanceTesting(void);
 
  private:
-  void echoRequestProcessing(void);
-  void getFirmwareProcessing(void);
+  void processingReceivedRawData(void);
+  void transmitResponseRawData(void);
+
+  void echoRequestProcessing(QJsonObject* json);
+  void getFirmwareProcessing(QJsonObject* json);
 
  private slots:
   void proxyLogging(const QString& log);
