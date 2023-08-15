@@ -1,36 +1,29 @@
 #include "log_system.h"
 
-GlobalLogSystem::GlobalLogSystem(QObject* parent) : QObject(parent) {
+LogSystem::LogSystem(QObject* parent) : QObject(parent) {
   EnableIndicator = true;
 }
 
-GlobalLogSystem::~GlobalLogSystem() {}
+LogSystem::~LogSystem() {}
 
-void GlobalLogSystem::clear() {
-  emit clearLogDisplayRequest();
+void LogSystem::clear() {
+  emit requestClearDisplayLog();
 }
 
-void GlobalLogSystem::setEnable(bool option) {
+void LogSystem::setEnable(bool option) {
   EnableIndicator = option;
 }
 
-void GlobalLogSystem::dtrLogging(const QString& log) {
-  generalLogging(QString("DTR"), log);
-}
+void LogSystem::generate(const QString& log) {
+  if (!EnableIndicator) {
+    return;
+  }
 
-void GlobalLogSystem::managerLogging(const QString& log) {
-  generalLogging(QString("Manager"), log);
+  QTime time = QDateTime::currentDateTime().time();
+  QString LogData = time.toString("hh:mm:ss.zzz - ") + log;
+  emit requestDisplayLog(LogData);
 }
 
 /*
  * Приватные методы
  */
-
-void GlobalLogSystem::generalLogging(QString sender, QString log) {
-  if (EnableIndicator == true) {
-    QTime time = QDateTime::currentDateTime().time();
-    QString LogData =
-        time.toString("hh:mm:ss.zzz - ") + sender + QString(" - ") + log;
-    emit displayLogRequest(LogData);
-  }
-}

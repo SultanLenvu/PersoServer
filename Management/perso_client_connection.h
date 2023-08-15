@@ -24,7 +24,6 @@ class PersoClientConnection : public QObject {
 
   QTcpSocket* Socket;
 
-  QByteArray ReceivedRawData;
   QJsonDocument CurrentCommand;
   QJsonDocument CurrentResponse;
 
@@ -42,11 +41,11 @@ class PersoClientConnection : public QObject {
   void instanceTesting(void);
 
  private:
-  void processingReceivedRawData(void);
-  void transmitResponseRawData(void);
+  void processingReceivedDataBlock(QByteArray* dataBlock);
+  void transmitSerializedData(void);
 
-  void echoRequestProcessing(QJsonObject* json);
-  void getFirmwareProcessing(QJsonObject* json);
+  void processingEchoRequest(QJsonObject* commandJson);
+  void processingFirmwareRequest(QJsonObject* commandJson);
 
  private slots:
   void proxyLogging(const QString& log);

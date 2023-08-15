@@ -7,7 +7,7 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   // Графический интерфейс пока не создан
   CurrentGUI = nullptr;
   Manager = nullptr;
-  LogSystem = nullptr;
+  Logger = nullptr;
 
   // Создаем графический интерфейс окна начальной конфигурации
   createInitialInterface();
@@ -27,6 +27,13 @@ MainWindowKernel::~MainWindowKernel() {}
 
 PersoManager* MainWindowKernel::manager() {
   return Manager;
+}
+
+void MainWindowKernel::proxyLogging(const QString& log) {
+  if (sender()->objectName() == QString("PersoManager"))
+    emit logging(QString("Manager - ") + log);
+  else
+    emit logging(QString("Unknown - ") + log);
 }
 
 void MainWindowKernel::openMasterInterface_slot() {
@@ -174,6 +181,8 @@ void MainWindowKernel::setupInterructionSystem() {
 
 void MainWindowKernel::setupManager(void) {
   Manager = new PersoManager(this);
+  connect(Manager, &PersoManager::logging, this,
+          &MainWindowKernel::proxyLogging);
   connect(Manager, &PersoManager::notifyUser, InteractionSystem,
           &UserInteractionSystem::generateNotification);
   connect(Manager, &PersoManager::notifyUserAboutError, InteractionSystem,
@@ -181,12 +190,10 @@ void MainWindowKernel::setupManager(void) {
 }
 
 void MainWindowKernel::setupLogSystem() {
-  delete LogSystem;
-  LogSystem = new GlobalLogSystem(this);
-  connect(Manager, &PersoManager::logging, LogSystem,
-          &GlobalLogSystem::managerLogging);
-  connect(LogSystem, &GlobalLogSystem::displayLogRequest, CurrentGUI,
-          &GUI::displayLog);
-  connect(LogSystem, &GlobalLogSystem::clearLogDisplayRequest, CurrentGUI,
+  delete Logger;
+  Logger = new LogSystem(this);
+  connect(this, &MainWindowKernel::logging, Logger, &LogSystem::generate);
+  connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
+  connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
           &GUI::clearLogDisplay);
 }

@@ -45,72 +45,150 @@ void PersoClientConnection::instanceTesting() {
     emit logging("Отдельный поток не выделен. ");
 }
 
-void PersoClientConnection::processingReceivedRawData() {
+void PersoClientConnection::processingReceivedDataBlock(QByteArray* dataBlock) {
   QJsonParseError status;
-  CurrentCommand = QJsonDocument::fromJson(ReceivedRawData, &status);
+  CurrentCommand = QJsonDocument::fromJson(*dataBlock, &status);
 
   // Если пришел некорректный JSON
   if (status.error != QJsonParseError::NoError) {
     emit logging("Ошибка парсинга JSON команды. ");
     return;
+  } else {
+    emit logging("Обработка полученного блока данных. ");
   }
 
   // Выделяем список пар ключ-значение из JSON-файла
   QJsonObject CommandObject = CurrentCommand.object();
 
   // Синтаксическая проверка
-  if (CommandObject.value("CommandName") != QJsonValue::Undefined) {
+  if (CommandObject.value("CommandName") == QJsonValue::Undefined) {
     emit logging(
-        "Обнаружена синтаксическая ошибка: в запросе отсутствует название "
-        "команды. ");
+        "Обнаружена синтаксическая ошибка: отсутствует название команды. ");
     return;
   }
 
   // Вызываем соответствующий обработчик команды
   if (CommandObject.value("CommandName").toString() == "EchoRequest") {
-    echoRequestProcessing(&CommandObject);
+    processingEchoRequest(&CommandObject);
+  } else if (CommandObject.value("CommandName").toString() ==
+             "FirmwareRequest") {
+    processingFirmwareRequest(&CommandObject);
   } else {
     emit logging(
         "Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
+    return;
   }
 
   // Отправляем ответ на команду
-  transmitResponseRawData();
+  transmitSerializedData();
 }
 
-void PersoClientConnection::transmitResponseRawData() {
-  QByteArray transmittedRawData;
-  QDataStream serializator(transmittedRawData);
+void PersoClientConnection::transmitSerializedData() {
+  QByteArray serializedData;
+  QDataStream serializator(&serializedData, QIODevice::WriteOnly);
   serializator.setVersion(QDataStream::Qt_5_12);
 
+  emit logging("Отправляемый блок данных: " +
+               CurrentResponse.toJson(QJsonDocument::Compact));
+  emit logging(
+      QString::number(CurrentResponse.toJson(QJsonDocument::Compact).size()));
+
   // Формируем единый блок данных для отправки
-  serializator << uint32_t(0) << CurrentResponse;
+  serializator << uint32_t(0) << CurrentResponse.toJson(QJsonDocument::Compact);
   serializator.device()->seek(0);
-  serializator << uint32_t(transmittedRawData.size() - sizeof(uint32_t));
+  serializator << uint32_t(serializedData.size() - sizeof(uint32_t));
+
+  emit logging(
+      QString::number(uint32_t(serializedData.size() - sizeof(uint32_t))));
 
   // Отправляем сформируем блок данных
-  Socket->write(transmittedRawData);
+  Socket->write(serializedData);
 }
 
-void PersoClientConnection::echoRequestProcessing(QJsonObject* commandJson) {
-  CurrentResponse.setObject(QJsonObject());
-  QJsonObject responseJson = CurrentResponse.object();
+void PersoClientConnection::processingEchoRequest(QJsonObject* commandJson) {
+  emit logging("Выполнение команды EchoRequest. ");
+
+  // Синтаксическая проверка
+  if (commandJson->value("EchoData") == QJsonValue::Undefined) {
+    emit logging(
+        "Обнаружена синтаксическая ошибка в команде EchoRequest: отсутствуют "
+        "эхо-данные. ");
+    return;
+  }
+
+  QJsonObject responseJson;
 
   // Заголовок ответа на команду
   responseJson["CommandName"] = "EchoResponse";
 
-  if (commandJson->value("EchoData") != QJsonValue::Undefined) {
-    responseJson["EchoData"] = commandJson->value("EchoData");
-  } else {
-    emit logging(
-        "Обнаружена синтаксическая ошибка в команде EchoRequest: отсутствуют "
-        "эхо-данные. ");
-  }
+  // Данные
+  responseJson["EchoData"] = commandJson->value("EchoData");
 
-  Socket->write(ReceivedRawData);
+  CurrentResponse.setObject(responseJson);
+
+  // Сериализация и отправка
+  transmitSerializedData();
 }
 
-void PersoClientConnection::getFirmwareProcessing(QJsonObject* json) {}
+void PersoClientConnection::processingFirmwareRequest(
+    QJsonObject* commandJson) {
+  emit logging("Выполнение команды FirmwareRequest. ");
+
+  //  // Синтаксическая проверка
+  //  if (commandJson->value("UCID") == QJsonValue::Undefined) {
+  //    emit logging(
+  //        "Обнаружена синтаксическая ошибка в команде EchoRequest: отсутствуют
+  //        " "эхо-данные. ");
+  //    return;
+  //  }
+
+  //  QJsonObject responseJson;
+
+  //  // Заголовок ответа на команду
+  //  responseJson["CommandName"] = "FirmwareResponse";
+
+  //  // Данные
+  //  QFile firmware("firmware.hex");
+  //  if (firmware.open(QIODevice::ReadOnly)) {
+  //    responseJson["Firmware"] = QString::fromUtf8(firmware.readAll());
+  //    firmware.close();
+  //  } else {
+  //    emit logging("Не найден файл прошивки. ");
+  //  }
+
+  //  CurrentResponse.setObject(responseJson);
+
+  //  // Сериализация и отправка
+  //  transmitSerializedData();
+
+  QFile firmware("firmware.hex");
+  QFileInfo firmwareInfo(firmware);
+  if (!firmware.open(QIODevice::ReadOnly)) {
+    emit logging("Не найден файл прошивки. ");
+    return;
+  }
+
+  uint32_t dataBlockSize = firmwareInfo.size();
+  QVector<QByteArray*> dataBlock;
+
+  emit logging(QString("Размер файла прошивки: %1.")
+                   .arg(QString::number(dataBlockSize)));
+
+  char buffer[10240];
+  uint32_t bytesRead = 0;
+
+  for (uint32_t i = 0; i < dataBlockSize; i += bytesRead) {
+    bytesRead = bytesRead = firmware.read(buffer, 10240);
+    dataBlock.append(new QByteArray(buffer, bytesRead));
+    emit logging(
+        QString("Размер %1 части блока данных %2.")
+            .arg(dataBlock.size())
+            .arg(QString::number(dataBlock.at(dataBlock.size() - 1)->size())));
+  }
+
+  emit logging(QString("Блок данных состоит из %1 частей.")
+                   .arg(QString::number(dataBlock.size())));
+}
 
 void PersoClientConnection::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PostgresController")
@@ -120,6 +198,7 @@ void PersoClientConnection::proxyLogging(const QString& log) {
 }
 
 void PersoClientConnection::on_SocketReadyRead_slot() {
+  QByteArray dataBlock;                // Блок данных
   uint32_t blockSize = 0;              // Размер блока
   QDataStream deserializator(Socket);  // Дессериализатор
   deserializator.setVersion(
@@ -147,15 +226,15 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
     }
 
     // Если блок был получен целиком, то осуществляем его дессериализацию
-    deserializator >> ReceivedRawData;
-    emit logging("Блок полученных данных: " + ReceivedRawData);
+    deserializator >> dataBlock;
+    emit logging("Блок полученных данных: " + dataBlock);
 
     // Выходим
     break;
   }
 
   // Осуществляем обработку полученных данных
-  processingReceivedRawData();
+  processingReceivedDataBlock(&dataBlock);
 }
 
 void PersoClientConnection::on_SocketDisconnected_slot() {

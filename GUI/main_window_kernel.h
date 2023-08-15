@@ -30,7 +30,7 @@ class MainWindowKernel : public QMainWindow {
   QAction* MasterInterfaceRequestAct;
 
   PersoManager* Manager;
-  GlobalLogSystem* LogSystem;
+  LogSystem* Logger;
   UserInteractionSystem* InteractionSystem;
 
   QSettings* Settings;
@@ -42,6 +42,7 @@ class MainWindowKernel : public QMainWindow {
   PersoManager* manager(void);
 
  public slots:
+  void proxyLogging(const QString& log);
   void openMasterInterface_slot(void);
 
   void startServer_slot(void);
@@ -70,6 +71,7 @@ class MainWindowKernel : public QMainWindow {
   void setupLogSystem(void);
 
  signals:
+  void logging(const QString& log);
   void notifyUser(const QString& data);
   void notifyUserAboutError(const QString& data);
   void requestUserInputKey(QString& key);
