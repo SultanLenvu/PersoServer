@@ -22,7 +22,7 @@ GUI::GUI_Type GUI::type()
 }
 
 void GUI::displayLog(const QString& data) {
-  if (LogDisplay->toPlainText().length() > 200000)
+  if (LogDisplay->toPlainText().length() > 500000)
     LogDisplay->clear();
 
   if (LogDisplay)

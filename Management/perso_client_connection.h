@@ -24,10 +24,15 @@ class PersoClientConnection : public QObject {
 
   QTcpSocket* Socket;
 
+  uint32_t ReceivedDataBlockSize;
+  QByteArray ReceivedDataBlock;
+  QByteArray TransmittedDataBlock;
+
   QJsonDocument CurrentCommand;
   QJsonDocument CurrentResponse;
 
   QTimer* ExpirationTimer;
+  QTimer* WaitTimer;
 
  public:
   explicit PersoClientConnection(uint32_t id,
@@ -41,8 +46,10 @@ class PersoClientConnection : public QObject {
   void instanceTesting(void);
 
  private:
-  void processingReceivedDataBlock(QByteArray* dataBlock);
-  void transmitSerializedData(void);
+  void processingDataBlock(void);
+
+  void createDataBlock(void);
+  void transmitDataBlock(void);
 
   void processingEchoRequest(QJsonObject* commandJson);
   void processingFirmwareRequest(QJsonObject* commandJson);
@@ -51,8 +58,10 @@ class PersoClientConnection : public QObject {
   void proxyLogging(const QString& log);
   void on_SocketReadyRead_slot(void);
   void on_SocketDisconnected_slot(void);
+  void on_SocketError_slot(QAbstractSocket::SocketError socketError);
 
   void on_ExpirationTimerTimeout_slot(void);
+  void on_WaitTimerTimeout_slot(void);
 
  signals:
   void disconnected(void);
