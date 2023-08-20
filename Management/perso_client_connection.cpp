@@ -274,9 +274,9 @@ void PersoClientConnection::on_SocketDisconnected_slot() {
 
 void PersoClientConnection::on_SocketError_slot(
     QAbstractSocket::SocketError socketError) {
-  emit logging(
-      QString("Ошибка сети: Код: %1. Описание: %2.")
-          .arg(QString::number(socketError).arg(Socket->errorString())));
+  emit logging(QString("Ошибка сети: Код: %1. Описание: %2.")
+                   .arg(QString::number(socketError))
+                   .arg(Socket->errorString()));
   Socket->close();
 }
 
