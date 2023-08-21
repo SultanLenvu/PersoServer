@@ -110,8 +110,9 @@ void PostgresController::getTable(const QString& tableName,
 
   QString requestText("SELECT * FROM ");
   requestText += tableName;
-  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
-                     .arg(QString::number(rowCount));
+  requestText += QString(";");
+  //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
+  //                     .arg(QString::number(rowCount));
   emit logging("Отправляемый запрос: " + requestText);
 
   if (CurrentRequest->exec(requestText)) {

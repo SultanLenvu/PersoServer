@@ -14,13 +14,9 @@ DatabaseBuffer::~DatabaseBuffer() {
 void DatabaseBuffer::build(QVector<QString>* headers,
                            QVector<QVector<QString>*>* data) {
   // Проверка на существование
-  if ((!headers) || (!data) || (!data->at(0))) {
+  if ((!headers) || (!data)) {
     return;
   }
-
-  // Проверка на соответствие
-  if (headers->size() != data->at(0)->size())
-    return;
 
   // Очищаем старые данные
   clear();

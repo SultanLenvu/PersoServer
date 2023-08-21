@@ -44,27 +44,27 @@ void PersoHost::stop() {
 }
 
 void PersoHost::getProductionLines(DatabaseBuffer* buffer) {
-  Database->getTable("ProductionLines", 10, buffer);
+  Database->getTable("production_lines", 10, buffer);
 }
 
 void PersoHost::getTransponders(DatabaseBuffer* buffer) {
-  Database->getTable("Transponders", 10, buffer);
+  Database->getTable("transponders", 10, buffer);
 }
 
 void PersoHost::getOrders(DatabaseBuffer* buffer) {
-  Database->getTable("Orders", 10, buffer);
+  Database->getTable("orders", 10, buffer);
 }
 
 void PersoHost::getIssuers(DatabaseBuffer* buffer) {
-  Database->getTable("Issuers", 10, buffer);
+  Database->getTable("issuers", 10, buffer);
 }
 
 void PersoHost::getBoxes(DatabaseBuffer* buffer) {
-  Database->getTable("Boxes", 10, buffer);
+  Database->getTable("boxes", 10, buffer);
 }
 
 void PersoHost::getPallets(DatabaseBuffer* buffer) {
-  Database->getTable("Pallets", 10, buffer);
+  Database->getTable("pallets", 10, buffer);
 }
 
 void PersoHost::getCustomResponse(const QString& req, DatabaseBuffer* buffer) {
