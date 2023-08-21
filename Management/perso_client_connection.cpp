@@ -198,8 +198,7 @@ void PersoClientConnection::processingFirmwareRequest(
   // Данные
   QFile firmware("firmware.hex");
   if (firmware.open(QIODevice::ReadOnly)) {
-    responseJson["FirmwareFile"] =
-        QString::fromUtf8(firmware.readAll().toBase64());
+    responseJson["FirmwareFile"] = QString::fromUtf8(firmware.readAll());
     firmware.close();
   } else {
     emit logging("Не найден файл прошивки. ");
