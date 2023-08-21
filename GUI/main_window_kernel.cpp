@@ -25,12 +25,12 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
 
 MainWindowKernel::~MainWindowKernel() {}
 
-PersoManager* MainWindowKernel::manager() {
+ServerManager* MainWindowKernel::manager() {
   return Manager;
 }
 
 void MainWindowKernel::proxyLogging(const QString& log) {
-  if (sender()->objectName() == QString("PersoManager"))
+  if (sender()->objectName() == QString("ServerManager"))
     emit logging(QString("Manager - ") + log);
   else
     emit logging(QString("Unknown - ") + log);
@@ -40,37 +40,78 @@ void MainWindowKernel::openMasterInterface_slot() {
   createMasterInterface();
 }
 
-void MainWindowKernel::startServer_slot() {
-  CurrentGUI->clearLogDisplay();
-  Manager->startServer();
+void MainWindowKernel::start_slot() {
+  Logger->clear();
+  Manager->start();
 }
 
-void MainWindowKernel::stopServer_slot() {
-  CurrentGUI->clearLogDisplay();
-  Manager->stopServer();
+void MainWindowKernel::stop_slot() {
+  Logger->clear();
+  Manager->stop();
 }
 
-void MainWindowKernel::connectDataBase_slot() {
-  CurrentGUI->clearLogDisplay();
-
-  Manager->connectDatabase();
+void MainWindowKernel::on_ConnectDataBasePushButton_slot() {
+  Logger->clear();
 }
 
-void MainWindowKernel::disconnectDataBase_slot() {
-  CurrentGUI->clearLogDisplay();
-
-  Manager->disconnectDatabase();
+void MainWindowKernel::on_DisconnectDataBasePushButton_slot() {
+  Logger->clear();
 }
 
-void MainWindowKernel::transamitCustomRequest_slot() {
-  CurrentGUI->clearLogDisplay();
+void MainWindowKernel::on_ShowProductionLineTablePushButton_slot() {
+  Logger->clear();
 
-  Manager->performCustomSqlRequest(
+  Manager->showProductionLines();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ShowTransponderTablePushButton_slot() {
+  Logger->clear();
+
+  Manager->showTransponders();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ShowOrderTablePushButton_slot() {
+  Logger->clear();
+
+  Manager->showOrders();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ShowIssuerTablePushButton_slot() {
+  Logger->clear();
+
+  Manager->showIssuers();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ShowBoxTablePushButton_slot() {
+  Logger->clear();
+
+  Manager->showBoxes();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ShowPalletPushButton_slot() {
+  Logger->clear();
+
+  Manager->showPallets();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
+  Logger->clear();
+
+  Manager->showCustomResponse(
       dynamic_cast<GUI_Master*>(CurrentGUI)->CustomRequestLineEdit->text());
 
-  //  dynamic_cast<GUI_Master*>(CurrentGUI)->DataBaseBufferView->setModel(nullptr);
-  //  dynamic_cast<GUI_Master*>(CurrentGUI)
-  //      ->DataBaseBufferView->setModel(Manager->buffer());
   CurrentGUI->update();
 }
 
@@ -115,14 +156,14 @@ void MainWindowKernel::connectInitialInterface() {
   connect(gui->OpenMasterPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::openMasterInterface_slot);
   connect(gui->StartServerPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::startServer_slot);
+          &MainWindowKernel::start_slot);
   connect(gui->StopServerPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::stopServer_slot);
+          &MainWindowKernel::stop_slot);
 }
 
 void MainWindowKernel::createMasterInterface() {
   QString key;
-  emit requestUserInputKey(key);
+  emit requestMasterPassword(key);
 
   if (key == MASTER_MODE_ACCESS_KEY) {
     // Удаляем предыдущий интерфейс
@@ -154,11 +195,25 @@ void MainWindowKernel::connectMasterInterface() {
 
   // Меню взаимодействия с базой данных
   connect(gui->ConnectDataBasePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::connectDataBase_slot);
+          &MainWindowKernel::on_ConnectDataBasePushButton_slot);
   connect(gui->DisconnectDataBasePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::disconnectDataBase_slot);
+          &MainWindowKernel::on_DisconnectDataBasePushButton_slot);
+
+  connect(gui->ShowProductionLineTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowProductionLineTablePushButton_slot);
+  connect(gui->ShowTransponderTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowTransponderTablePushButton_slot);
+  connect(gui->ShowOrderTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowOrderTablePushButton_slot);
+  connect(gui->ShowIssuerTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowIssuerTablePushButton_slot);
+  connect(gui->ShowBoxTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowBoxTablePushButton_slot);
+  connect(gui->ShowPalletPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowPalletPushButton_slot);
+
   connect(gui->TransmitCustomRequestPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::transamitCustomRequest_slot);
+          &MainWindowKernel::on_TransmitCustomRequestPushButton_slot);
 
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
@@ -173,19 +228,19 @@ void MainWindowKernel::setupInterructionSystem() {
   InteractionSystem = new UserInteractionSystem(this, this);
   connect(this, &MainWindowKernel::notifyUser, InteractionSystem,
           &UserInteractionSystem::generateNotification);
-  connect(this, &MainWindowKernel::requestUserInputKey, InteractionSystem,
-          &UserInteractionSystem::getUserInputKey);
+  connect(this, &MainWindowKernel::requestMasterPassword, InteractionSystem,
+          &UserInteractionSystem::getMasterPassword);
   connect(this, &MainWindowKernel::notifyUserAboutError, InteractionSystem,
           &UserInteractionSystem::generateError);
 }
 
 void MainWindowKernel::setupManager(void) {
-  Manager = new PersoManager(this);
-  connect(Manager, &PersoManager::logging, this,
+  Manager = new ServerManager(this);
+  connect(Manager, &ServerManager::logging, this,
           &MainWindowKernel::proxyLogging);
-  connect(Manager, &PersoManager::notifyUser, InteractionSystem,
+  connect(Manager, &ServerManager::notifyUser, InteractionSystem,
           &UserInteractionSystem::generateNotification);
-  connect(Manager, &PersoManager::notifyUserAboutError, InteractionSystem,
+  connect(Manager, &ServerManager::notifyUserAboutError, InteractionSystem,
           &UserInteractionSystem::generateError);
 }
 

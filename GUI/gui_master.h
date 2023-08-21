@@ -24,9 +24,18 @@ class GUI_Master : public GUI {
 
   QPushButton* ConnectDataBasePushButton;
   QPushButton* DisconnectDataBasePushButton;
+  QSpacerItem* PushButtonLayoutVS1;
+
+  QPushButton* ShowProductionLineTablePushButton;
+  QPushButton* ShowTransponderTablePushButton;
+  QPushButton* ShowOrderTablePushButton;
+  QPushButton* ShowIssuerTablePushButton;
+  QPushButton* ShowBoxTablePushButton;
+  QPushButton* ShowPalletPushButton;
+  QSpacerItem* PushButtonLayoutVS2;
+
   QPushButton* TransmitCustomRequestPushButton;
   QLineEdit* CustomRequestLineEdit;
-  QSpacerItem* PushButtonLayoutVS;
 
   // Отображение записей в БД
   QGroupBox* DataBaseBufferGroup;
@@ -91,10 +100,10 @@ class GUI_Master : public GUI {
   QCheckBox* UseServerPersoCheckBox;
   QLabel* ServerCommonKeyGenerationLabel;
   QCheckBox* ServerCommonKeyGenerationCheckBox;
-  QLabel* PersoServerIpAddressLabel;
-  QLineEdit* PersoServerIpAddressLineEdit;
-  QLabel* PersoServerPortLabel;
-  QLineEdit* PersoServerPortLineEdit;
+  QLabel* PersoHostIpAddressLabel;
+  QLineEdit* PersoHostIpAddressLineEdit;
+  QLabel* PersoHostPortLabel;
+  QLineEdit* PersoHostPortLineEdit;
   QLabel* localMasterKeyPathLabel;
   QLineEdit* localMasterKeyPathLineEdit;
   //============================================================

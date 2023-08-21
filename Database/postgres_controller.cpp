@@ -97,6 +97,34 @@ void PostgresController::applySettings(QSettings* settings) {
   Password = settings->value("Database/User/Password").toString();
 }
 
+void PostgresController::getTable(const QString& tableName,
+                                  uint32_t rowCount,
+                                  DatabaseBuffer* buffer) {
+  if (!Postgres.isOpen()) {
+    emit logging("Соединение с Postgres не установлено. ");
+    return;
+  }
+
+  delete CurrentRequest;
+  CurrentRequest = new QSqlQuery(Postgres);
+
+  QString requestText("SELECT * FROM ");
+  requestText += tableName;
+  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
+                     .arg(QString::number(rowCount));
+  emit logging("Отправляемый запрос: " + requestText);
+
+  if (CurrentRequest->exec(requestText)) {
+    emit logging("Ответ получен. ");
+    // Преобразование результатов запроса
+    convertResponseToBuffer(buffer);
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
+  }
+}
+
 void PostgresController::createDatabase() {
   Postgres = QSqlDatabase::addDatabase("QPSQL", ConnectionName);
 

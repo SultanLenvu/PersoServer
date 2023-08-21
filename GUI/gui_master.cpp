@@ -66,9 +66,34 @@ void GUI_Master::createDataBaseTab() {
   DisconnectDataBasePushButton = new QPushButton("Отключиться");
   DataBaseControlPanelLayout->addWidget(DisconnectDataBasePushButton);
 
-  PushButtonLayoutVS =
+  PushButtonLayoutVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  DataBaseControlPanelLayout->addItem(PushButtonLayoutVS);
+  DataBaseControlPanelLayout->addItem(PushButtonLayoutVS1);
+
+  ShowProductionLineTablePushButton = new QPushButton("Линии производства");
+  DataBaseControlPanelLayout->addWidget(ShowProductionLineTablePushButton);
+
+  ShowTransponderTablePushButton = new QPushButton("Транспондеры");
+  DataBaseControlPanelLayout->addWidget(ShowTransponderTablePushButton);
+
+  ShowOrderTablePushButton = new QPushButton("Заказы");
+  DataBaseControlPanelLayout->addWidget(ShowOrderTablePushButton);
+
+  ConnectDataBasePushButton = new QPushButton("Подключиться");
+  DataBaseControlPanelLayout->addWidget(ConnectDataBasePushButton);
+
+  ShowIssuerTablePushButton = new QPushButton("Заказчики");
+  DataBaseControlPanelLayout->addWidget(ShowIssuerTablePushButton);
+
+  ShowBoxTablePushButton = new QPushButton("Боксы");
+  DataBaseControlPanelLayout->addWidget(ShowBoxTablePushButton);
+
+  ShowPalletPushButton = new QPushButton("Палеты");
+  DataBaseControlPanelLayout->addWidget(ShowPalletPushButton);
+
+  PushButtonLayoutVS2 =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  DataBaseControlPanelLayout->addItem(PushButtonLayoutVS2);
 
   CustomRequestLineEdit = new QLineEdit();
   DataBaseControlPanelLayout->addWidget(CustomRequestLineEdit);
@@ -221,18 +246,18 @@ void GUI_Master::createSettingsTab() {
   PersoSettingsMainLayout->addWidget(ServerCommonKeyGenerationCheckBox, 1, 1, 1,
                                      1);
 
-  PersoServerIpAddressLabel =
+  PersoHostIpAddressLabel =
       new QLabel("IP адрес или URL сервера персонализации");
-  PersoSettingsMainLayout->addWidget(PersoServerIpAddressLabel, 2, 0, 1, 1);
+  PersoSettingsMainLayout->addWidget(PersoHostIpAddressLabel, 2, 0, 1, 1);
 
-  PersoServerIpAddressLineEdit = new QLineEdit();
-  PersoSettingsMainLayout->addWidget(PersoServerIpAddressLineEdit, 2, 1, 1, 1);
+  PersoHostIpAddressLineEdit = new QLineEdit();
+  PersoSettingsMainLayout->addWidget(PersoHostIpAddressLineEdit, 2, 1, 1, 1);
 
-  PersoServerPortLabel = new QLabel("Порт сервера персонализации");
-  PersoSettingsMainLayout->addWidget(PersoServerPortLabel, 3, 0, 1, 1);
+  PersoHostPortLabel = new QLabel("Порт сервера персонализации");
+  PersoSettingsMainLayout->addWidget(PersoHostPortLabel, 3, 0, 1, 1);
 
-  PersoServerPortLineEdit = new QLineEdit();
-  PersoSettingsMainLayout->addWidget(PersoServerPortLineEdit, 3, 1, 1, 1);
+  PersoHostPortLineEdit = new QLineEdit();
+  PersoSettingsMainLayout->addWidget(PersoHostPortLineEdit, 3, 1, 1, 1);
 
   localMasterKeyPathLabel = new QLabel("Расположение локальных мастер ключей");
   PersoSettingsMainLayout->addWidget(localMasterKeyPathLabel, 4, 0, 1, 1);

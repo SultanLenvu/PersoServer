@@ -23,25 +23,25 @@ void UserSettings::setServerCommonKeyGeneration(
 }
 
 const QString UserSettings::persoServerIP() const {
-  return PersoServerIP.toString();
+  return PersoHostIP.toString();
 }
 
-void UserSettings::setPersoServerIP(const QString& newPersoServerIP) {
-  PersoServerIP = QHostAddress(newPersoServerIP);
+void UserSettings::setPersoHostIP(const QString& newPersoHostIP) {
+  PersoHostIP = QHostAddress(newPersoHostIP);
 
-  if (PersoServerIP.isNull() == true)
+  if (PersoHostIP.isNull() == true)
     ValidationIndicator = false;
 }
 
-uint32_t UserSettings::getPersoServerPort() const {
-  return PersoServerPort;
+uint32_t UserSettings::getPersoHostPort() const {
+  return PersoHostPort;
 }
 
-void UserSettings::setPersoServerPort(
+void UserSettings::setPersoHostPort(
     const QString newPersonalizationServerPort) {
-  PersoServerPort = newPersonalizationServerPort.toInt();
+  PersoHostPort = newPersonalizationServerPort.toInt();
 
-  if ((PersoServerPort <= 0) || (PersoServerPort > IP_PORT_MAX_VALUE))
+  if ((PersoHostPort <= 0) || (PersoHostPort > IP_PORT_MAX_VALUE))
     ValidationIndicator = false;
 }
 
@@ -60,8 +60,8 @@ bool UserSettings::isValid() const {
 void UserSettings::reset() {
   ServerPersoOption = false;
   ServerCommonKeyGeneration = false;
-  PersoServerIP = PERSO_SERVER_DEFAULT_IP;
-  PersoServerPort = QString(PERSO_SERVER_DEFAULT_PORT).toInt();
+  PersoHostIP = PERSO_SERVER_DEFAULT_IP;
+  PersoHostPort = QString(PERSO_SERVER_DEFAULT_PORT).toInt();
   MasterKeyFilePath = QString();
 
   ValidationIndicator = true;

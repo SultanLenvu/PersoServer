@@ -2,7 +2,7 @@
 #define DEFINITIONS_H
 
 #define COMPANY_NAME "PowerSyntez"
-#define PROGRAM_NAME "PersoServer"
+#define PROGRAM_NAME "PersoHost"
 
 #define MASTER_MODE_ACCESS_KEY "1995"
 

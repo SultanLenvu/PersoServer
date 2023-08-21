@@ -35,6 +35,10 @@ class DatabaseControllerInterface : public QObject {
                                const uint32_t panEnd,
                                DatabaseBuffer* buffer) = 0;
 
+  virtual void getTable(const QString& tableName,
+                        uint32_t rowCount,
+                        DatabaseBuffer* buffer) = 0;
+
   virtual void execCustomRequest(const QString& req,
                                  DatabaseBuffer* buffer) = 0;
 

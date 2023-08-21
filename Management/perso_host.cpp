@@ -1,8 +1,8 @@
-#include "perso_server.h"
+#include "perso_host.h"
 
-PersoServer::PersoServer(QObject* parent, QSettings* settings)
+PersoHost::PersoHost(QObject* parent, QSettings* settings)
     : QTcpServer(parent) {
-  setObjectName("PersoServer");
+  setObjectName("PersoHost");
 
   Settings = settings;
 
@@ -11,16 +11,16 @@ PersoServer::PersoServer(QObject* parent, QSettings* settings)
   // Интерфейс для централизованного доступа к базе данных
   Database = new PostgresController(this, QString("ServerConnection"));
   connect(Database, &DatabaseControllerInterface::logging, this,
-          &PersoServer::proxyLogging);
+          &PersoHost::proxyLogging);
   // Настраиваем контроллер базы данных
   Database->applySettings(Settings);
 }
 
-PersoServer::~PersoServer() {
+PersoHost::~PersoHost() {
   emit logging("Уничтожен. ");
 }
 
-void PersoServer::start() {
+void PersoHost::start() {
   // Поднимаем сервер
   if (!listen(QHostAddress::LocalHost, 6666)) {
     emit logging("Не удалось запуститься. ");
@@ -38,12 +38,40 @@ void PersoServer::start() {
   Database->connect();
 }
 
-void PersoServer::stop() {
+void PersoHost::stop() {
   close();
   emit logging("Остановлен. ");
 }
 
-void PersoServer::incomingConnection(qintptr socketDescriptor) {
+void PersoHost::getProductionLines(DatabaseBuffer* buffer) {
+  Database->getTable("ProductionLines", 10, buffer);
+}
+
+void PersoHost::getTransponders(DatabaseBuffer* buffer) {
+  Database->getTable("Transponders", 10, buffer);
+}
+
+void PersoHost::getOrders(DatabaseBuffer* buffer) {
+  Database->getTable("Orders", 10, buffer);
+}
+
+void PersoHost::getIssuers(DatabaseBuffer* buffer) {
+  Database->getTable("Issuers", 10, buffer);
+}
+
+void PersoHost::getBoxes(DatabaseBuffer* buffer) {
+  Database->getTable("Boxes", 10, buffer);
+}
+
+void PersoHost::getPallets(DatabaseBuffer* buffer) {
+  Database->getTable("Pallets", 10, buffer);
+}
+
+void PersoHost::getCustomResponse(const QString& req, DatabaseBuffer* buffer) {
+  Database->execCustomRequest(req, buffer);
+}
+
+void PersoHost::incomingConnection(qintptr socketDescriptor) {
   emit logging("Получен запрос на новое подключение. ");
 
   // Создаем среду выполнения для клиента
@@ -61,16 +89,16 @@ void PersoServer::incomingConnection(qintptr socketDescriptor) {
   }
 }
 
-void PersoServer::createClientInstance(qintptr socketDescriptor) {
+void PersoHost::createClientInstance(qintptr socketDescriptor) {
   // Создаем новое клиент-подключение
   PersoClientConnection* newClient =
       new PersoClientConnection(Clients.size(), socketDescriptor, Settings);
 
   connect(newClient, &PersoClientConnection::logging, this,
-          &PersoServer::proxyLogging);
+          &PersoHost::proxyLogging);
   connect(newClient, &PersoClientConnection::disconnected, this,
-          &PersoServer::on_ClientDisconnected_slot);
-  connect(this, &PersoServer::checkNewClientInstance, newClient,
+          &PersoHost::on_ClientDisconnected_slot);
+  connect(this, &PersoHost::checkNewClientInstance, newClient,
           &PersoClientConnection::instanceTesting);
 
   // Добавляем клиента в реестр
@@ -90,9 +118,9 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   connect(newClientThread, &QThread::finished, newClient,
           &PersoClientConnection::deleteLater);
   connect(newClient, &PersoClientConnection::destroyed, this,
-          &PersoServer::on_ClientConnectionDeleted_slot);
+          &PersoHost::on_ClientConnectionDeleted_slot);
   connect(newClientThread, &QThread::destroyed, this,
-          &PersoServer::on_ClientThreadDeleted_slot);
+          &PersoHost::on_ClientThreadDeleted_slot);
 
   // Добавляем поток в соответствующий реестр
   ClientThreads.append(newClientThread);
@@ -102,7 +130,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   emit logging("Клиентский поток запущен. ");
 }
 
-void PersoServer::proxyLogging(const QString& log) {
+void PersoHost::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PersoClientConnection")
     emit logging(
         QString("Client %1 - ")
@@ -115,7 +143,7 @@ void PersoServer::proxyLogging(const QString& log) {
     emit logging("Unknown - " + log);
 }
 
-void PersoServer::on_ClientDisconnected_slot() {
+void PersoHost::on_ClientDisconnected_slot() {
   uint32_t clientId = dynamic_cast<PersoClientConnection*>(sender())->getId();
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров
@@ -137,10 +165,10 @@ void PersoServer::on_ClientDisconnected_slot() {
   }
 }
 
-void PersoServer::on_ClientThreadDeleted_slot() {
+void PersoHost::on_ClientThreadDeleted_slot() {
   emit logging(QString("Клиентский поток удален. "));
 }
 
-void PersoServer::on_ClientConnectionDeleted_slot() {
+void PersoHost::on_ClientConnectionDeleted_slot() {
   emit logging(QString("Клиентское соединение удалено. "));
 }

@@ -12,8 +12,8 @@ class UserSettings : public QObject {
  private:
   bool ServerPersoOption;
   bool ServerCommonKeyGeneration;
-  QHostAddress PersoServerIP;
-  uint32_t PersoServerPort;
+  QHostAddress PersoHostIP;
+  uint32_t PersoHostPort;
   QString MasterKeyFilePath;
 
   bool ValidationIndicator;
@@ -28,10 +28,10 @@ class UserSettings : public QObject {
   void setServerCommonKeyGeneration(bool newServerCommonKeyGeneration);
 
   const QString persoServerIP() const;
-  void setPersoServerIP(const QString& newPersoServerIP);
+  void setPersoHostIP(const QString& newPersoHostIP);
 
-  uint32_t getPersoServerPort() const;
-  void setPersoServerPort(const QString newPersonalizationServerPort);
+  uint32_t getPersoHostPort() const;
+  void setPersoHostPort(const QString newPersonalizationServerPort);
 
   const QString masterKeyFilePath() const;
   void setMasterKeyFilePath(const QString& newMasterKeyFilePath);

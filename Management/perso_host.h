@@ -13,7 +13,7 @@
 #include "Database/postgres_controller.h"
 #include "perso_client_connection.h"
 
-class PersoServer : public QTcpServer {
+class PersoHost : public QTcpServer {
   Q_OBJECT
  private:
   QList<QThread*> ClientThreads;
@@ -26,12 +26,20 @@ class PersoServer : public QTcpServer {
   QMutex* Mutex;
 
  public:
-  explicit PersoServer(QObject* parent, QSettings* settings);
-  ~PersoServer();
+  explicit PersoHost(QObject* parent, QSettings* settings);
+  ~PersoHost();
 
  public slots:
   void start(void);
   void stop(void);
+
+  void getProductionLines(DatabaseBuffer* buffer);
+  void getTransponders(DatabaseBuffer* buffer);
+  void getOrders(DatabaseBuffer* buffer);
+  void getIssuers(DatabaseBuffer* buffer);
+  void getBoxes(DatabaseBuffer* buffer);
+  void getPallets(DatabaseBuffer* buffer);
+  void getCustomResponse(const QString& req, DatabaseBuffer* buffer);
 
  protected:
   // Внутренний метод вызываемый при получении нового запроса на подключение

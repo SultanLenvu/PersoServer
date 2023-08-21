@@ -25,9 +25,6 @@ class DatabaseBuffer : public QAbstractTableModel {
   QVariant headerData(int section,
                       Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
-
- signals:
-  void logging(const QString& log);
 };
 
 #endif // DATABASBUFFER_H

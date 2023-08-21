@@ -42,9 +42,13 @@ class PostgresController : public DatabaseControllerInterface {
   virtual void getObuListByPAN(const uint32_t panBegin,
                                const uint32_t panEnd,
                                DatabaseBuffer* buffer) override;
+
+  virtual void getTable(const QString& tableName,
+                        uint32_t rowCount,
+                        DatabaseBuffer* buffer) override;
+
   virtual void execCustomRequest(const QString& req,
                                  DatabaseBuffer* buffer) override;
-
   virtual void applySettings(QSettings* settings) override;
 
  private:

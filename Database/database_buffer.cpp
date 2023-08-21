@@ -52,22 +52,6 @@ void DatabaseBuffer::clear() {
   endResetModel();
 }
 
-void DatabaseBuffer::log() {
-  if ((!Headers) || (!Data))
-    return;
-
-  emit logging("Заголовки столбцов: ");
-
-  for (int32_t i = 0; i < Headers->size(); i++)
-    emit logging(Headers->at(i));
-
-  emit logging("Данные столбцов: ");
-
-  for (int32_t i = 0; i < Data->size(); i++)
-    for (int32_t j = 0; j < Data->at(i)->size(); j++)
-      emit logging(Data->at(i)->at(j));
-}
-
 int DatabaseBuffer::rowCount(const QModelIndex& parent) const {
   if (Data)
     return Data->size();

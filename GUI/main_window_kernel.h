@@ -11,7 +11,7 @@
 #include "user_interaction_system.h"
 
 #include "Management/log_system.h"
-#include "Management/perso_manager.h"
+#include "Management/server_manager.h"
 #include "Management/user_settings.h"
 
 #include "General/definitions.h"
@@ -29,7 +29,7 @@ class MainWindowKernel : public QMainWindow {
   QAction* AboutProgramAct;
   QAction* MasterInterfaceRequestAct;
 
-  PersoManager* Manager;
+  ServerManager* Manager;
   LogSystem* Logger;
   UserInteractionSystem* InteractionSystem;
 
@@ -39,19 +39,27 @@ class MainWindowKernel : public QMainWindow {
   MainWindowKernel(QWidget* parent = nullptr);
   ~MainWindowKernel();
 
-  PersoManager* manager(void);
+  ServerManager* manager(void);
 
  public slots:
   void proxyLogging(const QString& log);
   void openMasterInterface_slot(void);
 
-  void startServer_slot(void);
-  void stopServer_slot(void);
+  void start_slot(void);
+  void stop_slot(void);
 
   // Функционал для работы с базой данных
-  void connectDataBase_slot(void);
-  void disconnectDataBase_slot(void);
-  void transamitCustomRequest_slot(void);
+  void on_ConnectDataBasePushButton_slot(void);
+  void on_DisconnectDataBasePushButton_slot(void);
+
+  void on_ShowProductionLineTablePushButton_slot(void);
+  void on_ShowTransponderTablePushButton_slot(void);
+  void on_ShowOrderTablePushButton_slot(void);
+  void on_ShowIssuerTablePushButton_slot(void);
+  void on_ShowBoxTablePushButton_slot(void);
+  void on_ShowPalletPushButton_slot(void);
+
+  void on_TransmitCustomRequestPushButton_slot(void);
 
   // Функционал для настройки сервера
   void applyUserSettings_slot(void);
@@ -74,6 +82,6 @@ class MainWindowKernel : public QMainWindow {
   void logging(const QString& log);
   void notifyUser(const QString& data);
   void notifyUserAboutError(const QString& data);
-  void requestUserInputKey(QString& key);
+  void requestMasterPassword(QString& key);
 };
 #endif  // MAINWINDOWKERNEL_H
