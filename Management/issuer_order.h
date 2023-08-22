@@ -6,27 +6,27 @@
 #include <QFileInfo>
 #include <QObject>
 
-class ObuIssuerOrder : public QObject {
+class IssuerOrder : public QObject {
   Q_OBJECT
  private:
   QFile* PanFile;
   QString IssuerName;
   bool FullPersonalization;
-  uint32_t ObuQuantity;
+  uint32_t TransponderQuantity;
   QDate ProductionStartDate;
 
   QString CurrentPan;
 
  public:
-  explicit ObuIssuerOrder(QObject* parent,
-                          const QString& issuerName,
-                          uint32_t obuQuantity);
+  explicit IssuerOrder(const QString& issuerName,
+                       uint32_t TransponderQuantity,
+                       QObject* parent);
 
   bool setFullPersonalization(const QString& panFilePath);
 
   QString* issuerName(void);
   bool fullPersonalization(void) const;
-  uint32_t obuQuantity(void) const;
+  uint32_t transponderQuantity(void) const;
   QDate* productionStartDate(void);
   QString* currentPan(void);
   bool nextPan(void);

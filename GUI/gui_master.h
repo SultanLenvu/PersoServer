@@ -43,31 +43,38 @@ class MasterGUI : public GUI {
   QTableView* DataBaseBufferView;
   //============================================================
 
-  /* Меню инициализации транспондеров */
+  /* Меню создания заказов */
   //============================================================
-  QWidget* ObuInitTab;
-  QHBoxLayout* ObuInitTabMainLayout;
+  QWidget* OrderCreationTab;
+  QHBoxLayout* OrderCreationTabMainLayout;
 
-  QGroupBox* ObuInitControlPanel;
-  QVBoxLayout* ObuInitControlPanelLayout;
+  QGroupBox* OrderCreationControlPanel;
+  QVBoxLayout* OrderCreationControlPanelLayout;
 
-  QLabel* InitFilePathLabel;
-  QButtonGroup* InitFileFormatChoiceButtonGroup;
-  QRadioButton* PanFormatRadioButton;
-  QRadioButton* SnPanFormatRadioButton;
+  QCheckBox* FullPersonalizationCheckBox;
 
-  QHBoxLayout* ObuInitControlPanelSubLayout;
-  QLineEdit* InitFilePathLineEdit;
-  QPushButton* InitFileExplorePushButton;
+  QWidget* OrderCreationControlPanelSubWidget;
+  QHBoxLayout* OrderCreationControlPanelSubLayout;
+  QLabel* PanFilePathLabel;
+  QLineEdit* PanFilePathLineEdit;
+  QPushButton* PanFileExplorePushButton;
 
-  QPushButton* InitNewObuListPushButton;
-  QSpacerItem* ObuInitControlPanelVS;
+  QHBoxLayout* OrderCreationControlPanelSubLayout1;
+  QLabel* IssuerNameLabel;
+  QComboBox* IssuerNameComboBox;
 
-  QGroupBox* NewObuListPanel;
-  QVBoxLayout* NewObuListLayout;
-  QTableView* NewObuListTableView;
+  QHBoxLayout* OrderCreationControlPanelSubLayout2;
+  QLabel* TransponderQuantityLabel;
+  QLineEdit* TransponderQuantityLineEdit;
 
-  QSpacerItem* ObuInitTabMainLayoutHS;
+  QPushButton* CreateNewOrderPushButton;
+  QSpacerItem* OrderCreationControlPanelVS;
+
+  QGroupBox* PanListPanel;
+  QVBoxLayout* PanListLayout;
+  QTableView* PanListTableView;
+
+  QSpacerItem* OrderCreationTabMainLayoutHS;
   //============================================================
 
   /* Настройки безопасности */
@@ -123,10 +130,14 @@ class MasterGUI : public GUI {
 
  private:
   void createTabs(void);
+  void createServerTab(void);
   void createDataBaseTab(void);
-  void createObuInitializationTab(void);
+  void createOrderCreationTab(void);
   void createSecurityTab(void);
   void createSettingsTab(void);
+
+ private slots:
+  void on_FullPersonalizationCheckBoxChanged(void);
 
  signals:
 };

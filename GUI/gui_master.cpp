@@ -22,8 +22,8 @@ void MasterGUI::update() {
   DataBaseBufferView->resizeColumnsToContents();
   DataBaseBufferView->update();
 
-  NewObuListTableView->resizeColumnsToContents();
-  NewObuListTableView->update();
+  PanListTableView->resizeColumnsToContents();
+  PanListTableView->update();
 }
 
 void MasterGUI::createTabs() {
@@ -33,15 +33,23 @@ void MasterGUI::createTabs() {
   // Задаем стартовую страницу
   Tabs->setCurrentIndex(0);
 
-  // Контруируем вкладку для настройки DTR
+  // Конструируем вкладку для управления сервером
+  createServerTab();
+
+  // Контруируем вкладку для взаимодействия с базой данных
   createDataBaseTab();
 
-  // Конструируем вкладку интерфейса инициализации транспондеров
-  createObuInitializationTab();
+  // Конструируем вкладку интерфейса для создания заказов
+  createOrderCreationTab();
+
+  // Конструируем вкладку интерфейса для управления безопасностью
+  createSecurityTab();
 
   // Конструируем вкладку настроек
   createSettingsTab();
 }
+
+void MasterGUI::createServerTab() {}
 
 void MasterGUI::createDataBaseTab() {
   DataBaseTab = new QWidget();
@@ -114,62 +122,73 @@ void MasterGUI::createDataBaseTab() {
   DataBaseMainLayout->setStretch(1, 3);
 }
 
-void MasterGUI::createObuInitializationTab() {
-  ObuInitTab = new QWidget();
-  Tabs->addTab(ObuInitTab, "Инициализация");
+void MasterGUI::createOrderCreationTab() {
+  OrderCreationTab = new QWidget();
+  Tabs->addTab(OrderCreationTab, "Создание заказов");
 
-  // Основной макет для интерфейса инициализации транспондеров
-  ObuInitTabMainLayout = new QHBoxLayout();
-  ObuInitTab->setLayout(ObuInitTabMainLayout);
+  // Основной макет интерфейса для создания заказов
+  OrderCreationTabMainLayout = new QHBoxLayout();
+  OrderCreationTab->setLayout(OrderCreationTabMainLayout);
 
-  // Панель управления инициализацией транспондеров
-  ObuInitControlPanel = new QGroupBox("Панель управления");
-  ObuInitTabMainLayout->addWidget(ObuInitControlPanel);
+  // Панель управления для создания заказов
+  OrderCreationControlPanel = new QGroupBox("Панель управления");
+  OrderCreationTabMainLayout->addWidget(OrderCreationControlPanel);
 
-  ObuInitControlPanelLayout = new QVBoxLayout();
-  ObuInitControlPanel->setLayout(ObuInitControlPanelLayout);
+  OrderCreationControlPanelLayout = new QVBoxLayout();
+  OrderCreationControlPanel->setLayout(OrderCreationControlPanelLayout);
 
-  PanFormatRadioButton = new QRadioButton("Формат PAN");
-  ObuInitControlPanelLayout->addWidget(PanFormatRadioButton);
-  PanFormatRadioButton = new QRadioButton("Формат SN+PAN");
-  ObuInitControlPanelLayout->addWidget(PanFormatRadioButton);
+  FullPersonalizationCheckBox = new QCheckBox("Полная персонализация");
+  OrderCreationControlPanelLayout->addWidget(FullPersonalizationCheckBox);
+  connect(FullPersonalizationCheckBox, &QCheckBox::stateChanged, this,
+          &MasterGUI::on_FullPersonalizationCheckBoxChanged);
 
-  ObuInitControlPanelSubLayout = new QHBoxLayout();
-  ObuInitControlPanelLayout->addLayout(ObuInitControlPanelSubLayout);
+  OrderCreationControlPanelSubLayout1 = new QHBoxLayout();
+  OrderCreationControlPanelLayout->addLayout(
+      OrderCreationControlPanelSubLayout1);
 
-  InitFilePathLabel = new QLabel("Путь к файлу инициализации");
-  ObuInitControlPanelSubLayout->addWidget(InitFilePathLabel);
+  IssuerNameLabel = new QLabel("Компания заказчик");
+  OrderCreationControlPanelSubLayout1->addWidget(IssuerNameLabel);
 
-  InitFilePathLineEdit = new QLineEdit();
-  ObuInitControlPanelSubLayout->addWidget(InitFilePathLineEdit);
-  InitNewObuListPushButton = new QPushButton("Обзор");
-  ObuInitControlPanelSubLayout->addWidget(InitNewObuListPushButton);
+  IssuerNameComboBox = new QComboBox();
+  IssuerNameComboBox->addItem("Новое качество дорог");
+  IssuerNameComboBox->addItem("Западный скоростной диаметр");
+  OrderCreationControlPanelSubLayout1->addWidget(IssuerNameComboBox);
 
-  InitNewObuListPushButton = new QPushButton("Инициализировать транспондеры");
-  ObuInitControlPanelLayout->addWidget(InitNewObuListPushButton);
+  OrderCreationControlPanelSubLayout2 = new QHBoxLayout();
+  OrderCreationControlPanelLayout->addLayout(
+      OrderCreationControlPanelSubLayout2);
 
-  ObuInitControlPanelVS =
+  TransponderQuantityLabel = new QLabel("Количество транспондеров");
+  OrderCreationControlPanelSubLayout2->addWidget(TransponderQuantityLabel);
+
+  TransponderQuantityLineEdit = new QLineEdit("100");
+  OrderCreationControlPanelSubLayout2->addWidget(TransponderQuantityLineEdit);
+
+  CreateNewOrderPushButton = new QPushButton("Создать новый заказ");
+  OrderCreationControlPanelLayout->addWidget(CreateNewOrderPushButton);
+
+  OrderCreationControlPanelVS =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  ObuInitControlPanelLayout->addItem(ObuInitControlPanelVS);
+  OrderCreationControlPanelLayout->addItem(OrderCreationControlPanelVS);
 
   // Панель управления инициализацией транспондеров
-  NewObuListPanel = new QGroupBox("Список инициализации");
-  ObuInitTabMainLayout->addWidget(NewObuListPanel);
+  PanListPanel = new QGroupBox("Список новых PAN");
+  OrderCreationTabMainLayout->addWidget(PanListPanel);
 
-  NewObuListLayout = new QVBoxLayout();
-  NewObuListPanel->setLayout(NewObuListLayout);
+  PanListLayout = new QVBoxLayout();
+  PanListPanel->setLayout(PanListLayout);
 
-  NewObuListTableView = new QTableView();
-  NewObuListLayout->addWidget(NewObuListTableView);
+  PanListTableView = new QTableView();
+  PanListLayout->addWidget(PanListTableView);
 
   // Сжатие по горизонтали
-  ObuInitTabMainLayoutHS =
+  OrderCreationTabMainLayoutHS =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  ObuInitTabMainLayout->addItem(ObuInitTabMainLayoutHS);
+  OrderCreationTabMainLayout->addItem(OrderCreationTabMainLayoutHS);
 
   // Настройка пропорции между объектами на макете
-  ObuInitTabMainLayout->setStretch(0, 2);
-  ObuInitTabMainLayout->setStretch(1, 2);
+  OrderCreationTabMainLayout->setStretch(0, 2);
+  OrderCreationTabMainLayout->setStretch(1, 2);
 }
 
 void MasterGUI::createSecurityTab(void) {
@@ -292,4 +311,28 @@ void MasterGUI::createSettingsTab() {
   SettingsVerticalSpacer1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   SettingsMainSubLayout->addItem(SettingsVerticalSpacer1);
+}
+
+void MasterGUI::on_FullPersonalizationCheckBoxChanged() {
+  if (FullPersonalizationCheckBox->checkState() == Qt::Checked) {
+    OrderCreationControlPanelSubWidget = new QWidget();
+    OrderCreationControlPanelLayout->insertWidget(
+        1, OrderCreationControlPanelSubWidget);
+
+    OrderCreationControlPanelSubLayout = new QHBoxLayout();
+    OrderCreationControlPanelSubWidget->setLayout(
+        OrderCreationControlPanelSubLayout);
+
+    PanFilePathLabel = new QLabel("PAN-файл");
+    OrderCreationControlPanelSubLayout->addWidget(PanFilePathLabel);
+
+    PanFilePathLineEdit = new QLineEdit();
+    OrderCreationControlPanelSubLayout->addWidget(PanFilePathLineEdit);
+    PanFileExplorePushButton = new QPushButton("Обзор");
+    OrderCreationControlPanelSubLayout->addWidget(PanFileExplorePushButton);
+  } else {
+    OrderCreationControlPanelLayout->removeWidget(
+        OrderCreationControlPanelSubWidget);
+    delete OrderCreationControlPanelSubWidget;
+  }
 }

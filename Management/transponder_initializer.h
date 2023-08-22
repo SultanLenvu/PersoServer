@@ -3,9 +3,10 @@
 
 #include <QObject>
 
-#include <Database/database_buffer.h>
-#include <Database/database_controller.h>
-#include <Database/postgres_controller.h>
+#include "Database/database_buffer.h"
+#include "Database/database_controller.h"
+#include "Database/postgres_controller.h"
+#include "issuer_order.h"
 
 class TransponderInitializer : public QObject {
   Q_OBJECT
@@ -31,6 +32,7 @@ class TransponderInitializer : public QObject {
   void createDatabaseController(void);
   void getDatabaseTable(const QString& tableName, DatabaseBuffer* buffer);
   void getCustomResponse(const QString& req, DatabaseBuffer* buffer);
+  void createNewOrder(IssuerOrder* order);
 
  signals:
   void logging(const QString& log);

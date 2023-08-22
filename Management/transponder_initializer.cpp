@@ -52,3 +52,5 @@ void TransponderInitializer::getCustomResponse(const QString& req,
                                                DatabaseBuffer* buffer) {
   Database->execCustomRequest(req, buffer);
 }
+
+void TransponderInitializer::createNewOrder(IssuerOrder* order) {}
