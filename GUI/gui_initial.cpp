@@ -1,10 +1,10 @@
 #include "gui_initial.h"
 
-GUI_Initial::GUI_Initial(QObject* parent) : GUI(parent, InitialConfiguration) {
-  setObjectName("GUI_Initial");
+InitialGUI::InitialGUI(QObject* parent) : GUI(parent, InitialConfiguration) {
+  setObjectName("InitialGUI");
 }
 
-QWidget* GUI_Initial::create() {
+QWidget* InitialGUI::create() {
   // Создаем панель управления
   createInitialMenu();
 
@@ -18,9 +18,9 @@ QWidget* GUI_Initial::create() {
   return MainWidget;
 }
 
-void GUI_Initial::update() {}
+void InitialGUI::update() {}
 
-void GUI_Initial::createInitialMenu() {
+void InitialGUI::createInitialMenu() {
   InitialMenuGroup = new QGroupBox("Панель управления");
   InitialMenuGroup->setAlignment(Qt::AlignCenter);
   MainLayout->addWidget(InitialMenuGroup);

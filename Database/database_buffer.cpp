@@ -13,15 +13,18 @@ DatabaseBuffer::~DatabaseBuffer() {
 
 void DatabaseBuffer::build(QVector<QString>* headers,
                            QVector<QVector<QString>*>* data) {
+  // Блокируем доступ
+  QMutexLocker locker(&Mutex);
+
   // Проверка на существование
   if ((!headers) || (!data)) {
     return;
   }
 
-  // Очищаем старые данные
-  clear();
-
   beginResetModel();
+
+  // Очищаем старые данные
+  deleteAll();
 
   // Устанавливаем новые данные
   Headers = headers;
@@ -31,21 +34,25 @@ void DatabaseBuffer::build(QVector<QString>* headers,
 }
 
 void DatabaseBuffer::clear() {
-  if ((!Headers) || (!Data))
-    return;
+  // Блокируем доступ
+  QMutexLocker locker(&Mutex);
 
   beginResetModel();
 
-  delete Headers;
-  Headers = nullptr;
-
-  for (int32_t i = 0; i < Data->size(); i++)
-    delete Data->at(i);
-
-  delete Data;
-  Data = nullptr;
+  deleteAll();
 
   endResetModel();
+}
+
+bool DatabaseBuffer::isEmpty() {
+  // Блокируем доступ
+  QMutexLocker locker(&Mutex);
+
+  if ((!Headers) && (!Data)) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 int DatabaseBuffer::rowCount(const QModelIndex& parent) const {
@@ -92,4 +99,18 @@ QVariant DatabaseBuffer::headerData(int section,
   } else {
     return QVariant();
   }
+}
+
+void DatabaseBuffer::deleteAll() {
+  if ((!Headers) || (!Data))
+    return;
+
+  delete Headers;
+  Headers = nullptr;
+
+  for (int32_t i = 0; i < Data->size(); i++)
+    delete Data->at(i);
+
+  delete Data;
+  Data = nullptr;
 }

@@ -1,8 +1,7 @@
 #include "perso_client_connection.h"
 
 PersoClientConnection::PersoClientConnection(uint32_t id,
-                                             qintptr socketDescriptor,
-                                             QSettings* settings) {
+                                             qintptr socketDescriptor) {
   setObjectName("PersoClientConnection");
 
   // Идентификатор клиента
@@ -10,9 +9,6 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
 
   // Дескриптор системного сокета
   SocketDescriptor = socketDescriptor;
-
-  // Запоминаем настройки
-  Settings = settings;
 
   // Пока поток клиента не запущен
   // Сокет клиента
@@ -71,6 +67,10 @@ PersoClientConnection::~PersoClientConnection() {}
 
 uint32_t PersoClientConnection::getId() {
   return ID;
+}
+
+void PersoClientConnection::applySettings() {
+  QSettings settings(ORGANIZATION_NAME, PROGRAM_NAME);
 }
 
 void PersoClientConnection::instanceTesting() {

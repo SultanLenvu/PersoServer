@@ -31,7 +31,7 @@ class MainWindowKernel : public QMainWindow {
 
   ServerManager* Manager;
   LogSystem* Logger;
-  UserInteractionSystem* InteractionSystem;
+  UserInteractionSystem* Interactor;
 
   QSettings* Settings;
 
@@ -42,7 +42,6 @@ class MainWindowKernel : public QMainWindow {
   ServerManager* manager(void);
 
  public slots:
-  void proxyLogging(const QString& log);
   void openMasterInterface_slot(void);
 
   void start_slot(void);
@@ -65,6 +64,10 @@ class MainWindowKernel : public QMainWindow {
   void applyUserSettings_slot(void);
 
  private:
+  void proxyLogging(const QString& log);
+  void loadSettings(void);
+  bool checkNewSettings(void);
+
   void createTopMenu(void);  // Создание верхнего меню
   void createTopMenuActions(void);  // Создание функционала для верхнего меню
 

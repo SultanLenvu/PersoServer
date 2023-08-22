@@ -2,6 +2,8 @@
 #define DATABASBUFFER_H
 
 #include <QAbstractTableModel>
+#include <QMutex>
+#include <QMutexLocker>
 
 class DatabaseBuffer : public QAbstractTableModel {
   Q_OBJECT
@@ -10,13 +12,15 @@ class DatabaseBuffer : public QAbstractTableModel {
   QVector<QString>* Headers;
   QVector<QVector<QString>*>* Data;
 
+  QMutex Mutex;
+
  public:
   explicit DatabaseBuffer(QObject* parent);
   ~DatabaseBuffer();
 
   void build(QVector<QString>* headers, QVector<QVector<QString>*>* data);
   void clear(void);
-  void log(void);
+  bool isEmpty(void);
 
   // Функционал модели
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -25,6 +29,9 @@ class DatabaseBuffer : public QAbstractTableModel {
   QVariant headerData(int section,
                       Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
+
+ private:
+  void deleteAll(void);
 };
 
 #endif // DATABASBUFFER_H

@@ -4,6 +4,9 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   // Считываем размеры дисплея
   DesktopGeometry = QApplication::desktop()->screenGeometry();
 
+  // Загружаем пользовательские настройки
+  loadSettings();
+
   // Графический интерфейс пока не создан
   CurrentGUI = nullptr;
   Manager = nullptr;
@@ -27,13 +30,6 @@ MainWindowKernel::~MainWindowKernel() {}
 
 ServerManager* MainWindowKernel::manager() {
   return Manager;
-}
-
-void MainWindowKernel::proxyLogging(const QString& log) {
-  if (sender()->objectName() == QString("ServerManager"))
-    emit logging(QString("Manager - ") + log);
-  else
-    emit logging(QString("Unknown - ") + log);
 }
 
 void MainWindowKernel::openMasterInterface_slot() {
@@ -61,7 +57,7 @@ void MainWindowKernel::on_DisconnectDataBasePushButton_slot() {
 void MainWindowKernel::on_ShowProductionLineTablePushButton_slot() {
   Logger->clear();
 
-  Manager->showProductionLines();
+  Manager->showDatabaseTable("production_lines");
 
   CurrentGUI->update();
 }
@@ -69,7 +65,7 @@ void MainWindowKernel::on_ShowProductionLineTablePushButton_slot() {
 void MainWindowKernel::on_ShowTransponderTablePushButton_slot() {
   Logger->clear();
 
-  Manager->showTransponders();
+  Manager->showDatabaseTable("transponders");
 
   CurrentGUI->update();
 }
@@ -77,7 +73,7 @@ void MainWindowKernel::on_ShowTransponderTablePushButton_slot() {
 void MainWindowKernel::on_ShowOrderTablePushButton_slot() {
   Logger->clear();
 
-  Manager->showOrders();
+  Manager->showDatabaseTable("orders");
 
   CurrentGUI->update();
 }
@@ -85,7 +81,7 @@ void MainWindowKernel::on_ShowOrderTablePushButton_slot() {
 void MainWindowKernel::on_ShowIssuerTablePushButton_slot() {
   Logger->clear();
 
-  Manager->showIssuers();
+  Manager->showDatabaseTable("issuers");
 
   CurrentGUI->update();
 }
@@ -93,7 +89,7 @@ void MainWindowKernel::on_ShowIssuerTablePushButton_slot() {
 void MainWindowKernel::on_ShowBoxTablePushButton_slot() {
   Logger->clear();
 
-  Manager->showBoxes();
+  Manager->showDatabaseTable("boxes");
 
   CurrentGUI->update();
 }
@@ -101,7 +97,7 @@ void MainWindowKernel::on_ShowBoxTablePushButton_slot() {
 void MainWindowKernel::on_ShowPalletPushButton_slot() {
   Logger->clear();
 
-  Manager->showPallets();
+  Manager->showDatabaseTable("pallets");
 
   CurrentGUI->update();
 }
@@ -110,12 +106,40 @@ void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
   Logger->clear();
 
   Manager->showCustomResponse(
-      dynamic_cast<GUI_Master*>(CurrentGUI)->CustomRequestLineEdit->text());
+      dynamic_cast<MasterGUI*>(CurrentGUI)->CustomRequestLineEdit->text());
 
   CurrentGUI->update();
 }
 
-void MainWindowKernel::applyUserSettings_slot() {}
+void MainWindowKernel::applyUserSettings_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkNewSettings()) {
+    emit notifyUserAboutError("Введены некорректные данные для настроек. ");
+    return;
+  }
+
+  // Считывание пользовательского ввода
+  Settings->setValue("PersoHost/Ip", gui->PersoServerPortLineEdit->text());
+  Settings->setValue("PersoHost/Port",
+                     gui->PersoServerPortLineEdit->text().toInt());
+  Settings->setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
+  Settings->setValue("Database/Server/Port",
+                     gui->DatabasePortLineEdit->text().toInt());
+  Settings->setValue("Database/Name", gui->DatabaseNameLineEdit->text());
+  Settings->setValue("Database/User/Name",
+                     gui->DatabaseUserNameLineEdit->text());
+  Settings->setValue("Database/User/Password",
+                     gui->DatabaseUserPasswordLineEdit->text());
+
+  // Применение новых настроек
+  Manager->applySettings();
+
+  emit notifyUser("Новые настройки успешно применены. ");
+}
 
 /*
  * Реализация слотов
@@ -124,6 +148,51 @@ void MainWindowKernel::applyUserSettings_slot() {}
 /*
  * Приватные методы
  */
+
+void MainWindowKernel::proxyLogging(const QString& log) {
+  if (sender()->objectName() == QString("ServerManager"))
+    emit logging(QString("Manager - ") + log);
+  else
+    emit logging(QString("Unknown - ") + log);
+}
+
+void MainWindowKernel::loadSettings() {
+  QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
+  QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
+  QCoreApplication::setApplicationName(PROGRAM_NAME);
+
+  Settings = new QSettings(this);
+}
+
+bool MainWindowKernel::checkNewSettings() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+
+  QHostAddress IP = QHostAddress(gui->PersoServerIpLineEdit->text());
+
+  if (IP.isNull()) {
+    return false;
+  }
+
+  int32_t port = gui->PersoServerPortLineEdit->text().toInt();
+
+  if ((port > IP_PORT_MAX_VALUE) || (port < IP_PORT_MIN_VALUE)) {
+    return false;
+  }
+
+  IP = QHostAddress(gui->DatabaseIpLineEdit->text());
+
+  if (IP.isNull()) {
+    return false;
+  }
+
+  port = gui->DatabasePortLineEdit->text().toInt();
+
+  if ((port > IP_PORT_MAX_VALUE) || (port < IP_PORT_MIN_VALUE)) {
+    return false;
+  }
+
+  return true;
+}
 
 void MainWindowKernel::createTopMenu() {
   menuBar()->clear();
@@ -143,7 +212,7 @@ void MainWindowKernel::createTopMenuActions() {
 
 void MainWindowKernel::createInitialInterface() {
   // Создаем виджеты
-  CurrentGUI = new GUI_Initial(this);
+  CurrentGUI = new InitialGUI(this);
   setCentralWidget(CurrentGUI->create());
   // Настраиваем размер главного окна
   setGeometry(DesktopGeometry.width() * 0.3, DesktopGeometry.height() * 0.3,
@@ -151,7 +220,7 @@ void MainWindowKernel::createInitialInterface() {
 }
 
 void MainWindowKernel::connectInitialInterface() {
-  GUI_Initial* gui = dynamic_cast<GUI_Initial*>(CurrentGUI);
+  InitialGUI* gui = dynamic_cast<InitialGUI*>(CurrentGUI);
 
   connect(gui->OpenMasterPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::openMasterInterface_slot);
@@ -165,7 +234,7 @@ void MainWindowKernel::createMasterInterface() {
   QString key;
   emit requestMasterPassword(key);
 
-  if (key == MASTER_MODE_ACCESS_KEY) {
+  if (key == MASTER_ACCESS_PASSWORD) {
     // Удаляем предыдущий интерфейс
     CurrentGUI->MainWidget->hide();
     delete CurrentGUI;
@@ -175,7 +244,7 @@ void MainWindowKernel::createMasterInterface() {
                 DesktopGeometry.width() * 0.8, DesktopGeometry.height() * 0.8);
 
     // Создаем интерфейс
-    CurrentGUI = new GUI_Master(this);
+    CurrentGUI = new MasterGUI(this);
     setCentralWidget(CurrentGUI->create());
 
     // Создаем верхнее меню
@@ -191,7 +260,7 @@ void MainWindowKernel::createMasterInterface() {
 }
 
 void MainWindowKernel::connectMasterInterface() {
-  GUI_Master* gui = dynamic_cast<GUI_Master*>(CurrentGUI);
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
   // Меню взаимодействия с базой данных
   connect(gui->ConnectDataBasePushButton, &QPushButton::clicked, this,
@@ -225,12 +294,12 @@ void MainWindowKernel::connectMasterInterface() {
   // Связываем отображения графиков с логикой их формирования
 }
 void MainWindowKernel::setupInterructionSystem() {
-  InteractionSystem = new UserInteractionSystem(this, this);
-  connect(this, &MainWindowKernel::notifyUser, InteractionSystem,
+  Interactor = new UserInteractionSystem(this, this);
+  connect(this, &MainWindowKernel::notifyUser, Interactor,
           &UserInteractionSystem::generateNotification);
-  connect(this, &MainWindowKernel::requestMasterPassword, InteractionSystem,
+  connect(this, &MainWindowKernel::requestMasterPassword, Interactor,
           &UserInteractionSystem::getMasterPassword);
-  connect(this, &MainWindowKernel::notifyUserAboutError, InteractionSystem,
+  connect(this, &MainWindowKernel::notifyUserAboutError, Interactor,
           &UserInteractionSystem::generateError);
 }
 
@@ -238,10 +307,16 @@ void MainWindowKernel::setupManager(void) {
   Manager = new ServerManager(this);
   connect(Manager, &ServerManager::logging, this,
           &MainWindowKernel::proxyLogging);
-  connect(Manager, &ServerManager::notifyUser, InteractionSystem,
+  connect(Manager, &ServerManager::notifyUser, Interactor,
           &UserInteractionSystem::generateNotification);
-  connect(Manager, &ServerManager::notifyUserAboutError, InteractionSystem,
+  connect(Manager, &ServerManager::notifyUserAboutError, Interactor,
           &UserInteractionSystem::generateError);
+  connect(Manager, &ServerManager::operationPerfomingStarted, Interactor,
+          &UserInteractionSystem::generateProgressDialog);
+  connect(Manager, &ServerManager::operationStepPerfomed, Interactor,
+          &UserInteractionSystem::performeProgressDialogStep);
+  connect(Manager, &ServerManager::operationPerformingEnded, Interactor,
+          &UserInteractionSystem::completeProgressDialog);
 }
 
 void MainWindowKernel::setupLogSystem() {

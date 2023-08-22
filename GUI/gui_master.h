@@ -7,7 +7,7 @@
 #include "gui.h"
 #include "gui_delegates.h"
 
-class GUI_Master : public GUI {
+class MasterGUI : public GUI {
   Q_OBJECT
 
  public:
@@ -93,22 +93,30 @@ class GUI_Master : public GUI {
   QSpacerItem* SettingsHorizontalSpacer1;
   QSpacerItem* SettingsVerticalSpacer1;
 
-  // Персонализация
-  QGroupBox* PersoSettingsGroupBox;
-  QGridLayout* PersoSettingsMainLayout;
-  QLabel* UseServerPersoLabel;
-  QCheckBox* UseServerPersoCheckBox;
-  QLabel* ServerCommonKeyGenerationLabel;
-  QCheckBox* ServerCommonKeyGenerationCheckBox;
-  QLabel* PersoHostIpAddressLabel;
-  QLineEdit* PersoHostIpAddressLineEdit;
-  QLabel* PersoHostPortLabel;
-  QLineEdit* PersoHostPortLineEdit;
-  QLabel* localMasterKeyPathLabel;
-  QLineEdit* localMasterKeyPathLineEdit;
+  // Настройки сервера
+  QGroupBox* PersoServerSettingsGroupBox;
+  QGridLayout* PersoServerSettingsLayout;
+  QLabel* PersoServerIpLabel;
+  QLineEdit* PersoServerIpLineEdit;
+  QLabel* PersoServerPortLabel;
+  QLineEdit* PersoServerPortLineEdit;
+
+  // Настройки базы данных
+  QGroupBox* DatabaseSettingsGroupBox;
+  QGridLayout* DatabaseSettingsLayout;
+  QLabel* DatabaseIpLabel;
+  QLineEdit* DatabaseIpLineEdit;
+  QLabel* DatabasePortLabel;
+  QLineEdit* DatabasePortLineEdit;
+  QLabel* DatabaseNameLabel;
+  QLineEdit* DatabaseNameLineEdit;
+  QLabel* DatabaseUserNameLabel;
+  QLineEdit* DatabaseUserNameLineEdit;
+  QLabel* DatabaseUserPasswordLabel;
+  QLineEdit* DatabaseUserPasswordLineEdit;
   //============================================================
  public:
-  explicit GUI_Master(QObject* parent);
+  explicit MasterGUI(QObject* parent);
 
   virtual QWidget* create(void) override;
   virtual void update(void) override;

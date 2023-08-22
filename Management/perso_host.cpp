@@ -1,19 +1,16 @@
 #include "perso_host.h"
 
-PersoHost::PersoHost(QObject* parent, QSettings* settings)
-    : QTcpServer(parent) {
+PersoHost::PersoHost(QObject* parent) : QTcpServer(parent) {
   setObjectName("PersoHost");
-
-  Settings = settings;
 
   PauseIndicator = false;
 
   // Интерфейс для централизованного доступа к базе данных
   Database = new PostgresController(this, QString("ServerConnection"));
-  connect(Database, &DatabaseControllerInterface::logging, this,
+  connect(Database, &IDatabaseController::logging, this,
           &PersoHost::proxyLogging);
   // Настраиваем контроллер базы данных
-  Database->applySettings(Settings);
+  Database->applySettings();
 }
 
 PersoHost::~PersoHost() {
@@ -43,34 +40,6 @@ void PersoHost::stop() {
   emit logging("Остановлен. ");
 }
 
-void PersoHost::getProductionLines(DatabaseBuffer* buffer) {
-  Database->getTable("production_lines", 10, buffer);
-}
-
-void PersoHost::getTransponders(DatabaseBuffer* buffer) {
-  Database->getTable("transponders", 10, buffer);
-}
-
-void PersoHost::getOrders(DatabaseBuffer* buffer) {
-  Database->getTable("orders", 10, buffer);
-}
-
-void PersoHost::getIssuers(DatabaseBuffer* buffer) {
-  Database->getTable("issuers", 10, buffer);
-}
-
-void PersoHost::getBoxes(DatabaseBuffer* buffer) {
-  Database->getTable("boxes", 10, buffer);
-}
-
-void PersoHost::getPallets(DatabaseBuffer* buffer) {
-  Database->getTable("pallets", 10, buffer);
-}
-
-void PersoHost::getCustomResponse(const QString& req, DatabaseBuffer* buffer) {
-  Database->execCustomRequest(req, buffer);
-}
-
 void PersoHost::incomingConnection(qintptr socketDescriptor) {
   emit logging("Получен запрос на новое подключение. ");
 
@@ -89,10 +58,15 @@ void PersoHost::incomingConnection(qintptr socketDescriptor) {
   }
 }
 
+void PersoHost::applySettings() {
+  emit logging("Применение новых настроек. ");
+  Database->applySettings();
+}
+
 void PersoHost::createClientInstance(qintptr socketDescriptor) {
   // Создаем новое клиент-подключение
   PersoClientConnection* newClient =
-      new PersoClientConnection(Clients.size(), socketDescriptor, Settings);
+      new PersoClientConnection(Clients.size(), socketDescriptor);
 
   connect(newClient, &PersoClientConnection::logging, this,
           &PersoHost::proxyLogging);

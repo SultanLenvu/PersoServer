@@ -6,7 +6,7 @@
 
 #include "gui.h"
 
-class GUI_Initial : public GUI {
+class InitialGUI : public GUI {
   Q_OBJECT
  public:
   QGroupBox* InitialMenuGroup;
@@ -17,7 +17,7 @@ class GUI_Initial : public GUI {
   QSpacerItem* ConnectButtonSpacer;
 
  public:
-  explicit GUI_Initial(QObject* parent);
+  explicit InitialGUI(QObject* parent);
 
   virtual QWidget* create(void) override;
   virtual void update(void) override;

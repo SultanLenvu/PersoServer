@@ -4,9 +4,9 @@
 #include <QHostAddress>
 #include <QtSql>
 
-#include "database_controller_interface.h"
+#include "database_controller.h"
 
-class PostgresController : public DatabaseControllerInterface {
+class PostgresController : public IDatabaseController {
   Q_OBJECT
 
  private:
@@ -17,7 +17,6 @@ class PostgresController : public DatabaseControllerInterface {
   QString UserName;
   QString Password;
 
-  QSqlDatabase Postgres;
   QSqlQuery* CurrentRequest;
 
  public:
@@ -25,9 +24,10 @@ class PostgresController : public DatabaseControllerInterface {
   ~PostgresController();
 
  public:
-  // DatabaseControllerInterface interface
+  // IDatabaseController interface
   virtual void connect(void) override;
   virtual void disconnect(void) override;
+  virtual bool isConnected(void) override;
 
   virtual void getObuByPAN(const QString& pan, DatabaseBuffer* buffer) override;
   virtual void getObuByUCID(const QString& ucid,
@@ -49,10 +49,11 @@ class PostgresController : public DatabaseControllerInterface {
 
   virtual void execCustomRequest(const QString& req,
                                  DatabaseBuffer* buffer) override;
-  virtual void applySettings(QSettings* settings) override;
+  virtual void applySettings() override;
 
  private:
-  void createDatabase(void);
+  void loadSettings(void);
+  void createDatabaseConnection(void);
   void convertResponseToBuffer(DatabaseBuffer* buffer);
 };
 

@@ -10,14 +10,15 @@ CONFIG += c++11
 
 SOURCES += \
     Database/database_buffer.cpp \
-    Database/database_controller_interface.cpp \
+    Database/database_controller.cpp \
     GUI/gui_initial.cpp \
     GUI/gui_master.cpp \
     Database/postgres_controller.cpp \
-    Management/obu_initializator.cpp \
+    Management/obu_issuer_order.cpp \
     Management/perso_client_connection.cpp \
     Management/perso_host.cpp \
     Management/server_manager.cpp \
+    Management/transponder_initializer.cpp \
     main.cpp \
     GUI/main_window_kernel.cpp \
     GUI/gui.cpp \
@@ -28,7 +29,7 @@ SOURCES += \
 
 HEADERS += \
     Database/database_buffer.h \
-    Database/database_controller_interface.h \
+    Database/database_controller.h \
     GUI/gui_initial.h \
     GUI/gui_master.h \
     GUI/main_window_kernel.h \
@@ -38,10 +39,11 @@ HEADERS += \
     General/definitions.h \
     Database/postgres_controller.h \
     Management/log_system.h \
-    Management/obu_initializator.h \
+    Management/obu_issuer_order.h \
     Management/perso_client_connection.h \
     Management/perso_host.h \
     Management/server_manager.h \
+    Management/transponder_initializer.h \
     Management/user_settings.h
 
 # Default rules for deployment.

@@ -11,15 +11,16 @@
 #include "Management/user_settings.h"
 #include "database_buffer.h"
 
-class DatabaseControllerInterface : public QObject {
+class IDatabaseController : public QObject {
   Q_OBJECT
 
  public:
-  explicit DatabaseControllerInterface(QObject* parent);
+  explicit IDatabaseController(QObject* parent);
 
   // Функционал для работы с БД
   virtual void connect(void) = 0;
   virtual void disconnect(void) = 0;
+  virtual bool isConnected(void) = 0;
 
   virtual void getObuByPAN(const QString& pan, DatabaseBuffer* buffer) = 0;
   virtual void getObuBySerialNumber(const uint32_t serial,
@@ -42,7 +43,7 @@ class DatabaseControllerInterface : public QObject {
   virtual void execCustomRequest(const QString& req,
                                  DatabaseBuffer* buffer) = 0;
 
-  virtual void applySettings(QSettings* settings) = 0;
+  virtual void applySettings() = 0;
 
  signals:
   void logging(const QString& log);

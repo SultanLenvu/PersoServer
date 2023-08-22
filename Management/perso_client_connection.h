@@ -10,7 +10,7 @@
 #include <QThread>
 #include <QTimer>
 
-#include "Database/database_controller_interface.h"
+#include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
 #include "user_settings.h"
 
@@ -20,7 +20,6 @@ class PersoClientConnection : public QObject {
  private:
   uint32_t ID;
   qintptr SocketDescriptor;
-  QSettings* Settings;
 
   QTcpSocket* Socket;
 
@@ -35,12 +34,11 @@ class PersoClientConnection : public QObject {
   QTimer* WaitTimer;
 
  public:
-  explicit PersoClientConnection(uint32_t id,
-                                 qintptr socketDescriptor,
-                                 QSettings* settings);
+  explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
   ~PersoClientConnection();
 
   uint32_t getId(void);
+  void applySettings(void);
 
  public slots:
   void instanceTesting(void);

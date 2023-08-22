@@ -1,10 +1,10 @@
 #include "gui_master.h"
 
-GUI_Master::GUI_Master(QObject* parent) : GUI(parent, Master) {
-  setObjectName("GUI_Master");
+MasterGUI::MasterGUI(QObject* parent) : GUI(parent, Master) {
+  setObjectName("MasterGUI");
 }
 
-QWidget* GUI_Master::create() {
+QWidget* MasterGUI::create() {
   // Создаем вкладки мастер меню
   createTabs();
 
@@ -18,7 +18,7 @@ QWidget* GUI_Master::create() {
   return MainWidget;
 }
 
-void GUI_Master::update() {
+void MasterGUI::update() {
   DataBaseBufferView->resizeColumnsToContents();
   DataBaseBufferView->update();
 
@@ -26,7 +26,7 @@ void GUI_Master::update() {
   NewObuListTableView->update();
 }
 
-void GUI_Master::createTabs() {
+void MasterGUI::createTabs() {
   Tabs = new QTabWidget();
   MainLayout->addWidget(Tabs);
 
@@ -43,7 +43,7 @@ void GUI_Master::createTabs() {
   createSettingsTab();
 }
 
-void GUI_Master::createDataBaseTab() {
+void MasterGUI::createDataBaseTab() {
   DataBaseTab = new QWidget();
   Tabs->addTab(DataBaseTab, "База данных");
 
@@ -78,9 +78,6 @@ void GUI_Master::createDataBaseTab() {
 
   ShowOrderTablePushButton = new QPushButton("Заказы");
   DataBaseControlPanelLayout->addWidget(ShowOrderTablePushButton);
-
-  ConnectDataBasePushButton = new QPushButton("Подключиться");
-  DataBaseControlPanelLayout->addWidget(ConnectDataBasePushButton);
 
   ShowIssuerTablePushButton = new QPushButton("Заказчики");
   DataBaseControlPanelLayout->addWidget(ShowIssuerTablePushButton);
@@ -117,7 +114,7 @@ void GUI_Master::createDataBaseTab() {
   DataBaseMainLayout->setStretch(1, 3);
 }
 
-void GUI_Master::createObuInitializationTab() {
+void MasterGUI::createObuInitializationTab() {
   ObuInitTab = new QWidget();
   Tabs->addTab(ObuInitTab, "Инициализация");
 
@@ -175,7 +172,7 @@ void GUI_Master::createObuInitializationTab() {
   ObuInitTabMainLayout->setStretch(1, 2);
 }
 
-void GUI_Master::createSecurityTab(void) {
+void MasterGUI::createSecurityTab(void) {
   SecurityTab = new QWidget();
   Tabs->addTab(SecurityTab, "Безопасность");
 
@@ -208,7 +205,8 @@ void GUI_Master::createSecurityTab(void) {
   SecurityTabMainLayout->addWidget(CommonKeysView, 1, 2, 1, 1);
 }
 
-void GUI_Master::createSettingsTab() {
+void MasterGUI::createSettingsTab() {
+  QSettings settings;
   SettingsTab = new QWidget();
   Tabs->addTab(SettingsTab, "Настройки");
 
@@ -223,47 +221,68 @@ void GUI_Master::createSettingsTab() {
       new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
   SettingsMainLayout->addItem(SettingsHorizontalSpacer1);
 
-  // Настройки персонализации
-  QGroupBox* PersoSettingsGroupBox =
-      new QGroupBox(QString("Настройки персонализации"));
-  SettingsMainSubLayout->addWidget(PersoSettingsGroupBox);
+  // Настройки сервера
+  PersoServerSettingsGroupBox = new QGroupBox(QString("Настройки сервера"));
+  SettingsMainSubLayout->addWidget(PersoServerSettingsGroupBox);
 
-  PersoSettingsMainLayout = new QGridLayout();
-  PersoSettingsGroupBox->setLayout(PersoSettingsMainLayout);
+  PersoServerSettingsLayout = new QGridLayout();
+  PersoServerSettingsGroupBox->setLayout(PersoServerSettingsLayout);
 
-  UseServerPersoLabel = new QLabel("Серверная персонализация");
-  PersoSettingsMainLayout->addWidget(UseServerPersoLabel, 0, 0, 1, 1);
+  PersoServerIpLabel = new QLabel("IP-адрес ");
+  PersoServerSettingsLayout->addWidget(PersoServerIpLabel, 0, 0, 1, 1);
 
-  UseServerPersoCheckBox = new QCheckBox("Вкл/выкл");
-  PersoSettingsMainLayout->addWidget(UseServerPersoCheckBox, 0, 1, 1, 1);
+  PersoServerIpLineEdit =
+      new QLineEdit(settings.value("PersoHost/Ip").toString());
+  PersoServerSettingsLayout->addWidget(PersoServerIpLineEdit, 0, 1, 1, 1);
 
-  ServerCommonKeyGenerationLabel =
-      new QLabel("Серверная генерация ключей транспондера");
-  PersoSettingsMainLayout->addWidget(ServerCommonKeyGenerationLabel, 1, 0, 1,
-                                     1);
+  PersoServerPortLabel = new QLabel("Порт ");
+  PersoServerSettingsLayout->addWidget(PersoServerPortLabel, 1, 0, 1, 1);
 
-  ServerCommonKeyGenerationCheckBox = new QCheckBox("Вкл/выкл");
-  PersoSettingsMainLayout->addWidget(ServerCommonKeyGenerationCheckBox, 1, 1, 1,
-                                     1);
+  PersoServerPortLineEdit =
+      new QLineEdit(settings.value("PersoHost/Port").toString());
+  PersoServerSettingsLayout->addWidget(PersoServerPortLineEdit, 1, 1, 1, 1);
 
-  PersoHostIpAddressLabel =
-      new QLabel("IP адрес или URL сервера персонализации");
-  PersoSettingsMainLayout->addWidget(PersoHostIpAddressLabel, 2, 0, 1, 1);
+  // Настройки базы данных
+  DatabaseSettingsGroupBox = new QGroupBox(QString("Настройки базы данных"));
+  SettingsMainSubLayout->addWidget(DatabaseSettingsGroupBox);
 
-  PersoHostIpAddressLineEdit = new QLineEdit();
-  PersoSettingsMainLayout->addWidget(PersoHostIpAddressLineEdit, 2, 1, 1, 1);
+  DatabaseSettingsLayout = new QGridLayout();
+  DatabaseSettingsGroupBox->setLayout(DatabaseSettingsLayout);
 
-  PersoHostPortLabel = new QLabel("Порт сервера персонализации");
-  PersoSettingsMainLayout->addWidget(PersoHostPortLabel, 3, 0, 1, 1);
+  DatabaseIpLabel = new QLabel("IP-адрес");
+  DatabaseSettingsLayout->addWidget(DatabaseIpLabel, 0, 0, 1, 1);
 
-  PersoHostPortLineEdit = new QLineEdit();
-  PersoSettingsMainLayout->addWidget(PersoHostPortLineEdit, 3, 1, 1, 1);
+  DatabaseIpLineEdit =
+      new QLineEdit(settings.value("Database/Server/Ip").toString());
+  DatabaseSettingsLayout->addWidget(DatabaseIpLineEdit, 0, 1, 1, 1);
 
-  localMasterKeyPathLabel = new QLabel("Расположение локальных мастер ключей");
-  PersoSettingsMainLayout->addWidget(localMasterKeyPathLabel, 4, 0, 1, 1);
+  DatabasePortLabel = new QLabel("Порт ");
+  DatabaseSettingsLayout->addWidget(DatabasePortLabel, 1, 0, 1, 1);
 
-  localMasterKeyPathLineEdit = new QLineEdit("");
-  PersoSettingsMainLayout->addWidget(localMasterKeyPathLineEdit, 4, 1, 1, 1);
+  DatabasePortLineEdit =
+      new QLineEdit(settings.value("Database/Server/Port").toString());
+  DatabaseSettingsLayout->addWidget(DatabasePortLineEdit, 1, 1, 1, 1);
+
+  DatabaseNameLabel = new QLabel("Название базы данных ");
+  DatabaseSettingsLayout->addWidget(DatabaseNameLabel, 2, 0, 1, 1);
+
+  DatabaseNameLineEdit =
+      new QLineEdit(settings.value("Database/Name").toString());
+  DatabaseSettingsLayout->addWidget(DatabaseNameLineEdit, 2, 1, 1, 1);
+
+  DatabaseUserNameLabel = new QLabel("Имя пользователя ");
+  DatabaseSettingsLayout->addWidget(DatabaseUserNameLabel, 3, 0, 1, 1);
+
+  DatabaseUserNameLineEdit =
+      new QLineEdit(settings.value("Database/User/Name").toString());
+  DatabaseSettingsLayout->addWidget(DatabaseUserNameLineEdit, 3, 1, 1, 1);
+
+  DatabaseUserPasswordLabel = new QLabel("Пароль пользователя ");
+  DatabaseSettingsLayout->addWidget(DatabaseUserPasswordLabel, 4, 0, 1, 1);
+
+  DatabaseUserPasswordLineEdit =
+      new QLineEdit(settings.value("Database/User/Password").toString());
+  DatabaseSettingsLayout->addWidget(DatabaseUserPasswordLineEdit, 4, 1, 1, 1);
 
   // Кнопка сохранения настроек
   ApplySettingsPushButton = new QPushButton("Применить изменения");
