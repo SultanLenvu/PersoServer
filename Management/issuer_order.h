@@ -18,17 +18,17 @@ class IssuerOrder : public QObject {
   QString CurrentPan;
 
  public:
-  explicit IssuerOrder(const QString& issuerName,
-                       uint32_t TransponderQuantity,
-                       QObject* parent);
+  explicit IssuerOrder(QObject* parent);
 
+  void setIssuerName(const QString& newIssuerName);
+  void setTransponderQuantity(uint32_t newTransponderQuantity);
   bool setFullPersonalization(const QString& panFilePath);
 
-  QString* issuerName(void);
+  const QString& issuerName(void);
   bool fullPersonalization(void) const;
   uint32_t transponderQuantity(void) const;
-  QDate* productionStartDate(void);
-  QString* currentPan(void);
+  const QDate& productionStartDate(void);
+  const QString& currentPan(void);
   bool nextPan(void);
 
  signals:

@@ -16,10 +16,11 @@ SOURCES += \
     GUI/gui_master.cpp \
     Database/postgres_controller.cpp \
     Management/issuer_order.cpp \
+    Management/order_creation_system.cpp \
     Management/perso_client_connection.cpp \
     Management/perso_host.cpp \
     Management/server_manager.cpp \
-    Management/transponder_initializer.cpp \
+    Miscellaneous/thread_object_builder.cpp \
     main.cpp \
     GUI/main_window_kernel.cpp \
     GUI/gui.cpp \
@@ -42,11 +43,12 @@ HEADERS += \
     Database/postgres_controller.h \
     Management/issuer_order.h \
     Management/log_system.h \
+    Management/order_creation_system.h \
     Management/perso_client_connection.h \
     Management/perso_host.h \
     Management/server_manager.h \
-    Management/transponder_initializer.h \
-    Management/user_settings.h
+    Management/user_settings.h \
+    Miscellaneous/thread_object_builder.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

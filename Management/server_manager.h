@@ -13,8 +13,9 @@
 #include "Database/database_buffer.h"
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
+#include "Miscellaneous/thread_object_builder.h"
+#include "order_creation_system.h"
 #include "perso_host.h"
-#include "transponder_initializer.h"
 #include "user_settings.h"
 
 class ServerManager : public QObject {
@@ -30,8 +31,9 @@ class ServerManager : public QObject {
   PersoHost* Host;
   QThread* ServerThread;
 
-  TransponderInitializer* Initializer;
-  QThread* InitializerThread;
+  OrderCreationSystem* OrderCreator;
+  OCSBuilder* OrderCreatorBuilder;
+  QThread* OrderCreatorThread;
 
   DatabaseBuffer* Buffer;
 
@@ -52,10 +54,11 @@ class ServerManager : public QObject {
 
   void showDatabaseTable(const QString& name);
   void showCustomResponse(const QString& req);
+  void createNewOrder(IssuerOrder* newOrder);
 
  private:
   void createHostInstance(void);
-  void createInitializerInstance(void);
+  void createOrderCreatorInstance(void);
 
   void createWaitingLoop(void);
   void createTimers(void);
@@ -67,11 +70,12 @@ class ServerManager : public QObject {
  private slots:
   void proxyLogging(const QString& log);
 
+  void on_OrderCreatorBuilderCompleted_slot(void);
   void on_ServerThreadFinished_slot(void);
-  void on_InitializerThreadFinished_slot(void);
+  void on_OrderCreatorThreadFinished_slot(void);
 
-  void on_InitializerFinished_slot(
-      TransponderInitializer::ExecutionStatus status);
+  void on_OrderCreatorFinished_slot(
+      OrderCreationSystem::ExecutionStatus status);
   void on_ODTimerTimeout_slot(void);
   void on_ODQTimerTimeout_slot(void);
 
@@ -91,10 +95,11 @@ class ServerManager : public QObject {
   void serverStart_signal(void);
   void serverStop_signal(void);
 
-  // Сигналы для инициализатора
+  // Сигналы для составителя заказов
   void getDatabaseTable_signal(const QString& tableName,
                                DatabaseBuffer* buffer);
   void getCustomResponse_signal(const QString& req, DatabaseBuffer* buffer);
+  void createNewOrder_signal(IssuerOrder* order);
 };
 
 //==================================================================================

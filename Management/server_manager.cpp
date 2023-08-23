@@ -12,7 +12,7 @@ ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   createHostInstance();
 
   // Создаем среду выполнения для инициализатора
-  createInitializerInstance();
+  createOrderCreatorInstance();
 
   // Создаем таймеры
   createTimers();
@@ -28,8 +28,8 @@ ServerManager::~ServerManager() {
   ServerThread->quit();
   ServerThread->wait();
 
-  InitializerThread->quit();
-  InitializerThread->wait();
+  OrderCreatorThread->quit();
+  OrderCreatorThread->wait();
 }
 
 DatabaseBuffer* ServerManager::buffer() {
@@ -59,6 +59,7 @@ void ServerManager::stop() {
 }
 
 void ServerManager::showDatabaseTable(const QString& name) {
+  // Начинаем выполнение операции
   if (!startOperationExecution("showDatabaseTable")) {
     return;
   }
@@ -71,14 +72,39 @@ void ServerManager::showDatabaseTable(const QString& name) {
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
+  // Завершаем выполнение операции
   endOperationExecution("showDatabaseTable");
 }
 
 void ServerManager::showCustomResponse(const QString& req) {
-  Buffer->clear();
+  // Начинаем выполнение операции
+  if (!startOperationExecution("showCustomResponse")) {
+    return;
+  }
 
   emit logging("Представление ответа на кастомный запрос. ");
   emit getCustomResponse_signal(req, Buffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("showCustomResponse");
+}
+
+void ServerManager::createNewOrder(IssuerOrder* newOrder) {
+  if (!startOperationExecution("createNewOrder")) {
+    return;
+  }
+
+  emit logging("Создание нового заказа. ");
+  emit createNewOrder_signal(newOrder);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("createNewOrder");
 }
 
 void ServerManager::createHostInstance() {
@@ -111,43 +137,33 @@ void ServerManager::createHostInstance() {
   ServerThread->start();
 }
 
-void ServerManager::createInitializerInstance() {
-  // Создаем инициализатор и поток с базой данных для него
-  Initializer = new TransponderInitializer(nullptr);
-  InitializerThread = new QThread(this);
+void ServerManager::createOrderCreatorInstance() {
+  // Создаем строитель и поток для создателя отчетов
+  OrderCreatorBuilder = new OCSBuilder();
+  OrderCreatorThread = new QThread(this);
 
   // Переносим инициализатор в поток
-  Initializer->moveToThread(InitializerThread);
+  OrderCreatorBuilder->moveToThread(OrderCreatorThread);
 
-  // Подключаем логгирование к инициализатору
-  connect(Initializer, &TransponderInitializer::logging, this,
-          &ServerManager::proxyLogging);
-  // Подключаем сигнал для применения новых настроек
-  connect(this, &ServerManager::applySettings_signal, Initializer,
-          &TransponderInitializer::applySettings);
-  // Когда поток завершит работу, инициализатор будет удален
-  connect(InitializerThread, &QThread::finished, Initializer,
-          &QObject::deleteLater);
   // Когда поток завершит работу, он будет удален
-  connect(InitializerThread, &QThread::finished, InitializerThread,
+  connect(OrderCreatorThread, &QThread::finished, OrderCreatorThread,
           &QObject::deleteLater);
   // Когда поток завершит работу, вызываем метод обработки
-  connect(InitializerThread, &QThread::finished, this,
-          &ServerManager::on_InitializerThreadFinished_slot);
-  // Создаем контроллер базы данных после запуска потока
-  connect(InitializerThread, &QThread::started, Initializer,
-          &TransponderInitializer::createDatabaseController);
+  connect(OrderCreatorThread, &QThread::finished, this,
+          &ServerManager::on_OrderCreatorThreadFinished_slot);
+  // Когда поток завершит работу, строитель будет удален
+  connect(OrderCreatorThread, &QThread::finished, OrderCreatorBuilder,
+          &QObject::deleteLater);
+  // Когда поток начнет свою работу, строитель создаст в нем составитель отчетов
+  connect(OrderCreatorThread, &QThread::started, OrderCreatorBuilder,
+          &OCSBuilder::build);
 
-  // Подключаем функционал
-  connect(this, &ServerManager::getDatabaseTable_signal, Initializer,
-          &TransponderInitializer::getDatabaseTable);
-  connect(this, &ServerManager::getCustomResponse_signal, Initializer,
-          &TransponderInitializer::getCustomResponse);
-  connect(Initializer, &TransponderInitializer::operationFinished, this,
-          &ServerManager::on_InitializerFinished_slot);
+  // Когда строитель завершит работу, возвращем его в менеджер
+  connect(OrderCreatorBuilder, &OCSBuilder::completed, this,
+          &ServerManager::on_OrderCreatorBuilderCompleted_slot);
 
   // Запускаем поток инициализатора
-  InitializerThread->start();
+  OrderCreatorThread->start();
 }
 
 void ServerManager::createWaitingLoop() {
@@ -185,26 +201,29 @@ bool ServerManager::startOperationExecution(const QString& operationName) {
   if (CurrentState != Ready)
     return false;
 
+  // Очищаем буфер
+  Buffer->clear();
+
   // Переходим в состояние ожидания конца обработки
   CurrentState = WaitingExecution;
 
-  //  // Настраиваем и запускаем таймер для измерения квантов времени
+  //  Настраиваем и запускаем таймер для измерения квантов времени
   QSettings settings;
   uint64_t operationDuration = settings
                                    .value(QString("ServerManager/Operations/") +
                                           operationName + QString("/Duration"))
                                    .toInt();
   uint32_t operationQuantDuration = operationDuration / 100;
-  operationQuantDuration++;
+  operationQuantDuration += 10;
   emit logging(QString("Длительность кванта операции: %1.")
                    .arg(QString::number(operationQuantDuration)));
   setupODQTimer(operationQuantDuration);
   ODQTimer->start();
 
-  //  // Запускаем таймер для контроля максимальной длительности операции
+  // Запускаем таймер для контроля максимальной длительности операции
   ODTimer->start();
 
-  //  // Запускаем измеритель длительности операции
+  // Запускаем измеритель длительности операции
   ODMeter->start();
 
   // Отправляем сигнал о начале выполнения длительной операции
@@ -245,10 +264,35 @@ void ServerManager::endOperationExecution(const QString& operationName) {
 void ServerManager::proxyLogging(const QString& log) {
   if (sender()->objectName() == QString("PersoHost"))
     emit logging(QString("Host - ") + log);
-  else if (sender()->objectName() == QString("TransponderInitializer"))
-    emit logging(QString("Initializer - ") + log);
+  else if (sender()->objectName() == QString("OrderCreationSystem"))
+    emit logging(QString("OrderCreator - ") + log);
   else
     emit logging(QString("Unknown - ") + log);
+}
+
+void ServerManager::on_OrderCreatorBuilderCompleted_slot() {
+  OrderCreator = OrderCreatorBuilder->buildedObject();
+
+  // Когда поток завершит работу, составитель заказов будет удален
+  connect(OrderCreatorThread, &QThread::finished, OrderCreator,
+          &QObject::deleteLater);
+  // Подключаем логгирование к инициализатору
+  connect(OrderCreator, &OrderCreationSystem::logging, this,
+          &ServerManager::proxyLogging);
+  // Подключаем сигнал для применения новых настроек
+  connect(this, &ServerManager::applySettings_signal, OrderCreator,
+          &OrderCreationSystem::applySettings);
+  // После выполнения операции формирователем заказов, оповещаем менеджер
+  connect(OrderCreator, &OrderCreationSystem::operationFinished, this,
+          &ServerManager::on_OrderCreatorFinished_slot);
+
+  // Подключаем функционал
+  connect(this, &ServerManager::getDatabaseTable_signal, OrderCreator,
+          &OrderCreationSystem::getDatabaseTable);
+  connect(this, &ServerManager::getCustomResponse_signal, OrderCreator,
+          &OrderCreationSystem::getCustomResponse);
+  connect(this, &ServerManager::createNewOrder_signal, OrderCreator,
+          &OrderCreationSystem::createNewOrder);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {
@@ -257,48 +301,51 @@ void ServerManager::on_ServerThreadFinished_slot() {
   ServerThread = nullptr;
 }
 
-void ServerManager::on_InitializerThreadFinished_slot() {
+void ServerManager::on_OrderCreatorThreadFinished_slot() {
   emit logging("Поток инициализатора завершился. ");
-  Initializer = nullptr;
-  InitializerThread = nullptr;
+  OrderCreator = nullptr;
+  OrderCreatorThread = nullptr;
 }
 
-void ServerManager::on_InitializerFinished_slot(
-    TransponderInitializer::ExecutionStatus status) {
+void ServerManager::on_OrderCreatorFinished_slot(
+    OrderCreationSystem::ExecutionStatus status) {
   switch (status) {
-    case TransponderInitializer::NotExecuted:
+    case OrderCreationSystem::NotExecuted:
       CurrentState = Failed;
       NotificarionText = "Инициализатор: операция не была запущена. ";
       emit break;
-    case TransponderInitializer::DatabaseConnectionError:
+    case OrderCreationSystem::DatabaseConnectionError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: не удалось подключиться к базе данных. ";
       break;
-    case TransponderInitializer::DatabaseQueryError:
+    case OrderCreationSystem::DatabaseQueryError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: ошибка при выполнении запроса к базе данных. ";
       break;
-    case TransponderInitializer::UnknowError:
+    case OrderCreationSystem::UnknowError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: получена неизвестная ошибка при выполнении "
           "операции. ";
       break;
-    case TransponderInitializer::CompletedSuccessfully:
+    case OrderCreationSystem::CompletedSuccessfully:
       CurrentState = Completed;
       NotificarionText = "Операция успешно выполнена. ";
       break;
   }
 
-  // Завершаем цикл ожидания
+  // Выходим из цикла ожидания
   emit waitingEnd();
 }
 
 void ServerManager::on_ODTimerTimeout_slot() {
   emit logging("Операция выполняется слишком долго. Сброс. ");
   emit notifyUserAboutError("Операция выполняется слишком долго. Сброс. ");
+
+  // Выходим из цикла ожидания
+  emit waitingEnd();
 }
 
 void ServerManager::on_ODQTimerTimeout_slot() {

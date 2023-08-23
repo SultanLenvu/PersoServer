@@ -111,6 +111,31 @@ void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
   CurrentGUI->update();
 }
 
+void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+
+  Logger->clear();
+
+  if (!checkNewOrderInput()) {
+    Interactor->generateError("Некорректный ввод параметров нового заказа. ");
+    return;
+  }
+
+  IssuerOrder newOrder(nullptr);
+
+  newOrder.setIssuerName(gui->IssuerNameComboBox->currentText());
+  newOrder.setTransponderQuantity(
+      gui->TransponderQuantityLineEdit->text().toInt());
+
+  if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
+    newOrder.setFullPersonalization(gui->PanFilePathLineEdit->text());
+  }
+
+  Manager->createNewOrder(&newOrder);
+
+  CurrentGUI->update();
+}
+
 void MainWindowKernel::applyUserSettings_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
@@ -118,7 +143,7 @@ void MainWindowKernel::applyUserSettings_slot() {
 
   // Проверка пользовательского ввода
   if (!checkNewSettings()) {
-    emit notifyUserAboutError("Введены некорректные данные для настроек. ");
+    Interactor->generateError("Введены некорректные данные для настроек. ");
     return;
   }
 
@@ -138,7 +163,8 @@ void MainWindowKernel::applyUserSettings_slot() {
   // Применение новых настроек
   Manager->applySettings();
 
-  emit notifyUser("Новые настройки успешно применены. ");
+  // Оповещаем пользователя
+  Interactor->generateNotification("Новые настройки успешно применены. ");
 }
 
 /*
@@ -194,6 +220,23 @@ bool MainWindowKernel::checkNewSettings() {
   return true;
 }
 
+bool MainWindowKernel::checkNewOrderInput() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+
+  if (gui->TransponderQuantityLineEdit->text().toInt() == 0) {
+    return false;
+  }
+
+  if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
+    QFileInfo info(gui->PanFilePathLineEdit->text());
+    if ((!info.exists()) || (!info.isFile()) || (info.suffix() != "csv")) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void MainWindowKernel::createTopMenu() {
   menuBar()->clear();
   createTopMenuActions();
@@ -231,8 +274,9 @@ void MainWindowKernel::connectInitialInterface() {
 }
 
 void MainWindowKernel::createMasterInterface() {
+  // Запрашиваем пароль
   QString key;
-  emit requestMasterPassword(key);
+  Interactor->getMasterPassword(key);
 
   if (key == MASTER_ACCESS_PASSWORD) {
     // Удаляем предыдущий интерфейс
@@ -255,8 +299,9 @@ void MainWindowKernel::createMasterInterface() {
 
     // Создаем систему логгирования
     setupLogSystem();
-  } else
-    emit notifyUserAboutError("Неверный код доступа");
+  } else {
+    Interactor->generateError("Неверный код доступа");
+  }
 }
 
 void MainWindowKernel::connectMasterInterface() {
@@ -284,6 +329,10 @@ void MainWindowKernel::connectMasterInterface() {
   connect(gui->TransmitCustomRequestPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_TransmitCustomRequestPushButton_slot);
 
+  // Создание нового заказа
+  connect(gui->CreateNewOrderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_CreateNewOrderPushButton_slot);
+
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::applyUserSettings_slot);
@@ -295,12 +344,6 @@ void MainWindowKernel::connectMasterInterface() {
 }
 void MainWindowKernel::setupInterructionSystem() {
   Interactor = new UserInteractionSystem(this, this);
-  connect(this, &MainWindowKernel::notifyUser, Interactor,
-          &UserInteractionSystem::generateNotification);
-  connect(this, &MainWindowKernel::requestMasterPassword, Interactor,
-          &UserInteractionSystem::getMasterPassword);
-  connect(this, &MainWindowKernel::notifyUserAboutError, Interactor,
-          &UserInteractionSystem::generateError);
 }
 
 void MainWindowKernel::setupManager(void) {

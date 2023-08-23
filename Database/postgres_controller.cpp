@@ -72,7 +72,7 @@ void PostgresController::execCustomRequest(const QString& req,
     return;
   }
 
-  delete CurrentRequest;
+  // Создаем запрос
   CurrentRequest = new QSqlQuery(QSqlDatabase::database(ConnectionName));
 
   emit logging("Отправляемый запрос: " + req);
@@ -86,6 +86,9 @@ void PostgresController::execCustomRequest(const QString& req,
     emit logging("Ошибка выполнения запроса: " +
                  CurrentRequest->lastError().text());
   }
+
+  // Удаляем запрос
+  delete CurrentRequest;
 }
 
 void PostgresController::applySettings() {
@@ -97,6 +100,35 @@ void PostgresController::applySettings() {
 
   emit logging("Создание нового подключения к базе данных. ");
   createDatabaseConnection();
+}
+
+bool PostgresController::addOrder(const QString& issuerName) {
+  emit logging(QString("Добавление нового заказа для \"%1\"").arg(issuerName));
+
+  //  INSERT INTO Customers(Age, FirstName) VALUES(30, 'John');
+  //  INSERT INTO Orders(CustomerId, Quantity)
+  //      VALUES((SELECT Id FROM Customers WHERE FirstName = 'John'), 5);
+
+  // Создаем запрос
+  QString query =
+      QString(
+          "UPDATE public.issuers SET \"OrderQuantity\" = \"OrderQuantity\" + 1 "
+          "WHERE \"Name\" = '%1';")
+          .arg(issuerName);
+  emit logging("Текст запроса: ");
+  emit logging(query);
+
+  // Выполняем запрос
+  QSqlQuery CurrentRequest(QSqlDatabase::database(ConnectionName));
+  if (CurrentRequest.exec(query)) {
+    emit logging("Заказ добавлен. ");
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest.lastError().text());
+    return false;
+  }
 }
 
 void PostgresController::loadSettings() {

@@ -60,6 +60,9 @@ class MainWindowKernel : public QMainWindow {
 
   void on_TransmitCustomRequestPushButton_slot(void);
 
+  // Функицнал для формирования новых заказов
+  void on_CreateNewOrderPushButton_slot(void);
+
   // Функционал для настройки сервера
   void applyUserSettings_slot(void);
 
@@ -67,6 +70,7 @@ class MainWindowKernel : public QMainWindow {
   void proxyLogging(const QString& log);
   void loadSettings(void);
   bool checkNewSettings(void);
+  bool checkNewOrderInput(void);
 
   void createTopMenu(void);  // Создание верхнего меню
   void createTopMenuActions(void);  // Создание функционала для верхнего меню
@@ -83,8 +87,5 @@ class MainWindowKernel : public QMainWindow {
 
  signals:
   void logging(const QString& log);
-  void notifyUser(const QString& data);
-  void notifyUserAboutError(const QString& data);
-  void requestMasterPassword(QString& key);
 };
 #endif  // MAINWINDOWKERNEL_H

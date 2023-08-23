@@ -1,6 +1,7 @@
-#ifndef TRANSPONDERINITIALIZER_H
-#define TRANSPONDERINITIALIZER_H
+#ifndef ORDERCREATIONSYSTEM_H
+#define ORDERCREATIONSYSTEM_H
 
+#include <QApplication>
 #include <QObject>
 
 #include "Database/database_buffer.h"
@@ -8,7 +9,7 @@
 #include "Database/postgres_controller.h"
 #include "issuer_order.h"
 
-class TransponderInitializer : public QObject {
+class OrderCreationSystem : public QObject {
   Q_OBJECT
  public:
   enum ExecutionStatus {
@@ -20,10 +21,10 @@ class TransponderInitializer : public QObject {
   };
 
  private:
-  IDatabaseController* Database;
+  PostgresController* Database;
 
  public:
-  explicit TransponderInitializer(QObject* parent);
+  explicit OrderCreationSystem(QObject* parent);
 
  public slots:
   void proxyLogging(const QString& log);
@@ -34,9 +35,28 @@ class TransponderInitializer : public QObject {
   void getCustomResponse(const QString& req, DatabaseBuffer* buffer);
   void createNewOrder(IssuerOrder* order);
 
+ private:
+  void init(void);
+
  signals:
   void logging(const QString& log);
   void operationFinished(ExecutionStatus status);
 };
 
-#endif  // TRANSPONDERINITIALIZER_H
+class OCSBuilder : public QObject {
+  Q_OBJECT
+ private:
+  OrderCreationSystem* BuildedObject;
+
+ public:
+  explicit OCSBuilder(void);
+  OrderCreationSystem* buildedObject() const;
+
+ public slots:
+  void build(void);
+
+ signals:
+  void completed(void);
+};
+
+#endif  // ORDERCREATIONSYSTEM_H

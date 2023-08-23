@@ -146,8 +146,8 @@ void MasterGUI::createOrderCreationTab() {
   OrderCreationControlPanelLayout->addLayout(
       OrderCreationControlPanelSubLayout1);
 
-  IssuerNameLabel = new QLabel("Компания заказчик");
-  OrderCreationControlPanelSubLayout1->addWidget(IssuerNameLabel);
+  IssuerNameComboLabel = new QLabel("Компания заказчик");
+  OrderCreationControlPanelSubLayout1->addWidget(IssuerNameComboLabel);
 
   IssuerNameComboBox = new QComboBox();
   IssuerNameComboBox->addItem("Новое качество дорог");
@@ -328,11 +328,22 @@ void MasterGUI::on_FullPersonalizationCheckBoxChanged() {
 
     PanFilePathLineEdit = new QLineEdit();
     OrderCreationControlPanelSubLayout->addWidget(PanFilePathLineEdit);
+
     PanFileExplorePushButton = new QPushButton("Обзор");
     OrderCreationControlPanelSubLayout->addWidget(PanFileExplorePushButton);
+    connect(PanFileExplorePushButton, &QPushButton::clicked, this,
+            &MasterGUI::on_PanFileExplorePushButton_slot);
   } else {
     OrderCreationControlPanelLayout->removeWidget(
         OrderCreationControlPanelSubWidget);
     delete OrderCreationControlPanelSubWidget;
+  }
+}
+
+void MasterGUI::on_PanFileExplorePushButton_slot() {
+  QString filePath =
+      QFileDialog::getOpenFileName(nullptr, "Выбрать файл", "./", "*.csv");
+  if (!filePath.isEmpty()) {
+    PanFilePathLineEdit->setText(filePath);
   }
 }

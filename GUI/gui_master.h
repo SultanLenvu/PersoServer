@@ -48,6 +48,17 @@ class MasterGUI : public GUI {
   QWidget* OrderCreationTab;
   QHBoxLayout* OrderCreationTabMainLayout;
 
+  //  QGroupBox* IssuerCreationControlPanel;
+  //  QVBoxLayout* IssuerCreationControlPanelLayout;
+
+  //  QHBoxLayout* IssuerCreationControlPanelSubLayout;
+  //  QLabel* IssuerNameLabel;
+  //  QLineEdit* IssuerNameLineEdit;
+
+  //  QHBoxLayout* IssuerCreationControlPanelSubLayout1;
+  //  QLabel* IssuerEcmLabel;
+  //  QLineEdit* IssuerEcmLineEdit;
+
   QGroupBox* OrderCreationControlPanel;
   QVBoxLayout* OrderCreationControlPanelLayout;
 
@@ -60,7 +71,7 @@ class MasterGUI : public GUI {
   QPushButton* PanFileExplorePushButton;
 
   QHBoxLayout* OrderCreationControlPanelSubLayout1;
-  QLabel* IssuerNameLabel;
+  QLabel* IssuerNameComboLabel;
   QComboBox* IssuerNameComboBox;
 
   QHBoxLayout* OrderCreationControlPanelSubLayout2;
@@ -138,6 +149,7 @@ class MasterGUI : public GUI {
 
  private slots:
   void on_FullPersonalizationCheckBoxChanged(void);
+  void on_PanFileExplorePushButton_slot(void);
 
  signals:
 };

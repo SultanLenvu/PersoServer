@@ -1,15 +1,19 @@
 #include "issuer_order.h"
 
-IssuerOrder::IssuerOrder(const QString& issuerName,
-                         uint32_t TransponderQuantity,
-                         QObject* parent)
-    : QObject(parent) {
+IssuerOrder::IssuerOrder(QObject* parent) : QObject(parent) {
   PanFile = nullptr;
-  IssuerName = issuerName;
-  TransponderQuantity = TransponderQuantity;
+  TransponderQuantity = 0;
 
   FullPersonalization = false;
   ProductionStartDate = QDate::currentDate();
+}
+
+void IssuerOrder::setIssuerName(const QString& newIssuerName) {
+  IssuerName = newIssuerName;
+}
+
+void IssuerOrder::setTransponderQuantity(uint32_t newTransponderQuantity) {
+  TransponderQuantity = newTransponderQuantity;
 }
 
 bool IssuerOrder::setFullPersonalization(const QString& panFilePath) {
@@ -29,8 +33,8 @@ bool IssuerOrder::setFullPersonalization(const QString& panFilePath) {
   return true;
 }
 
-QString* IssuerOrder::issuerName() {
-  return &IssuerName;
+const QString& IssuerOrder::issuerName() {
+  return IssuerName;
 }
 
 bool IssuerOrder::fullPersonalization() const {
@@ -41,12 +45,12 @@ uint32_t IssuerOrder::transponderQuantity() const {
   return TransponderQuantity;
 }
 
-QDate* IssuerOrder::productionStartDate() {
-  return &ProductionStartDate;
+const QDate& IssuerOrder::productionStartDate() {
+  return ProductionStartDate;
 }
 
-QString* IssuerOrder::currentPan() {
-  return &CurrentPan;
+const QString& IssuerOrder::currentPan() {
+  return CurrentPan;
 }
 
 bool IssuerOrder::nextPan() {
