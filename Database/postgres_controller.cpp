@@ -74,8 +74,7 @@ void PostgresController::execCustomRequest(const QString& req,
 
   // Создаем запрос
   CurrentRequest = new QSqlQuery(QSqlDatabase::database(ConnectionName));
-
-  emit logging("Отправляемый запрос: " + req);
+  emit logging(QString("Отправляемый запрос: ") + req);
 
   if (CurrentRequest->exec(req)) {
     emit logging("Ответ получен. ");
@@ -102,6 +101,26 @@ void PostgresController::applySettings() {
   createDatabaseConnection();
 }
 
+bool PostgresController::clearTable(const QString& tableName) {
+  emit logging(QString("Очистка таблицы: %1.").arg(tableName));
+
+  // Создаем запрос
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  emit logging(QString("Текст запроса: ") +
+               QString("TRUNCATE TABLE %1 RESTART IDENTITY;").arg(tableName));
+
+  // Выполняем запрос
+  if (request.exec(
+          QString("TRUNCATE TABLE %1 RESTART IDENTITY;").arg(tableName))) {
+    emit logging(QString("Очистка выполнена. "));
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
+    return false;
+  }
+}
+
 bool PostgresController::getIssuerId(const QString& issuerName,
                                      uint32_t& issuerId) {
   emit logging("Получение идентификатора заказчика. ");
@@ -111,8 +130,7 @@ bool PostgresController::getIssuerId(const QString& issuerName,
   request.prepare(QString("SELECT \"Id\" FROM issuers WHERE \"Name\" = '%1';")
                       .arg(issuerName));
 
-  emit logging("Текст запроса: ");
-  emit logging(request.lastQuery());
+  emit logging(QString("Текст запроса: ") + request.lastQuery());
 
   // Выполняем запрос
   if ((request.exec()) && (request.next())) {

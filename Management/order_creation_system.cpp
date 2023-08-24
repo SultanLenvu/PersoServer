@@ -27,14 +27,7 @@ void OrderSystem::createDatabaseController() {
           &OrderSystem::proxyLogging);
 }
 
-void OrderSystem::getDatabaseTable(const QString& tableName,
-                                   DatabaseTableModel* buffer) {
-  if (QApplication::instance()->thread() != thread()) {
-    emit logging("Операция выполняется в отдельном потоке. ");
-  } else {
-    emit logging("Операция выполняется в главном потоке. ");
-  }
-
+void OrderSystem::clearDatabaseTable(const QString& tableName) {
   emit logging("Подключение к базе данных. ");
   Database->connect();
 
@@ -44,6 +37,26 @@ void OrderSystem::getDatabaseTable(const QString& tableName,
     return;
   }
 
+  emit logging("Очистка данных таблицы базы данных. ");
+  Database->clearTable(tableName);
+
+  emit logging("Отключение от базы данных. ");
+  Database->disconnect();
+  emit operationFinished(CompletedSuccessfully);
+}
+
+void OrderSystem::getDatabaseTable(const QString& tableName,
+                                   DatabaseTableModel* buffer) {
+  emit logging("Подключение к базе данных. ");
+  Database->connect();
+
+  if (!Database->isConnected()) {
+    emit logging("Соединение с базой данных не установлено. ");
+    emit operationFinished(DatabaseConnectionError);
+    return;
+  }
+
+  emit logging("Получение таблицы базы данных. ");
   Database->getTable(tableName, 10, buffer);
 
   emit logging("Отключение от базы данных. ");

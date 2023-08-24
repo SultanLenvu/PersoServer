@@ -54,6 +54,7 @@ class PostgresController : public IDatabaseController {
                                  DatabaseTableModel* buffer) override;
   virtual void applySettings() override;
 
+  bool clearTable(const QString& tableName);
   bool getIssuerId(const QString& issuerName, uint32_t& issuerId);
   bool addOrder(const OrderRecord& record);
   bool addOrderToIssuer(const QString& issuerName);

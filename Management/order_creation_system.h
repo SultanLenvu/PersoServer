@@ -31,6 +31,7 @@ class OrderSystem : public QObject {
   void applySettings(void);
 
   void createDatabaseController(void);
+  void clearDatabaseTable(const QString& tableName);
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
   void createNewOrder(IssuerOrder* order);

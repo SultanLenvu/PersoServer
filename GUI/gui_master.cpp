@@ -37,11 +37,6 @@ void MasterGUI::createTabs() {
   // Контруируем вкладки для взаимодействия с базой данных
   createDatabaseTab();
   createOrderTab();
-  createProductionLineTab();
-  createTransponderTab();
-  createIssuerTab();
-  createBoxTab();
-  createPalletTab();
   createTransportKeyTab();
   createCommercialKeyTab();
 
@@ -74,9 +69,29 @@ void MasterGUI::createDatabaseTab() {
   DisconnectDatabasePushButton = new QPushButton("Отключиться");
   DatabaseControlPanelLayout->addWidget(DisconnectDatabasePushButton);
 
-  PushButtonLayoutVS1 =
+  DatabaseControlPanelVS =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  DatabaseControlPanelLayout->addItem(PushButtonLayoutVS1);
+  DatabaseControlPanelLayout->addItem(DatabaseControlPanelVS);
+
+  DatabaseTableChoice = new QComboBox();
+  DatabaseTableChoice->addItem("production_lines");
+  DatabaseTableChoice->addItem("transponders");
+  DatabaseTableChoice->addItem("orders");
+  DatabaseTableChoice->addItem("issuers");
+  DatabaseTableChoice->addItem("boxes");
+  DatabaseTableChoice->addItem("pallets");
+  DatabaseTableChoice->addItem("transport_master_keys");
+  DatabaseTableChoice->addItem("commercial_master_keys");
+  DatabaseControlPanelLayout->addWidget(DatabaseTableChoice);
+
+  ShowDatabaseTablePushButton = new QPushButton("Открыть таблицу");
+  DatabaseControlPanelLayout->addWidget(ShowDatabaseTablePushButton);
+  ClearDatabaseTablePushButton = new QPushButton("Очистить таблицу");
+  DatabaseControlPanelLayout->addWidget(ClearDatabaseTablePushButton);
+
+  DatabaseControlPanelVS1 =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  DatabaseControlPanelLayout->addItem(DatabaseControlPanelVS1);
 
   CustomRequestLineEdit = new QLineEdit();
   DatabaseControlPanelLayout->addWidget(CustomRequestLineEdit);
@@ -100,94 +115,6 @@ void MasterGUI::createDatabaseTab() {
   DatabaseMainLayout->setStretch(1, 3);
 }
 
-void MasterGUI::createProductionLineTab() {
-  ProductionLineTab = new QWidget();
-  Tabs->addTab(ProductionLineTab, "Линии производства");
-
-  // Основной макет
-  ProductionLineMainLayout = new QHBoxLayout();
-  ProductionLineTab->setLayout(ProductionLineMainLayout);
-
-  // Панель управления
-  ProductionLineControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  ProductionLineControlPanelGroup->setAlignment(Qt::AlignHCenter |
-                                                Qt::AlignVCenter);
-  ProductionLineMainLayout->addWidget(ProductionLineControlPanelGroup);
-
-  ProductionLineControlPanelLayout = new QVBoxLayout();
-  ProductionLineControlPanelGroup->setLayout(ProductionLineControlPanelLayout);
-
-  // Кнопки
-  UpdateProductionLinePushButton = new QPushButton("Обновить");
-  ProductionLineControlPanelLayout->addWidget(UpdateProductionLinePushButton);
-
-  ProductionLineVS1 =
-      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  ProductionLineControlPanelLayout->addItem(ProductionLineVS1);
-
-  ClearProductionLinePushButton = new QPushButton("Очистить");
-  ProductionLineControlPanelLayout->addWidget(ClearProductionLinePushButton);
-
-  // Отображение буфера считанных данных из БД
-  ProductionLineViewGroup = new QGroupBox(QString("Таблица"));
-  ProductionLineViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  ProductionLineMainLayout->addWidget(ProductionLineViewGroup);
-
-  ProductionLineViewLayout = new QVBoxLayout();
-  ProductionLineViewGroup->setLayout(ProductionLineViewLayout);
-
-  ProductionLineView = new QTableView();
-  ProductionLineViewLayout->addWidget(ProductionLineView);
-
-  // Настройка пропорции между объектами на макете
-  ProductionLineMainLayout->setStretch(0, 1);
-  ProductionLineMainLayout->setStretch(1, 3);
-}
-
-void MasterGUI::createTransponderTab() {
-  TransponderTab = new QWidget();
-  Tabs->addTab(TransponderTab, "Транспондеры");
-
-  // Основной макет
-  TransponderMainLayout = new QHBoxLayout();
-  TransponderTab->setLayout(TransponderMainLayout);
-
-  // Панель управления
-  TransponderControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  TransponderControlPanelGroup->setAlignment(Qt::AlignHCenter |
-                                             Qt::AlignVCenter);
-  TransponderMainLayout->addWidget(TransponderControlPanelGroup);
-
-  TransponderControlPanelLayout = new QVBoxLayout();
-  TransponderControlPanelGroup->setLayout(TransponderControlPanelLayout);
-
-  // Кнопки
-  UpdateTransponderPushButton = new QPushButton("Обновить");
-  TransponderControlPanelLayout->addWidget(UpdateTransponderPushButton);
-
-  TransponderVS1 =
-      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  TransponderControlPanelLayout->addItem(ProductionLineVS1);
-
-  ClearTransponderPushButton = new QPushButton("Очистить");
-  TransponderControlPanelLayout->addWidget(ClearTransponderPushButton);
-
-  // Отображение буфера считанных данных из БД
-  TransponderViewGroup = new QGroupBox(QString("Таблица"));
-  TransponderViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  TransponderMainLayout->addWidget(TransponderViewGroup);
-
-  TransponderViewLayout = new QVBoxLayout();
-  TransponderViewGroup->setLayout(TransponderViewLayout);
-
-  TransponderView = new QTableView();
-  TransponderViewLayout->addWidget(TransponderView);
-
-  // Настройка пропорции между объектами на макете
-  TransponderMainLayout->setStretch(0, 1);
-  TransponderMainLayout->setStretch(1, 3);
-}
-
 void MasterGUI::createOrderTab() {
   OrderTab = new QWidget();
   Tabs->addTab(OrderTab, "Создание заказов");
@@ -196,30 +123,9 @@ void MasterGUI::createOrderTab() {
   OrderTabMainLayout = new QHBoxLayout();
   OrderTab->setLayout(OrderTabMainLayout);
 
-  // Макет для панелей
-  OrderTabPanelLayout = new QVBoxLayout();
-  OrderTabMainLayout->addLayout(OrderTabPanelLayout);
-
-  // Панель управления
-  OrderControlPanel = new QGroupBox("Панель управления");
-  OrderTabPanelLayout->addWidget(OrderControlPanel);
-
-  OrderControlPanelLayout = new QVBoxLayout();
-  OrderControlPanel->setLayout(OrderControlPanelLayout);
-
-  UpdateOrderPushButton = new QPushButton("Обновить");
-  OrderControlPanelLayout->addWidget(UpdateOrderPushButton);
-
-  OrderControlPanelVS1 =
-      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  OrderControlPanelLayout->addItem(OrderControlPanelVS1);
-
-  ClearOrderPushButton = new QPushButton("Очистить");
-  OrderControlPanelLayout->addWidget(ClearOrderPushButton);
-
   // Панель для создания
-  OrderCreationPanel = new QGroupBox("Панель создания");
-  OrderTabPanelLayout->addWidget(OrderCreationPanel);
+  OrderCreationPanel = new QGroupBox("Панель управления");
+  OrderTabMainLayout->addWidget(OrderCreationPanel);
 
   OrderCreationPanelLayout = new QVBoxLayout();
   OrderCreationPanel->setLayout(OrderCreationPanelLayout);
@@ -276,134 +182,6 @@ void MasterGUI::createOrderTab() {
   OrderTabMainLayout->setStretch(1, 3);
 }
 
-void MasterGUI::createIssuerTab() {
-  IssuerTab = new QWidget();
-  Tabs->addTab(IssuerTab, "Эмитенты");
-
-  // Основной макет
-  IssuerMainLayout = new QHBoxLayout();
-  IssuerTab->setLayout(IssuerMainLayout);
-
-  // Панель управления
-  IssuerControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  IssuerControlPanelGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  IssuerMainLayout->addWidget(IssuerControlPanelGroup);
-
-  IssuerControlPanelLayout = new QVBoxLayout();
-  IssuerControlPanelGroup->setLayout(IssuerControlPanelLayout);
-
-  // Кнопки
-  UpdateIssuerPushButton = new QPushButton("Обновить");
-  IssuerControlPanelLayout->addWidget(UpdateIssuerPushButton);
-
-  IssuerVS1 =
-      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  IssuerControlPanelLayout->addItem(ProductionLineVS1);
-
-  ClearIssuerPushButton = new QPushButton("Очистить");
-  IssuerControlPanelLayout->addWidget(ClearIssuerPushButton);
-
-  // Отображение буфера считанных данных из БД
-  IssuerViewGroup = new QGroupBox(QString("Таблица"));
-  IssuerViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  IssuerMainLayout->addWidget(IssuerViewGroup);
-
-  IssuerViewLayout = new QVBoxLayout();
-  IssuerViewGroup->setLayout(IssuerViewLayout);
-
-  IssuerView = new QTableView();
-  IssuerViewLayout->addWidget(IssuerView);
-
-  // Настройка пропорции между объектами на макете
-  IssuerMainLayout->setStretch(0, 1);
-  IssuerMainLayout->setStretch(1, 3);
-}
-
-void MasterGUI::createBoxTab() {
-  BoxTab = new QWidget();
-  Tabs->addTab(BoxTab, "Боксы");
-
-  // Основной макет
-  BoxMainLayout = new QHBoxLayout();
-  BoxTab->setLayout(BoxMainLayout);
-
-  // Панель управления
-  BoxControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  BoxControlPanelGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  BoxMainLayout->addWidget(BoxControlPanelGroup);
-
-  BoxControlPanelLayout = new QVBoxLayout();
-  BoxControlPanelGroup->setLayout(BoxControlPanelLayout);
-
-  // Кнопки
-  UpdateBoxPushButton = new QPushButton("Обновить");
-  BoxControlPanelLayout->addWidget(UpdateBoxPushButton);
-
-  BoxVS1 = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  BoxControlPanelLayout->addItem(ProductionLineVS1);
-
-  ClearBoxPushButton = new QPushButton("Очистить");
-  BoxControlPanelLayout->addWidget(ClearBoxPushButton);
-
-  // Отображение буфера считанных данных из БД
-  BoxViewGroup = new QGroupBox(QString("Таблица"));
-  BoxViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  BoxMainLayout->addWidget(BoxViewGroup);
-
-  BoxViewLayout = new QVBoxLayout();
-  BoxViewGroup->setLayout(BoxViewLayout);
-
-  BoxView = new QTableView();
-  BoxViewLayout->addWidget(BoxView);
-
-  // Настройка пропорции между объектами на макете
-  BoxMainLayout->setStretch(0, 1);
-  BoxMainLayout->setStretch(1, 3);
-}
-
-void MasterGUI::createPalletTab() {
-  PalletTab = new QWidget();
-  Tabs->addTab(PalletTab, "Палеты");
-
-  // Основной макет
-  PalletMainLayout = new QHBoxLayout();
-  PalletTab->setLayout(PalletMainLayout);
-
-  // Панель управления
-  PalletControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  PalletControlPanelGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  PalletMainLayout->addWidget(PalletControlPanelGroup);
-
-  PalletControlPanelLayout = new QVBoxLayout();
-  PalletControlPanelGroup->setLayout(PalletControlPanelLayout);
-
-  // Кнопки
-  UpdatePalletPushButton = new QPushButton("Обновить");
-  PalletControlPanelLayout->addWidget(UpdatePalletPushButton);
-
-  PalletVS1 =
-      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  PalletControlPanelLayout->addItem(ProductionLineVS1);
-
-  ClearPalletPushButton = new QPushButton("Очистить");
-  PalletControlPanelLayout->addWidget(ClearPalletPushButton);
-
-  // Отображение буфера считанных данных из БД
-  PalletViewGroup = new QGroupBox(QString("Таблица"));
-  PalletViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  PalletMainLayout->addWidget(PalletViewGroup);
-
-  PalletViewLayout = new QVBoxLayout();
-  PalletViewGroup->setLayout(PalletViewLayout);
-
-  PalletView = new QTableView();
-  PalletViewLayout->addWidget(PalletView);
-
-  // Настройка пропорции между объектами на макете
-  PalletMainLayout->setStretch(0, 1);
-  PalletMainLayout->setStretch(1, 3);
-}
-
 void MasterGUI::createTransportKeyTab() {
   TransportKeyTab = new QWidget();
   Tabs->addTab(TransportKeyTab, "Транспортные ключи");
@@ -427,7 +205,7 @@ void MasterGUI::createTransportKeyTab() {
 
   TransportKeyVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  TransportKeyControlPanelLayout->addItem(ProductionLineVS1);
+  TransportKeyControlPanelLayout->addItem(TransportKeyVS1);
 
   ClearTransportKeyPushButton = new QPushButton("Очистить");
   TransportKeyControlPanelLayout->addWidget(ClearTransportKeyPushButton);
@@ -471,7 +249,7 @@ void MasterGUI::createCommercialKeyTab(void) {
 
   CommercialKeyVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  CommercialKeyControlPanelLayout->addItem(ProductionLineVS1);
+  CommercialKeyControlPanelLayout->addItem(CommercialKeyVS1);
 
   ClearCommercialKeyPushButton = new QPushButton("Очистить");
   CommercialKeyControlPanelLayout->addWidget(ClearCommercialKeyPushButton);

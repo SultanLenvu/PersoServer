@@ -54,59 +54,29 @@ void MainWindowKernel::on_DisconnectDatabasePushButton_slot() {
   Logger->clear();
 }
 
-void MainWindowKernel::on_ShowProductionLineTablePushButton_slot() {
+void MainWindowKernel::on_ShowDatabaseTablePushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->showDatabaseTable("production_lines");
+  Manager->showDatabaseTable(gui->DatabaseTableChoice->currentText());
 
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_ShowTransponderTablePushButton_slot() {
+void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->showDatabaseTable("transponders");
-
-  CurrentGUI->update();
-}
-
-void MainWindowKernel::on_ShowOrderTablePushButton_slot() {
-  Logger->clear();
-
-  Manager->showDatabaseTable("orders");
-
-  CurrentGUI->update();
-}
-
-void MainWindowKernel::on_ShowIssuerTablePushButton_slot() {
-  Logger->clear();
-
-  Manager->showDatabaseTable("issuers");
-
-  CurrentGUI->update();
-}
-
-void MainWindowKernel::on_ShowBoxTablePushButton_slot() {
-  Logger->clear();
-
-  Manager->showDatabaseTable("boxes");
-
-  CurrentGUI->update();
-}
-
-void MainWindowKernel::on_ShowPalletPushButton_slot() {
-  Logger->clear();
-
-  Manager->showDatabaseTable("pallets");
+  Manager->clearDatabaseTable(gui->DatabaseTableChoice->currentText());
 
   CurrentGUI->update();
 }
 
 void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->showCustomResponse(
-      dynamic_cast<MasterGUI*>(CurrentGUI)->CustomRequestLineEdit->text());
+  Manager->showCustomResponse(gui->CustomRequestLineEdit->text());
 
   CurrentGUI->update();
 }
@@ -317,32 +287,13 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_DisconnectDatabasePushButton_slot);
 
   // Базы данных
+  connect(gui->ShowDatabaseTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowDatabaseTablePushButton_slot);
+  connect(gui->ClearDatabaseTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ClearDatabaseTablePushButton_slot);
+
   connect(gui->TransmitCustomRequestPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_TransmitCustomRequestPushButton_slot);
-
-  // Производственные линии
-  connect(gui->UpdateProductionLinePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowProductionLineTablePushButton_slot);
-
-  // Транспондеры
-  connect(gui->UpdateTransponderPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowTransponderTablePushButton_slot);
-
-  // Заказы
-  connect(gui->UpdateOrderPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowOrderTablePushButton_slot);
-
-  // Эмитенты
-  connect(gui->UpdateIssuerPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowIssuerTablePushButton_slot);
-
-  // Боксы
-  connect(gui->UpdateBoxPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowBoxTablePushButton_slot);
-
-  // Палеты
-  connect(gui->UpdatePalletPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowPalletPushButton_slot);
 
   // Создание нового заказа
   connect(gui->CreateNewOrderPushButton, &QPushButton::clicked, this,
@@ -353,7 +304,7 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::applyUserSettings_slot);
 
   // Соединяем модели и представления
-  // gui->DatabaseBufferView->setModel(Manager->buffer());
+  gui->DatabaseBufferView->setModel(Manager->buffer());
 
   // Связываем отображения графиков с логикой их формирования
 }

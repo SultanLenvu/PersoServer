@@ -24,10 +24,16 @@ class MasterGUI : public GUI {
 
   QPushButton* ConnectDatabasePushButton;
   QPushButton* DisconnectDatabasePushButton;
-  QSpacerItem* PushButtonLayoutVS1;
+  QSpacerItem* DatabaseControlPanelVS;
+
+  QComboBox* DatabaseTableChoice;
+  QPushButton* ShowDatabaseTablePushButton;
+  QPushButton* ClearDatabaseTablePushButton;
+  QSpacerItem* DatabaseControlPanelVS1;
 
   QPushButton* TransmitCustomRequestPushButton;
   QLineEdit* CustomRequestLineEdit;
+  QPushButton* PushButton;
 
   // Отображение записей в БД
   QGroupBox* DatabaseBufferGroup;
@@ -35,56 +41,10 @@ class MasterGUI : public GUI {
   QTableView* DatabaseBufferView;
   //============================================================
 
-  /* Интерфейс таблицы линий производства*/
-  //============================================================
-  QWidget* ProductionLineTab;
-  QHBoxLayout* ProductionLineMainLayout;
-
-  // Панель упралвения
-  QGroupBox* ProductionLineControlPanelGroup;
-  QVBoxLayout* ProductionLineControlPanelLayout;
-
-  QPushButton* UpdateProductionLinePushButton;
-  QSpacerItem* ProductionLineVS1;
-  QPushButton* ClearProductionLinePushButton;
-
-  // Отображение записей
-  QGroupBox* ProductionLineViewGroup;
-  QVBoxLayout* ProductionLineViewLayout;
-  QTableView* ProductionLineView;
-  //============================================================
-
-  /* Интерфейс таблицы транспонедров  */
-  //============================================================
-  QWidget* TransponderTab;
-  QHBoxLayout* TransponderMainLayout;
-
-  // Панель упралвения
-  QGroupBox* TransponderControlPanelGroup;
-  QVBoxLayout* TransponderControlPanelLayout;
-
-  QPushButton* UpdateTransponderPushButton;
-  QSpacerItem* TransponderVS1;
-  QPushButton* ClearTransponderPushButton;
-
-  // Отображение записей
-  QGroupBox* TransponderViewGroup;
-  QVBoxLayout* TransponderViewLayout;
-  QTableView* TransponderView;
-  //============================================================
-
   /* Интерфейс заказов */
   //============================================================
   QWidget* OrderTab;
   QHBoxLayout* OrderTabMainLayout;
-  QVBoxLayout* OrderTabPanelLayout;
-
-  QGroupBox* OrderControlPanel;
-  QVBoxLayout* OrderControlPanelLayout;
-
-  QPushButton* UpdateOrderPushButton;
-  QSpacerItem* OrderControlPanelVS1;
-  QPushButton* ClearOrderPushButton;
 
   QGroupBox* OrderCreationPanel;
   QVBoxLayout* OrderCreationPanelLayout;
@@ -113,63 +73,6 @@ class MasterGUI : public GUI {
   QTableView* PanListTableView;
 
   QSpacerItem* OrderTabMainLayoutHS;
-  //============================================================
-
-  /* Интерфейс таблицы эмитентов  */
-  //============================================================
-  QWidget* IssuerTab;
-  QHBoxLayout* IssuerMainLayout;
-
-  // Панель управления
-  QGroupBox* IssuerControlPanelGroup;
-  QVBoxLayout* IssuerControlPanelLayout;
-
-  QPushButton* UpdateIssuerPushButton;
-  QSpacerItem* IssuerVS1;
-  QPushButton* ClearIssuerPushButton;
-
-  // Отображение записей
-  QGroupBox* IssuerViewGroup;
-  QVBoxLayout* IssuerViewLayout;
-  QTableView* IssuerView;
-  //============================================================
-
-  /* Интерфейс таблицы боксов  */
-  //============================================================
-  QWidget* BoxTab;
-  QHBoxLayout* BoxMainLayout;
-
-  // Панель упралвения
-  QGroupBox* BoxControlPanelGroup;
-  QVBoxLayout* BoxControlPanelLayout;
-
-  QPushButton* UpdateBoxPushButton;
-  QSpacerItem* BoxVS1;
-  QPushButton* ClearBoxPushButton;
-
-  // Отображение записей
-  QGroupBox* BoxViewGroup;
-  QVBoxLayout* BoxViewLayout;
-  QTableView* BoxView;
-  //============================================================
-
-  /* Интерфейс таблицы палет  */
-  //============================================================
-  QWidget* PalletTab;
-  QHBoxLayout* PalletMainLayout;
-
-  // Панель управления
-  QGroupBox* PalletControlPanelGroup;
-  QVBoxLayout* PalletControlPanelLayout;
-
-  QPushButton* UpdatePalletPushButton;
-  QSpacerItem* PalletVS1;
-  QPushButton* ClearPalletPushButton;
-
-  // Отображение записей
-  QGroupBox* PalletViewGroup;
-  QVBoxLayout* PalletViewLayout;
-  QTableView* PalletView;
   //============================================================
 
   /* Интерфейс транспортных ключей безопасности */
@@ -253,12 +156,7 @@ class MasterGUI : public GUI {
 
   void createServerTab(void);
   void createDatabaseTab(void);
-  void createProductionLineTab(void);
-  void createTransponderTab(void);
   void createOrderTab(void);
-  void createIssuerTab(void);
-  void createBoxTab(void);
-  void createPalletTab(void);
   void createTransportKeyTab(void);
   void createCommercialKeyTab(void);
 

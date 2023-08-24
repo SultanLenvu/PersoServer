@@ -51,13 +51,8 @@ class MainWindowKernel : public QMainWindow {
   void on_ConnectDatabasePushButton_slot(void);
   void on_DisconnectDatabasePushButton_slot(void);
 
-  void on_ShowProductionLineTablePushButton_slot(void);
-  void on_ShowTransponderTablePushButton_slot(void);
-  void on_ShowOrderTablePushButton_slot(void);
-  void on_ShowIssuerTablePushButton_slot(void);
-  void on_ShowBoxTablePushButton_slot(void);
-  void on_ShowPalletPushButton_slot(void);
-
+  void on_ShowDatabaseTablePushButton_slot(void);
+  void on_ClearDatabaseTablePushButton_slot(void);
   void on_TransmitCustomRequestPushButton_slot(void);
 
   // Функицнал для формирования новых заказов

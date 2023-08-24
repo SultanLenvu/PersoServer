@@ -5,8 +5,8 @@
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   setObjectName("ServerManager");
 
-  // Создаем табличные модели для базы данных
-  createDatabaseTables();
+  // Создаем модель для представления таблицы базы данных
+  Buffer = new DatabaseTableModel(this);
 
   // Создаем среду выполнения для хоста
   createHostInstance();
@@ -32,8 +32,8 @@ ServerManager::~ServerManager() {
   OrderCreatorThread->wait();
 }
 
-QVector<DatabaseTableModel*>* ServerManager::databaseTables() {
-  return &DatabaseTables;
+DatabaseTableModel* ServerManager::buffer(void) {
+  return Buffer;
 }
 
 void ServerManager::applySettings() {
@@ -64,16 +64,45 @@ void ServerManager::showDatabaseTable(const QString& name) {
     return;
   }
 
-  DatabaseTables.at(RandomTable)->clear();
+  Buffer->clear();
 
-  emit logging("Представление линий производства. ");
-  emit getDatabaseTable_signal(name, DatabaseTables.at(RandomTable));
+  emit logging("Отображение таблицы базы данных. ");
+  emit getDatabaseTable_signal(name, Buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
   endOperationExecution("showDatabaseTable");
+}
+
+void ServerManager::clearDatabaseTable(const QString& name) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("clearDatabaseTable")) {
+    return;
+  }
+
+  emit logging("Очистка таблицы базы данных. ");
+  emit clearDatabaseTable_signal(name);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("clearDatabaseTable");
+    return;
+  }
+
+  Buffer->clear();
+  emit logging("Отображение таблицы базы данных. ");
+  emit getDatabaseTable_signal(name, Buffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("clearDatabaseTable");
 }
 
 void ServerManager::showCustomResponse(const QString& req) {
@@ -83,7 +112,7 @@ void ServerManager::showCustomResponse(const QString& req) {
   }
 
   emit logging("Представление ответа на кастомный запрос. ");
-  emit getCustomResponse_signal(req, DatabaseTables.at(RandomTable));
+  emit getCustomResponse_signal(req, Buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -105,12 +134,6 @@ void ServerManager::createNewOrder(IssuerOrder* newOrder) {
 
   // Завершаем выполнение операции
   endOperationExecution("createNewOrder");
-}
-
-void ServerManager::createDatabaseTables() {
-  for (uint32_t i = 0; i < TableCounter; i++) {
-    DatabaseTables.append(new DatabaseTableModel(this));
-  }
 }
 
 void ServerManager::createHostInstance() {
@@ -208,7 +231,7 @@ bool ServerManager::startOperationExecution(const QString& operationName) {
     return false;
 
   // Очищаем буфер
-  DatabaseTables.at(RandomTable)->clear();
+  Buffer->clear();
 
   // Переходим в состояние ожидания конца обработки
   CurrentState = WaitingExecution;
@@ -299,6 +322,8 @@ void ServerManager::on_OrderCreatorBuilderCompleted_slot() {
           &OrderSystem::getCustomResponse);
   connect(this, &ServerManager::createNewOrder_signal, OrderCreator,
           &OrderSystem::createNewOrder);
+  connect(this, &ServerManager::clearDatabaseTable_signal, OrderCreator,
+          &OrderSystem::clearDatabaseTable);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {

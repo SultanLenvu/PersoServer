@@ -43,7 +43,7 @@ class ServerManager : public QObject {
   PersoHost* Host;
   QThread* ServerThread;
 
-  QVector<DatabaseTableModel*> DatabaseTables;
+  DatabaseTableModel* Buffer;
 
   OrderSystem* OrderCreator;
   OCSBuilder* OrderCreatorBuilder;
@@ -58,19 +58,18 @@ class ServerManager : public QObject {
   ServerManager(QObject* parent);
   ~ServerManager();
 
-  QVector<DatabaseTableModel*>* databaseTables(void);
+  DatabaseTableModel* buffer(void);
   void applySettings();
 
   void start(void);
   void stop(void);
 
   void showDatabaseTable(const QString& name);
+  void clearDatabaseTable(const QString& name);
   void showCustomResponse(const QString& req);
   void createNewOrder(IssuerOrder* newOrder);
 
  private:
-  void createDatabaseTables(void);
-
   void createHostInstance(void);
   void createOrderCreatorInstance(void);
 
@@ -111,6 +110,7 @@ class ServerManager : public QObject {
   // Сигналы для составителя заказов
   void getDatabaseTable_signal(const QString& tableName,
                                DatabaseTableModel* buffer);
+  void clearDatabaseTable_signal(const QString& tableName);
   void getCustomResponse_signal(const QString& req, DatabaseTableModel* buffer);
   void createNewOrder_signal(IssuerOrder* order);
 };
