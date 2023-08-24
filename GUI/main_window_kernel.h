@@ -48,8 +48,8 @@ class MainWindowKernel : public QMainWindow {
   void stop_slot(void);
 
   // Функционал для работы с базой данных
-  void on_ConnectDataBasePushButton_slot(void);
-  void on_DisconnectDataBasePushButton_slot(void);
+  void on_ConnectDatabasePushButton_slot(void);
+  void on_DisconnectDatabasePushButton_slot(void);
 
   void on_ShowProductionLineTablePushButton_slot(void);
   void on_ShowTransponderTablePushButton_slot(void);

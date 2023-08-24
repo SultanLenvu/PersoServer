@@ -1,19 +1,14 @@
 #include "gui.h"
 
-GUI::GUI(QObject* parent, GUI::GUI_Type type) : QObject(parent)
-{
-  MainWidget = new QWidget();
-
+GUI::GUI(QWidget* parent, GUI::GUI_Type type) : QWidget(parent) {
   MainLayout = new QHBoxLayout();
-  MainWidget->setLayout(MainLayout);
+  setLayout(MainLayout);
 
   Type = type;
 }
 
 GUI::~GUI()
 {
-  QObject::disconnect(this);
-  delete MainWidget;
 }
 
 GUI::GUI_Type GUI::type()

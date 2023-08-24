@@ -23,6 +23,18 @@ class ServerManager : public QObject {
 
  public:
   enum OperationState { Ready, WaitingExecution, Failed, Completed };
+  enum DatabaseTableIndex {
+    RandomTable = 0,
+    ProductionLineTable,
+    TransponderTable,
+    OrderTable,
+    IssuerTable,
+    BoxTable,
+    PalletTable,
+    CommercialKeyTable,
+    TransportKeyTable,
+    TableCounter
+  };
 
  private:
   OperationState CurrentState;
@@ -31,11 +43,11 @@ class ServerManager : public QObject {
   PersoHost* Host;
   QThread* ServerThread;
 
-  OrderCreationSystem* OrderCreator;
+  QVector<DatabaseTableModel*> DatabaseTables;
+
+  OrderSystem* OrderCreator;
   OCSBuilder* OrderCreatorBuilder;
   QThread* OrderCreatorThread;
-
-  DatabaseBuffer* Buffer;
 
   QEventLoop* WaitingLoop;
   QTimer* ODTimer;
@@ -46,7 +58,7 @@ class ServerManager : public QObject {
   ServerManager(QObject* parent);
   ~ServerManager();
 
-  DatabaseBuffer* buffer(void);
+  QVector<DatabaseTableModel*>* databaseTables(void);
   void applySettings();
 
   void start(void);
@@ -57,6 +69,8 @@ class ServerManager : public QObject {
   void createNewOrder(IssuerOrder* newOrder);
 
  private:
+  void createDatabaseTables(void);
+
   void createHostInstance(void);
   void createOrderCreatorInstance(void);
 
@@ -74,8 +88,7 @@ class ServerManager : public QObject {
   void on_ServerThreadFinished_slot(void);
   void on_OrderCreatorThreadFinished_slot(void);
 
-  void on_OrderCreatorFinished_slot(
-      OrderCreationSystem::ExecutionStatus status);
+  void on_OrderCreatorFinished_slot(OrderSystem::ExecutionStatus status);
   void on_ODTimerTimeout_slot(void);
   void on_ODQTimerTimeout_slot(void);
 
@@ -97,8 +110,8 @@ class ServerManager : public QObject {
 
   // Сигналы для составителя заказов
   void getDatabaseTable_signal(const QString& tableName,
-                               DatabaseBuffer* buffer);
-  void getCustomResponse_signal(const QString& req, DatabaseBuffer* buffer);
+                               DatabaseTableModel* buffer);
+  void getCustomResponse_signal(const QString& req, DatabaseTableModel* buffer);
   void createNewOrder_signal(IssuerOrder* order);
 };
 

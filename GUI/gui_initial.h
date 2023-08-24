@@ -17,9 +17,9 @@ class InitialGUI : public GUI {
   QSpacerItem* ConnectButtonSpacer;
 
  public:
-  explicit InitialGUI(QObject* parent);
+  explicit InitialGUI(QWidget* parent);
 
-  virtual QWidget* create(void) override;
+  virtual void create(void) override;
   virtual void update(void) override;
 
  private:

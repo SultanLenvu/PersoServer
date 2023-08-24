@@ -13,92 +13,201 @@ class MasterGUI : public GUI {
  public:
   QTabWidget* Tabs;
 
-  /* Интерфейс базы данных */
+  /* Общий интерфейс базы данных */
   //============================================================
-  QWidget* DataBaseTab;
-  QHBoxLayout* DataBaseMainLayout;
+  QWidget* DatabaseTab;
+  QHBoxLayout* DatabaseMainLayout;
 
   // Панель упралвения БД
-  QGroupBox* DataBaseControlPanelGroup;
-  QVBoxLayout* DataBaseControlPanelLayout;
+  QGroupBox* DatabaseControlPanelGroup;
+  QVBoxLayout* DatabaseControlPanelLayout;
 
-  QPushButton* ConnectDataBasePushButton;
-  QPushButton* DisconnectDataBasePushButton;
+  QPushButton* ConnectDatabasePushButton;
+  QPushButton* DisconnectDatabasePushButton;
   QSpacerItem* PushButtonLayoutVS1;
-
-  QPushButton* ShowProductionLineTablePushButton;
-  QPushButton* ShowTransponderTablePushButton;
-  QPushButton* ShowOrderTablePushButton;
-  QPushButton* ShowIssuerTablePushButton;
-  QPushButton* ShowBoxTablePushButton;
-  QPushButton* ShowPalletPushButton;
-  QSpacerItem* PushButtonLayoutVS2;
 
   QPushButton* TransmitCustomRequestPushButton;
   QLineEdit* CustomRequestLineEdit;
 
   // Отображение записей в БД
-  QGroupBox* DataBaseBufferGroup;
-  QVBoxLayout* DataBaseBufferLayout;
-  QTableView* DataBaseBufferView;
+  QGroupBox* DatabaseBufferGroup;
+  QVBoxLayout* DatabaseBufferLayout;
+  QTableView* DatabaseBufferView;
   //============================================================
 
-  /* Меню создания заказов */
+  /* Интерфейс таблицы линий производства*/
   //============================================================
-  QWidget* OrderCreationTab;
-  QHBoxLayout* OrderCreationTabMainLayout;
+  QWidget* ProductionLineTab;
+  QHBoxLayout* ProductionLineMainLayout;
 
-  //  QGroupBox* IssuerCreationControlPanel;
-  //  QVBoxLayout* IssuerCreationControlPanelLayout;
+  // Панель упралвения
+  QGroupBox* ProductionLineControlPanelGroup;
+  QVBoxLayout* ProductionLineControlPanelLayout;
 
-  //  QHBoxLayout* IssuerCreationControlPanelSubLayout;
-  //  QLabel* IssuerNameLabel;
-  //  QLineEdit* IssuerNameLineEdit;
+  QPushButton* UpdateProductionLinePushButton;
+  QSpacerItem* ProductionLineVS1;
+  QPushButton* ClearProductionLinePushButton;
 
-  //  QHBoxLayout* IssuerCreationControlPanelSubLayout1;
-  //  QLabel* IssuerEcmLabel;
-  //  QLineEdit* IssuerEcmLineEdit;
+  // Отображение записей
+  QGroupBox* ProductionLineViewGroup;
+  QVBoxLayout* ProductionLineViewLayout;
+  QTableView* ProductionLineView;
+  //============================================================
 
-  QGroupBox* OrderCreationControlPanel;
-  QVBoxLayout* OrderCreationControlPanelLayout;
+  /* Интерфейс таблицы транспонедров  */
+  //============================================================
+  QWidget* TransponderTab;
+  QHBoxLayout* TransponderMainLayout;
+
+  // Панель упралвения
+  QGroupBox* TransponderControlPanelGroup;
+  QVBoxLayout* TransponderControlPanelLayout;
+
+  QPushButton* UpdateTransponderPushButton;
+  QSpacerItem* TransponderVS1;
+  QPushButton* ClearTransponderPushButton;
+
+  // Отображение записей
+  QGroupBox* TransponderViewGroup;
+  QVBoxLayout* TransponderViewLayout;
+  QTableView* TransponderView;
+  //============================================================
+
+  /* Интерфейс заказов */
+  //============================================================
+  QWidget* OrderTab;
+  QHBoxLayout* OrderTabMainLayout;
+  QVBoxLayout* OrderTabPanelLayout;
+
+  QGroupBox* OrderControlPanel;
+  QVBoxLayout* OrderControlPanelLayout;
+
+  QPushButton* UpdateOrderPushButton;
+  QSpacerItem* OrderControlPanelVS1;
+  QPushButton* ClearOrderPushButton;
+
+  QGroupBox* OrderCreationPanel;
+  QVBoxLayout* OrderCreationPanelLayout;
 
   QCheckBox* FullPersonalizationCheckBox;
 
-  QWidget* OrderCreationControlPanelSubWidget;
-  QHBoxLayout* OrderCreationControlPanelSubLayout;
+  QWidget* OrderCreationPanelSubWidget;
+  QHBoxLayout* OrderCreationPanelSubLayout;
   QLabel* PanFilePathLabel;
   QLineEdit* PanFilePathLineEdit;
   QPushButton* PanFileExplorePushButton;
 
-  QHBoxLayout* OrderCreationControlPanelSubLayout1;
+  QHBoxLayout* OrderCreationPanelSubLayout1;
   QLabel* IssuerNameComboLabel;
   QComboBox* IssuerNameComboBox;
 
-  QHBoxLayout* OrderCreationControlPanelSubLayout2;
+  QHBoxLayout* OrderCreationPanelSubLayout2;
   QLabel* TransponderQuantityLabel;
   QLineEdit* TransponderQuantityLineEdit;
 
   QPushButton* CreateNewOrderPushButton;
-  QSpacerItem* OrderCreationControlPanelVS;
+  QSpacerItem* OrderCreationPanelVS;
 
   QGroupBox* PanListPanel;
   QVBoxLayout* PanListLayout;
   QTableView* PanListTableView;
 
-  QSpacerItem* OrderCreationTabMainLayoutHS;
+  QSpacerItem* OrderTabMainLayoutHS;
   //============================================================
 
-  /* Настройки безопасности */
+  /* Интерфейс таблицы эмитентов  */
   //============================================================
-  QWidget* SecurityTab;
-  QGridLayout* SecurityTabMainLayout;
+  QWidget* IssuerTab;
+  QHBoxLayout* IssuerMainLayout;
 
-  QLabel* TMasterKeysLabel;
-  QLabel* CMasterKeysLabel;
-  QLabel* CommonKeysLabel;
-  QTableView* TMasterKeysView;
-  QTableView* CMasterKeysView;
-  QTableView* CommonKeysView;
+  // Панель управления
+  QGroupBox* IssuerControlPanelGroup;
+  QVBoxLayout* IssuerControlPanelLayout;
+
+  QPushButton* UpdateIssuerPushButton;
+  QSpacerItem* IssuerVS1;
+  QPushButton* ClearIssuerPushButton;
+
+  // Отображение записей
+  QGroupBox* IssuerViewGroup;
+  QVBoxLayout* IssuerViewLayout;
+  QTableView* IssuerView;
+  //============================================================
+
+  /* Интерфейс таблицы боксов  */
+  //============================================================
+  QWidget* BoxTab;
+  QHBoxLayout* BoxMainLayout;
+
+  // Панель упралвения
+  QGroupBox* BoxControlPanelGroup;
+  QVBoxLayout* BoxControlPanelLayout;
+
+  QPushButton* UpdateBoxPushButton;
+  QSpacerItem* BoxVS1;
+  QPushButton* ClearBoxPushButton;
+
+  // Отображение записей
+  QGroupBox* BoxViewGroup;
+  QVBoxLayout* BoxViewLayout;
+  QTableView* BoxView;
+  //============================================================
+
+  /* Интерфейс таблицы палет  */
+  //============================================================
+  QWidget* PalletTab;
+  QHBoxLayout* PalletMainLayout;
+
+  // Панель управления
+  QGroupBox* PalletControlPanelGroup;
+  QVBoxLayout* PalletControlPanelLayout;
+
+  QPushButton* UpdatePalletPushButton;
+  QSpacerItem* PalletVS1;
+  QPushButton* ClearPalletPushButton;
+
+  // Отображение записей
+  QGroupBox* PalletViewGroup;
+  QVBoxLayout* PalletViewLayout;
+  QTableView* PalletView;
+  //============================================================
+
+  /* Интерфейс транспортных ключей безопасности */
+  //============================================================
+  QWidget* TransportKeyTab;
+  QHBoxLayout* TransportKeyMainLayout;
+
+  // Панель управления
+  QGroupBox* TransportKeyControlPanelGroup;
+  QVBoxLayout* TransportKeyControlPanelLayout;
+
+  QPushButton* UpdateTransportKeyPushButton;
+  QSpacerItem* TransportKeyVS1;
+  QPushButton* ClearTransportKeyPushButton;
+
+  // Отображение записей
+  QGroupBox* TransportKeyViewGroup;
+  QVBoxLayout* TransportKeyViewLayout;
+  QTableView* TransportKeyView;
+  //============================================================
+
+  /* Интерфейс коммерческих ключей безопасности */
+  //============================================================
+  QWidget* CommercialKeyTab;
+  QHBoxLayout* CommercialKeyMainLayout;
+
+  // Панель управления
+  QGroupBox* CommercialKeyControlPanelGroup;
+  QVBoxLayout* CommercialKeyControlPanelLayout;
+
+  QPushButton* UpdateCommercialKeyPushButton;
+  QSpacerItem* CommercialKeyVS1;
+  QPushButton* ClearCommercialKeyPushButton;
+
+  // Отображение записей
+  QGroupBox* CommercialKeyViewGroup;
+  QVBoxLayout* CommercialKeyViewLayout;
+  QTableView* CommercialKeyView;
   //============================================================
 
   /* Настройки сервера */
@@ -134,17 +243,25 @@ class MasterGUI : public GUI {
   QLineEdit* DatabaseUserPasswordLineEdit;
   //============================================================
  public:
-  explicit MasterGUI(QObject* parent);
+  explicit MasterGUI(QWidget* parent);
 
-  virtual QWidget* create(void) override;
+  virtual void create(void) override;
   virtual void update(void) override;
 
  private:
   void createTabs(void);
+
   void createServerTab(void);
-  void createDataBaseTab(void);
-  void createOrderCreationTab(void);
-  void createSecurityTab(void);
+  void createDatabaseTab(void);
+  void createProductionLineTab(void);
+  void createTransponderTab(void);
+  void createOrderTab(void);
+  void createIssuerTab(void);
+  void createBoxTab(void);
+  void createPalletTab(void);
+  void createTransportKeyTab(void);
+  void createCommercialKeyTab(void);
+
   void createSettingsTab(void);
 
  private slots:

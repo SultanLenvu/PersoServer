@@ -46,27 +46,27 @@ bool PostgresController::isConnected() {
 }
 
 void PostgresController::getObuByPAN(const QString& pan,
-                                     DatabaseBuffer* buffer) {}
+                                     DatabaseTableModel* buffer) {}
 
 void PostgresController::getObuBySerialNumber(const uint32_t serial,
-                                              DatabaseBuffer* buffer) {}
+                                              DatabaseTableModel* buffer) {}
 
 void PostgresController::getObuByUCID(const QString& ucid,
-                                      DatabaseBuffer* buffer) {}
+                                      DatabaseTableModel* buffer) {}
 
 void PostgresController::getObuListByContextMark(const QString& cm,
-                                                 DatabaseBuffer* buffer) {}
+                                                 DatabaseTableModel* buffer) {}
 
 void PostgresController::getObuListBySerialNumber(const uint32_t serialBegin,
                                                   const uint32_t serialEnd,
-                                                  DatabaseBuffer* buffer) {}
+                                                  DatabaseTableModel* buffer) {}
 
 void PostgresController::getObuListByPAN(const uint32_t panBegin,
                                          const uint32_t panEnd,
-                                         DatabaseBuffer* buffer) {}
+                                         DatabaseTableModel* buffer) {}
 
 void PostgresController::execCustomRequest(const QString& req,
-                                           DatabaseBuffer* buffer) {
+                                           DatabaseTableModel* buffer) {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     emit logging("Соединение с Postgres не установлено. ");
     return;
@@ -102,12 +102,62 @@ void PostgresController::applySettings() {
   createDatabaseConnection();
 }
 
-bool PostgresController::addOrder(const QString& issuerName) {
-  emit logging(QString("Добавление нового заказа для \"%1\"").arg(issuerName));
+bool PostgresController::getIssuerId(const QString& issuerName,
+                                     uint32_t& issuerId) {
+  emit logging("Получение идентификатора заказчика. ");
 
-  //  INSERT INTO Customers(Age, FirstName) VALUES(30, 'John');
-  //  INSERT INTO Orders(CustomerId, Quantity)
-  //      VALUES((SELECT Id FROM Customers WHERE FirstName = 'John'), 5);
+  // Создаем запрос
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  request.prepare(QString("SELECT \"Id\" FROM issuers WHERE \"Name\" = '%1';")
+                      .arg(issuerName));
+
+  emit logging("Текст запроса: ");
+  emit logging(request.lastQuery());
+
+  // Выполняем запрос
+  if ((request.exec()) && (request.next())) {
+    issuerId = request.record().value(0).toInt();
+    emit logging(
+        QString("Получен идентификатор: %1. ").arg(QString::number(issuerId)));
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
+    return false;
+  }
+}
+
+bool PostgresController::addOrder(const OrderRecord& record) {
+  emit logging(QString("Добавление нового заказа. "));
+
+  // Создаем запрос
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  request.prepare(
+      QString(
+          "INSERT INTO public.orders (\"TransponderQuantity\", "
+          "\"FullPersonalization\", "
+          "\"ProductionStartDate\", \"IssuerId\") VALUES (%1, %2, '%3', %4);")
+          .arg(record.getTransponderQuantity())
+          .arg(record.getFullPersonalization())
+          .arg(record.getProductionStartDate())
+          .arg(record.getIssuerId()));
+
+  emit logging("Текст запроса: ");
+  emit logging(request.lastQuery());
+
+  // Выполняем запрос
+  if (request.exec()) {
+    emit logging("Заказ добавлен. ");
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
+    return false;
+  }
+}
+
+bool PostgresController::addOrderToIssuer(const QString& issuerName) {
+  emit logging(QString("Добавление нового заказа для \"%1\"").arg(issuerName));
 
   // Создаем запрос
   QString query =
@@ -144,7 +194,7 @@ void PostgresController::loadSettings() {
 
 void PostgresController::getTable(const QString& tableName,
                                   uint32_t rowCount,
-                                  DatabaseBuffer* buffer) {
+                                  DatabaseTableModel* buffer) {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     emit logging("Соединение с Postgres не установлено. ");
     return;
@@ -181,7 +231,7 @@ void PostgresController::createDatabaseConnection() {
   postgres.setPassword(Password);
 }
 
-void PostgresController::convertResponseToBuffer(DatabaseBuffer* buffer) {
+void PostgresController::convertResponseToBuffer(DatabaseTableModel* buffer) {
   int32_t i = 0, j = 0;
 
   QVector<QVector<QString>*>* data = new QVector<QVector<QString>*>();

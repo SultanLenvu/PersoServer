@@ -45,16 +45,34 @@ class TransponderRecord : public TableRecord {
 
 class OrderRecord : public TableRecord {
   Q_OBJECT
- public:
-  uint32_t Id;
-  uint32_t TransponderQuantity;
-  bool FullPersonalization;
-  QDate StartProductionDate;
-  QDate EndProductionDate;
-  uint32_t IssuerId;
+ private:
+  QString Id;
+  QString TransponderQuantity;
+  QString FullPersonalization;
+  QString ProductionStartDate;
+  QString ProductionEndDate;
+  QString IssuerId;
 
  public:
   explicit OrderRecord(QObject* parent);
+
+  const QString& getId() const;
+  void setId(uint32_t newId);
+
+  const QString& getTransponderQuantity() const;
+  void setTransponderQuantity(uint32_t newTransponderQuantity);
+
+  const QString& getFullPersonalization() const;
+  void setFullPersonalization(bool newFullPersonalization);
+
+  const QString& getProductionStartDate() const;
+  void setProductionStartDate(const QDate& newProductionStartDate);
+
+  const QString& getProductionEndDate() const;
+  void setProductionEndDate(const QDate& newProductionEndDate);
+
+  const QString& getIssuerId() const;
+  void setIssuerId(uint32_t newIssuerId);
 
  signals:
 };
@@ -88,7 +106,7 @@ class BoxRecord : public TableRecord {
  signals:
 };
 
-class PalleteRecord : public TableRecord {
+class PalletRecord : public TableRecord {
   Q_OBJECT
  public:
   uint32_t Id;
@@ -97,7 +115,7 @@ class PalleteRecord : public TableRecord {
   bool ReadyIndicator;
 
  public:
-  explicit PalleteRecord(QObject* parent);
+  explicit PalletRecord(QObject* parent);
 
  signals:
 };

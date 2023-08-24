@@ -5,7 +5,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-class DatabaseBuffer : public QAbstractTableModel {
+class DatabaseTableModel : public QAbstractTableModel {
   Q_OBJECT
 
  private:
@@ -15,8 +15,8 @@ class DatabaseBuffer : public QAbstractTableModel {
   QMutex Mutex;
 
  public:
-  explicit DatabaseBuffer(QObject* parent);
-  ~DatabaseBuffer();
+  explicit DatabaseTableModel(QObject* parent);
+  ~DatabaseTableModel();
 
   void build(QVector<QString>* headers, QVector<QVector<QString>*>* data);
   void clear(void);

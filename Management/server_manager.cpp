@@ -5,8 +5,8 @@
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   setObjectName("ServerManager");
 
-  // Буфер для отображения данных базы данных
-  Buffer = new DatabaseBuffer(this);
+  // Создаем табличные модели для базы данных
+  createDatabaseTables();
 
   // Создаем среду выполнения для хоста
   createHostInstance();
@@ -32,8 +32,8 @@ ServerManager::~ServerManager() {
   OrderCreatorThread->wait();
 }
 
-DatabaseBuffer* ServerManager::buffer() {
-  return Buffer;
+QVector<DatabaseTableModel*>* ServerManager::databaseTables() {
+  return &DatabaseTables;
 }
 
 void ServerManager::applySettings() {
@@ -64,10 +64,10 @@ void ServerManager::showDatabaseTable(const QString& name) {
     return;
   }
 
-  Buffer->clear();
+  DatabaseTables.at(RandomTable)->clear();
 
   emit logging("Представление линий производства. ");
-  emit getDatabaseTable_signal(name, Buffer);
+  emit getDatabaseTable_signal(name, DatabaseTables.at(RandomTable));
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -83,7 +83,7 @@ void ServerManager::showCustomResponse(const QString& req) {
   }
 
   emit logging("Представление ответа на кастомный запрос. ");
-  emit getCustomResponse_signal(req, Buffer);
+  emit getCustomResponse_signal(req, DatabaseTables.at(RandomTable));
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -105,6 +105,12 @@ void ServerManager::createNewOrder(IssuerOrder* newOrder) {
 
   // Завершаем выполнение операции
   endOperationExecution("createNewOrder");
+}
+
+void ServerManager::createDatabaseTables() {
+  for (uint32_t i = 0; i < TableCounter; i++) {
+    DatabaseTables.append(new DatabaseTableModel(this));
+  }
 }
 
 void ServerManager::createHostInstance() {
@@ -202,7 +208,7 @@ bool ServerManager::startOperationExecution(const QString& operationName) {
     return false;
 
   // Очищаем буфер
-  Buffer->clear();
+  DatabaseTables.at(RandomTable)->clear();
 
   // Переходим в состояние ожидания конца обработки
   CurrentState = WaitingExecution;
@@ -264,7 +270,7 @@ void ServerManager::endOperationExecution(const QString& operationName) {
 void ServerManager::proxyLogging(const QString& log) {
   if (sender()->objectName() == QString("PersoHost"))
     emit logging(QString("Host - ") + log);
-  else if (sender()->objectName() == QString("OrderCreationSystem"))
+  else if (sender()->objectName() == QString("OrderSystem"))
     emit logging(QString("OrderCreator - ") + log);
   else
     emit logging(QString("Unknown - ") + log);
@@ -277,22 +283,22 @@ void ServerManager::on_OrderCreatorBuilderCompleted_slot() {
   connect(OrderCreatorThread, &QThread::finished, OrderCreator,
           &QObject::deleteLater);
   // Подключаем логгирование к инициализатору
-  connect(OrderCreator, &OrderCreationSystem::logging, this,
+  connect(OrderCreator, &OrderSystem::logging, this,
           &ServerManager::proxyLogging);
   // Подключаем сигнал для применения новых настроек
   connect(this, &ServerManager::applySettings_signal, OrderCreator,
-          &OrderCreationSystem::applySettings);
+          &OrderSystem::applySettings);
   // После выполнения операции формирователем заказов, оповещаем менеджер
-  connect(OrderCreator, &OrderCreationSystem::operationFinished, this,
+  connect(OrderCreator, &OrderSystem::operationFinished, this,
           &ServerManager::on_OrderCreatorFinished_slot);
 
   // Подключаем функционал
   connect(this, &ServerManager::getDatabaseTable_signal, OrderCreator,
-          &OrderCreationSystem::getDatabaseTable);
+          &OrderSystem::getDatabaseTable);
   connect(this, &ServerManager::getCustomResponse_signal, OrderCreator,
-          &OrderCreationSystem::getCustomResponse);
+          &OrderSystem::getCustomResponse);
   connect(this, &ServerManager::createNewOrder_signal, OrderCreator,
-          &OrderCreationSystem::createNewOrder);
+          &OrderSystem::createNewOrder);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {
@@ -308,29 +314,29 @@ void ServerManager::on_OrderCreatorThreadFinished_slot() {
 }
 
 void ServerManager::on_OrderCreatorFinished_slot(
-    OrderCreationSystem::ExecutionStatus status) {
+    OrderSystem::ExecutionStatus status) {
   switch (status) {
-    case OrderCreationSystem::NotExecuted:
+    case OrderSystem::NotExecuted:
       CurrentState = Failed;
       NotificarionText = "Инициализатор: операция не была запущена. ";
       emit break;
-    case OrderCreationSystem::DatabaseConnectionError:
+    case OrderSystem::DatabaseConnectionError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: не удалось подключиться к базе данных. ";
       break;
-    case OrderCreationSystem::DatabaseQueryError:
+    case OrderSystem::DatabaseQueryError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: ошибка при выполнении запроса к базе данных. ";
       break;
-    case OrderCreationSystem::UnknowError:
+    case OrderSystem::UnknowError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: получена неизвестная ошибка при выполнении "
           "операции. ";
       break;
-    case OrderCreationSystem::CompletedSuccessfully:
+    case OrderSystem::CompletedSuccessfully:
       CurrentState = Completed;
       NotificarionText = "Операция успешно выполнена. ";
       break;

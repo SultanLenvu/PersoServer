@@ -1,34 +1,34 @@
 #include "order_creation_system.h"
 
-OrderCreationSystem::OrderCreationSystem(QObject* parent) : QObject(parent) {
-  setObjectName("OrderCreationSystem");
+OrderSystem::OrderSystem(QObject* parent) : QObject(parent) {
+  setObjectName("OrderSystem");
 
   qRegisterMetaType<ExecutionStatus>("ExecutionStatus");
 
   createDatabaseController();
 }
 
-void OrderCreationSystem::proxyLogging(const QString& log) {
+void OrderSystem::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PostgresController")
     emit logging("Postgres controller - " + log);
   else
     emit logging("Unknown - " + log);
 }
 
-void OrderCreationSystem::applySettings() {
+void OrderSystem::applySettings() {
   emit logging("Применение новых настроек. ");
   Database->applySettings();
 }
 
-void OrderCreationSystem::createDatabaseController() {
+void OrderSystem::createDatabaseController() {
   // Создаем контроллер базы данных
   Database = new PostgresController(this, "OrderCreatorConnection");
   connect(Database, &IDatabaseController::logging, this,
-          &OrderCreationSystem::proxyLogging);
+          &OrderSystem::proxyLogging);
 }
 
-void OrderCreationSystem::getDatabaseTable(const QString& tableName,
-                                           DatabaseBuffer* buffer) {
+void OrderSystem::getDatabaseTable(const QString& tableName,
+                                   DatabaseTableModel* buffer) {
   if (QApplication::instance()->thread() != thread()) {
     emit logging("Операция выполняется в отдельном потоке. ");
   } else {
@@ -58,12 +58,12 @@ void OrderCreationSystem::getDatabaseTable(const QString& tableName,
   }
 }
 
-void OrderCreationSystem::getCustomResponse(const QString& req,
-                                            DatabaseBuffer* buffer) {
+void OrderSystem::getCustomResponse(const QString& req,
+                                    DatabaseTableModel* buffer) {
   Database->execCustomRequest(req, buffer);
 }
 
-void OrderCreationSystem::createNewOrder(IssuerOrder* order) {
+void OrderSystem::createNewOrder(IssuerOrder* order) {
   emit logging("Подключение к базе данных. ");
   Database->connect();
 
@@ -74,32 +74,58 @@ void OrderCreationSystem::createNewOrder(IssuerOrder* order) {
   }
 
   emit logging("Создание нового заказа. ");
+  OrderRecord record(nullptr);
 
-  if (!Database->addOrderToIssuer(order->issuerName())) {
-    emit logging("Отключение от базы данных. ");
-    Database->disconnect();
-    emit logging("Ошибка при выполнении запроса к базе данных. ");
-    emit operationFinished(DatabaseQueryError);
+  emit logging("Формирование записи в таблицу заказов. ");
+  uint32_t issuerId = 0;
+  if (!Database->getIssuerId("Новое качество дорог", issuerId)) {
+    processingResult("Ошибка при выполнении запроса в базу данных. ",
+                     DatabaseQueryError);
+    return;
+  }
+  record.setIssuerId(issuerId);
+  record.setTransponderQuantity(order->transponderQuantity());
+  record.setFullPersonalization(order->fullPersonalization());
+  record.setProductionStartDate(order->productionStartDate());
+
+  emit logging("Добавление новой записи в таблицу заказов. ");
+  if (!Database->addOrder(record)) {
+    processingResult("Ошибка при выполнении запроса в базу данных. ",
+                     DatabaseQueryError);
     return;
   }
 
-  emit logging("Операция успешно выполнена. ");
-  emit operationFinished(CompletedSuccessfully);
+  emit logging("Добавление заказа эмитенту. ");
+  if (!Database->addOrderToIssuer(order->issuerName())) {
+    processingResult("Ошибка при выполнении запроса в базу данных. ",
+                     DatabaseQueryError);
+    return;
+  }
+
+  processingResult("Новый заказ успешно создан. ", CompletedSuccessfully);
 }
 
-void OrderCreationSystem::init() {}
+void OrderSystem::processingResult(const QString& log,
+                                   const ExecutionStatus status) {
+  emit logging(log);
+  emit logging("Отключение от базы данных. ");
+  Database->disconnect();
+  emit operationFinished(status);
+}
+
+void OrderSystem::init() {}
 
 OCSBuilder::OCSBuilder() : QObject(nullptr) {
   // Пока никакие объекты не созданы
   BuildedObject = nullptr;
 }
 
-OrderCreationSystem* OCSBuilder::buildedObject() const {
+OrderSystem* OCSBuilder::buildedObject() const {
   return BuildedObject;
 }
 
 void OCSBuilder::build() {
-  BuildedObject = new OrderCreationSystem(nullptr);
+  BuildedObject = new OrderSystem(nullptr);
 
   emit completed();
 }

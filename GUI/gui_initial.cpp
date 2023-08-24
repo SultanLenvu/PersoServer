@@ -1,10 +1,10 @@
 #include "gui_initial.h"
 
-InitialGUI::InitialGUI(QObject* parent) : GUI(parent, InitialConfiguration) {
+InitialGUI::InitialGUI(QWidget* parent) : GUI(parent, InitialConfiguration) {
   setObjectName("InitialGUI");
 }
 
-QWidget* InitialGUI::create() {
+void InitialGUI::create() {
   // Создаем панель управления
   createInitialMenu();
 
@@ -14,8 +14,6 @@ QWidget* InitialGUI::create() {
   // Настраиваем пропорции
   MainLayout->setStretch(0, 1);
   MainLayout->setStretch(1, 3);
-
-  return MainWidget;
 }
 
 void InitialGUI::update() {}

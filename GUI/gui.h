@@ -6,7 +6,7 @@
 #include <QObject>
 #include <QtWidgets>
 
-class GUI : public QObject {
+class GUI : public QWidget {
   Q_OBJECT
  public:
   enum GUI_Type { InitialConfiguration, Master, Production };
@@ -15,7 +15,6 @@ class GUI : public QObject {
   GUI_Type Type;
 
  public:
-  QWidget* MainWidget;
   QHBoxLayout* MainLayout;
 
   QGroupBox* LogGroup;
@@ -23,10 +22,10 @@ class GUI : public QObject {
   QPlainTextEdit* LogDisplay;
 
  public:
-  explicit GUI(QObject* parent, GUI_Type type);
+  explicit GUI(QWidget* parent, GUI_Type type);
   virtual ~GUI();
 
-  virtual QWidget* create(void) = 0;
+  virtual void create(void) = 0;
   virtual void update(void) = 0;
 
   GUI_Type type(void);

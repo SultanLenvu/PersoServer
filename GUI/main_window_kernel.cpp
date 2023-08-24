@@ -46,11 +46,11 @@ void MainWindowKernel::stop_slot() {
   Manager->stop();
 }
 
-void MainWindowKernel::on_ConnectDataBasePushButton_slot() {
+void MainWindowKernel::on_ConnectDatabasePushButton_slot() {
   Logger->clear();
 }
 
-void MainWindowKernel::on_DisconnectDataBasePushButton_slot() {
+void MainWindowKernel::on_DisconnectDatabasePushButton_slot() {
   Logger->clear();
 }
 
@@ -256,7 +256,9 @@ void MainWindowKernel::createTopMenuActions() {
 void MainWindowKernel::createInitialInterface() {
   // Создаем виджеты
   CurrentGUI = new InitialGUI(this);
-  setCentralWidget(CurrentGUI->create());
+  setCentralWidget(CurrentGUI);
+  CurrentGUI->create();
+
   // Настраиваем размер главного окна
   setGeometry(DesktopGeometry.width() * 0.3, DesktopGeometry.height() * 0.3,
               DesktopGeometry.width() * 0.4, DesktopGeometry.height() * 0.4);
@@ -275,59 +277,72 @@ void MainWindowKernel::connectInitialInterface() {
 
 void MainWindowKernel::createMasterInterface() {
   // Запрашиваем пароль
-  QString key;
-  Interactor->getMasterPassword(key);
+  //  QString key;
+  //  Interactor->getMasterPassword(key);
 
-  if (key == MASTER_ACCESS_PASSWORD) {
-    // Удаляем предыдущий интерфейс
-    CurrentGUI->MainWidget->hide();
-    delete CurrentGUI;
+  //  if (key == MASTER_ACCESS_PASSWORD) {
+  // Удаляем предыдущий интерфейс
+  CurrentGUI->hide();
+  delete CurrentGUI;
 
-    // Настраиваем размер главного окна
-    setGeometry(DesktopGeometry.width() * 0.1, DesktopGeometry.height() * 0.1,
-                DesktopGeometry.width() * 0.8, DesktopGeometry.height() * 0.8);
+  // Настраиваем размер главного окна
+  setGeometry(DesktopGeometry.width() * 0.1, DesktopGeometry.height() * 0.1,
+              DesktopGeometry.width() * 0.8, DesktopGeometry.height() * 0.8);
 
-    // Создаем интерфейс
-    CurrentGUI = new MasterGUI(this);
-    setCentralWidget(CurrentGUI->create());
+  // Создаем интерфейс
+  CurrentGUI = new MasterGUI(this);
+  setCentralWidget(CurrentGUI);
+  CurrentGUI->create();
 
-    // Создаем верхнее меню
-    createTopMenu();
+  // Создаем верхнее меню
+  createTopMenu();
 
-    // Соединяем графический интерфейс с ядром обработки
-    connectMasterInterface();
+  // Соединяем графический интерфейс с ядром обработки
+  connectMasterInterface();
 
-    // Создаем систему логгирования
-    setupLogSystem();
-  } else {
-    Interactor->generateError("Неверный код доступа");
-  }
+  // Создаем систему логгирования
+  setupLogSystem();
+  //  } else {
+  //    Interactor->generateError("Неверный код доступа");
+  //  }
 }
 
 void MainWindowKernel::connectMasterInterface() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
   // Меню взаимодействия с базой данных
-  connect(gui->ConnectDataBasePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ConnectDataBasePushButton_slot);
-  connect(gui->DisconnectDataBasePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_DisconnectDataBasePushButton_slot);
+  connect(gui->ConnectDatabasePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ConnectDatabasePushButton_slot);
+  connect(gui->DisconnectDatabasePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_DisconnectDatabasePushButton_slot);
 
-  connect(gui->ShowProductionLineTablePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowProductionLineTablePushButton_slot);
-  connect(gui->ShowTransponderTablePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowTransponderTablePushButton_slot);
-  connect(gui->ShowOrderTablePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowOrderTablePushButton_slot);
-  connect(gui->ShowIssuerTablePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowIssuerTablePushButton_slot);
-  connect(gui->ShowBoxTablePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowBoxTablePushButton_slot);
-  connect(gui->ShowPalletPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ShowPalletPushButton_slot);
-
+  // Базы данных
   connect(gui->TransmitCustomRequestPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_TransmitCustomRequestPushButton_slot);
+
+  // Производственные линии
+  connect(gui->UpdateProductionLinePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowProductionLineTablePushButton_slot);
+
+  // Транспондеры
+  connect(gui->UpdateTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowTransponderTablePushButton_slot);
+
+  // Заказы
+  connect(gui->UpdateOrderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowOrderTablePushButton_slot);
+
+  // Эмитенты
+  connect(gui->UpdateIssuerPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowIssuerTablePushButton_slot);
+
+  // Боксы
+  connect(gui->UpdateBoxPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowBoxTablePushButton_slot);
+
+  // Палеты
+  connect(gui->UpdatePalletPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowPalletPushButton_slot);
 
   // Создание нового заказа
   connect(gui->CreateNewOrderPushButton, &QPushButton::clicked, this,
@@ -338,7 +353,7 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::applyUserSettings_slot);
 
   // Соединяем модели и представления
-  gui->DataBaseBufferView->setModel(Manager->buffer());
+  // gui->DatabaseBufferView->setModel(Manager->buffer());
 
   // Связываем отображения графиков с логикой их формирования
 }

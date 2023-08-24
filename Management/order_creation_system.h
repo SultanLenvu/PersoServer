@@ -9,7 +9,7 @@
 #include "Database/postgres_controller.h"
 #include "issuer_order.h"
 
-class OrderCreationSystem : public QObject {
+class OrderSystem : public QObject {
   Q_OBJECT
  public:
   enum ExecutionStatus {
@@ -24,18 +24,19 @@ class OrderCreationSystem : public QObject {
   PostgresController* Database;
 
  public:
-  explicit OrderCreationSystem(QObject* parent);
+  explicit OrderSystem(QObject* parent);
 
  public slots:
   void proxyLogging(const QString& log);
   void applySettings(void);
 
   void createDatabaseController(void);
-  void getDatabaseTable(const QString& tableName, DatabaseBuffer* buffer);
-  void getCustomResponse(const QString& req, DatabaseBuffer* buffer);
+  void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
+  void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
   void createNewOrder(IssuerOrder* order);
 
  private:
+  void processingResult(const QString& log, const ExecutionStatus status);
   void init(void);
 
  signals:
@@ -46,11 +47,11 @@ class OrderCreationSystem : public QObject {
 class OCSBuilder : public QObject {
   Q_OBJECT
  private:
-  OrderCreationSystem* BuildedObject;
+  OrderSystem* BuildedObject;
 
  public:
   explicit OCSBuilder(void);
-  OrderCreationSystem* buildedObject() const;
+  OrderSystem* buildedObject() const;
 
  public slots:
   void build(void);

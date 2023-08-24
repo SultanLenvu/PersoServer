@@ -1,18 +1,19 @@
 #include "database_buffer.h"
 
-DatabaseBuffer::DatabaseBuffer(QObject* parent) : QAbstractTableModel(parent) {
-  setObjectName("DatabaseBuffer");
+DatabaseTableModel::DatabaseTableModel(QObject* parent)
+    : QAbstractTableModel(parent) {
+  setObjectName("DatabaseTableModel");
 
   Headers = nullptr;
   Data = nullptr;
 }
 
-DatabaseBuffer::~DatabaseBuffer() {
+DatabaseTableModel::~DatabaseTableModel() {
   clear();
 }
 
-void DatabaseBuffer::build(QVector<QString>* headers,
-                           QVector<QVector<QString>*>* data) {
+void DatabaseTableModel::build(QVector<QString>* headers,
+                               QVector<QVector<QString>*>* data) {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
@@ -33,7 +34,7 @@ void DatabaseBuffer::build(QVector<QString>* headers,
   endResetModel();
 }
 
-void DatabaseBuffer::clear() {
+void DatabaseTableModel::clear() {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
@@ -44,7 +45,7 @@ void DatabaseBuffer::clear() {
   endResetModel();
 }
 
-bool DatabaseBuffer::isEmpty() {
+bool DatabaseTableModel::isEmpty() {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
@@ -55,21 +56,21 @@ bool DatabaseBuffer::isEmpty() {
   }
 }
 
-int DatabaseBuffer::rowCount(const QModelIndex& parent) const {
+int DatabaseTableModel::rowCount(const QModelIndex& parent) const {
   if (Data)
     return Data->size();
   else
     return 0;
 }
 
-int DatabaseBuffer::columnCount(const QModelIndex& parent) const {
+int DatabaseTableModel::columnCount(const QModelIndex& parent) const {
   if (Headers)
     return Headers->size();
   else
     return 0;
 }
 
-QVariant DatabaseBuffer::data(const QModelIndex& index, int role) const {
+QVariant DatabaseTableModel::data(const QModelIndex& index, int role) const {
   if ((!Headers) || (!Data))
     return QVariant();
 
@@ -85,9 +86,9 @@ QVariant DatabaseBuffer::data(const QModelIndex& index, int role) const {
     return QVariant();
 }
 
-QVariant DatabaseBuffer::headerData(int section,
-                                    Qt::Orientation orientation,
-                                    int role) const {
+QVariant DatabaseTableModel::headerData(int section,
+                                        Qt::Orientation orientation,
+                                        int role) const {
   if (!Headers)
     return QVariant();
 
@@ -101,7 +102,7 @@ QVariant DatabaseBuffer::headerData(int section,
   }
 }
 
-void DatabaseBuffer::deleteAll() {
+void DatabaseTableModel::deleteAll() {
   if ((!Headers) || (!Data))
     return;
 
