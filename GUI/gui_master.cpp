@@ -88,6 +88,9 @@ void MasterGUI::createDatabaseTab() {
   DatabaseControlPanelLayout->addWidget(ShowDatabaseTablePushButton);
   ClearDatabaseTablePushButton = new QPushButton("Очистить таблицу");
   DatabaseControlPanelLayout->addWidget(ClearDatabaseTablePushButton);
+  InitIssuerTablePushButton =
+      new QPushButton("Инициализация таблицы эмитентов");
+  DatabaseControlPanelLayout->addWidget(InitIssuerTablePushButton);
 
   DatabaseControlPanelVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);

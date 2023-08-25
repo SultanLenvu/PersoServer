@@ -10,7 +10,7 @@ PostgresController::PostgresController(QObject* parent,
 
   createDatabaseConnection();
 
-  CurrentRequest = nullptr;
+  CurrentRequest = new QSqlQuery(QSqlDatabase::database(ConnectionName));
 }
 
 PostgresController::~PostgresController() {
@@ -72,10 +72,9 @@ void PostgresController::execCustomRequest(const QString& req,
     return;
   }
 
-  // Создаем запрос
-  CurrentRequest = new QSqlQuery(QSqlDatabase::database(ConnectionName));
   emit logging(QString("Отправляемый запрос: ") + req);
 
+  // Выполняем запрос
   if (CurrentRequest->exec(req)) {
     emit logging("Ответ получен. ");
     // Преобразование результатов запроса
@@ -85,9 +84,6 @@ void PostgresController::execCustomRequest(const QString& req,
     emit logging("Ошибка выполнения запроса: " +
                  CurrentRequest->lastError().text());
   }
-
-  // Удаляем запрос
-  delete CurrentRequest;
 }
 
 void PostgresController::applySettings() {
@@ -101,100 +97,119 @@ void PostgresController::applySettings() {
   createDatabaseConnection();
 }
 
-bool PostgresController::clearTable(const QString& tableName) {
-  emit logging(QString("Очистка таблицы: %1.").arg(tableName));
-
-  // Создаем запрос
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  emit logging(QString("Текст запроса: ") +
-               QString("TRUNCATE TABLE %1 RESTART IDENTITY;").arg(tableName));
+bool PostgresController::clearTable(const QString& tableName) const {
+  QString requestText =
+      QString("TRUNCATE TABLE %1 RESTART IDENTITY CASCADE;").arg(tableName);
+  emit logging(QString("Отправляемый запрос: ") + requestText);
 
   // Выполняем запрос
-  if (request.exec(
-          QString("TRUNCATE TABLE %1 RESTART IDENTITY;").arg(tableName))) {
+  if (CurrentRequest->exec(requestText)) {
     emit logging(QString("Очистка выполнена. "));
     return true;
   } else {
     // Обработка ошибки выполнения запроса
-    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
     return false;
   }
 }
 
-bool PostgresController::getIssuerId(const QString& issuerName,
-                                     uint32_t& issuerId) {
-  emit logging("Получение идентификатора заказчика. ");
-
-  // Создаем запрос
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.prepare(QString("SELECT \"Id\" FROM issuers WHERE \"Name\" = '%1';")
-                      .arg(issuerName));
-
-  emit logging(QString("Текст запроса: ") + request.lastQuery());
+int32_t PostgresController::getIdByAttribute(
+    const QString& tableName,
+    QPair<QString, QString>& attribute) const {
+  // Формируем запрос
+  QString requestText = QString("SELECT \"Id\" FROM %1 WHERE \"%2\" = '%3';")
+                            .arg(tableName)
+                            .arg(attribute.first)
+                            .arg(attribute.second);
+  emit logging(QString("Отправляемый запрос: ") + requestText);
 
   // Выполняем запрос
-  if ((request.exec()) && (request.next())) {
-    issuerId = request.record().value(0).toInt();
+  if ((CurrentRequest->exec(requestText)) && (CurrentRequest->next())) {
+    int32_t id = CurrentRequest->record().value(0).toInt();
     emit logging(
-        QString("Получен идентификатор: %1. ").arg(QString::number(issuerId)));
-    return true;
+        QString("Получен идентификатор: %1. ").arg(QString::number(id)));
+    return id;
   } else {
     // Обработка ошибки выполнения запроса
-    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
-    return false;
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
+    return -1;
   }
 }
 
-bool PostgresController::addOrder(const OrderRecord& record) {
-  emit logging(QString("Добавление нового заказа. "));
-
+int32_t PostgresController::getIdByCondition(const QString& tableName,
+                                             const QString& condition,
+                                             bool minMaxOption) {
   // Создаем запрос
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.prepare(
-      QString(
-          "INSERT INTO public.orders (\"TransponderQuantity\", "
-          "\"FullPersonalization\", "
-          "\"ProductionStartDate\", \"IssuerId\") VALUES (%1, %2, '%3', %4);")
-          .arg(record.getTransponderQuantity())
-          .arg(record.getFullPersonalization())
-          .arg(record.getProductionStartDate())
-          .arg(record.getIssuerId()));
+  QString requestText = "SELECT * FROM " + tableName + " WHERE " + condition +
+                        " ORDER BY \"Id\" ";
+  if (minMaxOption) {
+    requestText += "ASC LIMIT 1";
+  } else {
+    requestText += "DESC LIMIT 1";
+  }
 
-  emit logging("Текст запроса: ");
-  emit logging(request.lastQuery());
+  emit logging("Отправляемый запрос: " + requestText);
 
   // Выполняем запрос
-  if (request.exec()) {
-    emit logging("Заказ добавлен. ");
-    return true;
+  if ((CurrentRequest->exec(requestText)) && (CurrentRequest->next())) {
+    int32_t id = CurrentRequest->record().value(0).toInt();
+    emit logging(
+        QString("Получен идентификатор: %1. ").arg(QString::number(id)));
+    return id;
   } else {
     // Обработка ошибки выполнения запроса
-    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
-    return false;
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
+    return -1;
   }
 }
 
-bool PostgresController::addOrderToIssuer(const QString& issuerName) {
-  emit logging(QString("Добавление нового заказа для \"%1\"").arg(issuerName));
+bool PostgresController::incrementAttributeValue(const QString& tableName,
+                                                 const QString& attributeName,
+                                                 const QString& id) {
+  QString requestText = QString("UPDATE %1 ").arg(tableName);
+  requestText += QString("SET \"%1\" = \"%1\" + 1 ").arg(attributeName);
+  requestText += QString("WHERE \"Id\" = '%1'").arg(id);
+  emit logging("Отправляемый запрос: " + requestText);
 
-  // Создаем запрос
-  QString query =
-      QString(
-          "UPDATE public.issuers SET \"OrderQuantity\" = \"OrderQuantity\" + 1 "
-          "WHERE \"Name\" = '%1';")
-          .arg(issuerName);
-  emit logging("Текст запроса: ");
-  emit logging(query);
-
-  // Выполняем запрос
-  QSqlQuery CurrentRequest(QSqlDatabase::database(ConnectionName));
-  if (CurrentRequest.exec(query)) {
-    emit logging("Заказ добавлен. ");
+  if (CurrentRequest->exec(requestText)) {
+    emit logging("Запрос выполнен. ");
     return true;
   } else {
     // Обработка ошибки выполнения запроса
     emit logging("Ошибка выполнения запроса: " +
-                 CurrentRequest.lastError().text());
+                 CurrentRequest->lastError().text());
+    return false;
+  }
+}
+
+bool PostgresController::addTableRecord(const QString& tableName,
+                                        QMap<QString, QString>& record) const {
+  // Создаем запрос
+  QString requestText = "INSERT INTO " + tableName + " (";
+  for (int32_t i = 0; i < record.keys().size(); i++) {
+    requestText += QString("\"%1\", ").arg(record.keys().at(i));
+  }
+  requestText.chop(2);
+  requestText += ") VALUES (";
+  for (int32_t i = 0; i < record.values().size(); i++) {
+    requestText += QString("'%1', ").arg(record.values().at(i));
+  }
+  requestText.chop(2);
+  requestText += ");";
+
+  emit logging("Отправляемый запрос: " + requestText);
+
+  // Выполняем запрос
+  if (CurrentRequest->exec(requestText)) {
+    emit logging("Запись добавлена. ");
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
     return false;
   }
 }
@@ -210,32 +225,24 @@ void PostgresController::loadSettings() {
   Password = settings.value("Database/User/Password").toString();
 }
 
-void PostgresController::getTable(const QString& tableName,
+bool PostgresController::getTable(const QString& tableName,
                                   uint32_t rowCount,
                                   DatabaseTableModel* buffer) {
-  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
-    emit logging("Соединение с Postgres не установлено. ");
-    return;
-  }
-
-  delete CurrentRequest;
-  CurrentRequest = new QSqlQuery(QSqlDatabase::database(ConnectionName));
-
-  QString requestText("SELECT * FROM ");
-  requestText += tableName;
-  requestText += QString(";");
+  QString requestText = QString("SELECT * FROM %1;").arg(tableName);
   //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
   //                     .arg(QString::number(rowCount));
   emit logging("Отправляемый запрос: " + requestText);
 
   if (CurrentRequest->exec(requestText)) {
-    emit logging("Ответ получен. ");
+    emit logging("Запрос выполнен. ");
     // Преобразование результатов запроса
     convertResponseToBuffer(buffer);
+    return true;
   } else {
     // Обработка ошибки выполнения запроса
     emit logging("Ошибка выполнения запроса: " +
                  CurrentRequest->lastError().text());
+    return false;
   }
 }
 

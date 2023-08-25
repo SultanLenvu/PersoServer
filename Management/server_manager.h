@@ -68,6 +68,7 @@ class ServerManager : public QObject {
   void clearDatabaseTable(const QString& name);
   void showCustomResponse(const QString& req);
   void createNewOrder(IssuerOrder* newOrder);
+  void initIssuers(void);
 
  private:
   void createHostInstance(void);
@@ -113,6 +114,7 @@ class ServerManager : public QObject {
   void clearDatabaseTable_signal(const QString& tableName);
   void getCustomResponse_signal(const QString& req, DatabaseTableModel* buffer);
   void createNewOrder_signal(IssuerOrder* order);
+  void initIssuerTable_signal(void);
 };
 
 //==================================================================================

@@ -136,6 +136,34 @@ void ServerManager::createNewOrder(IssuerOrder* newOrder) {
   endOperationExecution("createNewOrder");
 }
 
+void ServerManager::initIssuers() {
+  if (!startOperationExecution("initIssuers")) {
+    return;
+  }
+
+  emit logging("Создание эмитентов. ");
+  emit initIssuerTable_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("clearDatabaseTable");
+    return;
+  }
+
+  Buffer->clear();
+  emit logging("Отображение таблицы базы данных. ");
+  emit getDatabaseTable_signal("issuers", Buffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("initIssuers");
+}
+
 void ServerManager::createHostInstance() {
   // Создаем сервер и поток для него
   Host = new PersoHost(nullptr);
@@ -324,6 +352,8 @@ void ServerManager::on_OrderCreatorBuilderCompleted_slot() {
           &OrderSystem::createNewOrder);
   connect(this, &ServerManager::clearDatabaseTable_signal, OrderCreator,
           &OrderSystem::clearDatabaseTable);
+  connect(this, &ServerManager::initIssuerTable_signal, OrderCreator,
+          &OrderSystem::initIssuerTable);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {

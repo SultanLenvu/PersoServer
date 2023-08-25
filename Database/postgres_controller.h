@@ -2,6 +2,7 @@
 #define POSTGRESCONTROLLER_H
 
 #include <QHostAddress>
+#include <QMap>
 #include <QtSql>
 
 #include "Management/issuer_order.h"
@@ -46,7 +47,7 @@ class PostgresController : public IDatabaseController {
                                const uint32_t panEnd,
                                DatabaseTableModel* buffer) override;
 
-  virtual void getTable(const QString& tableName,
+  virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) override;
 
@@ -54,10 +55,17 @@ class PostgresController : public IDatabaseController {
                                  DatabaseTableModel* buffer) override;
   virtual void applySettings() override;
 
-  bool clearTable(const QString& tableName);
-  bool getIssuerId(const QString& issuerName, uint32_t& issuerId);
-  bool addOrder(const OrderRecord& record);
-  bool addOrderToIssuer(const QString& issuerName);
+  bool clearTable(const QString& tableName) const;
+  int32_t getIdByAttribute(const QString& tableName,
+                           QPair<QString, QString>& attribute) const;
+  int32_t getIdByCondition(const QString& tableName,
+                           const QString& condition,
+                           bool minMaxOption);
+  bool incrementAttributeValue(const QString& tableName,
+                               const QString& attributeName,
+                               const QString& id);
+  bool addTableRecord(const QString& tableName,
+                      QMap<QString, QString>& record) const;
 
  private:
   void loadSettings(void);

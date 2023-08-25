@@ -37,7 +37,7 @@ class IDatabaseController : public QObject {
                                const uint32_t panEnd,
                                DatabaseTableModel* buffer) = 0;
 
-  virtual void getTable(const QString& tableName,
+  virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) = 0;
 
@@ -47,7 +47,7 @@ class IDatabaseController : public QObject {
   virtual void applySettings() = 0;
 
  signals:
-  void logging(const QString& log);
+  void logging(const QString& log) const;
 };
 
 #endif  // DATABASECONTROLLER_H

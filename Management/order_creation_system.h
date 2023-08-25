@@ -35,8 +35,13 @@ class OrderSystem : public QObject {
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
   void createNewOrder(IssuerOrder* order);
+  void initIssuerTable(void);
 
  private:
+  bool addOrder(IssuerOrder* order);
+  bool addPallets(uint32_t count);
+  bool addBoxes(uint32_t count);
+  bool addTransponders(IssuerOrder* order);
   void processingResult(const QString& log, const ExecutionStatus status);
   void init(void);
 

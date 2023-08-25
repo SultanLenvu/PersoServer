@@ -1,71 +1,27 @@
 #include "table_record.h"
 
-TableRecord::TableRecord(QObject* parent) : QObject(parent) {}
+UniversalTableRecord::UniversalTableRecord(QObject* parent) : QObject(parent) {}
 
-ProductionLineRecord::ProductionLineRecord(QObject* parent)
-    : TableRecord(parent) {}
-
-TransponderRecord::TransponderRecord(QObject* parent) : TableRecord(parent) {}
-
-OrderRecord::OrderRecord(QObject* parent) : TableRecord(parent) {}
-
-const QString& OrderRecord::getId() const {
-  return Id;
+UniversalTableRecord::~UniversalTableRecord() {
+  clear();
 }
 
-void OrderRecord::setId(uint32_t newId) {
-  Id = newId;
+void UniversalTableRecord::addAttribute(const QString& name,
+                                        const QString& value) {
+  Attributes.append(new QPair<QString, QString>(name, value));
 }
 
-const QString& OrderRecord::getFullPersonalization() const {
-  return FullPersonalization;
+const QString& UniversalTableRecord::attributeValue(const uint32_t i) const {
+  return Attributes.at(i)->second;
 }
 
-void OrderRecord::setFullPersonalization(bool newFullPersonalization) {
-  FullPersonalization =
-      QString::fromStdString(newFullPersonalization ? "true" : "false");
+const QString& UniversalTableRecord::attributeName(const uint32_t i) const {
+  return Attributes.at(i)->first;
 }
 
-const QString& OrderRecord::getProductionStartDate() const {
-  return ProductionStartDate;
+void UniversalTableRecord::clear() {
+  for (int32_t i = 0; i < Attributes.size(); i++) {
+    delete Attributes.at(i);
+  }
+  Attributes.clear();
 }
-
-void OrderRecord::setProductionStartDate(const QDate& newProductionStartDate) {
-  ProductionStartDate = newProductionStartDate.toString("dd.MM.yyyy");
-}
-
-const QString& OrderRecord::getProductionEndDate() const {
-  return ProductionEndDate;
-}
-
-void OrderRecord::setProductionEndDate(const QDate& newProductionEndDate) {
-  ProductionEndDate = newProductionEndDate.toString("dd.MM.yyyy");
-}
-
-const QString& OrderRecord::getIssuerId() const {
-  return IssuerId;
-}
-
-void OrderRecord::setIssuerId(uint32_t newIssuerId) {
-  IssuerId = QString::number(newIssuerId);
-}
-
-const QString& OrderRecord::getTransponderQuantity() const {
-  return TransponderQuantity;
-}
-
-void OrderRecord::setTransponderQuantity(uint32_t newTransponderQuantity) {
-  TransponderQuantity = QString::number(newTransponderQuantity);
-}
-
-IssuerRecord::IssuerRecord(QObject* parent) : TableRecord(parent) {}
-
-BoxRecord::BoxRecord(QObject* parent) : TableRecord(parent) {}
-
-PalletRecord::PalletRecord(QObject* parent) : TableRecord(parent) {}
-
-TransportMasterKeyRecord::TransportMasterKeyRecord(QObject* parent)
-    : TableRecord(parent) {}
-
-CommercialMasterKeyRecord::CommercialMasterKeyRecord(QObject* parent)
-    : TableRecord(parent) {}

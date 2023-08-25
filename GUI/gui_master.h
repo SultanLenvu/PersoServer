@@ -29,6 +29,7 @@ class MasterGUI : public GUI {
   QComboBox* DatabaseTableChoice;
   QPushButton* ShowDatabaseTablePushButton;
   QPushButton* ClearDatabaseTablePushButton;
+  QPushButton* InitIssuerTablePushButton;
   QSpacerItem* DatabaseControlPanelVS1;
 
   QPushButton* TransmitCustomRequestPushButton;

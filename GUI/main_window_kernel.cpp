@@ -72,6 +72,14 @@ void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
   CurrentGUI->update();
 }
 
+void MainWindowKernel::on_InitIssuerTablePushButton_slot() {
+  Logger->clear();
+
+  Manager->initIssuers();
+
+  CurrentGUI->update();
+}
+
 void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
@@ -291,6 +299,8 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_ShowDatabaseTablePushButton_slot);
   connect(gui->ClearDatabaseTablePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ClearDatabaseTablePushButton_slot);
+  connect(gui->InitIssuerTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_InitIssuerTablePushButton_slot);
 
   connect(gui->TransmitCustomRequestPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_TransmitCustomRequestPushButton_slot);

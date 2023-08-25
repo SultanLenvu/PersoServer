@@ -8,6 +8,8 @@
 #define ORGANIZATION_NAME "PowerSyntez"
 
 #define MASTER_ACCESS_PASSWORD "1995"
+#define BOX_TRANSPONDER_QUANTITY 50
+#define PALLET_BOX_QUANTITY 10
 //===============================================================
 
 /* Определения менеджера */

@@ -53,6 +53,7 @@ class MainWindowKernel : public QMainWindow {
 
   void on_ShowDatabaseTablePushButton_slot(void);
   void on_ClearDatabaseTablePushButton_slot(void);
+  void on_InitIssuerTablePushButton_slot(void);
   void on_TransmitCustomRequestPushButton_slot(void);
 
   // Функицнал для формирования новых заказов
