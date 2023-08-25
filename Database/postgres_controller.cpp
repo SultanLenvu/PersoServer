@@ -142,8 +142,8 @@ int32_t PostgresController::getIdByCondition(const QString& tableName,
                                              const QString& condition,
                                              bool minMaxOption) {
   // Создаем запрос
-  QString requestText = "SELECT * FROM " + tableName + " WHERE " + condition +
-                        " ORDER BY \"Id\" ";
+  QString requestText = "SELECT \"Id\" FROM " + tableName + " WHERE " +
+                        condition + " ORDER BY \"Id\" ";
   if (minMaxOption) {
     requestText += "ASC LIMIT 1";
   } else {
@@ -166,11 +166,14 @@ int32_t PostgresController::getIdByCondition(const QString& tableName,
   }
 }
 
-bool PostgresController::incrementAttributeValue(const QString& tableName,
-                                                 const QString& attributeName,
-                                                 const QString& id) {
+bool PostgresController::increaseAttributeValue(const QString& tableName,
+                                                const QString& attributeName,
+                                                const QString& id,
+                                                uint32_t value) {
   QString requestText = QString("UPDATE %1 ").arg(tableName);
-  requestText += QString("SET \"%1\" = \"%1\" + 1 ").arg(attributeName);
+  requestText += QString("SET \"%1\" = \"%1\" + %2 ")
+                     .arg(attributeName)
+                     .arg(QString::number(value));
   requestText += QString("WHERE \"Id\" = '%1'").arg(id);
   emit logging("Отправляемый запрос: " + requestText);
 

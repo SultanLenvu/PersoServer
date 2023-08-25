@@ -10,7 +10,7 @@
 #include "gui_master.h"
 #include "user_interaction_system.h"
 
-#include "Management/log_system.h"
+#include "GUI/log_system.h"
 #include "Management/server_manager.h"
 #include "Management/user_settings.h"
 

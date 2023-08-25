@@ -61,9 +61,10 @@ class PostgresController : public IDatabaseController {
   int32_t getIdByCondition(const QString& tableName,
                            const QString& condition,
                            bool minMaxOption);
-  bool incrementAttributeValue(const QString& tableName,
-                               const QString& attributeName,
-                               const QString& id);
+  bool increaseAttributeValue(const QString& tableName,
+                              const QString& attributeName,
+                              const QString& id,
+                              uint32_t value);
   bool addTableRecord(const QString& tableName,
                       QMap<QString, QString>& record) const;
 

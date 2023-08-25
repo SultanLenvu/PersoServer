@@ -26,7 +26,7 @@ SOURCES += \
     GUI/gui.cpp \
     GUI/gui_delegates.cpp \
     GUI/user_interaction_system.cpp \
-    Management/log_system.cpp \
+    GUI/log_system.cpp \
     Management/user_settings.cpp
 
 HEADERS += \
@@ -42,7 +42,7 @@ HEADERS += \
     General/definitions.h \
     Database/postgres_controller.h \
     Management/issuer_order.h \
-    Management/log_system.h \
+    GUI/log_system.h \
     Management/order_creation_system.h \
     Management/perso_client_connection.h \
     Management/perso_host.h \

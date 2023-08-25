@@ -39,8 +39,8 @@ class OrderSystem : public QObject {
 
  private:
   bool addOrder(IssuerOrder* order);
-  bool addPallets(uint32_t count);
-  bool addBoxes(uint32_t count);
+  bool addPallets(IssuerOrder* order);
+  bool addBoxes(IssuerOrder* order);
   bool addTransponders(IssuerOrder* order);
   void processingResult(const QString& log, const ExecutionStatus status);
   void init(void);
