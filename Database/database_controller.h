@@ -18,7 +18,7 @@ class IDatabaseController : public QObject {
   explicit IDatabaseController(QObject* parent);
 
   // Функционал для работы с БД
-  virtual void connect(void) = 0;
+  virtual bool connect(void) = 0;
   virtual void disconnect(void) = 0;
   virtual bool isConnected(void) = 0;
 
@@ -41,7 +41,7 @@ class IDatabaseController : public QObject {
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) = 0;
 
-  virtual void execCustomRequest(const QString& req,
+  virtual bool execCustomRequest(const QString& req,
                                  DatabaseTableModel* buffer) = 0;
 
   virtual void applySettings() = 0;

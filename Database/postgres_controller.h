@@ -28,7 +28,7 @@ class PostgresController : public IDatabaseController {
 
  public:
   // IDatabaseController interface
-  virtual void connect(void) override;
+  virtual bool connect(void) override;
   virtual void disconnect(void) override;
   virtual bool isConnected(void) override;
 
@@ -51,11 +51,12 @@ class PostgresController : public IDatabaseController {
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) override;
 
-  virtual void execCustomRequest(const QString& req,
+  virtual bool execCustomRequest(const QString& req,
                                  DatabaseTableModel* buffer) override;
   virtual void applySettings() override;
 
   bool clearTable(const QString& tableName) const;
+  int32_t getLastId(const QString& tableName) const;
   int32_t getIdByAttribute(const QString& tableName,
                            QPair<QString, QString>& attribute) const;
   int32_t getIdByCondition(const QString& tableName,
@@ -65,12 +66,16 @@ class PostgresController : public IDatabaseController {
                               const QString& attributeName,
                               const QString& id,
                               uint32_t value);
-  bool addTableRecord(const QString& tableName,
-                      QMap<QString, QString>& record) const;
-  bool removeTableLastRecordWithCondition(const QString& tableName,
-                                          const QString& condition) const;
+  bool addRecord(const QString& tableName,
+                 QMap<QString, QString>& record) const;
+  bool removeLastRecordWithCondition(const QString& tableName,
+                                     const QString& condition) const;
 
  private:
+  bool openTransaction(void) const;
+  bool closeTransaction(void) const;
+  bool abortTransaction(void) const;
+
   void loadSettings(void);
   void createDatabaseConnection(void);
   void convertResponseToBuffer(DatabaseTableModel* buffer);

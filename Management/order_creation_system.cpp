@@ -9,10 +9,10 @@ OrderSystem::OrderSystem(QObject* parent) : QObject(parent) {
 }
 
 void OrderSystem::proxyLogging(const QString& log) {
-  //  if (sender()->objectName() == "PostgresController")
-  //    emit logging("Postgres controller - " + log);
-  //  else
-  //    emit logging("Unknown - " + log);
+  if (sender()->objectName() == "PostgresController")
+    emit logging("Postgres controller - " + log);
+  else
+    emit logging("Unknown - " + log);
 }
 
 void OrderSystem::applySettings() {
@@ -63,11 +63,11 @@ void OrderSystem::getDatabaseTable(const QString& tableName,
   Database->disconnect();
 
   if (buffer->isEmpty()) {
-    emit logging("Ошибка при выполнении запроса к базе данных. ");
-    emit operationFinished(DatabaseQueryError);
+    processingResult("Ошибка при получении данных из таблицы базы данных. ",
+                     DatabaseQueryError);
   } else {
-    emit logging("Операция успешно выполнена. ");
-    emit operationFinished(CompletedSuccessfully);
+    processingResult("Данные из таблицы базы данных получены. ",
+                     CompletedSuccessfully);
   }
 }
 
@@ -88,21 +88,29 @@ void OrderSystem::createNewOrder(IssuerOrder* order) {
 
   emit logging("Добавление заказа. ");
   if (!addOrder(order)) {
+    processingResult("Получена ошибка при добавлении заказа. ",
+                     DatabaseQueryError);
     return;
   }
 
   emit logging("Добавление палет. ");
   if (!addPallets(order)) {
+    processingResult("Получена ошибка при добавлении палет. ",
+                     DatabaseQueryError);
     return;
   }
 
   emit logging("Добавление боксов. ");
   if (!addBoxes(order)) {
+    processingResult("Получена ошибка при добавлении боксов. ",
+                     DatabaseQueryError);
     return;
   }
 
   emit logging("Добавление транспондеров. ");
   if (!addTransponders(order)) {
+    processingResult("Получена ошибка при добавлении транспондеров. ",
+                     DatabaseQueryError);
     return;
   }
 
@@ -120,7 +128,7 @@ void OrderSystem::deleteLastOrder() {
   }
 
   emit logging("Удаление последнего добавленного заказа. ");
-  Database->removeTableLastRecord("orders");
+  Database->removeLastRecordWithCondition("orders", "");
 
   processingResult("Новый заказ успешно создан. ", CompletedSuccessfully);
 }
@@ -139,7 +147,7 @@ void OrderSystem::initIssuerTable() {
   emit logging("Инициализация таблицы эмитентов. ");
   record.insert("Name", "Пауэр Синтез");
   record.insert("EfcContextMark", "000000000001");
-  if (!Database->addTableRecord("issuers", record)) {
+  if (!Database->addRecord("issuers", record)) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return;
@@ -148,7 +156,7 @@ void OrderSystem::initIssuerTable() {
 
   record.insert("Name", "Автодор");
   record.insert("EfcContextMark", "570002FF0070");
-  if (!Database->addTableRecord("issuers", record)) {
+  if (!Database->addRecord("issuers", record)) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return;
@@ -157,7 +165,7 @@ void OrderSystem::initIssuerTable() {
 
   record.insert("Name", "Новое качество дорог");
   record.insert("EfcContextMark", "000000000001");
-  if (!Database->addTableRecord("issuers", record)) {
+  if (!Database->addRecord("issuers", record)) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return;
@@ -166,7 +174,7 @@ void OrderSystem::initIssuerTable() {
 
   record.insert("Name", "Западный скоростной диаметр");
   record.insert("EfcContextMark", "570001FF0070");
-  if (!Database->addTableRecord("issuers", record)) {
+  if (!Database->addRecord("issuers", record)) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return;
@@ -175,7 +183,7 @@ void OrderSystem::initIssuerTable() {
 
   record.insert("Name", "Объединенные системы сбора платы");
   record.insert("EfcContextMark", "000000000001");
-  if (!Database->addTableRecord("issuers", record)) {
+  if (!Database->addRecord("issuers", record)) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return;
@@ -188,7 +196,9 @@ void OrderSystem::initIssuerTable() {
 bool OrderSystem::addOrder(IssuerOrder* order) {
   QMap<QString, QString> record;
   QPair<QString, QString> attribute;
+  int32_t lastId = 0;
 
+  // Получение идентификатора эмитента по его имени
   attribute.first = "Name";
   attribute.second = order->issuerName();
   int32_t issuerId = Database->getIdByAttribute("issuers", attribute);
@@ -198,6 +208,16 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
     return false;
   }
 
+  // Получаем идентифкатор последнего добавленного заказа
+  lastId = Database->getLastId("orders");
+  if (lastId == -1) {
+    processingResult("Ошибка при выполнении запроса в базу данных. ",
+                     DatabaseQueryError);
+    return false;
+  }
+
+  // Формируем новую запись
+  record.insert("Id", QString::number(lastId + 1));
   record.insert("IssuerId", QString::number(issuerId));
   record.insert("TotalPalletQuantity", "0");
   record.insert("FullPersonalization",
@@ -205,7 +225,7 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
   record.insert("ProductionStartDate",
                 order->productionStartDate().toString("dd.MM.yyyy"));
   emit logging("Добавление нового заказа. ");
-  if (!Database->addTableRecord("orders", record)) {
+  if (!Database->addRecord("orders", record)) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return false;
@@ -220,8 +240,9 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
   uint32_t palletCount =
       transponderCount / (BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY);
   int32_t orderId = 0;
+  int32_t lastId = 0;
 
-  // Получаем идентификатор заказа
+  // Получаем идентификатор незаполненного заказа
   orderId =
       Database->getIdByCondition("orders", "\"TotalPalletQuantity\" = 0", true);
   if (orderId == -1) {
@@ -230,10 +251,23 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
     return false;
   }
 
-  record.insert("TotalBoxQuantity", "0");
-  record.insert("OrderId", QString::number(orderId));
+  // Заполняем заказ
   for (uint32_t i = 0; i < palletCount; i++) {
-    if (!Database->addTableRecord("pallets", record)) {
+    // Получаем идентификатор последней добавленной палеты
+    lastId = Database->getLastId("pallets");
+    if (lastId == -1) {
+      processingResult("Ошибка при выполнении запроса в базу данных. ",
+                       DatabaseQueryError);
+      return false;
+    }
+
+    // Формируем новую запись
+    record.insert("Id", QString::number(lastId + 1));
+    record.insert("TotalBoxQuantity", "0");
+    record.insert("OrderId", QString::number(orderId));
+
+    // Добавляем новую запись
+    if (!Database->addRecord("pallets", record)) {
       processingResult("Ошибка при выполнении запроса в базу данных. ",
                        DatabaseQueryError);
       return false;
@@ -256,8 +290,10 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
   uint32_t palletCount =
       transponderCount / (BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY);
   int32_t palletId = 0;
+  int32_t lastId = 0;
 
   for (uint32_t i = 0; i < palletCount; i++) {
+    // Получаем идентификатор незаполненной палеты
     palletId =
         Database->getIdByCondition("pallets", "\"TotalBoxQuantity\" = 0", true);
     if (palletId == -1) {
@@ -266,10 +302,23 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
       return false;
     }
 
-    record.insert("TotalTransponderQuantity", "0");
-    record.insert("PalletId", QString::number(palletId));
+    // Заполняем палету
     for (uint32_t i = 0; i < PALLET_BOX_QUANTITY; i++) {
-      if (!Database->addTableRecord("boxes", record)) {
+      // Получаем идентификатор последнего добавленного бокса
+      lastId = Database->getLastId("boxes");
+      if (lastId == -1) {
+        processingResult("Ошибка при выполнении запроса в базу данных. ",
+                         DatabaseQueryError);
+        return false;
+      }
+
+      // Формируем новую запись
+      record.insert("Id", QString::number(lastId + 1));
+      record.insert("TotalTransponderQuantity", "0");
+      record.insert("PalletId", QString::number(palletId));
+
+      // Добавляем новую запись
+      if (!Database->addRecord("boxes", record)) {
         processingResult("Ошибка при выполнении запроса в базу данных. ",
                          DatabaseQueryError);
         return false;
@@ -292,9 +341,10 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
   uint32_t transponderCount = order->transponderQuantity();
   uint32_t boxCount = transponderCount / BOX_TRANSPONDER_QUANTITY;
   int32_t boxId = 0;
+  int32_t lastId = 0;
 
   for (uint32_t i = 0; i < boxCount; i++) {
-    // Получаем идентификатор бокса
+    // Получаем идентификатор незаполненного бокса
     boxId = Database->getIdByCondition(
         "boxes", "\"TotalTransponderQuantity\" = 0", true);
     if (boxId == -1) {
@@ -303,12 +353,25 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
       return false;
     }
 
-    record.insert("Model", "TC1001");
-    record.insert("PaymentMeans", "0000000000000000000");
-    record.insert("EmissionCounter", "0");
-    record.insert("BoxId", QString::number(boxId));
+    // Заполняем бокс
     for (uint32_t i = 0; i < BOX_TRANSPONDER_QUANTITY; i++) {
-      if (!Database->addTableRecord("transponders", record)) {
+      // Получаем идентификатор последнего добавленного транспондера
+      lastId = Database->getLastId("transponders");
+      if (lastId == -1) {
+        processingResult("Ошибка при выполнении запроса в базу данных. ",
+                         DatabaseQueryError);
+        return false;
+      }
+
+      // Формируем новую запись
+      record.insert("Id", QString::number(lastId + 1));
+      record.insert("Model", "TC1001");
+      record.insert("PaymentMeans", "0000000000000000000");
+      record.insert("EmissionCounter", "0");
+      record.insert("BoxId", QString::number(boxId));
+
+      // Добавляем новую запись
+      if (!Database->addRecord("transponders", record)) {
         processingResult("Ошибка при выполнении запроса в базу данных. ",
                          DatabaseQueryError);
         return false;
