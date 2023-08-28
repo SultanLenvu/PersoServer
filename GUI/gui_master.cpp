@@ -165,6 +165,10 @@ void MasterGUI::createOrderTab() {
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   OrderCreationPanelLayout->addItem(OrderCreationPanelVS);
 
+  DeleteLastOrderPushButton =
+      new QPushButton("Удалить последний созданный заказ");
+  OrderCreationPanelLayout->addWidget(DeleteLastOrderPushButton);
+
   // Панель управления инициализацией транспондеров
   PanListPanel = new QGroupBox("Список новых PAN");
   OrderTabMainLayout->addWidget(PanListPanel);

@@ -65,6 +65,28 @@ void PostgresController::getObuListByPAN(const uint32_t panBegin,
                                          const uint32_t panEnd,
                                          DatabaseTableModel* buffer) {}
 
+bool PostgresController::getTable(const QString& tableName,
+                                  uint32_t rowCount,
+                                  DatabaseTableModel* buffer) {
+  QString requestText =
+      QString("SELECT * FROM %1 ORDER BY \"Id\" ASC;").arg(tableName);
+  //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
+  //                     .arg(QString::number(rowCount));
+  emit logging("Отправляемый запрос: " + requestText);
+
+  if (CurrentRequest->exec(requestText)) {
+    emit logging("Запрос выполнен. ");
+    // Преобразование результатов запроса
+    convertResponseToBuffer(buffer);
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
+    return false;
+  }
+}
+
 void PostgresController::execCustomRequest(const QString& req,
                                            DatabaseTableModel* buffer) {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
@@ -217,6 +239,30 @@ bool PostgresController::addTableRecord(const QString& tableName,
   }
 }
 
+bool PostgresController::removeTableLastRecordWithCondition(
+    const QString& tableName,
+    const QString& condition) const {
+  // Создаем запрос
+  QString requestText =
+      QString(
+          "DELETE FROM %1 WHERE \"Id\" = (SELECT \"Id\" FROM %1 ORDER BY "
+          "\"Id\" DESC LIMIT 1);")
+          .arg(tableName);
+
+  emit logging("Отправляемый запрос: " + requestText);
+
+  // Выполняем запрос
+  if ((CurrentRequest->exec(requestText)) && (CurrentRequest->next())) {
+    emit logging("Запись удалена. ");
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " +
+                 CurrentRequest->lastError().text());
+    return false;
+  }
+}
+
 void PostgresController::loadSettings() {
   // Загружаем настройки
   QSettings settings(ORGANIZATION_NAME, PROGRAM_NAME);
@@ -226,27 +272,6 @@ void PostgresController::loadSettings() {
   DatabaseName = settings.value("Database/Name").toString();
   UserName = settings.value("Database/User/Name").toString();
   Password = settings.value("Database/User/Password").toString();
-}
-
-bool PostgresController::getTable(const QString& tableName,
-                                  uint32_t rowCount,
-                                  DatabaseTableModel* buffer) {
-  QString requestText = QString("SELECT * FROM %1;").arg(tableName);
-  //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
-  //                     .arg(QString::number(rowCount));
-  emit logging("Отправляемый запрос: " + requestText);
-
-  if (CurrentRequest->exec(requestText)) {
-    emit logging("Запрос выполнен. ");
-    // Преобразование результатов запроса
-    convertResponseToBuffer(buffer);
-    return true;
-  } else {
-    // Обработка ошибки выполнения запроса
-    emit logging("Ошибка выполнения запроса: " +
-                 CurrentRequest->lastError().text());
-    return false;
-  }
 }
 
 void PostgresController::createDatabaseConnection() {

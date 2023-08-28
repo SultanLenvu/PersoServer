@@ -77,18 +77,12 @@ void OrderSystem::getCustomResponse(const QString& req,
 }
 
 void OrderSystem::createNewOrder(IssuerOrder* order) {
-  if (QApplication::instance()->thread() == thread()) {
-    emit logging("Операция выполняется в главном потоке. ");
-  } else {
-    emit logging("Операция выполняется в отдельном потоке. ");
-  }
-
   emit logging("Подключение к базе данных. ");
   Database->connect();
 
   if (!Database->isConnected()) {
-    emit logging("Соединение с базой данных не установлено. ");
-    emit operationFinished(DatabaseConnectionError);
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
     return;
   }
 
@@ -111,6 +105,22 @@ void OrderSystem::createNewOrder(IssuerOrder* order) {
   if (!addTransponders(order)) {
     return;
   }
+
+  processingResult("Новый заказ успешно создан. ", CompletedSuccessfully);
+}
+
+void OrderSystem::deleteLastOrder() {
+  emit logging("Подключение к базе данных. ");
+  Database->connect();
+
+  if (!Database->isConnected()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
+    return;
+  }
+
+  emit logging("Удаление последнего добавленного заказа. ");
+  Database->removeTableLastRecord("orders");
 
   processingResult("Новый заказ успешно создан. ", CompletedSuccessfully);
 }
@@ -189,7 +199,7 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
   }
 
   record.insert("IssuerId", QString::number(issuerId));
-  record.insert("TransponderQuantity", "0");
+  record.insert("TotalPalletQuantity", "0");
   record.insert("FullPersonalization",
                 order->fullPersonalization() ? "true" : "false");
   record.insert("ProductionStartDate",
@@ -212,16 +222,15 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
   int32_t orderId = 0;
 
   // Получаем идентификатор заказа
-  orderId = Database->getIdByCondition(
-      "orders",
-      "\"TransponderQuantity\" != " + QString::number(transponderCount), true);
+  orderId =
+      Database->getIdByCondition("orders", "\"TotalPalletQuantity\" = 0", true);
   if (orderId == -1) {
     processingResult("Ошибка при выполнении запроса в базу данных. ",
                      DatabaseQueryError);
     return false;
   }
 
-  record.insert("BoxQuantity", "0");
+  record.insert("TotalBoxQuantity", "0");
   record.insert("OrderId", QString::number(orderId));
   for (uint32_t i = 0; i < palletCount; i++) {
     if (!Database->addTableRecord("pallets", record)) {
@@ -230,9 +239,8 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
       return false;
     }
 
-    if (!Database->increaseAttributeValue(
-            "orders", "TransponderQuantity", QString::number(orderId),
-            BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY)) {
+    if (!Database->increaseAttributeValue("orders", "TotalPalletQuantity",
+                                          QString::number(orderId), 1)) {
       processingResult("Ошибка при выполнении запроса в базу данных. ",
                        DatabaseQueryError);
       return false;
@@ -250,16 +258,15 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
   int32_t palletId = 0;
 
   for (uint32_t i = 0; i < palletCount; i++) {
-    palletId = Database->getIdByCondition(
-        "pallets", "\"BoxQuantity\" != " + QString::number(PALLET_BOX_QUANTITY),
-        true);
+    palletId =
+        Database->getIdByCondition("pallets", "\"TotalBoxQuantity\" = 0", true);
     if (palletId == -1) {
       processingResult("Ошибка при выполнении запроса в базу данных. ",
                        DatabaseQueryError);
       return false;
     }
 
-    record.insert("TransponderQuantity", "0");
+    record.insert("TotalTransponderQuantity", "0");
     record.insert("PalletId", QString::number(palletId));
     for (uint32_t i = 0; i < PALLET_BOX_QUANTITY; i++) {
       if (!Database->addTableRecord("boxes", record)) {
@@ -267,7 +274,7 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
                          DatabaseQueryError);
         return false;
       }
-      if (!Database->increaseAttributeValue("pallets", "BoxQuantity",
+      if (!Database->increaseAttributeValue("pallets", "TotalBoxQuantity",
                                             QString::number(palletId), 1)) {
         processingResult("Ошибка при выполнении запроса в базу данных. ",
                          DatabaseQueryError);
@@ -289,10 +296,7 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
   for (uint32_t i = 0; i < boxCount; i++) {
     // Получаем идентификатор бокса
     boxId = Database->getIdByCondition(
-        "boxes",
-        "\"TransponderQuantity\" != " +
-            QString::number(BOX_TRANSPONDER_QUANTITY),
-        true);
+        "boxes", "\"TotalTransponderQuantity\" = 0", true);
     if (boxId == -1) {
       processingResult("Ошибка при выполнении запроса в базу данных. ",
                        DatabaseQueryError);
@@ -309,7 +313,7 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
                          DatabaseQueryError);
         return false;
       }
-      if (!Database->increaseAttributeValue("boxes", "TransponderQuantity",
+      if (!Database->increaseAttributeValue("boxes", "TotalTransponderQuantity",
                                             QString::number(boxId), 1)) {
         processingResult("Ошибка при выполнении запроса в базу данных. ",
                          DatabaseQueryError);

@@ -34,7 +34,6 @@ class MasterGUI : public GUI {
 
   QPushButton* TransmitCustomRequestPushButton;
   QLineEdit* CustomRequestLineEdit;
-  QPushButton* PushButton;
 
   // Отображение записей в БД
   QGroupBox* DatabaseBufferGroup;
@@ -68,6 +67,7 @@ class MasterGUI : public GUI {
 
   QPushButton* CreateNewOrderPushButton;
   QSpacerItem* OrderCreationPanelVS;
+  QPushButton* DeleteLastOrderPushButton;
 
   QGroupBox* PanListPanel;
   QVBoxLayout* PanListLayout;

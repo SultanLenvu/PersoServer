@@ -67,6 +67,8 @@ class PostgresController : public IDatabaseController {
                               uint32_t value);
   bool addTableRecord(const QString& tableName,
                       QMap<QString, QString>& record) const;
+  bool removeTableLastRecordWithCondition(const QString& tableName,
+                                          const QString& condition) const;
 
  private:
   void loadSettings(void);

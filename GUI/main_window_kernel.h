@@ -58,6 +58,7 @@ class MainWindowKernel : public QMainWindow {
 
   // Функицнал для формирования новых заказов
   void on_CreateNewOrderPushButton_slot(void);
+  void on_DeleteLastOrderPushButton_slot(void);
 
   // Функционал для настройки сервера
   void applyUserSettings_slot(void);

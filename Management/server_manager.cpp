@@ -136,6 +136,21 @@ void ServerManager::createNewOrder(IssuerOrder* newOrder) {
   endOperationExecution("createNewOrder");
 }
 
+void ServerManager::deleteLastCreatedOrder() {
+  if (!startOperationExecution("createNewOrder")) {
+    return;
+  }
+
+  emit logging("Удаление последнего созданного заказа. ");
+  emit deleteLastOrder_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("createNewOrder");
+}
+
 void ServerManager::initIssuers() {
   if (!startOperationExecution("initIssuers")) {
     return;
@@ -354,6 +369,8 @@ void ServerManager::on_OrderCreatorBuilderCompleted_slot() {
           &OrderSystem::clearDatabaseTable);
   connect(this, &ServerManager::initIssuerTable_signal, OrderCreator,
           &OrderSystem::initIssuerTable);
+  connect(this, &ServerManager::deleteLastOrder_signal, OrderCreator,
+          &OrderSystem::deleteLastOrder);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {

@@ -114,6 +114,14 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
   CurrentGUI->update();
 }
 
+void MainWindowKernel::on_DeleteLastOrderPushButton_slot() {
+  Logger->clear();
+
+  Manager->deleteLastCreatedOrder();
+
+  CurrentGUI->update();
+}
+
 void MainWindowKernel::applyUserSettings_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
@@ -308,6 +316,8 @@ void MainWindowKernel::connectMasterInterface() {
   // Создание нового заказа
   connect(gui->CreateNewOrderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_CreateNewOrderPushButton_slot);
+  connect(gui->DeleteLastOrderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_DeleteLastOrderPushButton_slot);
 
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
