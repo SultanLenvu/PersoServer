@@ -22,6 +22,7 @@ class OrderSystem : public QObject {
 
  private:
   PostgresController* Database;
+  bool DatabaseLogOption;
 
  public:
   explicit OrderSystem(QObject* parent);
@@ -39,6 +40,8 @@ class OrderSystem : public QObject {
   void initIssuerTable(void);
 
  private:
+  void loadSettings(void);
+
   bool addOrder(IssuerOrder* order);
   bool addPallets(IssuerOrder* order);
   bool addBoxes(IssuerOrder* order);

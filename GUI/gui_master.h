@@ -145,6 +145,8 @@ class MasterGUI : public GUI {
   QLineEdit* DatabaseUserNameLineEdit;
   QLabel* DatabaseUserPasswordLabel;
   QLineEdit* DatabaseUserPasswordLineEdit;
+  QLabel* DatabaseLogOptionLabel;
+  QCheckBox* DatabaseLogOption;
   //============================================================
  public:
   explicit MasterGUI(QWidget* parent);

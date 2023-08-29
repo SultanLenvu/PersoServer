@@ -134,7 +134,7 @@ void MainWindowKernel::applyUserSettings_slot() {
   }
 
   // Считывание пользовательского ввода
-  Settings->setValue("PersoHost/Ip", gui->PersoServerPortLineEdit->text());
+  Settings->setValue("PersoHost/Ip", gui->PersoServerIpLineEdit->text());
   Settings->setValue("PersoHost/Port",
                      gui->PersoServerPortLineEdit->text().toInt());
   Settings->setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
@@ -145,6 +145,8 @@ void MainWindowKernel::applyUserSettings_slot() {
                      gui->DatabaseUserNameLineEdit->text());
   Settings->setValue("Database/User/Password",
                      gui->DatabaseUserPasswordLineEdit->text());
+  Settings->setValue("Database/Log/Active",
+                     gui->DatabaseLogOption->checkState() == Qt::Checked);
 
   // Применение новых настроек
   Manager->applySettings();

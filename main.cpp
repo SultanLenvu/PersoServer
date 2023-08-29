@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[]) {
   // Установка кодировки UTF-8 для консоли вывода
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("Windows-1251"));
+  QTextCodec::setCodecForLocale(QTextCodec::codecForName("CP1251"));
 
   QApplication a(argc, argv);
   MainWindowKernel w;

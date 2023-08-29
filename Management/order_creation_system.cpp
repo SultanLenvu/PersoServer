@@ -5,18 +5,24 @@ OrderSystem::OrderSystem(QObject* parent) : QObject(parent) {
 
   qRegisterMetaType<ExecutionStatus>("ExecutionStatus");
 
+  loadSettings();
+
   createDatabaseController();
 }
 
 void OrderSystem::proxyLogging(const QString& log) {
-  if (sender()->objectName() == "PostgresController")
-    emit logging("Postgres controller - " + log);
-  else
+  if (sender()->objectName() == "PostgresController") {
+    if (DatabaseLogOption) {
+      emit logging("Postgres controller - " + log);
+    }
+  } else {
     emit logging("Unknown - " + log);
+  }
 }
 
 void OrderSystem::applySettings() {
   emit logging("Применение новых настроек. ");
+  loadSettings();
   Database->applySettings();
 }
 
@@ -29,38 +35,31 @@ void OrderSystem::createDatabaseController() {
 
 void OrderSystem::clearDatabaseTable(const QString& tableName) {
   emit logging("Подключение к базе данных. ");
-  Database->connect();
-
-  if (!Database->isConnected()) {
-    emit logging("Соединение с базой данных не установлено. ");
-    emit operationFinished(DatabaseConnectionError);
+  if (!Database->connect()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
     return;
   }
 
   emit logging("Очистка данных таблицы базы данных. ");
-  Database->clearTable(tableName);
-
-  emit logging("Отключение от базы данных. ");
-  Database->disconnect();
-  emit operationFinished(CompletedSuccessfully);
+  if (Database->clearTable(tableName)) {
+    processingResult("Очистка выполнена. ", CompletedSuccessfully);
+  } else {
+    processingResult("Очистка не выполнена. ", DatabaseQueryError);
+  }
 }
 
 void OrderSystem::getDatabaseTable(const QString& tableName,
                                    DatabaseTableModel* buffer) {
   emit logging("Подключение к базе данных. ");
-  Database->connect();
-
-  if (!Database->isConnected()) {
-    emit logging("Соединение с базой данных не установлено. ");
-    emit operationFinished(DatabaseConnectionError);
+  if (!Database->connect()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
     return;
   }
 
   emit logging("Получение таблицы базы данных. ");
   Database->getTable(tableName, 10, buffer);
-
-  emit logging("Отключение от базы данных. ");
-  Database->disconnect();
 
   if (buffer->isEmpty()) {
     processingResult("Ошибка при получении данных из таблицы базы данных. ",
@@ -78,9 +77,7 @@ void OrderSystem::getCustomResponse(const QString& req,
 
 void OrderSystem::createNewOrder(IssuerOrder* order) {
   emit logging("Подключение к базе данных. ");
-  Database->connect();
-
-  if (!Database->isConnected()) {
+  if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
                      DatabaseConnectionError);
     return;
@@ -119,30 +116,29 @@ void OrderSystem::createNewOrder(IssuerOrder* order) {
 
 void OrderSystem::deleteLastOrder() {
   emit logging("Подключение к базе данных. ");
-  Database->connect();
-
-  if (!Database->isConnected()) {
+  if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
                      DatabaseConnectionError);
     return;
   }
 
   emit logging("Удаление последнего добавленного заказа. ");
-  Database->removeLastRecordWithCondition("orders", "");
+  Database->removeLastRecordWithCondition(
+      "orders", "(\"InProcess\" = 'false' AND \"ReadyIndicator\" = 'false')");
 
-  processingResult("Новый заказ успешно создан. ", CompletedSuccessfully);
+  processingResult("Последний добавленный заказ успешно удален. ",
+                   CompletedSuccessfully);
 }
 
 void OrderSystem::initIssuerTable() {
-  QMap<QString, QString> record;
   emit logging("Подключение к базе данных. ");
-  Database->connect();
-
-  if (!Database->isConnected()) {
-    emit logging("Соединение с базой данных не установлено. ");
-    emit operationFinished(DatabaseConnectionError);
+  if (!Database->connect()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
     return;
   }
+
+  QMap<QString, QString> record;
 
   emit logging("Инициализация таблицы эмитентов. ");
   record.insert("Name", "Пауэр Синтез");
@@ -193,6 +189,12 @@ void OrderSystem::initIssuerTable() {
   processingResult("Инициализация успешно завершена. ", CompletedSuccessfully);
 }
 
+void OrderSystem::loadSettings() {
+  QSettings settings;
+
+  DatabaseLogOption = settings.value("Database/Log/Active").toBool();
+}
+
 bool OrderSystem::addOrder(IssuerOrder* order) {
   QMap<QString, QString> record;
   QPair<QString, QString> attribute;
@@ -203,16 +205,12 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
   attribute.second = order->issuerName();
   int32_t issuerId = Database->getIdByAttribute("issuers", attribute);
   if (issuerId == -1) {
-    processingResult("Ошибка при выполнении запроса в базу данных. ",
-                     DatabaseQueryError);
     return false;
   }
 
   // Получаем идентифкатор последнего добавленного заказа
   lastId = Database->getLastId("orders");
   if (lastId == -1) {
-    processingResult("Ошибка при выполнении запроса в базу данных. ",
-                     DatabaseQueryError);
     return false;
   }
 
@@ -226,8 +224,6 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
                 order->productionStartDate().toString("dd.MM.yyyy"));
   emit logging("Добавление нового заказа. ");
   if (!Database->addRecord("orders", record)) {
-    processingResult("Ошибка при выполнении запроса в базу данных. ",
-                     DatabaseQueryError);
     return false;
   }
 
@@ -246,8 +242,6 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
   orderId =
       Database->getIdByCondition("orders", "\"TotalPalletQuantity\" = 0", true);
   if (orderId == -1) {
-    processingResult("Ошибка при выполнении запроса в базу данных. ",
-                     DatabaseQueryError);
     return false;
   }
 
@@ -256,8 +250,6 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
     // Получаем идентификатор последней добавленной палеты
     lastId = Database->getLastId("pallets");
     if (lastId == -1) {
-      processingResult("Ошибка при выполнении запроса в базу данных. ",
-                       DatabaseQueryError);
       return false;
     }
 
@@ -268,15 +260,11 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
 
     // Добавляем новую запись
     if (!Database->addRecord("pallets", record)) {
-      processingResult("Ошибка при выполнении запроса в базу данных. ",
-                       DatabaseQueryError);
       return false;
     }
 
     if (!Database->increaseAttributeValue("orders", "TotalPalletQuantity",
                                           QString::number(orderId), 1)) {
-      processingResult("Ошибка при выполнении запроса в базу данных. ",
-                       DatabaseQueryError);
       return false;
     }
   }
@@ -297,8 +285,6 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
     palletId =
         Database->getIdByCondition("pallets", "\"TotalBoxQuantity\" = 0", true);
     if (palletId == -1) {
-      processingResult("Ошибка при выполнении запроса в базу данных. ",
-                       DatabaseQueryError);
       return false;
     }
 
@@ -307,8 +293,6 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
       // Получаем идентификатор последнего добавленного бокса
       lastId = Database->getLastId("boxes");
       if (lastId == -1) {
-        processingResult("Ошибка при выполнении запроса в базу данных. ",
-                         DatabaseQueryError);
         return false;
       }
 
@@ -319,14 +303,10 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
 
       // Добавляем новую запись
       if (!Database->addRecord("boxes", record)) {
-        processingResult("Ошибка при выполнении запроса в базу данных. ",
-                         DatabaseQueryError);
         return false;
       }
       if (!Database->increaseAttributeValue("pallets", "TotalBoxQuantity",
                                             QString::number(palletId), 1)) {
-        processingResult("Ошибка при выполнении запроса в базу данных. ",
-                         DatabaseQueryError);
         return false;
       }
     }
@@ -348,8 +328,6 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
     boxId = Database->getIdByCondition(
         "boxes", "\"TotalTransponderQuantity\" = 0", true);
     if (boxId == -1) {
-      processingResult("Ошибка при выполнении запроса в базу данных. ",
-                       DatabaseQueryError);
       return false;
     }
 
@@ -358,8 +336,6 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
       // Получаем идентификатор последнего добавленного транспондера
       lastId = Database->getLastId("transponders");
       if (lastId == -1) {
-        processingResult("Ошибка при выполнении запроса в базу данных. ",
-                         DatabaseQueryError);
         return false;
       }
 
@@ -372,14 +348,10 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
 
       // Добавляем новую запись
       if (!Database->addRecord("transponders", record)) {
-        processingResult("Ошибка при выполнении запроса в базу данных. ",
-                         DatabaseQueryError);
         return false;
       }
       if (!Database->increaseAttributeValue("boxes", "TotalTransponderQuantity",
                                             QString::number(boxId), 1)) {
-        processingResult("Ошибка при выполнении запроса в базу данных. ",
-                         DatabaseQueryError);
         return false;
       }
     }
@@ -392,7 +364,12 @@ void OrderSystem::processingResult(const QString& log,
                                    const ExecutionStatus status) {
   emit logging(log);
   emit logging("Отключение от базы данных. ");
-  Database->disconnect();
+
+  if (status == CompletedSuccessfully) {
+    Database->disconnect(true);
+  } else {
+    Database->disconnect(false);
+  }
   emit operationFinished(status);
 }
 

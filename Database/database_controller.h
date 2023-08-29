@@ -19,7 +19,7 @@ class IDatabaseController : public QObject {
 
   // Функционал для работы с БД
   virtual bool connect(void) = 0;
-  virtual void disconnect(void) = 0;
+  virtual void disconnect(bool resultOption) = 0;
   virtual bool isConnected(void) = 0;
 
   virtual void getObuByPAN(const QString& pan, DatabaseTableModel* buffer) = 0;

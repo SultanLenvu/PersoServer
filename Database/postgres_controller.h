@@ -20,8 +20,6 @@ class PostgresController : public IDatabaseController {
   QString UserName;
   QString Password;
 
-  QSqlQuery* CurrentRequest;
-
  public:
   explicit PostgresController(QObject* parent, const QString& connectionName);
   ~PostgresController();
@@ -29,7 +27,7 @@ class PostgresController : public IDatabaseController {
  public:
   // IDatabaseController interface
   virtual bool connect(void) override;
-  virtual void disconnect(void) override;
+  virtual void disconnect(bool resultOption) override;
   virtual bool isConnected(void) override;
 
   virtual void getObuByPAN(const QString& pan,
@@ -78,7 +76,7 @@ class PostgresController : public IDatabaseController {
 
   void loadSettings(void);
   void createDatabaseConnection(void);
-  void convertResponseToBuffer(DatabaseTableModel* buffer);
+  void convertResponseToBuffer(DatabaseTableModel* buffer, QSqlQuery& request);
 };
 
 #endif  // POSTGRESCONTROLLER_H

@@ -356,6 +356,15 @@ void MasterGUI::createSettingsTab() {
       new QLineEdit(settings.value("Database/User/Password").toString());
   DatabaseSettingsLayout->addWidget(DatabaseUserPasswordLineEdit, 4, 1, 1, 1);
 
+  DatabaseLogOptionLabel = new QLabel("Логирование ");
+  DatabaseSettingsLayout->addWidget(DatabaseLogOptionLabel, 5, 0, 1, 1);
+
+  DatabaseLogOption = new QCheckBox();
+  DatabaseLogOption->setCheckState(
+      settings.value("Database/Log/Active").toBool() ? Qt::Checked
+                                                     : Qt::Unchecked);
+  DatabaseSettingsLayout->addWidget(DatabaseLogOption, 5, 1, 1, 1);
+
   // Кнопка сохранения настроек
   ApplySettingsPushButton = new QPushButton("Применить изменения");
   SettingsMainSubLayout->addWidget(ApplySettingsPushButton);
