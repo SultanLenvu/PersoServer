@@ -2,6 +2,7 @@
 #define MAINWINDOWKERNEL_H
 
 #include <QMainWindow>
+#include <QMap>
 #include <QSettings>
 #include <QString>
 
@@ -56,9 +57,15 @@ class MainWindowKernel : public QMainWindow {
   void on_InitIssuerTablePushButton_slot(void);
   void on_TransmitCustomRequestPushButton_slot(void);
 
-  // Функицнал для формирования новых заказов
+  // Функционал для работы с заказами
   void on_CreateNewOrderPushButton_slot(void);
+  void on_UpdateOrderViewPushButton_slot(void);
   void on_DeleteLastOrderPushButton_slot(void);
+
+  // Функционал для работы с производственными линиями
+  void on_CreateNewProductionLinePushButton_slot(void);
+  void on_UpdateProductionLineViewPushButton_slot(void);
+  void on_DeleteLastProductionLinePushButton_slot(void);
 
   // Функционал для настройки сервера
   void applyUserSettings_slot(void);
@@ -68,6 +75,7 @@ class MainWindowKernel : public QMainWindow {
   void loadSettings(void);
   bool checkNewSettings(void);
   bool checkNewOrderInput(void);
+  bool checkNewProductionLineInput(void);
 
   void createTopMenu(void);  // Создание верхнего меню
   void createTopMenuActions(void);  // Создание функционала для верхнего меню

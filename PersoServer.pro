@@ -11,12 +11,11 @@ CONFIG += c++11
 SOURCES += \
     Database/database_buffer.cpp \
     Database/database_controller.cpp \
-    Database/table_record.cpp \
     GUI/gui_initial.cpp \
     GUI/gui_master.cpp \
     Database/postgres_controller.cpp \
-    Management/issuer_order.cpp \
-    Management/order_creation_system.cpp \
+    Management/administration_system.cpp \
+    Management/administration_system_builder.cpp \
     Management/perso_client_connection.cpp \
     Management/perso_host.cpp \
     Management/server_manager.cpp \
@@ -32,7 +31,6 @@ SOURCES += \
 HEADERS += \
     Database/database_buffer.h \
     Database/database_controller.h \
-    Database/table_record.h \
     GUI/gui_initial.h \
     GUI/gui_master.h \
     GUI/main_window_kernel.h \
@@ -41,9 +39,9 @@ HEADERS += \
     GUI/user_interaction_system.h \
     General/definitions.h \
     Database/postgres_controller.h \
-    Management/issuer_order.h \
+    Management/administration_system.h \
     GUI/log_system.h \
-    Management/order_creation_system.h \
+    Management/administration_system_builder.h \
     Management/perso_client_connection.h \
     Management/perso_host.h \
     Management/server_manager.h \

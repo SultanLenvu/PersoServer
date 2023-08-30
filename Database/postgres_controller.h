@@ -5,9 +5,7 @@
 #include <QMap>
 #include <QtSql>
 
-#include "Management/issuer_order.h"
 #include "database_controller.h"
-#include "table_record.h"
 
 class PostgresController : public IDatabaseController {
   Q_OBJECT
@@ -55,17 +53,18 @@ class PostgresController : public IDatabaseController {
 
   bool clearTable(const QString& tableName) const;
   int32_t getLastId(const QString& tableName) const;
-  int32_t getIdByAttribute(const QString& tableName,
-                           QPair<QString, QString>& attribute) const;
-  int32_t getIdByCondition(const QString& tableName,
-                           const QString& condition,
-                           bool minMaxOption);
+  int32_t getFirstIdByAttribute(const QString& tableName,
+                                QPair<QString, QString>& attribute) const;
+  int32_t getFirstIdByCondition(const QString& tableName,
+                                const QString& condition,
+                                bool minMaxOption);
   bool increaseAttributeValue(const QString& tableName,
                               const QString& attributeName,
                               const QString& id,
                               uint32_t value);
   bool addRecord(const QString& tableName,
                  QMap<QString, QString>& record) const;
+  bool removeLastRecord(const QString& tableName) const;
   bool removeLastRecordWithCondition(const QString& tableName,
                                      const QString& condition) const;
 

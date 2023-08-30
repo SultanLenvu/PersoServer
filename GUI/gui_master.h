@@ -38,42 +38,67 @@ class MasterGUI : public GUI {
   // Отображение записей в БД
   QGroupBox* DatabaseBufferGroup;
   QVBoxLayout* DatabaseBufferLayout;
-  QTableView* DatabaseBufferView;
+  QTableView* DatabaseRandomBufferView;
   //============================================================
 
-  /* Интерфейс заказов */
+  /* Интерфейс для упралвения заказами */
   //============================================================
   QWidget* OrderTab;
   QHBoxLayout* OrderTabMainLayout;
 
-  QGroupBox* OrderCreationPanel;
-  QVBoxLayout* OrderCreationPanelLayout;
+  QGroupBox* OrderControlPanel;
+  QVBoxLayout* OrderControlPanelLayout;
 
   QCheckBox* FullPersonalizationCheckBox;
 
-  QWidget* OrderCreationPanelSubWidget;
-  QHBoxLayout* OrderCreationPanelSubLayout;
+  QWidget* OrderPanelSubWidget;
+  QHBoxLayout* OrderPanelSubLayout;
   QLabel* PanFilePathLabel;
   QLineEdit* PanFilePathLineEdit;
   QPushButton* PanFileExplorePushButton;
 
-  QHBoxLayout* OrderCreationPanelSubLayout1;
+  QHBoxLayout* OrderPanelSubLayout1;
   QLabel* IssuerNameComboLabel;
   QComboBox* IssuerNameComboBox;
 
-  QHBoxLayout* OrderCreationPanelSubLayout2;
+  QHBoxLayout* OrderPanelSubLayout2;
   QLabel* TransponderQuantityLabel;
   QLineEdit* TransponderQuantityLineEdit;
 
   QPushButton* CreateNewOrderPushButton;
-  QSpacerItem* OrderCreationPanelVS;
+  QSpacerItem* OrderControlPanelVS;
+  QPushButton* UpdateOrderViewPushButton;
   QPushButton* DeleteLastOrderPushButton;
 
-  QGroupBox* PanListPanel;
-  QVBoxLayout* PanListLayout;
-  QTableView* PanListTableView;
+  QGroupBox* OrderTablePanel;
+  QVBoxLayout* OrderTablePanelLayout;
+  QTableView* OrderTableView;
+  //============================================================
 
-  QSpacerItem* OrderTabMainLayoutHS;
+  /* Интерфейс для управления линиями производства */
+  //============================================================
+  QWidget* ProductionLinesTab;
+  QHBoxLayout* ProductionLinesTabMainLayout;
+
+  QGroupBox* ProductionLinesControlPanel;
+  QVBoxLayout* ProductionLinesControlPanelLayout;
+
+  QHBoxLayout* LoginSubLayout;
+  QLabel* LoginLabel;
+  QLineEdit* LoginLineEdit;
+
+  QHBoxLayout* PasswordSubLayout;
+  QLabel* PasswordLabel;
+  QLineEdit* PasswordLineEdit;
+
+  QPushButton* CreateNewProductionLinePushButton;
+  QSpacerItem* ProductionLinesControlPanelVS;
+  QPushButton* UpdateProductionLineViewPushButton;
+  QPushButton* DeleteLastProductionLinePushButton;
+
+  QGroupBox* ProductionLineTablePanel;
+  QVBoxLayout* ProductionLineTableLayout;
+  QTableView* ProductionLineTableView;
   //============================================================
 
   /* Интерфейс транспортных ключей безопасности */
@@ -160,6 +185,7 @@ class MasterGUI : public GUI {
   void createServerTab(void);
   void createDatabaseTab(void);
   void createOrderTab(void);
+  void createProductionLineTab(void);
   void createTransportKeyTab(void);
   void createCommercialKeyTab(void);
 

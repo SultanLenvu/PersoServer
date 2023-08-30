@@ -84,7 +84,7 @@ void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->showCustomResponse(gui->CustomRequestLineEdit->text());
+  Manager->performCustomRequest(gui->CustomRequestLineEdit->text());
 
   CurrentGUI->update();
 }
@@ -99,17 +99,28 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
     return;
   }
 
-  IssuerOrder newOrder(nullptr);
+  QMap<QString, QString> orderParameters;
 
-  newOrder.setIssuerName(gui->IssuerNameComboBox->currentText());
-  newOrder.setTransponderQuantity(
-      gui->TransponderQuantityLineEdit->text().toInt());
-
+  orderParameters.insert("IssuerName", gui->IssuerNameComboBox->currentText());
+  orderParameters.insert("TransponderQuantity",
+                         gui->TransponderQuantityLineEdit->text());
+  orderParameters.insert(
+      "FullPersonalization",
+      gui->FullPersonalizationCheckBox->checkState() == Qt::Checked ? "true"
+                                                                    : "false");
   if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
-    newOrder.setFullPersonalization(gui->PanFilePathLineEdit->text());
+    orderParameters.insert("PanFilePath", gui->PanFilePathLineEdit->text());
   }
 
-  Manager->createNewOrder(&newOrder);
+  Manager->createNewOrder(&orderParameters);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_UpdateOrderViewPushButton_slot() {
+  Logger->clear();
+
+  Manager->showDatabaseTable("orders");
 
   CurrentGUI->update();
 }
@@ -117,7 +128,40 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
 void MainWindowKernel::on_DeleteLastOrderPushButton_slot() {
   Logger->clear();
 
-  Manager->deleteLastCreatedOrder();
+  Manager->deleteLastOrder();
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  Logger->clear();
+
+  if (!checkNewProductionLineInput()) {
+    Interactor->generateError("Некорректный ввод параметров нового заказа. ");
+    return;
+  }
+
+  QMap<QString, QString> productionLineParameters;
+  productionLineParameters.insert("Login", gui->LoginLineEdit->text());
+  productionLineParameters.insert("Password", gui->PasswordLineEdit->text());
+  Manager->createNewProductionLine(&productionLineParameters);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_UpdateProductionLineViewPushButton_slot() {
+  Logger->clear();
+
+  Manager->showDatabaseTable("production_lines");
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
+  Logger->clear();
+
+  Manager->deleteLastProductionLine();
 
   CurrentGUI->update();
 }
@@ -225,6 +269,22 @@ bool MainWindowKernel::checkNewOrderInput() {
   return true;
 }
 
+bool MainWindowKernel::checkNewProductionLineInput() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+
+  if ((gui->LoginLineEdit->text().size() == 0) ||
+      (gui->LoginLineEdit->text().size() > 20)) {
+    return false;
+  }
+
+  if ((gui->PasswordLineEdit->text().size() == 0) ||
+      (gui->PasswordLineEdit->text().size() > 20)) {
+    return false;
+  }
+
+  return true;
+}
+
 void MainWindowKernel::createTopMenu() {
   menuBar()->clear();
   createTopMenuActions();
@@ -315,18 +375,30 @@ void MainWindowKernel::connectMasterInterface() {
   connect(gui->TransmitCustomRequestPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_TransmitCustomRequestPushButton_slot);
 
-  // Создание нового заказа
+  // Заказы
   connect(gui->CreateNewOrderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_CreateNewOrderPushButton_slot);
+  connect(gui->UpdateOrderViewPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_UpdateOrderViewPushButton_slot);
   connect(gui->DeleteLastOrderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_DeleteLastOrderPushButton_slot);
+
+  // Производственные линии
+  connect(gui->CreateNewProductionLinePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_CreateNewProductionLinePushButton_slot);
+  connect(gui->UpdateProductionLineViewPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_UpdateProductionLineViewPushButton_slot);
+  connect(gui->DeleteLastProductionLinePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
 
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::applyUserSettings_slot);
 
   // Соединяем модели и представления
-  gui->DatabaseBufferView->setModel(Manager->buffer());
+  gui->DatabaseRandomBufferView->setModel(Manager->randomBuffer());
+  gui->OrderTableView->setModel(Manager->orderBuffer());
+  gui->ProductionLineTableView->setModel(Manager->productionLineBuffer());
 
   // Связываем отображения графиков с логикой их формирования
 }

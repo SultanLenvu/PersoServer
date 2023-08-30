@@ -3,6 +3,7 @@
 
 #include <QElapsedTimer>
 #include <QList>
+#include <QMap>
 #include <QObject>
 #include <QSettings>
 #include <QTcpServer>
@@ -14,7 +15,8 @@
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
 #include "Miscellaneous/thread_object_builder.h"
-#include "order_creation_system.h"
+#include "administration_system.h"
+#include "administration_system_builder.h"
 #include "perso_host.h"
 #include "user_settings.h"
 
@@ -43,11 +45,13 @@ class ServerManager : public QObject {
   PersoHost* Host;
   QThread* ServerThread;
 
-  DatabaseTableModel* Buffer;
+  DatabaseTableModel* RandomBuffer;
+  DatabaseTableModel* OrderBuffer;
+  DatabaseTableModel* ProductionLineBuffer;
 
-  OrderSystem* OrderCreator;
-  OCSBuilder* OrderCreatorBuilder;
-  QThread* OrderCreatorThread;
+  AdministrationSystem* Administrator;
+  AdministrationSystemBuilder* AdministratorBuilder;
+  QThread* AdministratorThread;
 
   QEventLoop* WaitingLoop;
   QTimer* ODTimer;
@@ -58,7 +62,9 @@ class ServerManager : public QObject {
   ServerManager(QObject* parent);
   ~ServerManager();
 
-  DatabaseTableModel* buffer(void);
+  DatabaseTableModel* randomBuffer(void);
+  DatabaseTableModel* orderBuffer(void);
+  DatabaseTableModel* productionLineBuffer(void);
   void applySettings();
 
   void start(void);
@@ -66,14 +72,23 @@ class ServerManager : public QObject {
 
   void showDatabaseTable(const QString& name);
   void clearDatabaseTable(const QString& name);
-  void showCustomResponse(const QString& req);
-  void createNewOrder(IssuerOrder* newOrder);
-  void deleteLastCreatedOrder(void);
+  void performCustomRequest(const QString& req);
+
+  void createNewOrder(const QMap<QString, QString>* orderParameters);
+  void deleteLastOrder(void);
+  void showOrderTable(void);
+
+  void createNewProductionLine(
+      const QMap<QString, QString>* productionLineParameters);
+  void deleteLastProductionLine(void);
+  void showProductionLineTable(void);
+
   void initIssuers(void);
 
  private:
+  void createBuffers(void);
   void createHostInstance(void);
-  void createOrderCreatorInstance(void);
+  void createAdministratorInstance(void);
 
   void createWaitingLoop(void);
   void createTimers(void);
@@ -85,11 +100,12 @@ class ServerManager : public QObject {
  private slots:
   void proxyLogging(const QString& log);
 
-  void on_OrderCreatorBuilderCompleted_slot(void);
+  void on_AdministratorBuilderCompleted_slot(void);
   void on_ServerThreadFinished_slot(void);
-  void on_OrderCreatorThreadFinished_slot(void);
+  void on_AdministratorThreadFinished_slot(void);
 
-  void on_OrderCreatorFinished_slot(OrderSystem::ExecutionStatus status);
+  void on_AdministratorFinished_slot(
+      AdministrationSystem::ExecutionStatus status);
   void on_ODTimerTimeout_slot(void);
   void on_ODQTimerTimeout_slot(void);
 
@@ -114,8 +130,11 @@ class ServerManager : public QObject {
                                DatabaseTableModel* buffer);
   void clearDatabaseTable_signal(const QString& tableName);
   void getCustomResponse_signal(const QString& req, DatabaseTableModel* buffer);
-  void createNewOrder_signal(IssuerOrder* order);
+  void createNewOrder_signal(const QMap<QString, QString>* orderParameters);
   void deleteLastOrder_signal(void);
+  void createNewProductionLine_signal(
+      const QMap<QString, QString>* productionLineParameters);
+  void deleteLastProductionLines_signal(void);
   void initIssuerTable_signal(void);
 };
 

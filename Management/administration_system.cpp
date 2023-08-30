@@ -1,7 +1,7 @@
-#include "order_creation_system.h"
+#include "administration_system.h"
 
-OrderSystem::OrderSystem(QObject* parent) : QObject(parent) {
-  setObjectName("OrderSystem");
+AdministrationSystem::AdministrationSystem(QObject* parent) : QObject(parent) {
+  setObjectName("AdministrationSystem");
 
   qRegisterMetaType<ExecutionStatus>("ExecutionStatus");
 
@@ -10,7 +10,7 @@ OrderSystem::OrderSystem(QObject* parent) : QObject(parent) {
   createDatabaseController();
 }
 
-void OrderSystem::proxyLogging(const QString& log) {
+void AdministrationSystem::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PostgresController") {
     if (DatabaseLogOption) {
       emit logging("Postgres controller - " + log);
@@ -20,20 +20,20 @@ void OrderSystem::proxyLogging(const QString& log) {
   }
 }
 
-void OrderSystem::applySettings() {
+void AdministrationSystem::applySettings() {
   emit logging("Применение новых настроек. ");
   loadSettings();
   Database->applySettings();
 }
 
-void OrderSystem::createDatabaseController() {
+void AdministrationSystem::createDatabaseController() {
   // Создаем контроллер базы данных
-  Database = new PostgresController(this, "OrderCreatorConnection");
+  Database = new PostgresController(this, "AdministratorConnection");
   connect(Database, &IDatabaseController::logging, this,
-          &OrderSystem::proxyLogging);
+          &AdministrationSystem::proxyLogging);
 }
 
-void OrderSystem::clearDatabaseTable(const QString& tableName) {
+void AdministrationSystem::clearDatabaseTable(const QString& tableName) {
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -49,8 +49,8 @@ void OrderSystem::clearDatabaseTable(const QString& tableName) {
   }
 }
 
-void OrderSystem::getDatabaseTable(const QString& tableName,
-                                   DatabaseTableModel* buffer) {
+void AdministrationSystem::getDatabaseTable(const QString& tableName,
+                                            DatabaseTableModel* buffer) {
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -70,12 +70,13 @@ void OrderSystem::getDatabaseTable(const QString& tableName,
   }
 }
 
-void OrderSystem::getCustomResponse(const QString& req,
-                                    DatabaseTableModel* buffer) {
+void AdministrationSystem::getCustomResponse(const QString& req,
+                                             DatabaseTableModel* buffer) {
   Database->execCustomRequest(req, buffer);
 }
 
-void OrderSystem::createNewOrder(IssuerOrder* order) {
+void AdministrationSystem::createNewOrder(
+    const QMap<QString, QString>* orderParameters) {
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -84,28 +85,28 @@ void OrderSystem::createNewOrder(IssuerOrder* order) {
   }
 
   emit logging("Добавление заказа. ");
-  if (!addOrder(order)) {
+  if (!addOrder(orderParameters)) {
     processingResult("Получена ошибка при добавлении заказа. ",
                      DatabaseQueryError);
     return;
   }
 
   emit logging("Добавление палет. ");
-  if (!addPallets(order)) {
+  if (!addPallets(orderParameters)) {
     processingResult("Получена ошибка при добавлении палет. ",
                      DatabaseQueryError);
     return;
   }
 
   emit logging("Добавление боксов. ");
-  if (!addBoxes(order)) {
+  if (!addBoxes(orderParameters)) {
     processingResult("Получена ошибка при добавлении боксов. ",
                      DatabaseQueryError);
     return;
   }
 
   emit logging("Добавление транспондеров. ");
-  if (!addTransponders(order)) {
+  if (!addTransponders(orderParameters)) {
     processingResult("Получена ошибка при добавлении транспондеров. ",
                      DatabaseQueryError);
     return;
@@ -114,7 +115,7 @@ void OrderSystem::createNewOrder(IssuerOrder* order) {
   processingResult("Новый заказ успешно создан. ", CompletedSuccessfully);
 }
 
-void OrderSystem::deleteLastOrder() {
+void AdministrationSystem::deleteLastOrder() {
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -130,7 +131,94 @@ void OrderSystem::deleteLastOrder() {
                    CompletedSuccessfully);
 }
 
-void OrderSystem::initIssuerTable() {
+void AdministrationSystem::createNewProductionLine(
+    const QMap<QString, QString>* productionLineParameters) {
+  int32_t freeBoxId = 0;
+  int32_t firstTransponderId = 0;
+  int32_t lastId = 0;
+  QPair<QString, QString> attribute;
+  QMap<QString, QString> record;
+
+  emit logging("Создание новой линии производства. ");
+
+  emit logging("Подключение к базе данных. ");
+  if (!Database->connect()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
+    return;
+  }
+
+  emit logging("Получение идентификатора свободного бокса. ");
+  freeBoxId = Database->getFirstIdByCondition(
+      "boxes", "\"InProcess\" = 'false' AND \"ReadyIndicator\" = 'false'",
+      true);
+  if (freeBoxId == -1) {
+    processingResult("Свободный бокс не найден. ", CompletedSuccessfully);
+    return;
+  }
+
+  emit logging(
+      QString("Получение идентифкатора первого транспондера в боксе %1. ")
+          .arg(QString::number(freeBoxId)));
+  attribute.first = "BoxId";
+  attribute.second = QString::number(freeBoxId);
+  firstTransponderId =
+      Database->getFirstIdByAttribute("transponders", attribute);
+  if (firstTransponderId == -1) {
+    processingResult(QString("В боксе %1 не найдено ни одного транспондера. ")
+                         .arg(QString::number(freeBoxId)),
+                     DatabaseQueryError);
+    return;
+  }
+
+  // Получаем идентификатор последней линии производства
+  lastId = Database->getLastId("production_lines");
+  if (lastId == -1) {
+    processingResult(
+        "Получена ошибка при поиске последней линии производства. ",
+        DatabaseQueryError);
+    return;
+  }
+
+  // Формируем запись
+  record = *productionLineParameters;
+  record.insert("Id", QString::number(lastId + 1));
+  record.insert("TransponderId", QString::number(firstTransponderId));
+  emit logging("Добавление линии производства. ");
+  if (!Database->addRecord("production_lines", record)) {
+    processingResult("Получена ошибка при добавлении линии производства. ",
+                     DatabaseQueryError);
+    return;
+  }
+
+  emit logging(
+      QString("Получение идентифкатора первого транспондера в боксе %1. ")
+          .arg(QString::number(freeBoxId)));
+
+  processingResult("Новая линия производства успешно создана. ",
+                   CompletedSuccessfully);
+}
+
+void AdministrationSystem::deleteLastProductionLines() {
+  emit logging("Подключение к базе данных. ");
+  if (!Database->connect()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
+    return;
+  }
+
+  emit logging("Удаление последней линии производства. ");
+  if (!Database->removeLastRecord("production_lines")) {
+    processingResult("Получена ошибка при удалении линии производства. ",
+                     DatabaseQueryError);
+    return;
+  }
+
+  processingResult("Последний добавленный заказ успешно удален. ",
+                   CompletedSuccessfully);
+}
+
+void AdministrationSystem::initIssuerTable() {
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -189,21 +277,22 @@ void OrderSystem::initIssuerTable() {
   processingResult("Инициализация успешно завершена. ", CompletedSuccessfully);
 }
 
-void OrderSystem::loadSettings() {
+void AdministrationSystem::loadSettings() {
   QSettings settings;
 
   DatabaseLogOption = settings.value("Database/Log/Active").toBool();
 }
 
-bool OrderSystem::addOrder(IssuerOrder* order) {
+bool AdministrationSystem::addOrder(
+    const QMap<QString, QString>* orderParameters) {
   QMap<QString, QString> record;
   QPair<QString, QString> attribute;
   int32_t lastId = 0;
 
   // Получение идентификатора эмитента по его имени
   attribute.first = "Name";
-  attribute.second = order->issuerName();
-  int32_t issuerId = Database->getIdByAttribute("issuers", attribute);
+  attribute.second = orderParameters->value("IssuerName");
+  int32_t issuerId = Database->getFirstIdByAttribute("issuers", attribute);
   if (issuerId == -1) {
     return false;
   }
@@ -219,9 +308,9 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
   record.insert("IssuerId", QString::number(issuerId));
   record.insert("TotalPalletQuantity", "0");
   record.insert("FullPersonalization",
-                order->fullPersonalization() ? "true" : "false");
+                orderParameters->value("FullPersonalization"));
   record.insert("ProductionStartDate",
-                order->productionStartDate().toString("dd.MM.yyyy"));
+                QDate::currentDate().toString("dd.MM.yyyy"));
   emit logging("Добавление нового заказа. ");
   if (!Database->addRecord("orders", record)) {
     return false;
@@ -230,17 +319,19 @@ bool OrderSystem::addOrder(IssuerOrder* order) {
   return true;
 }
 
-bool OrderSystem::addPallets(IssuerOrder* order) {
+bool AdministrationSystem::addPallets(
+    const QMap<QString, QString>* orderParameters) {
   QMap<QString, QString> record;
-  uint32_t transponderCount = order->transponderQuantity();
+  uint32_t transponderCount =
+      orderParameters->value("TransponderQuantity").toInt();
   uint32_t palletCount =
       transponderCount / (BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY);
   int32_t orderId = 0;
   int32_t lastId = 0;
 
   // Получаем идентификатор незаполненного заказа
-  orderId =
-      Database->getIdByCondition("orders", "\"TotalPalletQuantity\" = 0", true);
+  orderId = Database->getFirstIdByCondition(
+      "orders", "\"TotalPalletQuantity\" = 0", true);
   if (orderId == -1) {
     return false;
   }
@@ -272,9 +363,11 @@ bool OrderSystem::addPallets(IssuerOrder* order) {
   return true;
 }
 
-bool OrderSystem::addBoxes(IssuerOrder* order) {
+bool AdministrationSystem::addBoxes(
+    const QMap<QString, QString>* orderParameters) {
   QMap<QString, QString> record;
-  uint32_t transponderCount = order->transponderQuantity();
+  uint32_t transponderCount =
+      orderParameters->value("TransponderQuantity").toInt();
   uint32_t palletCount =
       transponderCount / (BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY);
   int32_t palletId = 0;
@@ -282,8 +375,8 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
 
   for (uint32_t i = 0; i < palletCount; i++) {
     // Получаем идентификатор незаполненной палеты
-    palletId =
-        Database->getIdByCondition("pallets", "\"TotalBoxQuantity\" = 0", true);
+    palletId = Database->getFirstIdByCondition(
+        "pallets", "\"TotalBoxQuantity\" = 0", true);
     if (palletId == -1) {
       return false;
     }
@@ -315,17 +408,19 @@ bool OrderSystem::addBoxes(IssuerOrder* order) {
   return true;
 }
 
-bool OrderSystem::addTransponders(IssuerOrder* order) {
+bool AdministrationSystem::addTransponders(
+    const QMap<QString, QString>* orderParameters) {
   QMap<QString, QString> record;
   QPair<QString, QString> attribute;
-  uint32_t transponderCount = order->transponderQuantity();
+  uint32_t transponderCount =
+      orderParameters->value("TransponderQuantity").toInt();
   uint32_t boxCount = transponderCount / BOX_TRANSPONDER_QUANTITY;
   int32_t boxId = 0;
   int32_t lastId = 0;
 
   for (uint32_t i = 0; i < boxCount; i++) {
     // Получаем идентификатор незаполненного бокса
-    boxId = Database->getIdByCondition(
+    boxId = Database->getFirstIdByCondition(
         "boxes", "\"TotalTransponderQuantity\" = 0", true);
     if (boxId == -1) {
       return false;
@@ -360,8 +455,8 @@ bool OrderSystem::addTransponders(IssuerOrder* order) {
   return true;
 }
 
-void OrderSystem::processingResult(const QString& log,
-                                   const ExecutionStatus status) {
+void AdministrationSystem::processingResult(const QString& log,
+                                            const ExecutionStatus status) {
   emit logging(log);
   emit logging("Отключение от базы данных. ");
 
@@ -371,21 +466,4 @@ void OrderSystem::processingResult(const QString& log,
     Database->disconnect(false);
   }
   emit operationFinished(status);
-}
-
-void OrderSystem::init() {}
-
-OCSBuilder::OCSBuilder() : QObject(nullptr) {
-  // Пока никакие объекты не созданы
-  BuildedObject = nullptr;
-}
-
-OrderSystem* OCSBuilder::buildedObject() const {
-  return BuildedObject;
-}
-
-void OCSBuilder::build() {
-  BuildedObject = new OrderSystem(nullptr);
-
-  emit completed();
 }

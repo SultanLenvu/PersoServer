@@ -182,7 +182,11 @@ int32_t PostgresController::getLastId(const QString& tableName) const {
       if (rowCount == 0) {
         emit logging(
             QString("Таблица пустая. Возвращаем нулевой идентификатор. "));
-        return 0;
+        if (tableName == "transponders") {
+          return TRANSPONDER_ID_START_SHIFT;
+        } else {
+          return 0;
+        }
       } else {
         emit logging(
             "Таблица не пустая, искомый идентификатор не был найден. ");
@@ -197,7 +201,7 @@ int32_t PostgresController::getLastId(const QString& tableName) const {
   }
 }
 
-int32_t PostgresController::getIdByAttribute(
+int32_t PostgresController::getFirstIdByAttribute(
     const QString& tableName,
     QPair<QString, QString>& attribute) const {
   // Проверка соединения
@@ -209,7 +213,9 @@ int32_t PostgresController::getIdByAttribute(
   }
 
   // Формируем запрос
-  QString requestText = QString("SELECT \"Id\" FROM %1 WHERE \"%2\" = '%3';")
+  QString requestText = QString(
+                            "SELECT \"Id\" FROM %1 WHERE \"%2\" = '%3' ORDER "
+                            "BY \"Id\" ASC LIMIT 1;")
                             .arg(tableName)
                             .arg(attribute.first)
                             .arg(attribute.second);
@@ -229,9 +235,9 @@ int32_t PostgresController::getIdByAttribute(
   }
 }
 
-int32_t PostgresController::getIdByCondition(const QString& tableName,
-                                             const QString& condition,
-                                             bool minMaxOption) {
+int32_t PostgresController::getFirstIdByCondition(const QString& tableName,
+                                                  const QString& condition,
+                                                  bool minMaxOption) {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     emit logging(
@@ -334,6 +340,36 @@ bool PostgresController::addRecord(const QString& tableName,
   }
 }
 
+bool PostgresController::removeLastRecord(const QString& tableName) const {
+  // Проверка соединения
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    emit logging(
+        QString("Соединение с Postgres не установлено. Ошибка: %1.")
+            .arg(QSqlDatabase::database(ConnectionName).lastError().text()));
+    return false;
+  }
+
+  // Создаем запрос
+  QString requestText =
+      QString(
+          "DELETE FROM %1 WHERE \"Id\" = (SELECT \"Id\" FROM %1 ORDER BY "
+          "\"Id\" DESC LIMIT 1);")
+          .arg(tableName);
+
+  emit logging("Отправляемый запрос: " + requestText);
+
+  // Выполняем запрос
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  if ((request.exec(requestText)) && (request.next())) {
+    emit logging("Запись удалена. ");
+    return true;
+  } else {
+    // Обработка ошибки выполнения запроса
+    emit logging("Ошибка выполнения запроса: " + request.lastError().text());
+    return false;
+  }
+}
+
 bool PostgresController::removeLastRecordWithCondition(
     const QString& tableName,
     const QString& condition) const {
@@ -375,7 +411,7 @@ bool PostgresController::abortTransaction() const {}
 
 void PostgresController::loadSettings() {
   // Загружаем настройки
-  QSettings settings(ORGANIZATION_NAME, PROGRAM_NAME);
+  QSettings settings;
 
   HostAddress = settings.value("Database/Server/Ip").toString();
   Port = settings.value("Database/Server/Port").toInt();

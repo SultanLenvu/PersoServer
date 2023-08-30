@@ -19,6 +19,8 @@
 
 /* Определения для базы данных Postgres */
 //===============================================================
+#define TRANSPONDER_ID_START_SHIFT 500000
+
 #define POSTGRES_SERVER_DEFAULT_IP "localhost"
 #define POSTGRES_SERVER_DEFAULT_PORT 5432
 #define POSTGRES_SERVER_DEFAULT_USER_NAME "postgres"

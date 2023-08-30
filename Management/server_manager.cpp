@@ -5,14 +5,14 @@
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   setObjectName("ServerManager");
 
-  // Создаем модель для представления таблицы базы данных
-  Buffer = new DatabaseTableModel(this);
+  // Создаем модели для представления таблиц базы данных
+  createBuffers();
 
   // Создаем среду выполнения для хоста
   createHostInstance();
 
   // Создаем среду выполнения для инициализатора
-  createOrderCreatorInstance();
+  createAdministratorInstance();
 
   // Создаем таймеры
   createTimers();
@@ -28,12 +28,20 @@ ServerManager::~ServerManager() {
   ServerThread->quit();
   ServerThread->wait();
 
-  OrderCreatorThread->quit();
-  OrderCreatorThread->wait();
+  AdministratorThread->quit();
+  AdministratorThread->wait();
 }
 
-DatabaseTableModel* ServerManager::buffer(void) {
-  return Buffer;
+DatabaseTableModel* ServerManager::randomBuffer(void) {
+  return RandomBuffer;
+}
+
+DatabaseTableModel* ServerManager::orderBuffer() {
+  return OrderBuffer;
+}
+
+DatabaseTableModel* ServerManager::productionLineBuffer() {
+  return ProductionLineBuffer;
 }
 
 void ServerManager::applySettings() {
@@ -64,10 +72,10 @@ void ServerManager::showDatabaseTable(const QString& name) {
     return;
   }
 
-  Buffer->clear();
+  RandomBuffer->clear();
 
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal(name, Buffer);
+  emit getDatabaseTable_signal(name, RandomBuffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -94,9 +102,9 @@ void ServerManager::clearDatabaseTable(const QString& name) {
     return;
   }
 
-  Buffer->clear();
+  RandomBuffer->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal(name, Buffer);
+  emit getDatabaseTable_signal(name, RandomBuffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -105,29 +113,44 @@ void ServerManager::clearDatabaseTable(const QString& name) {
   endOperationExecution("clearDatabaseTable");
 }
 
-void ServerManager::showCustomResponse(const QString& req) {
+void ServerManager::performCustomRequest(const QString& req) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("showCustomResponse")) {
+  if (!startOperationExecution("performCustomRequest")) {
     return;
   }
 
   emit logging("Представление ответа на кастомный запрос. ");
-  emit getCustomResponse_signal(req, Buffer);
+  emit getCustomResponse_signal(req, RandomBuffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("showCustomResponse");
+  endOperationExecution("performCustomRequest");
 }
 
-void ServerManager::createNewOrder(IssuerOrder* newOrder) {
+void ServerManager::createNewOrder(
+    const QMap<QString, QString>* orderParameters) {
   if (!startOperationExecution("createNewOrder")) {
     return;
   }
 
   emit logging("Создание нового заказа. ");
-  emit createNewOrder_signal(newOrder);
+  emit createNewOrder_signal(orderParameters);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("createNewOrder");
+    return;
+  }
+
+  OrderBuffer->clear();
+  emit logging("Отображение заказов. ");
+  emit getDatabaseTable_signal("orders", OrderBuffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -136,19 +159,112 @@ void ServerManager::createNewOrder(IssuerOrder* newOrder) {
   endOperationExecution("createNewOrder");
 }
 
-void ServerManager::deleteLastCreatedOrder() {
+void ServerManager::deleteLastOrder() {
   if (!startOperationExecution("createNewOrder")) {
     return;
   }
 
-  emit logging("Удаление последнего созданного заказа. ");
+  emit logging("Удаление последнего заказа. ");
   emit deleteLastOrder_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("createNewOrder");
+    return;
+  }
+
+  OrderBuffer->clear();
+  emit logging("Отображение заказов. ");
+  emit getDatabaseTable_signal("orders", OrderBuffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
   endOperationExecution("createNewOrder");
+}
+
+void ServerManager::showOrderTable() {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("showOrderTable")) {
+    return;
+  }
+
+  OrderBuffer->clear();
+  emit logging("Отображение заказов. ");
+  emit getDatabaseTable_signal("orders", OrderBuffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("showOrderTable");
+}
+
+void ServerManager::createNewProductionLine(
+    const QMap<QString, QString>* productionLineParameters) {
+  if (!startOperationExecution("createNewProductionLine")) {
+    return;
+  }
+
+  emit logging("Создание новой линии производства. ");
+  emit createNewProductionLine_signal(productionLineParameters);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("createNewProductionLine");
+    return;
+  }
+
+  ProductionLineBuffer->clear();
+  emit logging("Отображение производственных линий. ");
+  emit getDatabaseTable_signal("production_lines", ProductionLineBuffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("createNewProductionLine");
+}
+
+void ServerManager::deleteLastProductionLine() {
+  if (!startOperationExecution("deleteLastProductionLine")) {
+    return;
+  }
+
+  emit logging("Удаление последней линии производства. ");
+  emit deleteLastProductionLines_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("deleteLastProductionLine");
+}
+
+void ServerManager::showProductionLineTable() {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("showProductionLineTable")) {
+    return;
+  }
+
+  ProductionLineBuffer->clear();
+  emit logging("Отображение линий производства. ");
+  emit getDatabaseTable_signal("production_lines", ProductionLineBuffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("showProductionLineTable");
 }
 
 void ServerManager::initIssuers() {
@@ -168,15 +284,21 @@ void ServerManager::initIssuers() {
     return;
   }
 
-  Buffer->clear();
+  RandomBuffer->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal("issuers", Buffer);
+  emit getDatabaseTable_signal("issuers", RandomBuffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
   endOperationExecution("initIssuers");
+}
+
+void ServerManager::createBuffers() {
+  RandomBuffer = new DatabaseTableModel(this);
+  OrderBuffer = new DatabaseTableModel(this);
+  ProductionLineBuffer = new DatabaseTableModel(this);
 }
 
 void ServerManager::createHostInstance() {
@@ -209,33 +331,33 @@ void ServerManager::createHostInstance() {
   ServerThread->start();
 }
 
-void ServerManager::createOrderCreatorInstance() {
+void ServerManager::createAdministratorInstance() {
   // Создаем строитель и поток для создателя отчетов
-  OrderCreatorBuilder = new OCSBuilder();
-  OrderCreatorThread = new QThread(this);
+  AdministratorBuilder = new AdministrationSystemBuilder();
+  AdministratorThread = new QThread(this);
 
   // Переносим инициализатор в поток
-  OrderCreatorBuilder->moveToThread(OrderCreatorThread);
+  AdministratorBuilder->moveToThread(AdministratorThread);
 
   // Когда поток завершит работу, он будет удален
-  connect(OrderCreatorThread, &QThread::finished, OrderCreatorThread,
+  connect(AdministratorThread, &QThread::finished, AdministratorThread,
           &QObject::deleteLater);
   // Когда поток завершит работу, вызываем метод обработки
-  connect(OrderCreatorThread, &QThread::finished, this,
-          &ServerManager::on_OrderCreatorThreadFinished_slot);
+  connect(AdministratorThread, &QThread::finished, this,
+          &ServerManager::on_AdministratorThreadFinished_slot);
   // Когда поток завершит работу, строитель будет удален
-  connect(OrderCreatorThread, &QThread::finished, OrderCreatorBuilder,
+  connect(AdministratorThread, &QThread::finished, AdministratorBuilder,
           &QObject::deleteLater);
   // Когда поток начнет свою работу, строитель создаст в нем составитель отчетов
-  connect(OrderCreatorThread, &QThread::started, OrderCreatorBuilder,
-          &OCSBuilder::build);
+  connect(AdministratorThread, &QThread::started, AdministratorBuilder,
+          &AdministrationSystemBuilder::build);
 
   // Когда строитель завершит работу, возвращем его в менеджер
-  connect(OrderCreatorBuilder, &OCSBuilder::completed, this,
-          &ServerManager::on_OrderCreatorBuilderCompleted_slot);
+  connect(AdministratorBuilder, &AdministrationSystemBuilder::completed, this,
+          &ServerManager::on_AdministratorBuilderCompleted_slot);
 
   // Запускаем поток инициализатора
-  OrderCreatorThread->start();
+  AdministratorThread->start();
 }
 
 void ServerManager::createWaitingLoop() {
@@ -274,7 +396,7 @@ bool ServerManager::startOperationExecution(const QString& operationName) {
     return false;
 
   // Очищаем буфер
-  Buffer->clear();
+  RandomBuffer->clear();
 
   // Переходим в состояние ожидания конца обработки
   CurrentState = WaitingExecution;
@@ -336,41 +458,45 @@ void ServerManager::endOperationExecution(const QString& operationName) {
 void ServerManager::proxyLogging(const QString& log) {
   if (sender()->objectName() == QString("PersoHost"))
     emit logging(QString("Host - ") + log);
-  else if (sender()->objectName() == QString("OrderSystem"))
-    emit logging(QString("OrderCreator - ") + log);
+  else if (sender()->objectName() == QString("AdministrationSystem"))
+    emit logging(QString("Administrator - ") + log);
   else
     emit logging(QString("Unknown - ") + log);
 }
 
-void ServerManager::on_OrderCreatorBuilderCompleted_slot() {
-  OrderCreator = OrderCreatorBuilder->buildedObject();
+void ServerManager::on_AdministratorBuilderCompleted_slot() {
+  Administrator = AdministratorBuilder->buildedObject();
 
   // Когда поток завершит работу, составитель заказов будет удален
-  connect(OrderCreatorThread, &QThread::finished, OrderCreator,
+  connect(AdministratorThread, &QThread::finished, Administrator,
           &QObject::deleteLater);
   // Подключаем логгирование к инициализатору
-  connect(OrderCreator, &OrderSystem::logging, this,
+  connect(Administrator, &AdministrationSystem::logging, this,
           &ServerManager::proxyLogging);
   // Подключаем сигнал для применения новых настроек
-  connect(this, &ServerManager::applySettings_signal, OrderCreator,
-          &OrderSystem::applySettings);
+  connect(this, &ServerManager::applySettings_signal, Administrator,
+          &AdministrationSystem::applySettings);
   // После выполнения операции формирователем заказов, оповещаем менеджер
-  connect(OrderCreator, &OrderSystem::operationFinished, this,
-          &ServerManager::on_OrderCreatorFinished_slot);
+  connect(Administrator, &AdministrationSystem::operationFinished, this,
+          &ServerManager::on_AdministratorFinished_slot);
 
   // Подключаем функционал
-  connect(this, &ServerManager::getDatabaseTable_signal, OrderCreator,
-          &OrderSystem::getDatabaseTable);
-  connect(this, &ServerManager::getCustomResponse_signal, OrderCreator,
-          &OrderSystem::getCustomResponse);
-  connect(this, &ServerManager::createNewOrder_signal, OrderCreator,
-          &OrderSystem::createNewOrder);
-  connect(this, &ServerManager::clearDatabaseTable_signal, OrderCreator,
-          &OrderSystem::clearDatabaseTable);
-  connect(this, &ServerManager::initIssuerTable_signal, OrderCreator,
-          &OrderSystem::initIssuerTable);
-  connect(this, &ServerManager::deleteLastOrder_signal, OrderCreator,
-          &OrderSystem::deleteLastOrder);
+  connect(this, &ServerManager::getDatabaseTable_signal, Administrator,
+          &AdministrationSystem::getDatabaseTable);
+  connect(this, &ServerManager::getCustomResponse_signal, Administrator,
+          &AdministrationSystem::getCustomResponse);
+  connect(this, &ServerManager::createNewOrder_signal, Administrator,
+          &AdministrationSystem::createNewOrder);
+  connect(this, &ServerManager::clearDatabaseTable_signal, Administrator,
+          &AdministrationSystem::clearDatabaseTable);
+  connect(this, &ServerManager::initIssuerTable_signal, Administrator,
+          &AdministrationSystem::initIssuerTable);
+  connect(this, &ServerManager::deleteLastOrder_signal, Administrator,
+          &AdministrationSystem::deleteLastOrder);
+  connect(this, &ServerManager::createNewProductionLine_signal, Administrator,
+          &AdministrationSystem::createNewProductionLine);
+  connect(this, &ServerManager::deleteLastProductionLines_signal, Administrator,
+          &AdministrationSystem::deleteLastProductionLines);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {
@@ -379,36 +505,36 @@ void ServerManager::on_ServerThreadFinished_slot() {
   ServerThread = nullptr;
 }
 
-void ServerManager::on_OrderCreatorThreadFinished_slot() {
+void ServerManager::on_AdministratorThreadFinished_slot() {
   emit logging("Поток инициализатора завершился. ");
-  OrderCreator = nullptr;
-  OrderCreatorThread = nullptr;
+  Administrator = nullptr;
+  AdministratorThread = nullptr;
 }
 
-void ServerManager::on_OrderCreatorFinished_slot(
-    OrderSystem::ExecutionStatus status) {
+void ServerManager::on_AdministratorFinished_slot(
+    AdministrationSystem::ExecutionStatus status) {
   switch (status) {
-    case OrderSystem::NotExecuted:
+    case AdministrationSystem::NotExecuted:
       CurrentState = Failed;
       NotificarionText = "Инициализатор: операция не была запущена. ";
       emit break;
-    case OrderSystem::DatabaseConnectionError:
+    case AdministrationSystem::DatabaseConnectionError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: не удалось подключиться к базе данных. ";
       break;
-    case OrderSystem::DatabaseQueryError:
+    case AdministrationSystem::DatabaseQueryError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: ошибка при выполнении запроса к базе данных. ";
       break;
-    case OrderSystem::UnknowError:
+    case AdministrationSystem::UnknowError:
       CurrentState = Failed;
       NotificarionText =
           "Инициализатор: получена неизвестная ошибка при выполнении "
           "операции. ";
       break;
-    case OrderSystem::CompletedSuccessfully:
+    case AdministrationSystem::CompletedSuccessfully:
       CurrentState = Completed;
       NotificarionText = "Операция успешно выполнена. ";
       break;
