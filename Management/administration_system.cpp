@@ -149,7 +149,7 @@ void AdministrationSystem::createNewProductionLine(
   }
 
   emit logging("Получение идентификатора свободного бокса. ");
-  freeBoxId = Database->getFirstIdByCondition(
+  freeBoxId = Database->getFirstIdWithCondition(
       "boxes", "\"InProcess\" = 'false' AND \"ReadyIndicator\" = 'false'",
       true);
   if (freeBoxId == -1) {
@@ -167,6 +167,14 @@ void AdministrationSystem::createNewProductionLine(
   if (firstTransponderId == -1) {
     processingResult(QString("В боксе %1 не найдено ни одного транспондера. ")
                          .arg(QString::number(freeBoxId)),
+                     DatabaseQueryError);
+    return;
+  }
+
+  emit logging(QString("Поиск идентификатора палеты %1. ")
+                   .arg(QString::number(freeBoxId)));
+  if (!Database->updateRecordById("boxes", freeBoxId, record)) {
+    processingResult("Получена ошибка при добавлении линии производства. ",
                      DatabaseQueryError);
     return;
   }
@@ -190,10 +198,17 @@ void AdministrationSystem::createNewProductionLine(
                      DatabaseQueryError);
     return;
   }
+  record.clear();
 
   emit logging(
-      QString("Получение идентифкатора первого транспондера в боксе %1. ")
-          .arg(QString::number(freeBoxId)));
+      QString("Запуск бокса %1 в процесс. ").arg(QString::number(freeBoxId)));
+  record.insert("InProcess", "true");
+  if (!Database->updateRecordById("boxes", freeBoxId, record)) {
+    processingResult("Получена ошибка при добавлении линии производства. ",
+                     DatabaseQueryError);
+    return;
+  }
+  record.clear();
 
   processingResult("Новая линия производства успешно создана. ",
                    CompletedSuccessfully);
@@ -330,7 +345,7 @@ bool AdministrationSystem::addPallets(
   int32_t lastId = 0;
 
   // Получаем идентификатор незаполненного заказа
-  orderId = Database->getFirstIdByCondition(
+  orderId = Database->getFirstIdWithCondition(
       "orders", "\"TotalPalletQuantity\" = 0", true);
   if (orderId == -1) {
     return false;
@@ -375,7 +390,7 @@ bool AdministrationSystem::addBoxes(
 
   for (uint32_t i = 0; i < palletCount; i++) {
     // Получаем идентификатор незаполненной палеты
-    palletId = Database->getFirstIdByCondition(
+    palletId = Database->getFirstIdWithCondition(
         "pallets", "\"TotalBoxQuantity\" = 0", true);
     if (palletId == -1) {
       return false;
@@ -420,7 +435,7 @@ bool AdministrationSystem::addTransponders(
 
   for (uint32_t i = 0; i < boxCount; i++) {
     // Получаем идентификатор незаполненного бокса
-    boxId = Database->getFirstIdByCondition(
+    boxId = Database->getFirstIdWithCondition(
         "boxes", "\"TotalTransponderQuantity\" = 0", true);
     if (boxId == -1) {
       return false;

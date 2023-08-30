@@ -55,18 +55,30 @@ class PostgresController : public IDatabaseController {
   int32_t getLastId(const QString& tableName) const;
   int32_t getFirstIdByAttribute(const QString& tableName,
                                 QPair<QString, QString>& attribute) const;
-  int32_t getFirstIdByCondition(const QString& tableName,
-                                const QString& condition,
-                                bool minMaxOption);
+  int32_t getFirstIdWithCondition(const QString& tableName,
+                                  const QString& condition,
+                                  bool minMaxOption) const;
+
   bool increaseAttributeValue(const QString& tableName,
                               const QString& attributeName,
                               const QString& id,
-                              uint32_t value);
+                              uint32_t value) const;
   bool addRecord(const QString& tableName,
                  QMap<QString, QString>& record) const;
+  bool getRecordById(const QString& tableName,
+                     const uint32_t id,
+                     QMap<QString, QString>& record) const;
+  bool updateRecordById(const QString& tableName,
+                        const uint32_t id,
+                        QMap<QString, QString>& record) const;
+  bool removeRecordById(const QString& tableName, const uint32_t id) const;
+  bool getLastRecord(const QString& tableName,
+                     QMap<QString, QString>& record) const;
   bool removeLastRecord(const QString& tableName) const;
   bool removeLastRecordWithCondition(const QString& tableName,
                                      const QString& condition) const;
+  bool getFreeBoxRecord(const QString& tableName,
+                        QMap<QString, QString>& record) const;
 
  private:
   bool openTransaction(void) const;
@@ -75,7 +87,10 @@ class PostgresController : public IDatabaseController {
 
   void loadSettings(void);
   void createDatabaseConnection(void);
-  void convertResponseToBuffer(DatabaseTableModel* buffer, QSqlQuery& request);
+  void convertResponseToBuffer(QSqlQuery& request,
+                               DatabaseTableModel* buffer) const;
+  void convertResponseToMap(QSqlQuery& request,
+                            QMap<QString, QString> record) const;
 };
 
 #endif  // POSTGRESCONTROLLER_H
