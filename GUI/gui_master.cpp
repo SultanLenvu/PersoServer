@@ -214,7 +214,7 @@ void MasterGUI::createProductionLineTab() {
 
   PasswordSubLayout = new QHBoxLayout();
   ProductionLinesControlPanelLayout->addLayout(PasswordSubLayout);
-  PasswordLabel = new QLabel("Введите логин: ");
+  PasswordLabel = new QLabel("Введите пароль: ");
   PasswordSubLayout->addWidget(PasswordLabel);
   PasswordLineEdit = new QLineEdit();
   PasswordSubLayout->addWidget(PasswordLineEdit);

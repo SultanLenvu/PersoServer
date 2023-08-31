@@ -133,11 +133,7 @@ void AdministrationSystem::deleteLastOrder() {
 
 void AdministrationSystem::createNewProductionLine(
     const QMap<QString, QString>* productionLineParameters) {
-  int32_t freeBoxId = 0;
-  int32_t firstTransponderId = 0;
-  int32_t lastId = 0;
-  QPair<QString, QString> attribute;
-  QMap<QString, QString> record;
+  QMap<QString, QString> transponderRecord;
 
   emit logging("Создание новой линии производства. ");
 
@@ -148,67 +144,19 @@ void AdministrationSystem::createNewProductionLine(
     return;
   }
 
-  emit logging("Получение идентификатора свободного бокса. ");
-  freeBoxId = Database->getFirstIdWithCondition(
-      "boxes", "\"InProcess\" = 'false' AND \"ReadyIndicator\" = 'false'",
-      true);
-  if (freeBoxId == -1) {
-    processingResult("Свободный бокс не найден. ", CompletedSuccessfully);
+  // Запуск сборки бокса
+  if (!startBoxAssembling(transponderRecord)) {
+    processingResult("Не удалось запустить сборку бокса. ", DatabaseQueryError);
     return;
   }
 
-  emit logging(
-      QString("Получение идентифкатора первого транспондера в боксе %1. ")
-          .arg(QString::number(freeBoxId)));
-  attribute.first = "BoxId";
-  attribute.second = QString::number(freeBoxId);
-  firstTransponderId =
-      Database->getFirstIdByAttribute("transponders", attribute);
-  if (firstTransponderId == -1) {
-    processingResult(QString("В боксе %1 не найдено ни одного транспондера. ")
-                         .arg(QString::number(freeBoxId)),
+  // Добавляем линию производства
+  if (!addProductionLine(productionLineParameters,
+                         transponderRecord.value("Id"))) {
+    processingResult("Не удалось запустить сборку палеты. ",
                      DatabaseQueryError);
     return;
   }
-
-  emit logging(QString("Поиск идентификатора палеты %1. ")
-                   .arg(QString::number(freeBoxId)));
-  if (!Database->updateRecordById("boxes", freeBoxId, record)) {
-    processingResult("Получена ошибка при добавлении линии производства. ",
-                     DatabaseQueryError);
-    return;
-  }
-
-  // Получаем идентификатор последней линии производства
-  lastId = Database->getLastId("production_lines");
-  if (lastId == -1) {
-    processingResult(
-        "Получена ошибка при поиске последней линии производства. ",
-        DatabaseQueryError);
-    return;
-  }
-
-  // Формируем запись
-  record = *productionLineParameters;
-  record.insert("Id", QString::number(lastId + 1));
-  record.insert("TransponderId", QString::number(firstTransponderId));
-  emit logging("Добавление линии производства. ");
-  if (!Database->addRecord("production_lines", record)) {
-    processingResult("Получена ошибка при добавлении линии производства. ",
-                     DatabaseQueryError);
-    return;
-  }
-  record.clear();
-
-  emit logging(
-      QString("Запуск бокса %1 в процесс. ").arg(QString::number(freeBoxId)));
-  record.insert("InProcess", "true");
-  if (!Database->updateRecordById("boxes", freeBoxId, record)) {
-    processingResult("Получена ошибка при добавлении линии производства. ",
-                     DatabaseQueryError);
-    return;
-  }
-  record.clear();
 
   processingResult("Новая линия производства успешно создана. ",
                    CompletedSuccessfully);
@@ -325,6 +273,8 @@ bool AdministrationSystem::addOrder(
   record.insert("FullPersonalization",
                 orderParameters->value("FullPersonalization"));
   record.insert("ProductionStartDate",
+                QDate::currentDate().toString("dd.MM.yyyy"));
+  record.insert("ProductionEndDate",
                 QDate::currentDate().toString("dd.MM.yyyy"));
   emit logging("Добавление нового заказа. ");
   if (!Database->addRecord("orders", record)) {
@@ -464,6 +414,134 @@ bool AdministrationSystem::addTransponders(
                                             QString::number(boxId), 1)) {
         return false;
       }
+    }
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::addProductionLine(
+    const QMap<QString, QString>* productionLineParameters,
+    const QString& transponderId) {
+  int32_t lastId = 0;
+  QMap<QString, QString> productionLineRecord;
+
+  // Получаем идентификатор последней линии производства
+  lastId = Database->getLastId("production_lines");
+  if (lastId == -1) {
+    processingResult(
+        "Получена ошибка при поиске последней линии производства. ",
+        DatabaseQueryError);
+    return false;
+  }
+
+  // Формируем новую запись
+  productionLineRecord = *productionLineParameters;
+  productionLineRecord.insert("Id", QString::number(lastId + 1));
+  productionLineRecord.insert("TransponderId", transponderId);
+  emit logging("Добавление линии производства. ");
+  if (!Database->addRecord("production_lines", productionLineRecord)) {
+    processingResult("Получена ошибка при добавлении линии производства. ",
+                     DatabaseQueryError);
+    return false;
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::startBoxAssembling(
+    QMap<QString, QString>& transponderRecord) {
+  QMap<QString, QString> boxRecord;
+
+  emit logging("Поиск свободного бокса. ");
+  boxRecord.insert("InProcess", "false");
+  boxRecord.insert("ReadyIndicator", "false");
+  if (!Database->getRecordByPart("boxes", boxRecord)) {
+    emit logging("Свободных боксов нет. ");
+    return false;
+  }
+
+  emit logging(
+      QString("Запуск бокса %1 в процесс сборки. ").arg(boxRecord.value("Id")));
+  boxRecord.insert("InProcess", "true");
+  if (!Database->updateRecord("boxes", boxRecord)) {
+    emit logging("Получена ошибка при запуске бокса в процесс сборки. ");
+    return false;
+  }
+
+  emit logging(QString("Поиск первого транспондера в боксе %1. ")
+                   .arg(boxRecord.value("Id")));
+  transponderRecord.insert("BoxId", boxRecord.value("Id"));
+  if (!Database->getRecordByPart("transponders", transponderRecord)) {
+    emit logging(QString("В боксе %1 отсутствуют транспондеры. ")
+                     .arg(boxRecord.value("Id")));
+    return false;
+  }
+
+  // Запуск сборки палеты
+  if (!startPalletAssembling(boxRecord)) {
+    emit logging("Не удалось запустить сборку палеты. ");
+    return false;
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::startPalletAssembling(
+    const QMap<QString, QString>& boxRecord) {
+  QMap<QString, QString> palletRecord;
+
+  emit logging(
+      QString("Поиск палеты, содержащей бокс %1. ").arg(boxRecord.value("Id")));
+  if (!Database->getRecordById("pallets", boxRecord.value("PalletId").toInt(),
+                               palletRecord)) {
+    return false;
+  }
+
+  // Если бокс палеты в процессе сборки, то сама палета также должна быть в
+  // процесс сборки
+  if (palletRecord.value("InProcess") == "false") {
+    emit logging(
+        QString("Запуск сборки паллеты %1. ").arg(palletRecord.value("Id")));
+    palletRecord.insert("InProcess", "true");
+    if (!Database->updateRecord("pallets", palletRecord)) {
+      processingResult("Получена ошибка при запуске бокса в процесс сборки. ",
+                       DatabaseQueryError);
+      return false;
+    }
+
+    // Запуск сборки заказа
+    if (!startOrderAssembling(palletRecord)) {
+      emit logging("Не удалось запустить сборку заказа. ");
+      return false;
+    }
+  } else {
+    emit logging(QString("Паллета %1 уже в процессе сборки. ")
+                     .arg(palletRecord.value("Id")));
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::startOrderAssembling(
+    const QMap<QString, QString>& palletRecord) {
+  QMap<QString, QString> orderRecord;
+
+  emit logging(QString("Поиск заказа, содержащего палету %1. ")
+                   .arg(palletRecord.value("Id")));
+  if (!Database->getRecordById("orders", palletRecord.value("OrderId").toInt(),
+                               orderRecord)) {
+    return false;
+  }
+
+  // Если палета заказа в процессе сборки, то сам заказ также должен быть в
+  // процесс сборки
+  if (orderRecord.value("InProcess") == "false") {
+    emit logging(QString("Запуск заказа %1 в процесс сборки. ")
+                     .arg(palletRecord.value("Id")));
+    orderRecord.insert("InProcess", "true");
+    if (!Database->updateRecord("orders", orderRecord)) {
+      return false;
     }
   }
 

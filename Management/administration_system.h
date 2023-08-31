@@ -52,6 +52,13 @@ class AdministrationSystem : public QObject {
   bool addPallets(const QMap<QString, QString>* orderParameters);
   bool addBoxes(const QMap<QString, QString>* orderParameters);
   bool addTransponders(const QMap<QString, QString>* orderParameters);
+  bool addProductionLine(const QMap<QString, QString>* productionLineParameters,
+                         const QString& transponderId);
+
+  bool startBoxAssembling(QMap<QString, QString>& transponderRecord);
+  bool startPalletAssembling(const QMap<QString, QString>& boxRecord);
+  bool startOrderAssembling(const QMap<QString, QString>& palletRecord);
+
   void processingResult(const QString& log, const ExecutionStatus status);
   void init(void);
 

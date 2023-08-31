@@ -68,17 +68,16 @@ class PostgresController : public IDatabaseController {
   bool getRecordById(const QString& tableName,
                      const uint32_t id,
                      QMap<QString, QString>& record) const;
-  bool updateRecordById(const QString& tableName,
-                        const uint32_t id,
-                        QMap<QString, QString>& record) const;
+  bool getRecordByPart(const QString& tableName,
+                       QMap<QString, QString>& record) const;
+  bool updateRecord(const QString& tableName,
+                    QMap<QString, QString>& record) const;
   bool removeRecordById(const QString& tableName, const uint32_t id) const;
   bool getLastRecord(const QString& tableName,
                      QMap<QString, QString>& record) const;
   bool removeLastRecord(const QString& tableName) const;
   bool removeLastRecordWithCondition(const QString& tableName,
                                      const QString& condition) const;
-  bool getFreeBoxRecord(const QString& tableName,
-                        QMap<QString, QString>& record) const;
 
  private:
   bool openTransaction(void) const;
@@ -90,7 +89,7 @@ class PostgresController : public IDatabaseController {
   void convertResponseToBuffer(QSqlQuery& request,
                                DatabaseTableModel* buffer) const;
   void convertResponseToMap(QSqlQuery& request,
-                            QMap<QString, QString> record) const;
+                            QMap<QString, QString>& record) const;
 };
 
 #endif  // POSTGRESCONTROLLER_H
