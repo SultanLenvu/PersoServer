@@ -191,7 +191,14 @@ void AdministrationSystem::initIssuerTable() {
 
   QMap<QString, QString> record;
 
+  // Получаем идентифкатор последнего добавленного заказа
+  int32_t lastId = Database->getLastId("issuers");
+  if (lastId == -1) {
+    return;
+  }
+
   emit logging("Инициализация таблицы эмитентов. ");
+  record.insert("Id", QString::number(++lastId));
   record.insert("Name", "Пауэр Синтез");
   record.insert("EfcContextMark", "000000000001");
   if (!Database->addRecord("issuers", record)) {
@@ -201,6 +208,7 @@ void AdministrationSystem::initIssuerTable() {
   }
   record.clear();
 
+  record.insert("Id", QString::number(++lastId));
   record.insert("Name", "Автодор");
   record.insert("EfcContextMark", "570002FF0070");
   if (!Database->addRecord("issuers", record)) {
@@ -210,6 +218,7 @@ void AdministrationSystem::initIssuerTable() {
   }
   record.clear();
 
+  record.insert("Id", QString::number(++lastId));
   record.insert("Name", "Новое качество дорог");
   record.insert("EfcContextMark", "000000000001");
   if (!Database->addRecord("issuers", record)) {
@@ -219,6 +228,7 @@ void AdministrationSystem::initIssuerTable() {
   }
   record.clear();
 
+  record.insert("Id", QString::number(++lastId));
   record.insert("Name", "Западный скоростной диаметр");
   record.insert("EfcContextMark", "570001FF0070");
   if (!Database->addRecord("issuers", record)) {
@@ -228,6 +238,7 @@ void AdministrationSystem::initIssuerTable() {
   }
   record.clear();
 
+  record.insert("Id", QString::number(++lastId));
   record.insert("Name", "Объединенные системы сбора платы");
   record.insert("EfcContextMark", "000000000001");
   if (!Database->addRecord("issuers", record)) {
@@ -269,13 +280,9 @@ bool AdministrationSystem::addOrder(
   // Формируем новую запись
   record.insert("Id", QString::number(lastId + 1));
   record.insert("IssuerId", QString::number(issuerId));
-  record.insert("TotalPalletQuantity", "0");
+  record.insert("Capacity", "0");
   record.insert("FullPersonalization",
                 orderParameters->value("FullPersonalization"));
-  record.insert("ProductionStartDate",
-                QDate::currentDate().toString("dd.MM.yyyy"));
-  record.insert("ProductionEndDate",
-                QDate::currentDate().toString("dd.MM.yyyy"));
   emit logging("Добавление нового заказа. ");
   if (!Database->addRecord("orders", record)) {
     return false;
@@ -289,14 +296,15 @@ bool AdministrationSystem::addPallets(
   QMap<QString, QString> record;
   uint32_t transponderCount =
       orderParameters->value("TransponderQuantity").toInt();
-  uint32_t palletCount =
-      transponderCount / (BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY);
+  uint32_t palletCapacity = orderParameters->value("PalletCapacity").toInt();
+  uint32_t boxCapacity = orderParameters->value("BoxCapacity").toInt();
+  uint32_t palletCount = transponderCount / (palletCapacity * boxCapacity);
   int32_t orderId = 0;
   int32_t lastId = 0;
 
   // Получаем идентификатор незаполненного заказа
-  orderId = Database->getFirstIdWithCondition(
-      "orders", "\"TotalPalletQuantity\" = 0", true);
+  orderId =
+      Database->getFirstIdWithCondition("orders", "\"Capacity\" = 0", true);
   if (orderId == -1) {
     return false;
   }
@@ -311,15 +319,14 @@ bool AdministrationSystem::addPallets(
 
     // Формируем новую запись
     record.insert("Id", QString::number(lastId + 1));
-    record.insert("TotalBoxQuantity", "0");
+    record.insert("Capacity", "0");
     record.insert("OrderId", QString::number(orderId));
-
     // Добавляем новую запись
     if (!Database->addRecord("pallets", record)) {
       return false;
     }
 
-    if (!Database->increaseAttributeValue("orders", "TotalPalletQuantity",
+    if (!Database->increaseAttributeValue("orders", "Capacity",
                                           QString::number(orderId), 1)) {
       return false;
     }
@@ -333,21 +340,22 @@ bool AdministrationSystem::addBoxes(
   QMap<QString, QString> record;
   uint32_t transponderCount =
       orderParameters->value("TransponderQuantity").toInt();
-  uint32_t palletCount =
-      transponderCount / (BOX_TRANSPONDER_QUANTITY * PALLET_BOX_QUANTITY);
+  uint32_t palletCapacity = orderParameters->value("PalletCapacity").toInt();
+  uint32_t boxCapacity = orderParameters->value("BoxCapacity").toInt();
+  uint32_t palletCount = transponderCount / (palletCapacity * boxCapacity);
   int32_t palletId = 0;
   int32_t lastId = 0;
 
   for (uint32_t i = 0; i < palletCount; i++) {
     // Получаем идентификатор незаполненной палеты
-    palletId = Database->getFirstIdWithCondition(
-        "pallets", "\"TotalBoxQuantity\" = 0", true);
+    palletId =
+        Database->getFirstIdWithCondition("pallets", "\"Capacity\" = 0", true);
     if (palletId == -1) {
       return false;
     }
 
     // Заполняем палету
-    for (uint32_t i = 0; i < PALLET_BOX_QUANTITY; i++) {
+    for (uint32_t i = 0; i < palletCapacity; i++) {
       // Получаем идентификатор последнего добавленного бокса
       lastId = Database->getLastId("boxes");
       if (lastId == -1) {
@@ -356,14 +364,13 @@ bool AdministrationSystem::addBoxes(
 
       // Формируем новую запись
       record.insert("Id", QString::number(lastId + 1));
-      record.insert("TotalTransponderQuantity", "0");
+      record.insert("Capacity", "0");
       record.insert("PalletId", QString::number(palletId));
-
       // Добавляем новую запись
       if (!Database->addRecord("boxes", record)) {
         return false;
       }
-      if (!Database->increaseAttributeValue("pallets", "TotalBoxQuantity",
+      if (!Database->increaseAttributeValue("pallets", "Capacity",
                                             QString::number(palletId), 1)) {
         return false;
       }
@@ -379,20 +386,21 @@ bool AdministrationSystem::addTransponders(
   QPair<QString, QString> attribute;
   uint32_t transponderCount =
       orderParameters->value("TransponderQuantity").toInt();
-  uint32_t boxCount = transponderCount / BOX_TRANSPONDER_QUANTITY;
+  uint32_t boxCapacity = orderParameters->value("BoxCapacity").toInt();
+  uint32_t boxCount = transponderCount / boxCapacity;
   int32_t boxId = 0;
   int32_t lastId = 0;
 
   for (uint32_t i = 0; i < boxCount; i++) {
     // Получаем идентификатор незаполненного бокса
-    boxId = Database->getFirstIdWithCondition(
-        "boxes", "\"TotalTransponderQuantity\" = 0", true);
+    boxId =
+        Database->getFirstIdWithCondition("boxes", "\"Capacity\" = 0", true);
     if (boxId == -1) {
       return false;
     }
 
     // Заполняем бокс
-    for (uint32_t i = 0; i < BOX_TRANSPONDER_QUANTITY; i++) {
+    for (uint32_t i = 0; i < boxCapacity; i++) {
       // Получаем идентификатор последнего добавленного транспондера
       lastId = Database->getLastId("transponders");
       if (lastId == -1) {
@@ -410,7 +418,7 @@ bool AdministrationSystem::addTransponders(
       if (!Database->addRecord("transponders", record)) {
         return false;
       }
-      if (!Database->increaseAttributeValue("boxes", "TotalTransponderQuantity",
+      if (!Database->increaseAttributeValue("boxes", "Capacity",
                                             QString::number(boxId), 1)) {
         return false;
       }
@@ -464,6 +472,7 @@ bool AdministrationSystem::startBoxAssembling(
   emit logging(
       QString("Запуск бокса %1 в процесс сборки. ").arg(boxRecord.value("Id")));
   boxRecord.insert("InProcess", "true");
+  boxRecord.remove("ProductionLineId");
   if (!Database->updateRecord("boxes", boxRecord)) {
     emit logging("Получена ошибка при запуске бокса в процесс сборки. ");
     return false;

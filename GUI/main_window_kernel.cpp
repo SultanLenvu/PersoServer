@@ -104,6 +104,8 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
   orderParameters.insert("IssuerName", gui->IssuerNameComboBox->currentText());
   orderParameters.insert("TransponderQuantity",
                          gui->TransponderQuantityLineEdit->text());
+  orderParameters.insert("BoxCapacity", gui->BoxCapacityLineEdit->text());
+  orderParameters.insert("PalletCapacity", gui->PalletCapacityLineEdit->text());
   orderParameters.insert(
       "FullPersonalization",
       gui->FullPersonalizationCheckBox->checkState() == Qt::Checked ? "true"
@@ -255,7 +257,24 @@ bool MainWindowKernel::checkNewSettings() {
 bool MainWindowKernel::checkNewOrderInput() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
-  if (gui->TransponderQuantityLineEdit->text().toInt() == 0) {
+  int32_t transponderQuantity =
+      gui->TransponderQuantityLineEdit->text().toInt();
+  int32_t boxCapacity = gui->BoxCapacityLineEdit->text().toInt();
+  int32_t palletCapacity = gui->PalletCapacityLineEdit->text().toInt();
+
+  if (transponderQuantity <= 0) {
+    return false;
+  }
+
+  if (boxCapacity <= 0) {
+    return false;
+  }
+
+  if (palletCapacity <= 0) {
+    return false;
+  }
+
+  if ((transponderQuantity % (boxCapacity * palletCapacity)) != 0) {
     return false;
   }
 

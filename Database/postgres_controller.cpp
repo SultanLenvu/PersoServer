@@ -127,8 +127,7 @@ void PostgresController::applySettings() {
 
 bool PostgresController::clearTable(const QString& tableName) const {
   // Формируем запрос
-  QString requestText =
-      QString("TRUNCATE TABLE %1 RESTART IDENTITY CASCADE;").arg(tableName);
+  QString requestText = QString("DELETE FROM %1;").arg(tableName);
   emit logging(QString("Отправляемый запрос: ") + requestText);
 
   // Выполняем запрос

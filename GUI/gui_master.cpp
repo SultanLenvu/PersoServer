@@ -155,12 +155,24 @@ void MasterGUI::createOrderTab() {
 
   OrderPanelSubLayout2 = new QHBoxLayout();
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout2);
-
   TransponderQuantityLabel = new QLabel("Количество транспондеров");
   OrderPanelSubLayout2->addWidget(TransponderQuantityLabel);
-
   TransponderQuantityLineEdit = new QLineEdit("1000");
   OrderPanelSubLayout2->addWidget(TransponderQuantityLineEdit);
+
+  OrderPanelSubLayout3 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSubLayout3);
+  BoxCapacityLabel = new QLabel("Емкость бокса");
+  OrderPanelSubLayout3->addWidget(BoxCapacityLabel);
+  BoxCapacityLineEdit = new QLineEdit("50");
+  OrderPanelSubLayout3->addWidget(BoxCapacityLineEdit);
+
+  OrderPanelSubLayout4 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSubLayout4);
+  PalletCapacityLabel = new QLabel("Емкость палеты");
+  OrderPanelSubLayout4->addWidget(PalletCapacityLabel);
+  PalletCapacityLineEdit = new QLineEdit("10");
+  OrderPanelSubLayout4->addWidget(PalletCapacityLineEdit);
 
   CreateNewOrderPushButton = new QPushButton("Создать новый заказ");
   OrderControlPanelLayout->addWidget(CreateNewOrderPushButton);
