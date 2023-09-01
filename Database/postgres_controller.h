@@ -52,29 +52,27 @@ class PostgresController : public IDatabaseController {
   virtual void applySettings() override;
 
   bool clearTable(const QString& tableName) const;
-  int32_t getLastId(const QString& tableName) const;
-  int32_t getFirstIdByAttribute(const QString& tableName,
-                                QPair<QString, QString>& attribute) const;
-  int32_t getFirstIdWithCondition(const QString& tableName,
-                                  const QString& condition,
-                                  bool minMaxOption) const;
 
-  bool increaseAttributeValue(const QString& tableName,
-                              const QString& attributeName,
-                              const QString& id,
-                              uint32_t value) const;
   bool addRecord(const QString& tableName,
                  QMap<QString, QString>& record) const;
+
   bool getRecordById(const QString& tableName,
-                     const uint32_t id,
                      QMap<QString, QString>& record) const;
   bool getRecordByPart(const QString& tableName,
                        QMap<QString, QString>& record) const;
+  bool getLastRecord(const QString& tableName,
+                     QMap<QString, QString>& record) const;
+
+  bool getMergedRecordById(const QStringList& tables,
+                           const QStringList& foreignKeys,
+                           QMap<QString, QString>& record) const;
+  bool getMergedRecordByPart(const QStringList& tables,
+                             const QStringList& foreignKeys,
+                             QMap<QString, QString>& record) const;
+
   bool updateRecord(const QString& tableName,
                     QMap<QString, QString>& record) const;
   bool removeRecordById(const QString& tableName, const uint32_t id) const;
-  bool getLastRecord(const QString& tableName,
-                     QMap<QString, QString>& record) const;
   bool removeLastRecord(const QString& tableName) const;
   bool removeLastRecordWithCondition(const QString& tableName,
                                      const QString& condition) const;

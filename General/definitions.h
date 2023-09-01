@@ -24,6 +24,8 @@
 #define POSTGRES_SERVER_DEFAULT_USER_NAME "postgres"
 #define POSTGRES_SERVER_DEFAULT_PASSWORD "1995"
 #define POSTGRES_DATABASE_DEFAULT_NAME "TransponderDatabase"
+
+#define TIMESTAMP_DEFAULT_VALUE "2000.01.01"
 //===============================================================
 
 /* Определения для хоста */

@@ -1,7 +1,5 @@
 #include "administration_system_builder.h"
 
-void AdministrationSystem::init() {}
-
 AdministrationSystemBuilder::AdministrationSystemBuilder() : QObject(nullptr) {
   // Пока никакие объекты не созданы
   Administrator = nullptr;

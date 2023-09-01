@@ -35,6 +35,7 @@ class AdministrationSystem : public QObject {
   void clearDatabaseTable(const QString& tableName);
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
+  void initIssuerTable(void);
 
   void createNewOrder(const QMap<QString, QString>* orderParameters);
   void deleteLastOrder(void);
@@ -43,27 +44,25 @@ class AdministrationSystem : public QObject {
       const QMap<QString, QString>* productionLineParameters);
   void deleteLastProductionLines(void);
 
-  void initIssuerTable(void);
-
  private:
   void loadSettings(void);
 
-  bool addOrder(const QMap<QString, QString>* orderParameters);
-  bool addPallets(const QMap<QString, QString>* orderParameters);
-  bool addBoxes(const QMap<QString, QString>* orderParameters);
-  bool addTransponders(const QMap<QString, QString>* orderParameters);
-  bool addProductionLine(const QMap<QString, QString>* productionLineParameters,
-                         const QString& transponderId);
+  bool addOrder(const QMap<QString, QString>* orderParameters) const;
+  bool addPallets(const QMap<QString, QString>* orderParameters) const;
+  bool addBoxes(const QMap<QString, QString>* orderParameters) const;
+  bool addTransponders(const QMap<QString, QString>* orderParameters) const;
+  bool addProductionLine(
+      const QMap<QString, QString>* productionLineParameters) const;
 
-  bool startBoxAssembling(QMap<QString, QString>& transponderRecord);
-  bool startPalletAssembling(const QMap<QString, QString>& boxRecord);
-  bool startOrderAssembling(const QMap<QString, QString>& palletRecord);
+  bool startBoxAssembling(const QString& id,
+                          const QString& productionLineId) const;
+  bool startPalletAssembling(const QString& id) const;
+  bool startOrderAssembling(const QString& id) const;
 
   void processingResult(const QString& log, const ExecutionStatus status);
-  void init(void);
 
  signals:
-  void logging(const QString& log);
+  void logging(const QString& log) const;
   void operationFinished(ExecutionStatus status);
 };
 
