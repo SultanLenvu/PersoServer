@@ -9,13 +9,14 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    Database/database_buffer.cpp \
     Database/database_controller.cpp \
+    Database/database_table_model.cpp \
     GUI/gui_initial.cpp \
     GUI/gui_master.cpp \
     Database/postgres_controller.cpp \
     Management/administration_system.cpp \
     Management/administration_system_builder.cpp \
+    Management/firmware_generation_system.cpp \
     Management/perso_client_connection.cpp \
     Management/perso_host.cpp \
     Management/server_manager.cpp \
@@ -29,8 +30,8 @@ SOURCES += \
     Management/user_settings.cpp
 
 HEADERS += \
-    Database/database_buffer.h \
     Database/database_controller.h \
+    Database/database_table_model.h \
     GUI/gui_initial.h \
     GUI/gui_master.h \
     GUI/main_window_kernel.h \
@@ -42,6 +43,7 @@ HEADERS += \
     Management/administration_system.h \
     GUI/log_system.h \
     Management/administration_system_builder.h \
+    Management/firmware_generation_system.h \
     Management/perso_client_connection.h \
     Management/perso_host.h \
     Management/server_manager.h \

@@ -11,8 +11,8 @@
 #include <QTimer>
 #include <QVector>
 
-#include "Database/database_buffer.h"
 #include "Database/database_controller.h"
+#include "Database/database_table_model.h"
 #include "Database/postgres_controller.h"
 #include "Miscellaneous/thread_object_builder.h"
 #include "administration_system.h"
@@ -45,10 +45,6 @@ class ServerManager : public QObject {
   PersoHost* Host;
   QThread* ServerThread;
 
-  DatabaseTableModel* RandomBuffer;
-  DatabaseTableModel* OrderBuffer;
-  DatabaseTableModel* ProductionLineBuffer;
-
   AdministrationSystem* Administrator;
   AdministrationSystemBuilder* AdministratorBuilder;
   QThread* AdministratorThread;
@@ -62,31 +58,28 @@ class ServerManager : public QObject {
   ServerManager(QObject* parent);
   ~ServerManager();
 
-  DatabaseTableModel* randomBuffer(void);
-  DatabaseTableModel* orderBuffer(void);
-  DatabaseTableModel* productionLineBuffer(void);
   void applySettings();
 
   void start(void);
   void stop(void);
 
-  void showDatabaseTable(const QString& name);
-  void clearDatabaseTable(const QString& name);
-  void performCustomRequest(const QString& req);
+  void showDatabaseTable(const QString& name, DatabaseTableModel* buffer);
+  void clearDatabaseTable(const QString& name, DatabaseTableModel* buffer);
+  void initIssuers(DatabaseTableModel* buffer);
+  void performCustomRequest(const QString& req, DatabaseTableModel* buffer);
 
-  void createNewOrder(const QMap<QString, QString>* orderParameters);
-  void deleteLastOrder(void);
-  void showOrderTable(void);
+  void createNewOrder(const QMap<QString, QString>* orderParameters,
+                      DatabaseTableModel* buffer);
+  void deleteLastOrder(DatabaseTableModel* buffer);
+  void showOrderTable(DatabaseTableModel* buffer);
 
   void createNewProductionLine(
-      const QMap<QString, QString>* productionLineParameters);
-  void deleteLastProductionLine(void);
-  void showProductionLineTable(void);
-
-  void initIssuers(void);
+      const QMap<QString, QString>* productionLineParameters,
+      DatabaseTableModel* buffer);
+  void deleteLastProductionLine(DatabaseTableModel* buffer);
+  void showProductionLineTable(DatabaseTableModel* buffer);
 
  private:
-  void createBuffers(void);
   void createHostInstance(void);
   void createAdministratorInstance(void);
 

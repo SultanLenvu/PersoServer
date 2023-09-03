@@ -5,9 +5,6 @@
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   setObjectName("ServerManager");
 
-  // Создаем модели для представления таблиц базы данных
-  createBuffers();
-
   // Создаем среду выполнения для хоста
   createHostInstance();
 
@@ -32,18 +29,6 @@ ServerManager::~ServerManager() {
   AdministratorThread->wait();
 }
 
-DatabaseTableModel* ServerManager::randomBuffer(void) {
-  return RandomBuffer;
-}
-
-DatabaseTableModel* ServerManager::orderBuffer() {
-  return OrderBuffer;
-}
-
-DatabaseTableModel* ServerManager::productionLineBuffer() {
-  return ProductionLineBuffer;
-}
-
 void ServerManager::applySettings() {
   emit logging("Применение новых настроек. ");
 
@@ -66,16 +51,16 @@ void ServerManager::stop() {
   emit serverStop_signal();
 }
 
-void ServerManager::showDatabaseTable(const QString& name) {
+void ServerManager::showDatabaseTable(const QString& name,
+                                      DatabaseTableModel* buffer) {
   // Начинаем выполнение операции
   if (!startOperationExecution("showDatabaseTable")) {
     return;
   }
 
-  RandomBuffer->clear();
-
+  buffer->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal(name, RandomBuffer);
+  emit getDatabaseTable_signal(name, buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -84,7 +69,8 @@ void ServerManager::showDatabaseTable(const QString& name) {
   endOperationExecution("showDatabaseTable");
 }
 
-void ServerManager::clearDatabaseTable(const QString& name) {
+void ServerManager::clearDatabaseTable(const QString& name,
+                                       DatabaseTableModel* buffer) {
   // Начинаем выполнение операции
   if (!startOperationExecution("clearDatabaseTable")) {
     return;
@@ -102,9 +88,9 @@ void ServerManager::clearDatabaseTable(const QString& name) {
     return;
   }
 
-  RandomBuffer->clear();
+  buffer->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal(name, RandomBuffer);
+  emit getDatabaseTable_signal(name, buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -113,14 +99,44 @@ void ServerManager::clearDatabaseTable(const QString& name) {
   endOperationExecution("clearDatabaseTable");
 }
 
-void ServerManager::performCustomRequest(const QString& req) {
+void ServerManager::initIssuers(DatabaseTableModel* buffer) {
+  if (!startOperationExecution("initIssuers")) {
+    return;
+  }
+
+  emit logging("Создание эмитентов. ");
+  emit initIssuerTable_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("clearDatabaseTable");
+    return;
+  }
+
+  buffer->clear();
+  emit logging("Отображение таблицы базы данных. ");
+  emit getDatabaseTable_signal("issuers", buffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("initIssuers");
+}
+
+void ServerManager::performCustomRequest(const QString& req,
+                                         DatabaseTableModel* buffer) {
   // Начинаем выполнение операции
   if (!startOperationExecution("performCustomRequest")) {
     return;
   }
 
+  buffer->clear();
   emit logging("Представление ответа на кастомный запрос. ");
-  emit getCustomResponse_signal(req, RandomBuffer);
+  emit getCustomResponse_signal(req, buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -130,7 +146,8 @@ void ServerManager::performCustomRequest(const QString& req) {
 }
 
 void ServerManager::createNewOrder(
-    const QMap<QString, QString>* orderParameters) {
+    const QMap<QString, QString>* orderParameters,
+    DatabaseTableModel* buffer) {
   if (!startOperationExecution("createNewOrder")) {
     return;
   }
@@ -148,9 +165,9 @@ void ServerManager::createNewOrder(
     return;
   }
 
-  OrderBuffer->clear();
+  buffer->clear();
   emit logging("Отображение заказов. ");
-  emit getDatabaseTable_signal("orders", OrderBuffer);
+  emit getDatabaseTable_signal("orders", buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -159,7 +176,7 @@ void ServerManager::createNewOrder(
   endOperationExecution("createNewOrder");
 }
 
-void ServerManager::deleteLastOrder() {
+void ServerManager::deleteLastOrder(DatabaseTableModel* buffer) {
   if (!startOperationExecution("createNewOrder")) {
     return;
   }
@@ -177,9 +194,9 @@ void ServerManager::deleteLastOrder() {
     return;
   }
 
-  OrderBuffer->clear();
+  buffer->clear();
   emit logging("Отображение заказов. ");
-  emit getDatabaseTable_signal("orders", OrderBuffer);
+  emit getDatabaseTable_signal("orders", buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -188,15 +205,15 @@ void ServerManager::deleteLastOrder() {
   endOperationExecution("createNewOrder");
 }
 
-void ServerManager::showOrderTable() {
+void ServerManager::showOrderTable(DatabaseTableModel* buffer) {
   // Начинаем выполнение операции
   if (!startOperationExecution("showOrderTable")) {
     return;
   }
 
-  OrderBuffer->clear();
+  buffer->clear();
   emit logging("Отображение заказов. ");
-  emit getDatabaseTable_signal("orders", OrderBuffer);
+  emit getDatabaseTable_signal("orders", buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -206,7 +223,8 @@ void ServerManager::showOrderTable() {
 }
 
 void ServerManager::createNewProductionLine(
-    const QMap<QString, QString>* productionLineParameters) {
+    const QMap<QString, QString>* productionLineParameters,
+    DatabaseTableModel* buffer) {
   if (!startOperationExecution("createNewProductionLine")) {
     return;
   }
@@ -224,9 +242,9 @@ void ServerManager::createNewProductionLine(
     return;
   }
 
-  ProductionLineBuffer->clear();
+  buffer->clear();
   emit logging("Отображение производственных линий. ");
-  emit getDatabaseTable_signal("production_lines", ProductionLineBuffer);
+  emit getDatabaseTable_signal("production_lines", buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -235,7 +253,7 @@ void ServerManager::createNewProductionLine(
   endOperationExecution("createNewProductionLine");
 }
 
-void ServerManager::deleteLastProductionLine() {
+void ServerManager::deleteLastProductionLine(DatabaseTableModel* buffer) {
   if (!startOperationExecution("deleteLastProductionLine")) {
     return;
   }
@@ -246,59 +264,39 @@ void ServerManager::deleteLastProductionLine() {
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("deleteLastProductionLine");
+    return;
+  }
+
+  buffer->clear();
+  emit logging("Отображение производственных линий. ");
+  emit getDatabaseTable_signal("production_lines", buffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
   // Завершаем выполнение операции
   endOperationExecution("deleteLastProductionLine");
 }
 
-void ServerManager::showProductionLineTable() {
+void ServerManager::showProductionLineTable(DatabaseTableModel* buffer) {
   // Начинаем выполнение операции
   if (!startOperationExecution("showProductionLineTable")) {
     return;
   }
 
-  ProductionLineBuffer->clear();
+  buffer->clear();
   emit logging("Отображение линий производства. ");
-  emit getDatabaseTable_signal("production_lines", ProductionLineBuffer);
+  emit getDatabaseTable_signal("production_lines", buffer);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
   endOperationExecution("showProductionLineTable");
-}
-
-void ServerManager::initIssuers() {
-  if (!startOperationExecution("initIssuers")) {
-    return;
-  }
-
-  emit logging("Создание эмитентов. ");
-  emit initIssuerTable_signal();
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  if (CurrentState != Completed) {
-    // Завершаем выполнение операции
-    endOperationExecution("clearDatabaseTable");
-    return;
-  }
-
-  RandomBuffer->clear();
-  emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal("issuers", RandomBuffer);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("initIssuers");
-}
-
-void ServerManager::createBuffers() {
-  RandomBuffer = new DatabaseTableModel(this);
-  OrderBuffer = new DatabaseTableModel(this);
-  ProductionLineBuffer = new DatabaseTableModel(this);
 }
 
 void ServerManager::createHostInstance() {
@@ -394,9 +392,6 @@ bool ServerManager::startOperationExecution(const QString& operationName) {
   // Проверяем готовность к выполнению операции
   if (CurrentState != Ready)
     return false;
-
-  // Очищаем буфер
-  RandomBuffer->clear();
 
   // Переходим в состояние ожидания конца обработки
   CurrentState = WaitingExecution;

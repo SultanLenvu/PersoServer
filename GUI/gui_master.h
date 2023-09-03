@@ -91,11 +91,11 @@ class MasterGUI : public GUI {
   QGroupBox* ProductionLinesControlPanel;
   QVBoxLayout* ProductionLinesControlPanelLayout;
 
-  QHBoxLayout* LoginSubLayout;
+  QHBoxLayout* LoginLayout;
   QLabel* LoginLabel;
   QLineEdit* LoginLineEdit;
 
-  QHBoxLayout* PasswordSubLayout;
+  QHBoxLayout* PasswordLayout;
   QLabel* PasswordLabel;
   QLineEdit* PasswordLineEdit;
 
@@ -107,6 +107,38 @@ class MasterGUI : public GUI {
   QGroupBox* ProductionLineTablePanel;
   QVBoxLayout* ProductionLineTableLayout;
   QTableView* ProductionLineTableView;
+  //============================================================
+
+  /* Интерфейс для управления линиями производства */
+  //============================================================
+  QWidget* TransponderTab;
+  QHBoxLayout* TransponderTabMainLayout;
+
+  QGroupBox* TransponderControlPanel;
+  QVBoxLayout* TransponderControlPanelLayout;
+
+  QHBoxLayout* UcidLayout;
+  QLabel* UcidLabel;
+  QLineEdit* UcidLineEdit;
+  QPushButton* ReleaseTransponderPushButton;
+
+  QSpacerItem* TransponderControlPanelVS;
+
+  QHBoxLayout* SearchByLayout;
+  QLabel* SearchByLabel;
+  QComboBox* SearchByComboBox;
+
+  QHBoxLayout* SearchInputLayout;
+  QLabel* SearchInputLabel;
+  QLineEdit* SearchInputLineEdit;
+  QPushButton* SearchPushButton;
+  QPushButton* RevokeTransponderPushButton;
+  QPushButton* RereleaseTransponderPushButton;
+
+  QGroupBox* TransponderDisplayPanel;
+  QHBoxLayout* TransponderDisplayLayout;
+  QListView* TransponderDataListView;
+  QPlainTextEdit* FirmwareDsrcDataView;
   //============================================================
 
   /* Интерфейс транспортных ключей безопасности */
@@ -180,6 +212,16 @@ class MasterGUI : public GUI {
   QLineEdit* DatabaseUserPasswordLineEdit;
   QLabel* DatabaseLogOptionLabel;
   QCheckBox* DatabaseLogOption;
+
+  // Настройки генератора прошивок
+  QGroupBox* FirmwareSettingsGroupBox;
+  QGridLayout* FirmwareSettingsLayout;
+  QLabel* FirmwareFilePathLabel;
+  QLineEdit* FirmwareFilePathLineEdit;
+  QPushButton* ExploreFirmwareFilePathPushButton;
+  QLabel* TransponderDataFilePathLabel;
+  QLineEdit* TransponderDataFilePathLineEdit;
+  QPushButton* ExploreTransponderDataFilePathPushButton;
   //============================================================
  public:
   explicit MasterGUI(QWidget* parent);
@@ -194,6 +236,7 @@ class MasterGUI : public GUI {
   void createDatabaseTab(void);
   void createOrderTab(void);
   void createProductionLineTab(void);
+  void createFirmwareTab(void);
   void createTransportKeyTab(void);
   void createCommercialKeyTab(void);
 
@@ -202,6 +245,9 @@ class MasterGUI : public GUI {
  private slots:
   void on_FullPersonalizationCheckBoxChanged(void);
   void on_PanFileExplorePushButton_slot(void);
+
+  void on_ExploreFirmwareFilePathPushButton_slot(void);
+  void on_ExploreTransponderDataFilePathPushButton_slot(void);
 
  signals:
 };

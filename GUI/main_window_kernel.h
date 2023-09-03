@@ -11,6 +11,7 @@
 #include "gui_master.h"
 #include "user_interaction_system.h"
 
+#include "Database/database_table_model.h"
 #include "GUI/log_system.h"
 #include "Management/server_manager.h"
 #include "Management/user_settings.h"
@@ -33,6 +34,10 @@ class MainWindowKernel : public QMainWindow {
   ServerManager* Manager;
   LogSystem* Logger;
   UserInteractionSystem* Interactor;
+
+  DatabaseTableModel* RandomBuffer;
+  DatabaseTableModel* OrderBuffer;
+  DatabaseTableModel* ProductionLineBuffer;
 
   QSettings* Settings;
 
@@ -89,7 +94,7 @@ class MainWindowKernel : public QMainWindow {
   void setupInterructionSystem(void);
   void setupManager(void);
   void setupLogSystem(void);
-
+  void createBuffers(void);
  signals:
   void logging(const QString& log);
 };

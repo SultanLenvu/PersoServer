@@ -24,6 +24,9 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
 
   // Создаем систему логгирования
   setupLogSystem();
+
+  // Создаем модели для представлений
+  createBuffers();
 }
 
 MainWindowKernel::~MainWindowKernel() {}
@@ -58,7 +61,8 @@ void MainWindowKernel::on_ShowDatabaseTablePushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->showDatabaseTable(gui->DatabaseTableChoice->currentText());
+  Manager->showDatabaseTable(gui->DatabaseTableChoice->currentText(),
+                             RandomBuffer);
 
   CurrentGUI->update();
 }
@@ -67,7 +71,8 @@ void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->clearDatabaseTable(gui->DatabaseTableChoice->currentText());
+  Manager->clearDatabaseTable(gui->DatabaseTableChoice->currentText(),
+                              RandomBuffer);
 
   CurrentGUI->update();
 }
@@ -75,7 +80,7 @@ void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
 void MainWindowKernel::on_InitIssuerTablePushButton_slot() {
   Logger->clear();
 
-  Manager->initIssuers();
+  Manager->initIssuers(RandomBuffer);
 
   CurrentGUI->update();
 }
@@ -84,7 +89,8 @@ void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->performCustomRequest(gui->CustomRequestLineEdit->text());
+  Manager->performCustomRequest(gui->CustomRequestLineEdit->text(),
+                                RandomBuffer);
 
   CurrentGUI->update();
 }
@@ -114,7 +120,7 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
     orderParameters.insert("PanFilePath", gui->PanFilePathLineEdit->text());
   }
 
-  Manager->createNewOrder(&orderParameters);
+  Manager->createNewOrder(&orderParameters, OrderBuffer);
 
   CurrentGUI->update();
 }
@@ -122,7 +128,7 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
 void MainWindowKernel::on_UpdateOrderViewPushButton_slot() {
   Logger->clear();
 
-  Manager->showDatabaseTable("orders");
+  Manager->showDatabaseTable("orders", OrderBuffer);
 
   CurrentGUI->update();
 }
@@ -130,7 +136,7 @@ void MainWindowKernel::on_UpdateOrderViewPushButton_slot() {
 void MainWindowKernel::on_DeleteLastOrderPushButton_slot() {
   Logger->clear();
 
-  Manager->deleteLastOrder();
+  Manager->deleteLastOrder(OrderBuffer);
 
   CurrentGUI->update();
 }
@@ -147,7 +153,8 @@ void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
   QMap<QString, QString> productionLineParameters;
   productionLineParameters.insert("Login", gui->LoginLineEdit->text());
   productionLineParameters.insert("Password", gui->PasswordLineEdit->text());
-  Manager->createNewProductionLine(&productionLineParameters);
+  Manager->createNewProductionLine(&productionLineParameters,
+                                   ProductionLineBuffer);
 
   CurrentGUI->update();
 }
@@ -155,7 +162,7 @@ void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
 void MainWindowKernel::on_UpdateProductionLineViewPushButton_slot() {
   Logger->clear();
 
-  Manager->showDatabaseTable("production_lines");
+  Manager->showDatabaseTable("production_lines", ProductionLineBuffer);
 
   CurrentGUI->update();
 }
@@ -163,7 +170,7 @@ void MainWindowKernel::on_UpdateProductionLineViewPushButton_slot() {
 void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
   Logger->clear();
 
-  Manager->deleteLastProductionLine();
+  Manager->deleteLastProductionLine(ProductionLineBuffer);
 
   CurrentGUI->update();
 }
@@ -415,9 +422,9 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::applyUserSettings_slot);
 
   // Соединяем модели и представления
-  gui->DatabaseRandomBufferView->setModel(Manager->randomBuffer());
-  gui->OrderTableView->setModel(Manager->orderBuffer());
-  gui->ProductionLineTableView->setModel(Manager->productionLineBuffer());
+  gui->DatabaseRandomBufferView->setModel(RandomBuffer);
+  gui->OrderTableView->setModel(OrderBuffer);
+  gui->ProductionLineTableView->setModel(ProductionLineBuffer);
 
   // Связываем отображения графиков с логикой их формирования
 }
@@ -448,4 +455,10 @@ void MainWindowKernel::setupLogSystem() {
   connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
   connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
           &GUI::clearLogDisplay);
+}
+
+void MainWindowKernel::createBuffers() {
+  RandomBuffer = new DatabaseTableModel(this);
+  OrderBuffer = new DatabaseTableModel(this);
+  ProductionLineBuffer = new DatabaseTableModel(this);
 }

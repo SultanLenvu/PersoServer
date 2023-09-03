@@ -5,7 +5,7 @@
 #include <QDate>
 #include <QObject>
 
-#include "Database/database_buffer.h"
+#include "Database/database_table_model.h"
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
 
@@ -22,7 +22,6 @@ class AdministrationSystem : public QObject {
 
  private:
   PostgresController* Database;
-  bool DatabaseLogOption;
 
  public:
   explicit AdministrationSystem(QObject* parent);
@@ -31,7 +30,6 @@ class AdministrationSystem : public QObject {
   void proxyLogging(const QString& log);
   void applySettings(void);
 
-  void createDatabaseController(void);
   void clearDatabaseTable(const QString& tableName);
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
@@ -45,6 +43,7 @@ class AdministrationSystem : public QObject {
   void deleteLastProductionLines(void);
 
  private:
+  void createDatabaseController(void);
   void loadSettings(void);
 
   bool addOrder(const QMap<QString, QString>* orderParameters) const;
@@ -58,6 +57,12 @@ class AdministrationSystem : public QObject {
                           const QString& productionLineId) const;
   bool startPalletAssembling(const QString& id) const;
   bool startOrderAssembling(const QString& id) const;
+
+  bool removeLastProductionLine(void) const;
+
+  bool stopBoxAssembling(const QString& id) const;
+  bool stopPalletAssembling(const QString& id) const;
+  bool stopOrderAssembling(const QString& id) const;
 
   void processingResult(const QString& log, const ExecutionStatus status);
 

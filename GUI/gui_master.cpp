@@ -41,6 +41,7 @@ void MasterGUI::createTabs() {
   createDatabaseTab();
   createOrderTab();
   createProductionLineTab();
+  createFirmwareTab();
   createTransportKeyTab();
   createCommercialKeyTab();
 
@@ -210,26 +211,26 @@ void MasterGUI::createProductionLineTab() {
   ProductionLinesTabMainLayout = new QHBoxLayout();
   ProductionLinesTab->setLayout(ProductionLinesTabMainLayout);
 
-  // Панель для создания
+  // Панель управления
   ProductionLinesControlPanel = new QGroupBox("Панель управления");
   ProductionLinesTabMainLayout->addWidget(ProductionLinesControlPanel);
 
   ProductionLinesControlPanelLayout = new QVBoxLayout();
   ProductionLinesControlPanel->setLayout(ProductionLinesControlPanelLayout);
 
-  LoginSubLayout = new QHBoxLayout();
-  ProductionLinesControlPanelLayout->addLayout(LoginSubLayout);
+  LoginLayout = new QHBoxLayout();
+  ProductionLinesControlPanelLayout->addLayout(LoginLayout);
   LoginLabel = new QLabel("Введите логин: ");
-  LoginSubLayout->addWidget(LoginLabel);
+  LoginLayout->addWidget(LoginLabel);
   LoginLineEdit = new QLineEdit();
-  LoginSubLayout->addWidget(LoginLineEdit);
+  LoginLayout->addWidget(LoginLineEdit);
 
-  PasswordSubLayout = new QHBoxLayout();
-  ProductionLinesControlPanelLayout->addLayout(PasswordSubLayout);
+  PasswordLayout = new QHBoxLayout();
+  ProductionLinesControlPanelLayout->addLayout(PasswordLayout);
   PasswordLabel = new QLabel("Введите пароль: ");
-  PasswordSubLayout->addWidget(PasswordLabel);
+  PasswordLayout->addWidget(PasswordLabel);
   PasswordLineEdit = new QLineEdit();
-  PasswordSubLayout->addWidget(PasswordLineEdit);
+  PasswordLayout->addWidget(PasswordLineEdit);
 
   CreateNewProductionLinePushButton =
       new QPushButton("Создать новую производственную линию");
@@ -263,6 +264,76 @@ void MasterGUI::createProductionLineTab() {
   // Настройка пропорции между объектами на основном макете
   ProductionLinesTabMainLayout->setStretch(0, 1);
   ProductionLinesTabMainLayout->setStretch(1, 3);
+}
+
+void MasterGUI::createFirmwareTab() {
+  TransponderTab = new QWidget();
+  Tabs->addTab(TransponderTab, "Выпуск транспондеров");
+
+  TransponderTabMainLayout = new QHBoxLayout();
+  TransponderTab->setLayout(TransponderTabMainLayout);
+
+  // Панель управления
+  TransponderControlPanel = new QGroupBox("Панель управления");
+  TransponderTabMainLayout->addWidget(TransponderControlPanel);
+
+  TransponderControlPanelLayout = new QVBoxLayout();
+  TransponderControlPanel->setLayout(TransponderControlPanelLayout);
+
+  UcidLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(UcidLayout);
+  UcidLabel = new QLabel("Введите UCID: ");
+  UcidLayout->addWidget(UcidLabel);
+  UcidLineEdit = new QLineEdit();
+  UcidLayout->addWidget(UcidLineEdit);
+
+  ReleaseTransponderPushButton = new QPushButton("Выпуск");
+  TransponderControlPanelLayout->addWidget(ReleaseTransponderPushButton);
+
+  TransponderControlPanelVS =
+      new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
+  TransponderControlPanelLayout->addItem(TransponderControlPanelVS);
+
+  SearchByLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(SearchByLayout);
+  SearchByLabel = new QLabel("Поиск по: ");
+  SearchByLayout->addWidget(SearchByLabel);
+  SearchByComboBox = new QComboBox();
+  SearchByComboBox->addItem("UCID");
+  SearchByComboBox->addItem("Серийный номер");
+  SearchByComboBox->addItem("PAN");
+  SearchByLayout->addWidget(SearchByComboBox);
+
+  SearchInputLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(SearchInputLayout);
+  SearchInputLabel = new QLabel("Введите данные:");
+  SearchInputLayout->addWidget(SearchInputLabel);
+  SearchInputLineEdit = new QLineEdit();
+  SearchInputLayout->addWidget(SearchInputLineEdit);
+
+  SearchPushButton = new QPushButton("Найти");
+  TransponderControlPanelLayout->addWidget(SearchPushButton);
+  RereleaseTransponderPushButton = new QPushButton("Перевыпустить");
+  TransponderControlPanelLayout->addWidget(RereleaseTransponderPushButton);
+  RevokeTransponderPushButton = new QPushButton("Отозвать");
+  TransponderControlPanelLayout->addWidget(RevokeTransponderPushButton);
+
+  // Панель отображения
+  TransponderDisplayPanel = new QGroupBox("Панель отображений");
+  TransponderTabMainLayout->addWidget(TransponderDisplayPanel);
+
+  TransponderDisplayLayout = new QHBoxLayout();
+  TransponderDisplayPanel->setLayout(TransponderDisplayLayout);
+
+  TransponderDataListView = new QListView();
+  TransponderDisplayLayout->addWidget(TransponderDataListView);
+
+  FirmwareDsrcDataView = new QPlainTextEdit();
+  TransponderDisplayLayout->addWidget(FirmwareDsrcDataView);
+
+  // Настройка пропорции между объектами на основном макете
+  TransponderTabMainLayout->setStretch(0, 1);
+  TransponderTabMainLayout->setStretch(1, 3);
 }
 
 void MasterGUI::createTransportKeyTab() {
@@ -441,11 +512,42 @@ void MasterGUI::createSettingsTab() {
                                                      : Qt::Unchecked);
   DatabaseSettingsLayout->addWidget(DatabaseLogOption, 5, 1, 1, 1);
 
+  // Настройки генератора прошивок
+  FirmwareSettingsGroupBox = new QGroupBox("Настройки генератора прошивок");
+  SettingsMainSubLayout->addWidget(FirmwareSettingsGroupBox);
+
+  FirmwareSettingsLayout = new QGridLayout();
+  FirmwareSettingsGroupBox->setLayout(FirmwareSettingsLayout);
+
+  FirmwareFilePathLabel = new QLabel("Путь к файлу с прошивкой");
+  FirmwareSettingsLayout->addWidget(FirmwareFilePathLabel, 0, 0, 1, 1);
+  FirmwareFilePathLineEdit = new QLineEdit(
+      settings.value("FirmwareGenerationSystem/Firmware/Path").toString());
+  FirmwareSettingsLayout->addWidget(FirmwareFilePathLineEdit, 0, 1, 1, 1);
+  ExploreFirmwareFilePathPushButton = new QPushButton("Обзор");
+  FirmwareSettingsLayout->addWidget(ExploreFirmwareFilePathPushButton, 0, 2, 1,
+                                    1);
+  connect(ExploreFirmwareFilePathPushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_ExploreFirmwareFilePathPushButton_slot);
+
+  TransponderDataFilePathLabel = new QLabel("Путь к файлу с данными");
+  FirmwareSettingsLayout->addWidget(TransponderDataFilePathLabel, 1, 0, 1, 1);
+  TransponderDataFilePathLineEdit = new QLineEdit(
+      settings.value("FirmwareGenerationSystem/TransponderData/Path")
+          .toString());
+  FirmwareSettingsLayout->addWidget(TransponderDataFilePathLineEdit, 1, 1, 1,
+                                    1);
+  ExploreTransponderDataFilePathPushButton = new QPushButton("Обзор");
+  FirmwareSettingsLayout->addWidget(ExploreTransponderDataFilePathPushButton, 1,
+                                    2, 1, 1);
+  connect(ExploreTransponderDataFilePathPushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_ExploreTransponderDataFilePathPushButton_slot);
+
   // Кнопка сохранения настроек
   ApplySettingsPushButton = new QPushButton("Применить изменения");
   SettingsMainSubLayout->addWidget(ApplySettingsPushButton);
 
-  // Сжимаем позиционирование
+  // Сжатие по горизонтали
   SettingsVerticalSpacer1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   SettingsMainSubLayout->addItem(SettingsVerticalSpacer1);
@@ -481,4 +583,16 @@ void MasterGUI::on_PanFileExplorePushButton_slot() {
   if (!filePath.isEmpty()) {
     PanFilePathLineEdit->setText(filePath);
   }
+}
+
+void MasterGUI::on_ExploreFirmwareFilePathPushButton_slot() {
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
+  FirmwareFilePathLineEdit->setText(filePath);
+}
+
+void MasterGUI::on_ExploreTransponderDataFilePathPushButton_slot() {
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
+  TransponderDataFilePathLineEdit->setText(filePath);
 }

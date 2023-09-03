@@ -1,4 +1,4 @@
-#include "database_buffer.h"
+#include "database_table_model.h"
 
 DatabaseTableModel::DatabaseTableModel(QObject* parent)
     : QAbstractTableModel(parent) {

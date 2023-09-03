@@ -11,10 +11,8 @@ AdministrationSystem::AdministrationSystem(QObject* parent) : QObject(parent) {
 }
 
 void AdministrationSystem::proxyLogging(const QString& log) {
-  if (sender()->objectName() == "PostgresController") {
-    if (DatabaseLogOption) {
-      emit logging("Postgres controller - " + log);
-    }
+  if (sender()->objectName() == "IDatabaseController") {
+    emit logging("Database controller - " + log);
   } else {
     emit logging("Unknown - " + log);
   }
@@ -220,7 +218,6 @@ void AdministrationSystem::deleteLastOrder() {
 
 void AdministrationSystem::createNewProductionLine(
     const QMap<QString, QString>* productionLineParameters) {
-  QMap<QString, QString> transponderRecord;
 
   emit logging("Создание новой линии производства. ");
 
@@ -252,20 +249,18 @@ void AdministrationSystem::deleteLastProductionLines() {
   }
 
   emit logging("Удаление последней линии производства. ");
-  if (!Database->removeLastRecord("production_lines")) {
-    processingResult("Получена ошибка при удалении линии производства. ",
-                     DatabaseQueryError);
+  if (!removeLastProductionLine()) {
+    processingResult(
+        "Получена ошибка при удалении последней линии производства. ",
+        DatabaseQueryError);
     return;
   }
 
-  processingResult("Последний добавленный заказ успешно удален. ",
+  processingResult("Последняя линия производства успешно удалена. ",
                    CompletedSuccessfully);
 }
 
 void AdministrationSystem::loadSettings() {
-  QSettings settings;
-
-  DatabaseLogOption = settings.value("Database/Log/Active").toBool();
 }
 
 bool AdministrationSystem::addOrder(
@@ -440,7 +435,7 @@ bool AdministrationSystem::addTransponders(
       transponderRecord.insert("id", QString::number(lastId + 1));
       transponderRecord.insert("model", "TC1001");
       transponderRecord.insert("payment_means", "0000000000000000000");
-      transponderRecord.insert("emission_counter", "0");
+      transponderRecord.insert("release_counter", "0");
       transponderRecord.insert("box_id", boxRecord.value("id"));
 
       // Добавляем новую запись
@@ -496,7 +491,6 @@ bool AdministrationSystem::addProductionLine(
   productionLineRecord = *productionLineParameters;
   productionLineRecord.insert("id", QString::number(lastId + 1));
   productionLineRecord.insert("transponder_id", mergedRecord.value("id"));
-  emit logging("Добавление линии производства. ");
   if (!Database->addRecord("production_lines", productionLineRecord)) {
     emit logging("Получена ошибка при добавлении линии производства. ");
     return false;
@@ -519,9 +513,6 @@ bool AdministrationSystem::startBoxAssembling(
   boxRecord.insert("id", id);
   boxRecord.insert("pallet_id", "");
   boxRecord.insert("in_process", "");
-  emit logging(
-      QString("Получение данных бокса %1. ").arg(boxRecord.value("id")));
-
   if (!Database->getRecordById("boxes", boxRecord)) {
     emit logging("Получена ошибка при поиске данных о боксе. ");
     return false;
@@ -530,9 +521,6 @@ bool AdministrationSystem::startBoxAssembling(
   if (boxRecord.value("in_process") != "true") {
     boxRecord.insert("in_process", "true");
     boxRecord.insert("production_line_id", productionLineId);
-    // boxRecord.remove("production_start");
-    emit logging(
-        QString("Запуск сборки бокса %1. ").arg(boxRecord.value("id")));
     if (!Database->updateRecord("boxes", boxRecord)) {
       emit logging("Получена ошибка при запуске сборки бокса. ");
       return false;
@@ -556,8 +544,6 @@ bool AdministrationSystem::startPalletAssembling(const QString& id) const {
   palletRecord.insert("id", id);
   palletRecord.insert("order_id", "");
   palletRecord.insert("in_process", "");
-  emit logging(
-      QString("Получение данных палеты %1. ").arg(palletRecord.value("id")));
   if (!Database->getRecordById("pallets", palletRecord)) {
     emit logging("Получена ошибка при поиске данных о паллете. ");
     return false;
@@ -565,15 +551,12 @@ bool AdministrationSystem::startPalletAssembling(const QString& id) const {
 
   if (palletRecord.value("in_process") != "true") {
     palletRecord.insert("in_process", "true");
-    // palletRecord.remove("production_start");
-    emit logging(
-        QString("Запуск сборки палеты %1. ").arg(palletRecord.value("id")));
     if (!Database->updateRecord("pallets", palletRecord)) {
       emit logging("Получена ошибка при запуске сборки палеты. ");
       return false;
     }
 
-    // Запуск сборки палеты
+    // Запуск сборки заказа
     if (!startOrderAssembling(palletRecord.value("order_id"))) {
       emit logging("Не удалось запустить сборку заказа. ");
       return false;
@@ -590,8 +573,6 @@ bool AdministrationSystem::startOrderAssembling(const QString& id) const {
   QMap<QString, QString> orderRecord;
 
   orderRecord.insert("id", id);
-  emit logging(
-      QString("Получение данных заказа %1. ").arg(orderRecord.value("id")));
   if (!Database->getRecordById("orders", orderRecord)) {
     emit logging("Получена ошибка при поиске данных о заказе. ");
     return false;
@@ -599,9 +580,6 @@ bool AdministrationSystem::startOrderAssembling(const QString& id) const {
 
   if (orderRecord.value("in_process") != "true") {
     orderRecord.insert("in_process", "true");
-    // orderRecord.remove("production_start");
-    emit logging(
-        QString("Запуск сборки заказа %1. ").arg(orderRecord.value("id")));
     if (!Database->updateRecord("orders", orderRecord)) {
       emit logging("Получена ошибка при запуске сборки заказа. ");
       return false;
@@ -614,15 +592,178 @@ bool AdministrationSystem::startOrderAssembling(const QString& id) const {
   return true;
 }
 
+bool AdministrationSystem::removeLastProductionLine() const {
+  QMap<QString, QString> productionLineRecord;
+  QMap<QString, QString> boxRecord;
+
+  // Получение последней добавленной линии производства
+  productionLineRecord.insert("id", "");
+  if (!Database->getLastRecord("production_lines", productionLineRecord)) {
+    emit logging(
+        "Ошибка при поиске последней добавленной производственной линии. ");
+    return false;
+  }
+
+  // Получение бокса, соответствующий последней добавленной линии производства
+  boxRecord.insert("id", "");
+  boxRecord.insert("production_line_id", productionLineRecord.value("id"));
+  if (!Database->getRecordByPart("boxes", boxRecord)) {
+    emit logging(
+        "Ошибка при поиске идентификатора бокса, соответствующего последней "
+        "добавленной линии производства. ");
+    return false;
+  }
+
+  // Удаляем запись из таблицы линий производства
+  if (!Database->removeLastRecord("production_lines")) {
+    emit logging("Получена ошибка при удалении линии производства. ");
+    return false;
+  }
+
+  // Останавливаем сборку бокса
+  emit logging(
+      QString("Остановка сборки бокса %1. ").arg(boxRecord.value("id")));
+  if (!stopBoxAssembling(boxRecord.value("id"))) {
+    emit logging("Получена ошибка при остановке процесса сборки бокса. ");
+    return false;
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::stopBoxAssembling(const QString& id) const {
+  QMap<QString, QString> boxRecord;
+  QMap<QString, QString> mergedRecord;
+  QStringList tables;
+  QStringList foreignKeys;
+
+  boxRecord.insert("id", id);
+  boxRecord.insert("pallet_id", "");
+  boxRecord.insert("in_process", "");
+  if (!Database->getRecordById("boxes", boxRecord)) {
+    emit logging("Получена ошибка при поиске данных о боксе. ");
+    return false;
+  }
+
+  if (boxRecord.value("in_process") != "false") {
+    boxRecord.insert("in_process", "false");
+    if (!Database->updateRecord("boxes", boxRecord)) {
+      emit logging("Получена ошибка при остановке сборки бокса. ");
+      return false;
+    }
+
+    // Проверка наличия в палете других боксов , находящихся в процессе сборки
+    tables.append("boxes");
+    tables.append("pallets");
+    mergedRecord.insert("boxes.id", "");
+    mergedRecord.insert("boxes.in_process", "true");
+    mergedRecord.insert("boxes.pallet_id", boxRecord.value("pallet_id"));
+    foreignKeys.append("pallet_id");
+    if (Database->getMergedRecordByPart(tables, foreignKeys, mergedRecord)) {
+      // Проверка наличия записей
+      if (mergedRecord.isEmpty()) {
+        // Остановка сборки паллеты
+        emit logging(QString("Остановка сборки паллеты %1. ")
+                         .arg(boxRecord.value("pallet_id")));
+        if (!stopPalletAssembling(boxRecord.value("pallet_id"))) {
+          emit logging("Не удалось остановить сборку палеты. ");
+          return false;
+        }
+      } else {
+        emit logging(
+            "В паллете еще есть боксы, находящиеся в процессе сборки. ");
+      }
+    }
+  } else {
+    emit logging(QString("Бокс %1 не находится в процессе сборки. ")
+                     .arg(boxRecord.value("id")));
+  }
+  return true;
+}
+
+bool AdministrationSystem::stopPalletAssembling(const QString& id) const {
+  QMap<QString, QString> palletRecord;
+  QMap<QString, QString> mergedRecord;
+  QStringList tables;
+  QStringList foreignKeys;
+
+  palletRecord.insert("id", id);
+  palletRecord.insert("order_id", "");
+  palletRecord.insert("in_process", "");
+  if (!Database->getRecordById("pallets", palletRecord)) {
+    emit logging("Получена ошибка при поиске данных о паллете. ");
+    return false;
+  }
+
+  if (palletRecord.value("in_process") != "false") {
+    palletRecord.insert("in_process", "false");
+    if (!Database->updateRecord("pallets", palletRecord)) {
+      emit logging("Получена ошибка при остановке сборки палеты. ");
+      return false;
+    }
+
+    // Проверка наличия в заказе других паллет, находящихся в процессе сборки
+    tables.append("pallets");
+    tables.append("orders");
+    mergedRecord.insert("pallets.id", "");
+    mergedRecord.insert("pallets.in_process", "true");
+    mergedRecord.insert("pallets.order_id", palletRecord.value("order_id"));
+    foreignKeys.append("order_id");
+    if (Database->getMergedRecordByPart(tables, foreignKeys, mergedRecord)) {
+      // Проверка наличия записей
+      if (mergedRecord.isEmpty()) {
+        // Остановка сборки заказа
+        emit logging(QString("Остановка сборки заказа %1. ")
+                         .arg(palletRecord.value("order_id")));
+        if (!stopOrderAssembling(palletRecord.value("order_id"))) {
+          emit logging("Не удалось остановить сборку заказа. ");
+          return false;
+        }
+      } else {
+        emit logging(
+            "В заказе еще есть паллеты, находящиеся в процессе сборки. ");
+      }
+    }
+  } else {
+    emit logging(QString("Палета %1 не находится в процессе сборки. ")
+                     .arg(palletRecord.value("id")));
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::stopOrderAssembling(const QString& id) const {
+  QMap<QString, QString> orderRecord;
+
+  orderRecord.insert("id", id);
+  if (!Database->getRecordById("orders", orderRecord)) {
+    emit logging("Получена ошибка при поиске данных о заказе. ");
+    return false;
+  }
+
+  if (orderRecord.value("in_process") != "false") {
+    orderRecord.insert("in_process", "false");
+    if (!Database->updateRecord("orders", orderRecord)) {
+      emit logging("Получена ошибка при остановке сборки заказа. ");
+      return false;
+    }
+  } else {
+    emit logging(QString("Заказ %1 не находится в процессе сборки. ")
+                     .arg(orderRecord.value("id")));
+  }
+
+  return true;
+}
+
 void AdministrationSystem::processingResult(const QString& log,
                                             const ExecutionStatus status) {
   emit logging(log);
   emit logging("Отключение от базы данных. ");
 
   if (status == CompletedSuccessfully) {
-    Database->disconnect(true);
+    Database->disconnect(IDatabaseController::Complete);
   } else {
-    Database->disconnect(false);
+    Database->disconnect(IDatabaseController::Abort);
   }
   emit operationFinished(status);
 }

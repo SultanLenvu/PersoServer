@@ -25,28 +25,11 @@ class PostgresController : public IDatabaseController {
  public:
   // IDatabaseController interface
   virtual bool connect(void) override;
-  virtual void disconnect(bool resultOption) override;
-  virtual bool isConnected(void) override;
-
-  virtual void getObuByPAN(const QString& pan,
-                           DatabaseTableModel* buffer) override;
-  virtual void getObuByUCID(const QString& ucid,
-                            DatabaseTableModel* buffer) override;
-  virtual void getObuBySerialNumber(const uint32_t serial,
-                                    DatabaseTableModel* buffer) override;
-  virtual void getObuListByContextMark(const QString& cm,
-                                       DatabaseTableModel* buffer) override;
-  virtual void getObuListBySerialNumber(const uint32_t serialBegin,
-                                        const uint32_t serialEnd,
-                                        DatabaseTableModel* buffer) override;
-  virtual void getObuListByPAN(const uint32_t panBegin,
-                               const uint32_t panEnd,
-                               DatabaseTableModel* buffer) override;
+  virtual void disconnect(TransactionResult result) override;
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) override;
-
   virtual bool execCustomRequest(const QString& req,
                                  DatabaseTableModel* buffer) override;
   virtual void applySettings() override;
@@ -78,9 +61,8 @@ class PostgresController : public IDatabaseController {
                                      const QString& condition) const;
 
  private:
-  bool openTransaction(void) const;
-  bool closeTransaction(void) const;
-  bool abortTransaction(void) const;
+  void openTransaction(void) const;
+  void closeTransaction(TransactionResult result) const;
 
   void loadSettings(void);
   void createDatabaseConnection(void);
