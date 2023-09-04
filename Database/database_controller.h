@@ -28,10 +28,38 @@ class IDatabaseController : public QObject {
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
-                        DatabaseTableModel* buffer) = 0;
+                        DatabaseTableModel* buffer) const = 0;
   virtual bool execCustomRequest(const QString& req,
-                                 DatabaseTableModel* buffer) = 0;
+                                 DatabaseTableModel* buffer) const = 0;
   virtual void applySettings() = 0;
+
+  virtual bool clearTable(const QString& tableName) const = 0;
+
+  virtual bool addRecord(const QString& tableName,
+                         QMap<QString, QString>& record) const = 0;
+
+  virtual bool getRecordById(const QString& tableName,
+                             QMap<QString, QString>& record) const = 0;
+  virtual bool getRecordByPart(const QString& tableName,
+                               QMap<QString, QString>& record) const = 0;
+  virtual bool getLastRecord(const QString& tableName,
+                             QMap<QString, QString>& record) const = 0;
+
+  virtual bool getMergedRecordById(const QStringList& tables,
+                                   const QStringList& foreignKeys,
+                                   QMap<QString, QString>& record) const = 0;
+  virtual bool getMergedRecordByPart(const QStringList& tables,
+                                     const QStringList& foreignKeys,
+                                     QMap<QString, QString>& record) const = 0;
+
+  virtual bool updateRecord(const QString& tableName,
+                            QMap<QString, QString>& record) const = 0;
+  virtual bool removeRecordById(const QString& tableName,
+                                const uint32_t id) const = 0;
+  virtual bool removeLastRecord(const QString& tableName) const = 0;
+  virtual bool removeLastRecordWithCondition(
+      const QString& tableName,
+      const QString& condition) const = 0;
 
  protected:
   void sendLog(const QString& log) const;

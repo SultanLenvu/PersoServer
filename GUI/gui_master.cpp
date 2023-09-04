@@ -525,10 +525,10 @@ void MasterGUI::createSettingsTab() {
 
   FirmwareBasePathLabel = new QLabel("Путь к файлу с прошивкой");
   FirmwareSettingsLayout->addWidget(FirmwareBasePathLabel, 0, 0, 1, 1);
-  FirmwareFileBaseLineEdit = new QLineEdit(
+  FirmwareBasePathLineEdit = new QLineEdit(
       settings.value("FirmwareGenerationSystem/Firmware/Path").toString());
-  FirmwareFileBaseLineEdit->setMaxLength(200);
-  FirmwareSettingsLayout->addWidget(FirmwareFileBaseLineEdit, 0, 1, 1, 1);
+  FirmwareBasePathLineEdit->setMaxLength(200);
+  FirmwareSettingsLayout->addWidget(FirmwareBasePathLineEdit, 0, 1, 1, 1);
   ExploreFirmwareBasePathPushButton = new QPushButton("Обзор");
   FirmwareSettingsLayout->addWidget(ExploreFirmwareBasePathPushButton, 0, 2, 1,
                                     1);
@@ -605,7 +605,7 @@ void MasterGUI::on_SearchByComboBox_slot(const QString& text) {
 void MasterGUI::on_ExploreFirmwareBasePathPushButton_slot() {
   QString filePath =
       QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
-  FirmwareFileBaseLineEdit->setText(filePath);
+  FirmwareBasePathLineEdit->setText(filePath);
 }
 
 void MasterGUI::on_ExploreFirmwareDataPathPushButton_slot() {

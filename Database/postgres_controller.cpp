@@ -52,7 +52,7 @@ void PostgresController::disconnect(TransactionResult result) {
 
 bool PostgresController::getTable(const QString& tableName,
                                   uint32_t rowCount,
-                                  DatabaseTableModel* buffer) {
+                                  DatabaseTableModel* buffer) const {
   QString requestText =
       QString("SELECT * FROM %1 ORDER BY id ASC;").arg(tableName);
   //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
@@ -73,7 +73,7 @@ bool PostgresController::getTable(const QString& tableName,
 }
 
 bool PostgresController::execCustomRequest(const QString& req,
-                                           DatabaseTableModel* buffer) {
+                                           DatabaseTableModel* buffer) const {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog("Соединение с Postgres не установлено. ");
     return false;

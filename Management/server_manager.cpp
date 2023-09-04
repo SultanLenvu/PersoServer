@@ -222,6 +222,26 @@ void ServerManager::showOrderTable(DatabaseTableModel* buffer) {
   endOperationExecution("showOrderTable");
 }
 
+void ServerManager::releaseTransponder(TransponderInfoModel *seed)
+{
+  
+}
+
+void ServerManager::searchTransponder(QPair<QString, QString> attribute, TransponderInfoModel *seed)
+{
+  
+}
+
+void ServerManager::rereleaseTransponder(QPair<QString, QString> attribute)
+{
+  
+}
+
+void ServerManager::revokeTransponder(QPair<QString, QString> attribute)
+{
+  
+}
+
 void ServerManager::createNewProductionLine(
     const QMap<QString, QString>* productionLineParameters,
     DatabaseTableModel* buffer) {

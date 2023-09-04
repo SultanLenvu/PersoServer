@@ -102,7 +102,7 @@ class MainWindowKernel : public QMainWindow {
   void setupInterructionSystem(void);
   void setupManager(void);
   void setupLogSystem(void);
-  void createBuffers(void);
+  void createModels(void);
  signals:
   void logging(const QString& log);
 };

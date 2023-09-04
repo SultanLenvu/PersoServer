@@ -4,8 +4,8 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
 {
   setObjectName("FirmwareGenerationSystem");
 
-  FirmwareBase = new QFile();
-  FirmwareData = new QFile();
+  FirmwareBase = new QFile(this);
+  FirmwareData = new QFile(this);
 
   loadSettings();
 }
@@ -23,10 +23,7 @@ void FirmwareGenerationSystem::applySettings() {
   loadSettings();
 }
 
-bool FirmwareGenerationSystem::getCurrentTransponderData(
-    TransponderInfoModel* model) {}
-
-bool FirmwareGenerationSystem::getAssembledFirmware(QMap<QString, QString> seed,
+bool FirmwareGenerationSystem::getAssembledFirmware(TransponderInfoModel* seed,
                                                     QByteArray* firmware) {}
 
 void FirmwareGenerationSystem::loadSettings() {

@@ -221,7 +221,7 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   Settings->setValue("Database/Log/Active",
                      gui->DatabaseLogOption->checkState() == Qt::Checked);
   Settings->setValue("Firmware/Base/Path",
-                     gui->FirmwareFileBaseLineEdit->text());
+                     gui->FirmwareBasePathLineEdit->text());
   Settings->setValue("Firmware/Data/Path",
                      gui->ExploreFirmwareDataPathPushButton->text());
 
@@ -282,7 +282,7 @@ bool MainWindowKernel::checkNewSettings() {
     return false;
   }
 
-  QFileInfo fileInfo(gui->FirmwareFileBaseLineEdit->text());
+  QFileInfo fileInfo(gui->FirmwareBasePathLineEdit->text());
   if ((!fileInfo.isFile()) || (fileInfo.suffix() != "hex") ||
       (!fileInfo.exists())) {
     return false;

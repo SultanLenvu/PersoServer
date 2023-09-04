@@ -18,8 +18,7 @@ class DatabaseTableModel : public QAbstractTableModel {
   explicit DatabaseTableModel(QObject* parent);
   ~DatabaseTableModel();
 
-  void build(const QVector<QString>* headers,
-             const QVector<QVector<QString>*>* data);
+  void build(QVector<QString>* headers, QVector<QVector<QString>*>* data);
   void clear(void);
   bool isEmpty(void);
 

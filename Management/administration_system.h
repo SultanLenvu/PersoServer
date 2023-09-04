@@ -25,12 +25,13 @@ class AdministrationSystem : public QObject {
 
  private:
   PostgresController* Database;
+  TransponderReleaseSystem* Releaser;
+  FirmwareGenerationSystem* Generator;
 
  public:
   explicit AdministrationSystem(QObject* parent);
 
  public slots:
-  void proxyLogging(const QString& log);
   void applySettings(void);
 
   void clearDatabaseTable(const QString& tableName);
@@ -68,6 +69,9 @@ class AdministrationSystem : public QObject {
   bool stopOrderAssembling(const QString& id) const;
 
   void processingResult(const QString& log, const ExecutionStatus status);
+
+ private slots:
+  void proxyLogging(const QString& log) const;
 
  signals:
   void logging(const QString& log) const;

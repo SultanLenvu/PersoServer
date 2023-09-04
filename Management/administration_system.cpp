@@ -8,22 +8,17 @@ AdministrationSystem::AdministrationSystem(QObject* parent) : QObject(parent) {
   loadSettings();
 
   createDatabaseController();
-}
 
-void AdministrationSystem::proxyLogging(const QString& log) {
-  if (sender()->objectName() == "IDatabaseController") {
-    emit logging("Database controller - " + log);
-  } else if (sender()->objectName() == "FirmwareGenerationSystem") {
-    emit logging("Generator - " + log);
-  } else {
-    emit logging("Unknown - " + log);
-  }
+  Releaser = new TransponderReleaseSystem(this, Database);
+  Generator = new FirmwareGenerationSystem(this);
 }
 
 void AdministrationSystem::applySettings() {
   emit logging("Применение новых настроек. ");
   loadSettings();
   Database->applySettings();
+  Generator->applySettings();
+  Releaser->applySettings();
 }
 
 void AdministrationSystem::createDatabaseController() {
@@ -768,4 +763,16 @@ void AdministrationSystem::processingResult(const QString& log,
     Database->disconnect(IDatabaseController::Abort);
   }
   emit operationFinished(status);
+}
+
+void AdministrationSystem::proxyLogging(const QString& log) const {
+  if (sender()->objectName() == "IDatabaseController") {
+    emit logging("Database controller - " + log);
+  } else if (sender()->objectName() == "FirmwareGenerationSystem") {
+    emit logging("Generator - " + log);
+  } else if (sender()->objectName() == "TransponderReleaseSystem") {
+    emit logging("Releaser - " + log);
+  } else {
+    emit logging("Unknown - " + log);
+  }
 }

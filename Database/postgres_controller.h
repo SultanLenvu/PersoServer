@@ -29,36 +29,40 @@ class PostgresController : public IDatabaseController {
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
-                        DatabaseTableModel* buffer) override;
+                        DatabaseTableModel* buffer) const override;
   virtual bool execCustomRequest(const QString& req,
-                                 DatabaseTableModel* buffer) override;
+                                 DatabaseTableModel* buffer) const override;
   virtual void applySettings() override;
 
-  bool clearTable(const QString& tableName) const;
+  virtual bool clearTable(const QString& tableName) const override;
 
-  bool addRecord(const QString& tableName,
-                 QMap<QString, QString>& record) const;
+  virtual bool addRecord(const QString& tableName,
+                         QMap<QString, QString>& record) const override;
 
-  bool getRecordById(const QString& tableName,
-                     QMap<QString, QString>& record) const;
-  bool getRecordByPart(const QString& tableName,
-                       QMap<QString, QString>& record) const;
-  bool getLastRecord(const QString& tableName,
-                     QMap<QString, QString>& record) const;
+  virtual bool getRecordById(const QString& tableName,
+                             QMap<QString, QString>& record) const override;
+  virtual bool getRecordByPart(const QString& tableName,
+                               QMap<QString, QString>& record) const override;
+  virtual bool getLastRecord(const QString& tableName,
+                             QMap<QString, QString>& record) const override;
 
-  bool getMergedRecordById(const QStringList& tables,
-                           const QStringList& foreignKeys,
-                           QMap<QString, QString>& record) const;
-  bool getMergedRecordByPart(const QStringList& tables,
-                             const QStringList& foreignKeys,
-                             QMap<QString, QString>& record) const;
+  virtual bool getMergedRecordById(
+      const QStringList& tables,
+      const QStringList& foreignKeys,
+      QMap<QString, QString>& record) const override;
+  virtual bool getMergedRecordByPart(
+      const QStringList& tables,
+      const QStringList& foreignKeys,
+      QMap<QString, QString>& record) const override;
 
-  bool updateRecord(const QString& tableName,
-                    QMap<QString, QString>& record) const;
-  bool removeRecordById(const QString& tableName, const uint32_t id) const;
-  bool removeLastRecord(const QString& tableName) const;
-  bool removeLastRecordWithCondition(const QString& tableName,
-                                     const QString& condition) const;
+  virtual bool updateRecord(const QString& tableName,
+                            QMap<QString, QString>& record) const override;
+  virtual bool removeRecordById(const QString& tableName,
+                                const uint32_t id) const override;
+  virtual bool removeLastRecord(const QString& tableName) const override;
+  virtual bool removeLastRecordWithCondition(
+      const QString& tableName,
+      const QString& condition) const override;
 
  private:
   void openTransaction(void) const;

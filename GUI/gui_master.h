@@ -7,6 +7,8 @@
 #include "gui.h"
 #include "gui_delegates.h"
 
+#include "General/definitions.h"
+
 class MasterGUI : public GUI {
   Q_OBJECT
 
@@ -216,12 +218,12 @@ class MasterGUI : public GUI {
   // Настройки генератора прошивок
   QGroupBox* FirmwareSettingsGroupBox;
   QGridLayout* FirmwareSettingsLayout;
-  QLabel* FirmwareFilePathLabel;
-  QLineEdit* FirmwareFilePathLineEdit;
-  QPushButton* ExploreFirmwareFilePathPushButton;
-  QLabel* TransponderDataFilePathLabel;
-  QLineEdit* TransponderDataFilePathLineEdit;
-  QPushButton* ExploreTransponderDataFilePathPushButton;
+  QLabel* FirmwareBasePathLabel;
+  QLineEdit* FirmwareBasePathLineEdit;
+  QPushButton* ExploreFirmwareBasePathPushButton;
+  QLabel* FirmwareDataPathLabel;
+  QLineEdit* FirmwareDataPathLineEdit;
+  QPushButton* ExploreFirmwareDataPathPushButton;
   //============================================================
  public:
   explicit MasterGUI(QWidget* parent);
@@ -236,18 +238,20 @@ class MasterGUI : public GUI {
   void createDatabaseTab(void);
   void createOrderTab(void);
   void createProductionLineTab(void);
-  void createFirmwareTab(void);
+  void createTransponderTab(void);
   void createTransportKeyTab(void);
   void createCommercialKeyTab(void);
 
   void createSettingsTab(void);
 
  private slots:
-  void on_FullPersonalizationCheckBoxChanged(void);
+  void on_FullPersonalizationCheckBoxChanged_slot(void);
   void on_PanFileExplorePushButton_slot(void);
 
-  void on_ExploreFirmwareFilePathPushButton_slot(void);
-  void on_ExploreTransponderDataFilePathPushButton_slot(void);
+  void on_ExploreFirmwareBasePathPushButton_slot(void);
+  void on_ExploreFirmwareDataPathPushButton_slot(void);
+
+  void on_SearchByComboBox_slot(const QString& text);
 
  signals:
 };

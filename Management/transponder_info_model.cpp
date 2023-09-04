@@ -44,7 +44,7 @@ bool TransponderInfoModel::isEmpty() {
   return (!Data) ? true : false;
 }
 
-int TransponderInfoModel::columnCount(const QModelIndex& parent) const {
+int TransponderInfoModel::rowCount(const QModelIndex& parent) const {
   return (Data) ? Data->size() : 0;
 }
 
