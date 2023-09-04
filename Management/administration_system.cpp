@@ -13,6 +13,8 @@ AdministrationSystem::AdministrationSystem(QObject* parent) : QObject(parent) {
 void AdministrationSystem::proxyLogging(const QString& log) {
   if (sender()->objectName() == "IDatabaseController") {
     emit logging("Database controller - " + log);
+  } else if (sender()->objectName() == "FirmwareGenerationSystem") {
+    emit logging("Generator - " + log);
   } else {
     emit logging("Unknown - " + log);
   }

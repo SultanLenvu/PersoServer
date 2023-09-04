@@ -15,6 +15,17 @@
 #define SERVER_MANAGER_OPERATION_MAX_DURATION 60000
 //===============================================================
 
+/* Определения для генератора прошивок */
+//===============================================================
+#define UCID_LENGTH 32
+#define SERIAL_NUMBER_LENGTH 8
+#define PAYMENT_MEANS_LENGTH 19
+#define EFC_CONTEXT_MARK_LENGTH 12
+#define GROUP_OBU_ID_LENGTH 4
+#define COMMON_KEY_LENGTH 16
+#define MASTER_KEY_LENGTH 32
+//===============================================================
+
 /* Определения для базы данных Postgres */
 //===============================================================
 #define TRANSPONDER_ID_START_SHIFT 500000

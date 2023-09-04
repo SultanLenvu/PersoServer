@@ -2,7 +2,12 @@
 
 FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(parent)
 {
-  
+  setObjectName("FirmwareGenerationSystem");
+
+  FirmwareBase = new QFile();
+  FirmwareData = new QFile();
+
+  loadSettings();
 }
 
 void FirmwareGenerationSystem::proxyLogging(const QString& log) {
@@ -16,33 +21,21 @@ void FirmwareGenerationSystem::proxyLogging(const QString& log) {
 void FirmwareGenerationSystem::applySettings() {
   emit logging("Применение новых настроек. ");
   loadSettings();
-  Database->applySettings();
 }
 
-void FirmwareGenerationSystem::getCurrentTransponderData(
-    QMap<QString, QString> transponderData) {}
+bool FirmwareGenerationSystem::getCurrentTransponderData(
+    TransponderInfoModel* model) {}
 
-void FirmwareGenerationSystem::getGeneratedFirmware(QByteArray* firmware) {}
+bool FirmwareGenerationSystem::getAssembledFirmware(QMap<QString, QString> seed,
+                                                    QByteArray* firmware) {}
 
-void FirmwareGenerationSystem::confirmTransponderEmission() {}
+void FirmwareGenerationSystem::loadSettings() {
+  QSettings settings;
 
-void FirmwareGenerationSystem::createDatabaseController() {}
-
-void FirmwareGenerationSystem::loadSettings() {}
-
-void FirmwareGenerationSystem::generateTransponderData() {}
-
-void FirmwareGenerationSystem::generateFirmware() {}
-
-void FirmwareGenerationSystem::processingResult(const QString& log,
-                                                const ExecutionStatus status) {
-  emit logging(log);
-  emit logging("Отключение от базы данных. ");
-
-  if (status == CompletedSuccessfully) {
-    Database->disconnect(IDatabaseController::Complete);
-  } else {
-    Database->disconnect(IDatabaseController::Abort);
-  }
-  emit operationFinished(status);
+  FirmwareBase->setFileName(settings.value("Firmware/Base/Path").toString());
+  FirmwareData->setFileName(settings.value("Firmware/Data/Path").toString());
 }
+
+void FirmwareGenerationSystem::generateFirmwareData() {}
+
+void FirmwareGenerationSystem::assembleFirmware() {}

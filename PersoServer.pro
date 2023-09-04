@@ -20,6 +20,8 @@ SOURCES += \
     Management/perso_client_connection.cpp \
     Management/perso_host.cpp \
     Management/server_manager.cpp \
+    Management/transponder_info_model.cpp \
+    Management/transponder_release_system.cpp \
     Miscellaneous/thread_object_builder.cpp \
     main.cpp \
     GUI/main_window_kernel.cpp \
@@ -47,6 +49,8 @@ HEADERS += \
     Management/perso_client_connection.h \
     Management/perso_host.h \
     Management/server_manager.h \
+    Management/transponder_info_model.h \
+    Management/transponder_release_system.h \
     Management/user_settings.h \
     Miscellaneous/thread_object_builder.h
 

@@ -1,25 +1,23 @@
-#ifndef DATABASBUFFER_H
-#define DATABASBUFFER_H
+#ifndef TRANSPONDERINFOMODEL_H
+#define TRANSPONDERINFOMODEL_H
 
 #include <QAbstractTableModel>
+#include <QMap>
 #include <QMutex>
-#include <QMutexLocker>
+#include <QString>
 
-class DatabaseTableModel : public QAbstractTableModel {
+class TransponderInfoModel : public QAbstractTableModel
+{
   Q_OBJECT
-
  private:
-  QVector<QString>* Headers;
-  QVector<QVector<QString>*>* Data;
+  QMap<QString, QString> Data;
 
   QMutex Mutex;
 
  public:
-  explicit DatabaseTableModel(QObject* parent);
-  ~DatabaseTableModel();
+  explicit TransponderInfoModel(QObject* parent = nullptr);
 
-  void build(const QVector<QString>* headers,
-             const QVector<QVector<QString>*>* data);
+  void build(QMap<QString, QString> data);
   void clear(void);
   bool isEmpty(void);
 
@@ -30,9 +28,6 @@ class DatabaseTableModel : public QAbstractTableModel {
   QVariant headerData(int section,
                       Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
-
- private:
-  void deleteAll(void);
 };
 
-#endif // DATABASBUFFER_H
+#endif // TRANSPONDERINFOMODEL_H

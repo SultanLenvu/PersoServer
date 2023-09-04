@@ -41,7 +41,7 @@ void MasterGUI::createTabs() {
   createDatabaseTab();
   createOrderTab();
   createProductionLineTab();
-  createFirmwareTab();
+  createTransponderTab();
   createTransportKeyTab();
   createCommercialKeyTab();
 
@@ -141,7 +141,7 @@ void MasterGUI::createOrderTab() {
   FullPersonalizationCheckBox = new QCheckBox("Полная персонализация");
   OrderControlPanelLayout->addWidget(FullPersonalizationCheckBox);
   connect(FullPersonalizationCheckBox, &QCheckBox::stateChanged, this,
-          &MasterGUI::on_FullPersonalizationCheckBoxChanged);
+          &MasterGUI::on_FullPersonalizationCheckBoxChanged_slot);
 
   OrderPanelSubLayout1 = new QHBoxLayout();
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout1);
@@ -266,7 +266,7 @@ void MasterGUI::createProductionLineTab() {
   ProductionLinesTabMainLayout->setStretch(1, 3);
 }
 
-void MasterGUI::createFirmwareTab() {
+void MasterGUI::createTransponderTab() {
   TransponderTab = new QWidget();
   Tabs->addTab(TransponderTab, "Выпуск транспондеров");
 
@@ -300,15 +300,19 @@ void MasterGUI::createFirmwareTab() {
   SearchByLayout->addWidget(SearchByLabel);
   SearchByComboBox = new QComboBox();
   SearchByComboBox->addItem("UCID");
-  SearchByComboBox->addItem("Серийный номер");
+  SearchByComboBox->addItem("SN");
   SearchByComboBox->addItem("PAN");
+  SearchByComboBox->setCurrentIndex(0);
   SearchByLayout->addWidget(SearchByComboBox);
+  connect(SearchByComboBox, &QComboBox::currentTextChanged, this,
+          &MasterGUI::on_SearchByComboBox_slot);
 
   SearchInputLayout = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(SearchInputLayout);
   SearchInputLabel = new QLabel("Введите данные:");
   SearchInputLayout->addWidget(SearchInputLabel);
   SearchInputLineEdit = new QLineEdit();
+  SearchInputLineEdit->setMaxLength(UCID_LENGTH);
   SearchInputLayout->addWidget(SearchInputLineEdit);
 
   SearchPushButton = new QPushButton("Найти");
@@ -319,7 +323,7 @@ void MasterGUI::createFirmwareTab() {
   TransponderControlPanelLayout->addWidget(RevokeTransponderPushButton);
 
   // Панель отображения
-  TransponderDisplayPanel = new QGroupBox("Панель отображений");
+  TransponderDisplayPanel = new QGroupBox("Данные транспондера");
   TransponderTabMainLayout->addWidget(TransponderDisplayPanel);
 
   TransponderDisplayLayout = new QHBoxLayout();
@@ -519,29 +523,30 @@ void MasterGUI::createSettingsTab() {
   FirmwareSettingsLayout = new QGridLayout();
   FirmwareSettingsGroupBox->setLayout(FirmwareSettingsLayout);
 
-  FirmwareFilePathLabel = new QLabel("Путь к файлу с прошивкой");
-  FirmwareSettingsLayout->addWidget(FirmwareFilePathLabel, 0, 0, 1, 1);
-  FirmwareFilePathLineEdit = new QLineEdit(
+  FirmwareBasePathLabel = new QLabel("Путь к файлу с прошивкой");
+  FirmwareSettingsLayout->addWidget(FirmwareBasePathLabel, 0, 0, 1, 1);
+  FirmwareFileBaseLineEdit = new QLineEdit(
       settings.value("FirmwareGenerationSystem/Firmware/Path").toString());
-  FirmwareSettingsLayout->addWidget(FirmwareFilePathLineEdit, 0, 1, 1, 1);
-  ExploreFirmwareFilePathPushButton = new QPushButton("Обзор");
-  FirmwareSettingsLayout->addWidget(ExploreFirmwareFilePathPushButton, 0, 2, 1,
+  FirmwareFileBaseLineEdit->setMaxLength(200);
+  FirmwareSettingsLayout->addWidget(FirmwareFileBaseLineEdit, 0, 1, 1, 1);
+  ExploreFirmwareBasePathPushButton = new QPushButton("Обзор");
+  FirmwareSettingsLayout->addWidget(ExploreFirmwareBasePathPushButton, 0, 2, 1,
                                     1);
-  connect(ExploreFirmwareFilePathPushButton, &QPushButton::clicked, this,
-          &MasterGUI::on_ExploreFirmwareFilePathPushButton_slot);
+  connect(ExploreFirmwareBasePathPushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_ExploreFirmwareBasePathPushButton_slot);
 
-  TransponderDataFilePathLabel = new QLabel("Путь к файлу с данными");
-  FirmwareSettingsLayout->addWidget(TransponderDataFilePathLabel, 1, 0, 1, 1);
-  TransponderDataFilePathLineEdit = new QLineEdit(
+  FirmwareDataPathLabel = new QLabel("Путь к файлу с данными");
+  FirmwareSettingsLayout->addWidget(FirmwareDataPathLabel, 1, 0, 1, 1);
+  FirmwareDataPathLineEdit = new QLineEdit(
       settings.value("FirmwareGenerationSystem/TransponderData/Path")
           .toString());
-  FirmwareSettingsLayout->addWidget(TransponderDataFilePathLineEdit, 1, 1, 1,
+  FirmwareDataPathLineEdit->setMaxLength(200);
+  FirmwareSettingsLayout->addWidget(FirmwareDataPathLineEdit, 1, 1, 1, 1);
+  ExploreFirmwareDataPathPushButton = new QPushButton("Обзор");
+  FirmwareSettingsLayout->addWidget(ExploreFirmwareDataPathPushButton, 1, 2, 1,
                                     1);
-  ExploreTransponderDataFilePathPushButton = new QPushButton("Обзор");
-  FirmwareSettingsLayout->addWidget(ExploreTransponderDataFilePathPushButton, 1,
-                                    2, 1, 1);
-  connect(ExploreTransponderDataFilePathPushButton, &QPushButton::clicked, this,
-          &MasterGUI::on_ExploreTransponderDataFilePathPushButton_slot);
+  connect(ExploreFirmwareDataPathPushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_ExploreFirmwareDataPathPushButton_slot);
 
   // Кнопка сохранения настроек
   ApplySettingsPushButton = new QPushButton("Применить изменения");
@@ -553,7 +558,7 @@ void MasterGUI::createSettingsTab() {
   SettingsMainSubLayout->addItem(SettingsVerticalSpacer1);
 }
 
-void MasterGUI::on_FullPersonalizationCheckBoxChanged() {
+void MasterGUI::on_FullPersonalizationCheckBoxChanged_slot() {
   if (FullPersonalizationCheckBox->checkState() == Qt::Checked) {
     OrderPanelSubWidget = new QWidget();
     OrderControlPanelLayout->insertWidget(1, OrderPanelSubWidget);
@@ -585,14 +590,26 @@ void MasterGUI::on_PanFileExplorePushButton_slot() {
   }
 }
 
-void MasterGUI::on_ExploreFirmwareFilePathPushButton_slot() {
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
-  FirmwareFilePathLineEdit->setText(filePath);
+void MasterGUI::on_SearchByComboBox_slot(const QString& text) {
+  if (text == "UCID") {
+    SearchInputLineEdit->setMaxLength(UCID_LENGTH);
+  } else if (text == "PAN") {
+    SearchInputLineEdit->setMaxLength(PAYMENT_MEANS_LENGTH);
+  } else if (text == "SN") {
+    SearchInputLineEdit->setMaxLength(SERIAL_NUMBER_LENGTH);
+  } else {
+    SearchInputLineEdit->setMaxLength(0);
+  }
 }
 
-void MasterGUI::on_ExploreTransponderDataFilePathPushButton_slot() {
+void MasterGUI::on_ExploreFirmwareBasePathPushButton_slot() {
   QString filePath =
       QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
-  TransponderDataFilePathLineEdit->setText(filePath);
+  FirmwareFileBaseLineEdit->setText(filePath);
+}
+
+void MasterGUI::on_ExploreFirmwareDataPathPushButton_slot() {
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
+  FirmwareDataPathLineEdit->setText(filePath);
 }

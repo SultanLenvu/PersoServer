@@ -1,12 +1,14 @@
 #ifndef FIRMWAREGENERATIONSYSTEM_H
 #define FIRMWAREGENERATIONSYSTEM_H
 
+#include <QAbstractTableModel>
 #include <QFile>
 #include <QObject>
 #include <QString>
 
 #include <Database/database_controller.h>
 #include <Database/postgres_controller.h>
+#include "transponder_info_model.h"
 
 class FirmwareGenerationSystem : public QObject
 {
@@ -21,13 +23,10 @@ class FirmwareGenerationSystem : public QObject
   };
 
  private:
-  PostgresController* Database;
-  QMap<QString, QString> CurrentTransponderData;
+  QFile* FirmwareBase;
+  QFile* FirmwareData;
 
-  QFile* Base;
-  QFile* DsrcData;
-
-  QByteArray* Firmware;
+  QByteArray* GeneratedFirmware;
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
@@ -36,22 +35,16 @@ class FirmwareGenerationSystem : public QObject
   void proxyLogging(const QString& log);
   void applySettings(void);
 
-  void getCurrentTransponderData(QMap<QString, QString> transponderData);
-  void getGeneratedFirmware(QByteArray* firmware);
-  void confirmTransponderEmission(void);
+  bool getAssembledFirmware(TransponderInfoModel* seed, QByteArray* firmware);
 
  private:
-  void createDatabaseController(void);
   void loadSettings(void);
 
-  void generateTransponderData(void);
-  void generateFirmware(void);
-
-  void processingResult(const QString& log, const ExecutionStatus status);
+  void generateFirmwareData(void);
+  void assembleFirmware(void);
 
  signals:
   void logging(const QString& log) const;
-  void operationFinished(ExecutionStatus status);
 };
 
 #endif // FIRMWAREGENERATIONSYSTEM_H

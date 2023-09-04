@@ -49,11 +49,7 @@ bool DatabaseTableModel::isEmpty() {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
-  if ((!Headers) && (!Data)) {
-    return true;
-  } else {
-    return false;
-  }
+  return ((!Headers) && (!Data)) ? true : false;
 }
 
 int DatabaseTableModel::rowCount(const QModelIndex& parent) const {
@@ -64,10 +60,7 @@ int DatabaseTableModel::rowCount(const QModelIndex& parent) const {
 }
 
 int DatabaseTableModel::columnCount(const QModelIndex& parent) const {
-  if (Headers)
-    return Headers->size();
-  else
-    return 0;
+  return (Headers) ? Headers->size() : 0;
 }
 
 QVariant DatabaseTableModel::data(const QModelIndex& index, int role) const {
@@ -91,6 +84,10 @@ QVariant DatabaseTableModel::headerData(int section,
                                         int role) const {
   if (!Headers)
     return QVariant();
+
+  if (section > Headers->size()) {
+    return QVariant();
+  }
 
   if (role != Qt::DisplayRole)
     return QVariant();

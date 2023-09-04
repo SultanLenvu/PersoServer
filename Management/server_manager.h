@@ -18,6 +18,7 @@
 #include "administration_system.h"
 #include "administration_system_builder.h"
 #include "perso_host.h"
+#include "transponder_info_model.h"
 #include "user_settings.h"
 
 class ServerManager : public QObject {
@@ -72,6 +73,12 @@ class ServerManager : public QObject {
                       DatabaseTableModel* buffer);
   void deleteLastOrder(DatabaseTableModel* buffer);
   void showOrderTable(DatabaseTableModel* buffer);
+
+  void releaseTransponder(TransponderInfoModel* seed);
+  void searchTransponder(QPair<QString, QString> attribute,
+                         TransponderInfoModel* seed);
+  void rereleaseTransponder(QPair<QString, QString> attribute);
+  void revokeTransponder(QPair<QString, QString> attribute);
 
   void createNewProductionLine(
       const QMap<QString, QString>* productionLineParameters,

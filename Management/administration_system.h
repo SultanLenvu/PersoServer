@@ -5,9 +5,12 @@
 #include <QDate>
 #include <QObject>
 
-#include "Database/database_table_model.h"
 #include "Database/database_controller.h"
+#include "Database/database_table_model.h"
 #include "Database/postgres_controller.h"
+#include "firmware_generation_system.h"
+#include "transponder_info_model.h"
+#include "transponder_release_system.h"
 
 class AdministrationSystem : public QObject {
   Q_OBJECT

@@ -14,6 +14,7 @@
 #include "Database/database_table_model.h"
 #include "GUI/log_system.h"
 #include "Management/server_manager.h"
+#include "Management/transponder_info_model.h"
 #include "Management/user_settings.h"
 
 #include "General/definitions.h"
@@ -38,6 +39,7 @@ class MainWindowKernel : public QMainWindow {
   DatabaseTableModel* RandomBuffer;
   DatabaseTableModel* OrderBuffer;
   DatabaseTableModel* ProductionLineBuffer;
+  TransponderInfoModel* TransponderSeed;
 
   QSettings* Settings;
 
@@ -72,8 +74,14 @@ class MainWindowKernel : public QMainWindow {
   void on_UpdateProductionLineViewPushButton_slot(void);
   void on_DeleteLastProductionLinePushButton_slot(void);
 
+  // Функционал для работы с транспондерами
+  void on_ReleaseTransponderPushButton_slot(void);
+  void on_SearchPushButton_slot(void);
+  void on_RereleaseTransponderPushButton_slot(void);
+  void on_RevokeTransponderPushButton_slot(void);
+
   // Функционал для настройки сервера
-  void applyUserSettings_slot(void);
+  void on_ApplySettingsPushButton_slot(void);
 
  private:
   void proxyLogging(const QString& log);

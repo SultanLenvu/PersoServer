@@ -26,7 +26,7 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   setupLogSystem();
 
   // Создаем модели для представлений
-  createBuffers();
+  createModels();
 }
 
 MainWindowKernel::~MainWindowKernel() {}
@@ -171,11 +171,31 @@ void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
   Logger->clear();
 
   Manager->deleteLastProductionLine(ProductionLineBuffer);
-
+  
   CurrentGUI->update();
 }
 
-void MainWindowKernel::applyUserSettings_slot() {
+void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
+{
+  
+}
+
+void MainWindowKernel::on_SearchPushButton_slot()
+{
+  
+}
+
+void MainWindowKernel::on_RereleaseTransponderPushButton_slot()
+{
+  
+}
+
+void MainWindowKernel::on_RevokeTransponderPushButton_slot()
+{
+  
+}
+
+void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
   Logger->clear();
@@ -200,6 +220,10 @@ void MainWindowKernel::applyUserSettings_slot() {
                      gui->DatabaseUserPasswordLineEdit->text());
   Settings->setValue("Database/Log/Active",
                      gui->DatabaseLogOption->checkState() == Qt::Checked);
+  Settings->setValue("Firmware/Base/Path",
+                     gui->FirmwareFileBaseLineEdit->text());
+  Settings->setValue("Firmware/Data/Path",
+                     gui->ExploreFirmwareDataPathPushButton->text());
 
   // Применение новых настроек
   Manager->applySettings();
@@ -255,6 +279,18 @@ bool MainWindowKernel::checkNewSettings() {
   port = gui->DatabasePortLineEdit->text().toInt();
 
   if ((port > IP_PORT_MAX_VALUE) || (port < IP_PORT_MIN_VALUE)) {
+    return false;
+  }
+
+  QFileInfo fileInfo(gui->FirmwareFileBaseLineEdit->text());
+  if ((!fileInfo.isFile()) || (fileInfo.suffix() != "hex") ||
+      (!fileInfo.exists())) {
+    return false;
+  }
+
+  fileInfo.setFile(gui->FirmwareDataPathLineEdit->text());
+  if ((!fileInfo.isFile()) || (fileInfo.suffix() != "hex") ||
+      (!fileInfo.exists())) {
     return false;
   }
 
@@ -417,9 +453,22 @@ void MainWindowKernel::connectMasterInterface() {
   connect(gui->DeleteLastProductionLinePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
 
+  // Транспондеры
+  connect(gui->DeleteLastProductionLinePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
+
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::applyUserSettings_slot);
+          &MainWindowKernel::on_ApplySettingsPushButton_slot);
+
+  connect(gui->ReleaseTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ReleaseTransponderPushButton_slot);
+  connect(gui->SearchPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_SearchPushButton_slot);
+  connect(gui->RereleaseTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_RereleaseTransponderPushButton_slot);
+  connect(gui->RevokeTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_RevokeTransponderPushButton_slot);
 
   // Соединяем модели и представления
   gui->DatabaseRandomBufferView->setModel(RandomBuffer);
@@ -457,8 +506,9 @@ void MainWindowKernel::setupLogSystem() {
           &GUI::clearLogDisplay);
 }
 
-void MainWindowKernel::createBuffers() {
+void MainWindowKernel::createModels() {
   RandomBuffer = new DatabaseTableModel(this);
   OrderBuffer = new DatabaseTableModel(this);
   ProductionLineBuffer = new DatabaseTableModel(this);
+  TransponderSeed = new TransponderInfoModel(this);
 }
