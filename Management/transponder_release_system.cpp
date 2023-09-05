@@ -97,7 +97,7 @@ bool TransponderReleaseSystem::rerelease(TransponderInfoModel* seed) {
 
 bool TransponderReleaseSystem::search(TransponderInfoModel* seed) {
   QMap<QString, QString> transponderRecord;
-  QMap<QString, QString> mergedRecord;
+  QMap<QString, QString>* mergedRecord = new QMap<QString, QString>;
   QStringList tables;
   QStringList foreignKeys;
 
@@ -106,16 +106,39 @@ bool TransponderReleaseSystem::search(TransponderInfoModel* seed) {
     emit logging("Получена ошибка при открытии транзакции. ");
     return false;
   }
-  emit logging("Транзакция открыта. ");
+
+  tables.append("transponders");
+  tables.append("boxes");
+  tables.append("pallets");
+  tables.append("orders");
+  tables.append("issuers");
+  foreignKeys.append("box_id");
+  foreignKeys.append("pallet_id");
+  foreignKeys.append("order_id");
+  foreignKeys.append("issuer_id");
+  mergedRecord->insert("transponders.id", "");
+  mergedRecord->insert("model", "");
+  mergedRecord->insert("release_counter", "");
+  mergedRecord->insert("ucid", "");
+  mergedRecord->insert("group_id", "");
+  mergedRecord->insert("payment_means", "");
+  mergedRecord->insert("efc_context_mark", "");
+  mergedRecord->insert("boxes.in_process", "");
+  mergedRecord->insert("transponders." + seed->getMap()->constBegin().key(),
+                       seed->getMap()->constBegin().value());
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, *mergedRecord)) {
+    emit logging("Ошибка при выполнении запроса. ");
+  }
+  emit logging("Запрос успешно выполнен. ");
 
   // Закрываем транзакцию
-  if (Database->closeTransaction(IDatabaseController::Complete)) {
-    emit logging("Транзакция закрыта. ");
-    return true;
-  } else {
+  if (!Database->closeTransaction(IDatabaseController::Complete)) {
     emit logging("Получена ошибка при закрытии транзакции. ");
     return false;
   }
+
+  seed->build(mergedRecord);
+  return true;
 }
 
 bool TransponderReleaseSystem::refund(TransponderInfoModel* seed) {
