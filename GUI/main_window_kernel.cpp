@@ -151,8 +151,8 @@ void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
   }
 
   QMap<QString, QString> productionLineParameters;
-  productionLineParameters.insert("Login", gui->LoginLineEdit->text());
-  productionLineParameters.insert("Password", gui->PasswordLineEdit->text());
+  productionLineParameters.insert("Login", gui->LoginLineEdit1->text());
+  productionLineParameters.insert("Password", gui->PasswordLineEdit1->text());
   Manager->createNewProductionLine(&productionLineParameters,
                                    ProductionLineBuffer);
 
@@ -177,26 +177,113 @@ void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
 
 void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
 {
-  
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkReleaseTransponderInput()) {
+    Interactor->generateError(
+        "Введены некорректные данные для выпуска транспондера. ");
+    return;
+  }
+
+  data->insert("ucid", gui->UcidLineEdit->text());
+  data->insert("login", gui->LoginLineEdit2->text());
+  data->insert("password", gui->PasswordLineEdit2->text());
+  TransponderSeed->build(data);
+  Manager->releaseTransponder(TransponderSeed);
+
+  CurrentGUI->update();
 }
 
-void MainWindowKernel::on_SearchPushButton_slot()
-{
-  
+void MainWindowKernel::on_SearchTransponderPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+  QString text = gui->SearchTransponderByComboBox->currentText();
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkSearchTransponderInput()) {
+    Interactor->generateError("Введены некорректные данные для поиска. ");
+    return;
+  }
+
+  if (text == "UCID") {
+    data->insert("ucid", gui->SearchTransponderLineEdit->text());
+  } else if (text == "SN") {
+    data->insert("id", gui->SearchTransponderLineEdit->text());
+  } else if (text == "PAN") {
+    data->insert("payment_means", gui->SearchTransponderLineEdit->text());
+  }
+  TransponderSeed->build(data);
+
+  Manager->searchTransponder(TransponderSeed);
+
+  CurrentGUI->update();
 }
 
 void MainWindowKernel::on_RereleaseTransponderPushButton_slot()
 {
-  
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+  QString text = gui->SearchTransponderByComboBox->currentText();
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkSearchTransponderInput()) {
+    Interactor->generateError("Введены некорректные данные для поиска. ");
+    return;
+  }
+
+  if (text == "UCID") {
+    data->insert("ucid", gui->SearchTransponderLineEdit->text());
+  } else if (text == "SN") {
+    data->insert("id", gui->SearchTransponderLineEdit->text());
+  } else if (text == "PAN") {
+    data->insert("payment_means", gui->SearchTransponderLineEdit->text());
+  }
+  TransponderSeed->build(data);
+
+  Manager->rereleaseTransponder(TransponderSeed);
+
+  CurrentGUI->update();
 }
 
 void MainWindowKernel::on_RevokeTransponderPushButton_slot()
 {
-  
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+  QString text = gui->SearchTransponderByComboBox->currentText();
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkSearchTransponderInput()) {
+    Interactor->generateError("Введены некорректные данные для поиска. ");
+    return;
+  }
+
+  if (text == "UCID") {
+    data->insert("ucid", gui->SearchTransponderLineEdit->text());
+  } else if (text == "SN") {
+    data->insert("id", gui->SearchTransponderLineEdit->text());
+  } else if (text == "PAN") {
+    data->insert("payment_means", gui->SearchTransponderLineEdit->text());
+  }
+  TransponderSeed->build(data);
+
+  Manager->refundTransponder(TransponderSeed);
+
+  CurrentGUI->update();
 }
 
 void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QSettings settings;
 
   Logger->clear();
 
@@ -207,23 +294,23 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   }
 
   // Считывание пользовательского ввода
-  Settings->setValue("PersoHost/Ip", gui->PersoServerIpLineEdit->text());
-  Settings->setValue("PersoHost/Port",
-                     gui->PersoServerPortLineEdit->text().toInt());
-  Settings->setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
-  Settings->setValue("Database/Server/Port",
-                     gui->DatabasePortLineEdit->text().toInt());
-  Settings->setValue("Database/Name", gui->DatabaseNameLineEdit->text());
-  Settings->setValue("Database/User/Name",
-                     gui->DatabaseUserNameLineEdit->text());
-  Settings->setValue("Database/User/Password",
-                     gui->DatabaseUserPasswordLineEdit->text());
-  Settings->setValue("Database/Log/Active",
-                     gui->DatabaseLogOption->checkState() == Qt::Checked);
-  Settings->setValue("Firmware/Base/Path",
-                     gui->FirmwareBasePathLineEdit->text());
-  Settings->setValue("Firmware/Data/Path",
-                     gui->ExploreFirmwareDataPathPushButton->text());
+  settings.setValue("PersoHost/Ip", gui->PersoServerIpLineEdit->text());
+  settings.setValue("PersoHost/Port",
+                    gui->PersoServerPortLineEdit->text().toInt());
+  settings.setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
+  settings.setValue("Database/Server/Port",
+                    gui->DatabasePortLineEdit->text().toInt());
+  settings.setValue("Database/Name", gui->DatabaseNameLineEdit->text());
+  settings.setValue("Database/User/Name",
+                    gui->DatabaseUserNameLineEdit->text());
+  settings.setValue("Database/User/Password",
+                    gui->DatabaseUserPasswordLineEdit->text());
+  settings.setValue("Database/Log/Active",
+                    gui->DatabaseLogOption->checkState() == Qt::Checked);
+  settings.setValue("Firmware/Base/Path",
+                    gui->FirmwareBasePathLineEdit->text());
+  settings.setValue("Firmware/Data/Path",
+                    gui->ExploreFirmwareDataPathPushButton->text());
 
   // Применение новых настроек
   Manager->applySettings();
@@ -240,22 +327,20 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
  * Приватные методы
  */
 
-void MainWindowKernel::proxyLogging(const QString& log) {
+void MainWindowKernel::proxyLogging(const QString& log) const {
   if (sender()->objectName() == QString("ServerManager"))
     emit logging(QString("Manager - ") + log);
   else
     emit logging(QString("Unknown - ") + log);
 }
 
-void MainWindowKernel::loadSettings() {
+void MainWindowKernel::loadSettings() const {
   QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
   QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
   QCoreApplication::setApplicationName(PROGRAM_NAME);
-
-  Settings = new QSettings(this);
 }
 
-bool MainWindowKernel::checkNewSettings() {
+bool MainWindowKernel::checkNewSettings() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
   QHostAddress IP = QHostAddress(gui->PersoServerIpLineEdit->text());
@@ -297,7 +382,7 @@ bool MainWindowKernel::checkNewSettings() {
   return true;
 }
 
-bool MainWindowKernel::checkNewOrderInput() {
+bool MainWindowKernel::checkNewOrderInput() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
   int32_t transponderQuantity =
@@ -331,16 +416,80 @@ bool MainWindowKernel::checkNewOrderInput() {
   return true;
 }
 
-bool MainWindowKernel::checkNewProductionLineInput() {
+bool MainWindowKernel::checkNewProductionLineInput() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
-  if ((gui->LoginLineEdit->text().size() == 0) ||
-      (gui->LoginLineEdit->text().size() > 20)) {
+  if ((gui->LoginLineEdit1->text().size() == 0) ||
+      (gui->LoginLineEdit1->text().size() > 20)) {
     return false;
   }
 
-  if ((gui->PasswordLineEdit->text().size() == 0) ||
-      (gui->PasswordLineEdit->text().size() > 20)) {
+  if ((gui->PasswordLineEdit1->text().size() == 0) ||
+      (gui->PasswordLineEdit1->text().size() > 20)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool MainWindowKernel::checkReleaseTransponderInput() const {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QRegularExpression regex("[A-Fa-f0-9]+");
+
+  if (gui->UcidLineEdit->text().size() != UCID_LENGTH) {
+    return false;
+  }
+
+  QRegularExpressionMatch match = regex.match(gui->UcidLineEdit->text());
+  if ((!match.hasMatch()) || (match.captured(0) != gui->UcidLineEdit->text())) {
+    return false;
+  }
+
+  if ((gui->LoginLineEdit2->text().size() == 0) ||
+      (gui->LoginLineEdit2->text().size() > 20)) {
+    return false;
+  }
+
+  if ((gui->PasswordLineEdit2->text().size() == 0) ||
+      (gui->PasswordLineEdit2->text().size() > 20)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool MainWindowKernel::checkSearchTransponderInput() const {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QRegularExpression ucidRegex("[A-Fa-f0-9]+");
+  QRegularExpression panRegex("[0-9]+");
+  QString text = gui->SearchTransponderByComboBox->currentText();
+
+  if (text == "UCID") {
+    if (text.size() != UCID_LENGTH) {
+      return false;
+    }
+
+    QRegularExpressionMatch match =
+        ucidRegex.match(gui->SearchTransponderLineEdit->text());
+    if ((!match.hasMatch()) || (match.captured(0) != text)) {
+      return false;
+    }
+  } else if (text == "SN") {
+    if (gui->SearchTransponderLineEdit->text().toInt() == 0) {
+      return false;
+    }
+  } else if (text == "PAN") {
+    if (gui->SearchTransponderLineEdit->text().length() !=
+        PAYMENT_MEANS_LENGTH) {
+      return false;
+    }
+
+    QRegularExpressionMatch match =
+        panRegex.match(gui->SearchTransponderLineEdit->text());
+    if ((!match.hasMatch()) || (match.captured(0) != text)) {
+      return false;
+    }
+  } else {
     return false;
   }
 
@@ -454,26 +603,24 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
 
   // Транспондеры
-  connect(gui->DeleteLastProductionLinePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
-
-  // Сохранение настроек
-  connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_ApplySettingsPushButton_slot);
-
   connect(gui->ReleaseTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ReleaseTransponderPushButton_slot);
-  connect(gui->SearchPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_SearchPushButton_slot);
+  connect(gui->SearchTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_SearchTransponderPushButton_slot);
   connect(gui->RereleaseTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_RereleaseTransponderPushButton_slot);
   connect(gui->RevokeTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_RevokeTransponderPushButton_slot);
 
+  // Сохранение настроек
+  connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ApplySettingsPushButton_slot);
+
   // Соединяем модели и представления
   gui->DatabaseRandomBufferView->setModel(RandomBuffer);
   gui->OrderTableView->setModel(OrderBuffer);
   gui->ProductionLineTableView->setModel(ProductionLineBuffer);
+  gui->TransponderSeedTableView->setModel(TransponderSeed);
 
   // Связываем отображения графиков с логикой их формирования
 }

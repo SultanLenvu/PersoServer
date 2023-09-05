@@ -25,6 +25,9 @@ void MasterGUI::update() {
 
   ProductionLineTableView->resizeColumnsToContents();
   ProductionLineTableView->update();
+
+  TransponderSeedTableView->resizeColumnsToContents();
+  TransponderSeedTableView->update();
 }
 
 void MasterGUI::createTabs() {
@@ -218,19 +221,19 @@ void MasterGUI::createProductionLineTab() {
   ProductionLinesControlPanelLayout = new QVBoxLayout();
   ProductionLinesControlPanel->setLayout(ProductionLinesControlPanelLayout);
 
-  LoginLayout = new QHBoxLayout();
-  ProductionLinesControlPanelLayout->addLayout(LoginLayout);
-  LoginLabel = new QLabel("Введите логин: ");
-  LoginLayout->addWidget(LoginLabel);
-  LoginLineEdit = new QLineEdit();
-  LoginLayout->addWidget(LoginLineEdit);
+  LoginLayout1 = new QHBoxLayout();
+  ProductionLinesControlPanelLayout->addLayout(LoginLayout1);
+  LoginLabel1 = new QLabel("Введите логин: ");
+  LoginLayout1->addWidget(LoginLabel1);
+  LoginLineEdit1 = new QLineEdit();
+  LoginLayout1->addWidget(LoginLineEdit1);
 
-  PasswordLayout = new QHBoxLayout();
-  ProductionLinesControlPanelLayout->addLayout(PasswordLayout);
-  PasswordLabel = new QLabel("Введите пароль: ");
-  PasswordLayout->addWidget(PasswordLabel);
-  PasswordLineEdit = new QLineEdit();
-  PasswordLayout->addWidget(PasswordLineEdit);
+  PasswordLayout1 = new QHBoxLayout();
+  ProductionLinesControlPanelLayout->addLayout(PasswordLayout1);
+  PasswordLabel1 = new QLabel("Введите пароль: ");
+  PasswordLayout1->addWidget(PasswordLabel1);
+  PasswordLineEdit1 = new QLineEdit();
+  PasswordLayout1->addWidget(PasswordLineEdit1);
 
   CreateNewProductionLinePushButton =
       new QPushButton("Создать новую производственную линию");
@@ -280,11 +283,26 @@ void MasterGUI::createTransponderTab() {
   TransponderControlPanelLayout = new QVBoxLayout();
   TransponderControlPanel->setLayout(TransponderControlPanelLayout);
 
+  LoginLayout2 = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(LoginLayout2);
+  LoginLabel2 = new QLabel("Введите логин: ");
+  LoginLayout2->addWidget(LoginLabel2);
+  LoginLineEdit2 = new QLineEdit();
+  LoginLayout2->addWidget(LoginLineEdit2);
+
+  PasswordLayout2 = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(PasswordLayout2);
+  PasswordLabel2 = new QLabel("Введите пароль: ");
+  PasswordLayout2->addWidget(PasswordLabel2);
+  PasswordLineEdit2 = new QLineEdit();
+  PasswordLayout2->addWidget(PasswordLineEdit2);
+
   UcidLayout = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(UcidLayout);
   UcidLabel = new QLabel("Введите UCID: ");
   UcidLayout->addWidget(UcidLabel);
   UcidLineEdit = new QLineEdit();
+  UcidLineEdit->setMaxLength(UCID_LENGTH);
   UcidLayout->addWidget(UcidLineEdit);
 
   ReleaseTransponderPushButton = new QPushButton("Выпуск");
@@ -294,29 +312,29 @@ void MasterGUI::createTransponderTab() {
       new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
   TransponderControlPanelLayout->addItem(TransponderControlPanelVS);
 
-  SearchByLayout = new QHBoxLayout();
-  TransponderControlPanelLayout->addLayout(SearchByLayout);
-  SearchByLabel = new QLabel("Поиск по: ");
-  SearchByLayout->addWidget(SearchByLabel);
-  SearchByComboBox = new QComboBox();
-  SearchByComboBox->addItem("UCID");
-  SearchByComboBox->addItem("SN");
-  SearchByComboBox->addItem("PAN");
-  SearchByComboBox->setCurrentIndex(0);
-  SearchByLayout->addWidget(SearchByComboBox);
-  connect(SearchByComboBox, &QComboBox::currentTextChanged, this,
-          &MasterGUI::on_SearchByComboBox_slot);
+  SearchTransponderByLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(SearchTransponderByLayout);
+  SearchTransponderByLabel = new QLabel("Поиск по: ");
+  SearchTransponderByLayout->addWidget(SearchTransponderByLabel);
+  SearchTransponderByComboBox = new QComboBox();
+  SearchTransponderByComboBox->addItem("SN");
+  SearchTransponderByComboBox->addItem("UCID");
+  SearchTransponderByComboBox->addItem("PAN");
+  SearchTransponderByComboBox->setCurrentIndex(0);
+  SearchTransponderByLayout->addWidget(SearchTransponderByComboBox);
+  connect(SearchTransponderByComboBox, &QComboBox::currentTextChanged, this,
+          &MasterGUI::on_SearchTransponderByComboBox_slot);
 
-  SearchInputLayout = new QHBoxLayout();
-  TransponderControlPanelLayout->addLayout(SearchInputLayout);
-  SearchInputLabel = new QLabel("Введите данные:");
-  SearchInputLayout->addWidget(SearchInputLabel);
-  SearchInputLineEdit = new QLineEdit();
-  SearchInputLineEdit->setMaxLength(UCID_LENGTH);
-  SearchInputLayout->addWidget(SearchInputLineEdit);
+  SearchTransponderLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(SearchTransponderLayout);
+  SearchTransponderLabel = new QLabel("Введите данные:");
+  SearchTransponderLayout->addWidget(SearchTransponderLabel);
+  SearchTransponderLineEdit = new QLineEdit();
+  SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
+  SearchTransponderLayout->addWidget(SearchTransponderLineEdit);
 
-  SearchPushButton = new QPushButton("Найти");
-  TransponderControlPanelLayout->addWidget(SearchPushButton);
+  SearchTransponderPushButton = new QPushButton("Найти");
+  TransponderControlPanelLayout->addWidget(SearchTransponderPushButton);
   RereleaseTransponderPushButton = new QPushButton("Перевыпустить");
   TransponderControlPanelLayout->addWidget(RereleaseTransponderPushButton);
   RevokeTransponderPushButton = new QPushButton("Отозвать");
@@ -329,8 +347,8 @@ void MasterGUI::createTransponderTab() {
   TransponderDisplayLayout = new QHBoxLayout();
   TransponderDisplayPanel->setLayout(TransponderDisplayLayout);
 
-  TransponderDataListView = new QListView();
-  TransponderDisplayLayout->addWidget(TransponderDataListView);
+  TransponderSeedTableView = new QTableView();
+  TransponderDisplayLayout->addWidget(TransponderSeedTableView);
 
   FirmwareDsrcDataView = new QPlainTextEdit();
   TransponderDisplayLayout->addWidget(FirmwareDsrcDataView);
@@ -528,6 +546,8 @@ void MasterGUI::createSettingsTab() {
   FirmwareBasePathLineEdit = new QLineEdit(
       settings.value("FirmwareGenerationSystem/Firmware/Path").toString());
   FirmwareBasePathLineEdit->setMaxLength(200);
+  FirmwareBasePathLineEdit->setText(
+      settings.value("Firmware/Base/Path").toString());
   FirmwareSettingsLayout->addWidget(FirmwareBasePathLineEdit, 0, 1, 1, 1);
   ExploreFirmwareBasePathPushButton = new QPushButton("Обзор");
   FirmwareSettingsLayout->addWidget(ExploreFirmwareBasePathPushButton, 0, 2, 1,
@@ -538,9 +558,11 @@ void MasterGUI::createSettingsTab() {
   FirmwareDataPathLabel = new QLabel("Путь к файлу с данными");
   FirmwareSettingsLayout->addWidget(FirmwareDataPathLabel, 1, 0, 1, 1);
   FirmwareDataPathLineEdit = new QLineEdit(
-      settings.value("FirmwareGenerationSystem/TransponderData/Path")
+      settings.value("FirmwareGenerationSystem/TransponderSeed/Path")
           .toString());
   FirmwareDataPathLineEdit->setMaxLength(200);
+  FirmwareDataPathLineEdit->setText(
+      settings.value("Firmware/Data/Path").toString());
   FirmwareSettingsLayout->addWidget(FirmwareDataPathLineEdit, 1, 1, 1, 1);
   ExploreFirmwareDataPathPushButton = new QPushButton("Обзор");
   FirmwareSettingsLayout->addWidget(ExploreFirmwareDataPathPushButton, 1, 2, 1,
@@ -590,15 +612,15 @@ void MasterGUI::on_PanFileExplorePushButton_slot() {
   }
 }
 
-void MasterGUI::on_SearchByComboBox_slot(const QString& text) {
+void MasterGUI::on_SearchTransponderByComboBox_slot(const QString& text) {
   if (text == "UCID") {
-    SearchInputLineEdit->setMaxLength(UCID_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(UCID_LENGTH);
   } else if (text == "PAN") {
-    SearchInputLineEdit->setMaxLength(PAYMENT_MEANS_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(PAYMENT_MEANS_LENGTH);
   } else if (text == "SN") {
-    SearchInputLineEdit->setMaxLength(SERIAL_NUMBER_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
   } else {
-    SearchInputLineEdit->setMaxLength(0);
+    SearchTransponderLineEdit->setMaxLength(0);
   }
 }
 

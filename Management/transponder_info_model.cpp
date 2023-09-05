@@ -1,7 +1,7 @@
 #include "transponder_info_model.h"
 
 TransponderInfoModel::TransponderInfoModel(QObject* parent)
-    : QAbstractListModel(parent) {
+    : QAbstractTableModel(parent) {
   setObjectName("TransponderInfoModel");
   Data = nullptr;
 }
@@ -38,10 +38,15 @@ void TransponderInfoModel::clear() {
 }
 
 bool TransponderInfoModel::isEmpty() {
-  // Блокируем доступ
-  QMutexLocker locker(&Mutex);
-
   return (!Data) ? true : false;
+}
+
+QMap<QString, QString>* TransponderInfoModel::getMap() {
+  return Data;
+}
+
+int TransponderInfoModel::columnCount(const QModelIndex& parent) const {
+  return 1;
 }
 
 int TransponderInfoModel::rowCount(const QModelIndex& parent) const {
@@ -50,6 +55,10 @@ int TransponderInfoModel::rowCount(const QModelIndex& parent) const {
 
 QVariant TransponderInfoModel::data(const QModelIndex& index, int role) const {
   if (!Data) {
+    return QVariant();
+  }
+
+  if (index.column() > 1) {
     return QVariant();
   }
 
@@ -78,6 +87,10 @@ QVariant TransponderInfoModel::headerData(int section,
     return QVariant();
 
   if (orientation == Qt::Horizontal) {
+    return "Значение";
+  }
+
+  if (orientation == Qt::Vertical) {
     return (Data->begin() + section).key();
   } else {
     return QVariant();

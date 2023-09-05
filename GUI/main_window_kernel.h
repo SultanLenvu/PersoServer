@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMap>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QString>
 
@@ -41,8 +42,6 @@ class MainWindowKernel : public QMainWindow {
   DatabaseTableModel* ProductionLineBuffer;
   TransponderInfoModel* TransponderSeed;
 
-  QSettings* Settings;
-
  public:
   MainWindowKernel(QWidget* parent = nullptr);
   ~MainWindowKernel();
@@ -76,7 +75,7 @@ class MainWindowKernel : public QMainWindow {
 
   // Функционал для работы с транспондерами
   void on_ReleaseTransponderPushButton_slot(void);
-  void on_SearchPushButton_slot(void);
+  void on_SearchTransponderPushButton_slot(void);
   void on_RereleaseTransponderPushButton_slot(void);
   void on_RevokeTransponderPushButton_slot(void);
 
@@ -84,11 +83,12 @@ class MainWindowKernel : public QMainWindow {
   void on_ApplySettingsPushButton_slot(void);
 
  private:
-  void proxyLogging(const QString& log);
-  void loadSettings(void);
-  bool checkNewSettings(void);
-  bool checkNewOrderInput(void);
-  bool checkNewProductionLineInput(void);
+  void loadSettings(void) const;
+  bool checkNewSettings(void) const;
+  bool checkNewOrderInput(void) const;
+  bool checkNewProductionLineInput(void) const;
+  bool checkReleaseTransponderInput(void) const;
+  bool checkSearchTransponderInput() const;
 
   void createTopMenu(void);  // Создание верхнего меню
   void createTopMenuActions(void);  // Создание функционала для верхнего меню
@@ -103,7 +103,11 @@ class MainWindowKernel : public QMainWindow {
   void setupManager(void);
   void setupLogSystem(void);
   void createModels(void);
+
+ private slots:
+  void proxyLogging(const QString& log) const;
+
  signals:
-  void logging(const QString& log);
+  void logging(const QString& log) const;
 };
 #endif  // MAINWINDOWKERNEL_H

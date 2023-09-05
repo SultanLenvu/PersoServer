@@ -31,7 +31,7 @@ class AdministrationSystem : public QObject {
  public:
   explicit AdministrationSystem(QObject* parent);
 
- public slots:
+ public:
   void applySettings(void);
 
   void clearDatabaseTable(const QString& tableName);
@@ -45,6 +45,11 @@ class AdministrationSystem : public QObject {
   void createNewProductionLine(
       const QMap<QString, QString>* productionLineParameters);
   void deleteLastProductionLines(void);
+
+  void releaseTransponder(TransponderInfoModel* seed);
+  void searchTransponder(TransponderInfoModel* seed);
+  void rereleaseTransponder(TransponderInfoModel* seed);
+  void refundTransponder(TransponderInfoModel* seed);
 
  private:
   void createDatabaseController(void);

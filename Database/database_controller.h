@@ -22,17 +22,17 @@ class IDatabaseController : public QObject {
  public:
   explicit IDatabaseController(QObject* parent);
 
-  // Функционал для работы с БД
   virtual bool connect(void) = 0;
-  virtual void disconnect(TransactionResult result) = 0;
+  virtual bool disconnect(void) = 0;
+
+  virtual bool openTransaction(void) const = 0;
+  virtual bool closeTransaction(TransactionResult result) const = 0;
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) const = 0;
   virtual bool execCustomRequest(const QString& req,
                                  DatabaseTableModel* buffer) const = 0;
-  virtual void applySettings() = 0;
-
   virtual bool clearTable(const QString& tableName) const = 0;
 
   virtual bool addRecord(const QString& tableName,
@@ -44,7 +44,6 @@ class IDatabaseController : public QObject {
                                QMap<QString, QString>& record) const = 0;
   virtual bool getLastRecord(const QString& tableName,
                              QMap<QString, QString>& record) const = 0;
-
   virtual bool getMergedRecordById(const QStringList& tables,
                                    const QStringList& foreignKeys,
                                    QMap<QString, QString>& record) const = 0;
@@ -60,6 +59,8 @@ class IDatabaseController : public QObject {
   virtual bool removeLastRecordWithCondition(
       const QString& tableName,
       const QString& condition) const = 0;
+
+  virtual void applySettings() = 0;
 
  protected:
   void sendLog(const QString& log) const;

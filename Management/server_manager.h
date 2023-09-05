@@ -75,10 +75,9 @@ class ServerManager : public QObject {
   void showOrderTable(DatabaseTableModel* buffer);
 
   void releaseTransponder(TransponderInfoModel* seed);
-  void searchTransponder(QPair<QString, QString> attribute,
-                         TransponderInfoModel* seed);
-  void rereleaseTransponder(QPair<QString, QString> attribute);
-  void revokeTransponder(QPair<QString, QString> attribute);
+  void searchTransponder(TransponderInfoModel* seed);
+  void rereleaseTransponder(TransponderInfoModel* seed);
+  void refundTransponder(TransponderInfoModel* seed);
 
   void createNewProductionLine(
       const QMap<QString, QString>* productionLineParameters,
@@ -125,7 +124,7 @@ class ServerManager : public QObject {
   void serverStart_signal(void);
   void serverStop_signal(void);
 
-  // Сигналы для составителя заказов
+  // Сигналы для системы администрирования
   void getDatabaseTable_signal(const QString& tableName,
                                DatabaseTableModel* buffer);
   void clearDatabaseTable_signal(const QString& tableName);
@@ -136,6 +135,12 @@ class ServerManager : public QObject {
       const QMap<QString, QString>* productionLineParameters);
   void deleteLastProductionLines_signal(void);
   void initIssuerTable_signal(void);
+
+  // Сигналы для системы выпуска транспондеров
+  void releaseTransponder_signal(TransponderInfoModel* seed);
+  void searchTransponder_signal(TransponderInfoModel* seed);
+  void rereleaseTransponder_signal(TransponderInfoModel* seed);
+  void refundTransponder_signal(TransponderInfoModel* seed);
 };
 
 //==================================================================================

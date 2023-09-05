@@ -9,8 +9,12 @@ AdministrationSystem::AdministrationSystem(QObject* parent) : QObject(parent) {
 
   createDatabaseController();
 
-  Releaser = new TransponderReleaseSystem(this, Database);
+  Releaser = new TransponderReleaseSystem(this);
+  connect(Releaser, &TransponderReleaseSystem::logging, this,
+          &AdministrationSystem::proxyLogging);
   Generator = new FirmwareGenerationSystem(this);
+  connect(Generator, &FirmwareGenerationSystem::logging, this,
+          &AdministrationSystem::proxyLogging);
 }
 
 void AdministrationSystem::applySettings() {
@@ -22,13 +26,14 @@ void AdministrationSystem::applySettings() {
 }
 
 void AdministrationSystem::createDatabaseController() {
-  // Создаем контроллер базы данных
   Database = new PostgresController(this, "AdministratorConnection");
   connect(Database, &IDatabaseController::logging, this,
           &AdministrationSystem::proxyLogging);
 }
 
 void AdministrationSystem::clearDatabaseTable(const QString& tableName) {
+  emit logging(QString("Очистка таблицы %1 базы данных. ").arg(tableName));
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -36,7 +41,14 @@ void AdministrationSystem::clearDatabaseTable(const QString& tableName) {
     return;
   }
 
-  emit logging("Очистка данных таблицы базы данных. ");
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
+
   if (Database->clearTable(tableName)) {
     processingResult("Очистка выполнена. ", CompletedSuccessfully);
   } else {
@@ -46,6 +58,9 @@ void AdministrationSystem::clearDatabaseTable(const QString& tableName) {
 
 void AdministrationSystem::getDatabaseTable(const QString& tableName,
                                             DatabaseTableModel* buffer) {
+  emit logging(
+      QString("Получение данных из таблицы %1 базы данных. ").arg(tableName));
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -53,10 +68,15 @@ void AdministrationSystem::getDatabaseTable(const QString& tableName,
     return;
   }
 
-  emit logging("Получение таблицы базы данных. ");
-  Database->getTable(tableName, 10, buffer);
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
 
-  if (buffer->isEmpty()) {
+  if (!Database->getTable(tableName, 10, buffer)) {
     processingResult("Ошибка при получении данных из таблицы базы данных. ",
                      DatabaseQueryError);
   } else {
@@ -67,6 +87,8 @@ void AdministrationSystem::getDatabaseTable(const QString& tableName,
 
 void AdministrationSystem::getCustomResponse(const QString& req,
                                              DatabaseTableModel* buffer) {
+  emit logging("Выполнение кастомного запроса. ");
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -74,7 +96,14 @@ void AdministrationSystem::getCustomResponse(const QString& req,
     return;
   }
 
-  emit logging("Выполнение кастомного запроса. ");
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
+
   if (!Database->execCustomRequest(req, buffer)) {
     processingResult("Ошибка при выполнении кастомного запроса. ",
                      DatabaseQueryError);
@@ -88,12 +117,22 @@ void AdministrationSystem::initIssuerTable() {
   QMap<QString, QString> record;
   int32_t lastId = 0;
 
+  emit logging("Инициализация таблицы issuers. ");
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
                      DatabaseConnectionError);
     return;
   }
+
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
 
   // Получаем идентифкатор последнего добавленного заказа
   if (!Database->getLastRecord("issuers", record)) {
@@ -159,12 +198,22 @@ void AdministrationSystem::initIssuerTable() {
 
 void AdministrationSystem::createNewOrder(
     const QMap<QString, QString>* orderParameters) {
+  emit logging("Создание нового заказа. ");
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
                      DatabaseConnectionError);
     return;
   }
+
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
 
   emit logging("Добавление заказа. ");
   if (!addOrder(orderParameters)) {
@@ -215,7 +264,6 @@ void AdministrationSystem::deleteLastOrder() {
 
 void AdministrationSystem::createNewProductionLine(
     const QMap<QString, QString>* productionLineParameters) {
-
   emit logging("Создание новой линии производства. ");
 
   emit logging("Подключение к базе данных. ");
@@ -224,6 +272,14 @@ void AdministrationSystem::createNewProductionLine(
                      DatabaseConnectionError);
     return;
   }
+
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
 
   // Добавляем линию производства
   emit logging("Добавление линии производства. ");
@@ -238,6 +294,8 @@ void AdministrationSystem::createNewProductionLine(
 }
 
 void AdministrationSystem::deleteLastProductionLines() {
+  emit logging("Удаление последней линии производства. ");
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     processingResult("Не удалось установить соединение с базой данных. ",
@@ -245,7 +303,14 @@ void AdministrationSystem::deleteLastProductionLines() {
     return;
   }
 
-  emit logging("Удаление последней линии производства. ");
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+  emit logging("Транзакция открыта. ");
+
   if (!removeLastProductionLine()) {
     processingResult(
         "Получена ошибка при удалении последней линии производства. ",
@@ -255,6 +320,102 @@ void AdministrationSystem::deleteLastProductionLines() {
 
   processingResult("Последняя линия производства успешно удалена. ",
                    CompletedSuccessfully);
+}
+
+void AdministrationSystem::releaseTransponder(TransponderInfoModel* seed) {
+  emit logging("Выпуск транспондера. ");
+
+  if (!Releaser->start()) {
+    emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
+    emit operationFinished(DatabaseConnectionError);
+    return;
+  }
+
+  if (!Releaser->release(seed)) {
+    emit logging("Получена ошибка при выпуске транспондера. ");
+    emit operationFinished(DatabaseQueryError);
+    return;
+  }
+
+  if (!Releaser->stop()) {
+    emit logging(
+        "Получена ошибка при остановке системы выпуска транспондеров. ");
+  }
+
+  emit logging("Транспондер успешно выпущен. ");
+  emit operationFinished(CompletedSuccessfully);
+}
+
+void AdministrationSystem::searchTransponder(TransponderInfoModel* seed) {
+  emit logging("Поиск транспондера. ");
+
+  if (!Releaser->start()) {
+    emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
+    emit operationFinished(DatabaseConnectionError);
+    return;
+  }
+
+  if (!Releaser->search(seed)) {
+    emit logging("Получена ошибка при поиске транспондера. ");
+    emit operationFinished(DatabaseQueryError);
+    return;
+  }
+
+  if (!Releaser->stop()) {
+    emit logging(
+        "Получена ошибка при остановке системы выпуска транспондеров. ");
+  }
+
+  emit logging("Транспондер успешно найден. ");
+  emit operationFinished(CompletedSuccessfully);
+}
+
+void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* seed) {
+  emit logging("Перевыпуск транспондера. ");
+
+  if (!Releaser->start()) {
+    emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
+    emit operationFinished(DatabaseConnectionError);
+    return;
+  }
+
+  if (!Releaser->rerelease(seed)) {
+    emit logging("Получена ошибка при перевыпуске транспондера. ");
+    emit operationFinished(DatabaseQueryError);
+    return;
+  }
+
+  if (!Releaser->stop()) {
+    emit logging(
+        "Получена ошибка при остановке системы выпуска транспондеров. ");
+  }
+
+  emit logging("Транспондер успешно перевыпущен. ");
+  emit operationFinished(CompletedSuccessfully);
+}
+
+void AdministrationSystem::refundTransponder(TransponderInfoModel* seed) {
+  emit logging("Возврат транспондера. ");
+
+  if (!Releaser->start()) {
+    emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
+    emit operationFinished(DatabaseConnectionError);
+    return;
+  }
+
+  if (!Releaser->refund(seed)) {
+    emit logging("Получена ошибка при возврате транспондера. ");
+    emit operationFinished(DatabaseQueryError);
+    return;
+  }
+
+  if (!Releaser->stop()) {
+    emit logging(
+        "Получена ошибка при остановке системы выпуска транспондеров. ");
+  }
+
+  emit logging("Транспондер успешно возвращен. ");
+  emit operationFinished(CompletedSuccessfully);
 }
 
 void AdministrationSystem::loadSettings() {
@@ -754,14 +915,25 @@ bool AdministrationSystem::stopOrderAssembling(const QString& id) const {
 
 void AdministrationSystem::processingResult(const QString& log,
                                             const ExecutionStatus status) {
+  // Закрываем транзакцию
+  if (status == CompletedSuccessfully) {
+    if (Database->closeTransaction(IDatabaseController::Complete)) {
+      emit logging("Транзакция закрыта. ");
+    } else {
+      emit logging("Получена ошибка при закрытии транзакции. ");
+    }
+  } else {
+    if (Database->closeTransaction(IDatabaseController::Abort)) {
+      emit logging("Транзакция закрыта. ");
+    } else {
+      emit logging("Получена ошибка при закрытии транзакции. ");
+    }
+  }
+
   emit logging(log);
   emit logging("Отключение от базы данных. ");
+  Database->disconnect();
 
-  if (status == CompletedSuccessfully) {
-    Database->disconnect(IDatabaseController::Complete);
-  } else {
-    Database->disconnect(IDatabaseController::Abort);
-  }
   emit operationFinished(status);
 }
 

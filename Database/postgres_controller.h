@@ -25,7 +25,10 @@ class PostgresController : public IDatabaseController {
  public:
   // IDatabaseController interface
   virtual bool connect(void) override;
-  virtual void disconnect(TransactionResult result) override;
+  virtual bool disconnect(void) override;
+
+  virtual bool openTransaction(void) const override;
+  virtual bool closeTransaction(TransactionResult result) const override;
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
@@ -65,9 +68,6 @@ class PostgresController : public IDatabaseController {
       const QString& condition) const override;
 
  private:
-  void openTransaction(void) const;
-  void closeTransaction(TransactionResult result) const;
-
   void loadSettings(void);
   void createDatabaseConnection(void);
   void convertResponseToBuffer(QSqlQuery& request,

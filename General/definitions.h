@@ -18,7 +18,7 @@
 /* Определения для генератора прошивок */
 //===============================================================
 #define UCID_LENGTH 32
-#define SERIAL_NUMBER_LENGTH 8
+#define TRANSPONDER_SERIAL_NUMBER_LENGTH 10
 #define PAYMENT_MEANS_LENGTH 19
 #define EFC_CONTEXT_MARK_LENGTH 12
 #define GROUP_OBU_ID_LENGTH 4
@@ -34,7 +34,7 @@
 #define POSTGRES_SERVER_DEFAULT_PORT 5432
 #define POSTGRES_SERVER_DEFAULT_USER_NAME "postgres"
 #define POSTGRES_SERVER_DEFAULT_PASSWORD "1995"
-#define POSTGRES_DATABASE_DEFAULT_NAME "TransponderDatabase"
+#define POSTGRES_DATABASE_DEFAULT_NAME "TransponderSeedbase"
 
 #define TIMESTAMP_DEFAULT_VALUE "2000-01-01 T00:00:00.000"
 //===============================================================

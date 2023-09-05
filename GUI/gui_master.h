@@ -93,13 +93,13 @@ class MasterGUI : public GUI {
   QGroupBox* ProductionLinesControlPanel;
   QVBoxLayout* ProductionLinesControlPanelLayout;
 
-  QHBoxLayout* LoginLayout;
-  QLabel* LoginLabel;
-  QLineEdit* LoginLineEdit;
+  QHBoxLayout* LoginLayout1;
+  QLabel* LoginLabel1;
+  QLineEdit* LoginLineEdit1;
 
-  QHBoxLayout* PasswordLayout;
-  QLabel* PasswordLabel;
-  QLineEdit* PasswordLineEdit;
+  QHBoxLayout* PasswordLayout1;
+  QLabel* PasswordLabel1;
+  QLineEdit* PasswordLineEdit1;
 
   QPushButton* CreateNewProductionLinePushButton;
   QSpacerItem* ProductionLinesControlPanelVS;
@@ -111,7 +111,7 @@ class MasterGUI : public GUI {
   QTableView* ProductionLineTableView;
   //============================================================
 
-  /* Интерфейс для управления линиями производства */
+  /* Интерфейс для управления транспондерами */
   //============================================================
   QWidget* TransponderTab;
   QHBoxLayout* TransponderTabMainLayout;
@@ -119,6 +119,12 @@ class MasterGUI : public GUI {
   QGroupBox* TransponderControlPanel;
   QVBoxLayout* TransponderControlPanelLayout;
 
+  QHBoxLayout* LoginLayout2;
+  QLabel* LoginLabel2;
+  QLineEdit* LoginLineEdit2;
+  QHBoxLayout* PasswordLayout2;
+  QLabel* PasswordLabel2;
+  QLineEdit* PasswordLineEdit2;
   QHBoxLayout* UcidLayout;
   QLabel* UcidLabel;
   QLineEdit* UcidLineEdit;
@@ -126,20 +132,20 @@ class MasterGUI : public GUI {
 
   QSpacerItem* TransponderControlPanelVS;
 
-  QHBoxLayout* SearchByLayout;
-  QLabel* SearchByLabel;
-  QComboBox* SearchByComboBox;
+  QHBoxLayout* SearchTransponderByLayout;
+  QLabel* SearchTransponderByLabel;
+  QComboBox* SearchTransponderByComboBox;
 
-  QHBoxLayout* SearchInputLayout;
-  QLabel* SearchInputLabel;
-  QLineEdit* SearchInputLineEdit;
-  QPushButton* SearchPushButton;
+  QHBoxLayout* SearchTransponderLayout;
+  QLabel* SearchTransponderLabel;
+  QLineEdit* SearchTransponderLineEdit;
+  QPushButton* SearchTransponderPushButton;
   QPushButton* RevokeTransponderPushButton;
   QPushButton* RereleaseTransponderPushButton;
 
   QGroupBox* TransponderDisplayPanel;
   QHBoxLayout* TransponderDisplayLayout;
-  QListView* TransponderDataListView;
+  QTableView* TransponderSeedTableView;
   QPlainTextEdit* FirmwareDsrcDataView;
   //============================================================
 
@@ -251,7 +257,7 @@ class MasterGUI : public GUI {
   void on_ExploreFirmwareBasePathPushButton_slot(void);
   void on_ExploreFirmwareDataPathPushButton_slot(void);
 
-  void on_SearchByComboBox_slot(const QString& text);
+  void on_SearchTransponderByComboBox_slot(const QString& text);
 
  signals:
 };

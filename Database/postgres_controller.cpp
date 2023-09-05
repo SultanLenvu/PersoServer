@@ -30,16 +30,10 @@ bool PostgresController::connect() {
   }
   sendLog("Соединение с Postgres установлено. ");
 
-  // Открываем транзакцию
-  openTransaction();
-
   return true;
 }
 
-void PostgresController::disconnect(TransactionResult result) {
-  // Закрываем транзакцию
-  closeTransaction(result);
-
+bool PostgresController::disconnect(void) {
   // Удаляем соединение
   QSqlDatabase::removeDatabase(ConnectionName);
 
@@ -50,9 +44,58 @@ void PostgresController::disconnect(TransactionResult result) {
   }
 }
 
+bool PostgresController::openTransaction() const {
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog("Соединение с Postgres не установлено. ");
+    return false;
+  }
+
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  if (request.exec("BEGIN;")) {
+    sendLog("Транзакция открыта. ");
+    return true;
+  } else {
+    sendLog("Получена ошибка при открытии транзакции: " +
+            request.lastError().text());
+    return false;
+  }
+}
+
+bool PostgresController::closeTransaction(TransactionResult result) const {
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog("Соединение с Postgres не установлено. ");
+    return false;
+  }
+
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  QString requestText;
+  QString logData;
+  if (result == Complete) {
+    requestText = "COMMIT;";
+    logData = "Транзакция сброшена. ";
+  } else {
+    requestText = "ROLLBACK;";
+    logData = "Транзакция завершена. ";
+  }
+
+  if (request.exec(requestText)) {
+    sendLog(logData);
+    return true;
+  } else {
+    sendLog("Получена ошибка при закрытии транзакции: " +
+            request.lastError().text());
+    return false;
+  }
+}
+
 bool PostgresController::getTable(const QString& tableName,
                                   uint32_t rowCount,
                                   DatabaseTableModel* buffer) const {
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog("Соединение с Postgres не установлено. ");
+    return false;
+  }
+
   QString requestText =
       QString("SELECT * FROM %1 ORDER BY id ASC;").arg(tableName);
   //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
@@ -542,36 +585,6 @@ bool PostgresController::removeLastRecordWithCondition(
     // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
     return false;
-  }
-}
-
-void PostgresController::openTransaction() const {
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  if (request.exec("BEGIN;")) {
-    sendLog("Транзакция открыта. ");
-  } else {
-    sendLog("Получена ошибка при открытии транзакции: " +
-            request.lastError().text());
-  }
-}
-
-void PostgresController::closeTransaction(TransactionResult result) const {
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  QString requestText;
-  QString logData;
-  if (result == Complete) {
-    requestText = "COMMIT;";
-    logData = "Транзакция сброшена. ";
-  } else {
-    requestText = "ROLLBACK;";
-    logData = "Транзакция завершена. ";
-  }
-
-  if (request.exec(requestText)) {
-    sendLog(logData);
-  } else {
-    sendLog("Получена ошибка при закрытии транзакции: " +
-            request.lastError().text());
   }
 }
 

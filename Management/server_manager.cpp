@@ -222,24 +222,68 @@ void ServerManager::showOrderTable(DatabaseTableModel* buffer) {
   endOperationExecution("showOrderTable");
 }
 
-void ServerManager::releaseTransponder(TransponderInfoModel *seed)
-{
-  
+void ServerManager::releaseTransponder(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit releaseTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
 }
 
-void ServerManager::searchTransponder(QPair<QString, QString> attribute, TransponderInfoModel *seed)
-{
-  
+void ServerManager::searchTransponder(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit searchTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
 }
 
-void ServerManager::rereleaseTransponder(QPair<QString, QString> attribute)
-{
-  
+void ServerManager::rereleaseTransponder(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit rereleaseTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
 }
 
-void ServerManager::revokeTransponder(QPair<QString, QString> attribute)
-{
-  
+void ServerManager::refundTransponder(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit refundTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
 }
 
 void ServerManager::createNewProductionLine(
@@ -500,18 +544,29 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
           &AdministrationSystem::getDatabaseTable);
   connect(this, &ServerManager::getCustomResponse_signal, Administrator,
           &AdministrationSystem::getCustomResponse);
-  connect(this, &ServerManager::createNewOrder_signal, Administrator,
-          &AdministrationSystem::createNewOrder);
   connect(this, &ServerManager::clearDatabaseTable_signal, Administrator,
           &AdministrationSystem::clearDatabaseTable);
   connect(this, &ServerManager::initIssuerTable_signal, Administrator,
           &AdministrationSystem::initIssuerTable);
+
+  connect(this, &ServerManager::createNewOrder_signal, Administrator,
+          &AdministrationSystem::createNewOrder);
   connect(this, &ServerManager::deleteLastOrder_signal, Administrator,
           &AdministrationSystem::deleteLastOrder);
+
   connect(this, &ServerManager::createNewProductionLine_signal, Administrator,
           &AdministrationSystem::createNewProductionLine);
   connect(this, &ServerManager::deleteLastProductionLines_signal, Administrator,
           &AdministrationSystem::deleteLastProductionLines);
+
+  connect(this, &ServerManager::releaseTransponder_signal, Administrator,
+          &AdministrationSystem::releaseTransponder);
+  connect(this, &ServerManager::searchTransponder_signal, Administrator,
+          &AdministrationSystem::searchTransponder);
+  connect(this, &ServerManager::rereleaseTransponder_signal, Administrator,
+          &AdministrationSystem::rereleaseTransponder);
+  connect(this, &ServerManager::refundTransponder_signal, Administrator,
+          &AdministrationSystem::refundTransponder);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {
@@ -531,22 +586,22 @@ void ServerManager::on_AdministratorFinished_slot(
   switch (status) {
     case AdministrationSystem::NotExecuted:
       CurrentState = Failed;
-      NotificarionText = "Инициализатор: операция не была запущена. ";
+      NotificarionText = "Администратор: операция не была запущена. ";
       emit break;
     case AdministrationSystem::DatabaseConnectionError:
       CurrentState = Failed;
       NotificarionText =
-          "Инициализатор: не удалось подключиться к базе данных. ";
+          "Администратор: не удалось подключиться к базе данных. ";
       break;
     case AdministrationSystem::DatabaseQueryError:
       CurrentState = Failed;
       NotificarionText =
-          "Инициализатор: ошибка при выполнении запроса к базе данных. ";
+          "Администратор: ошибка при выполнении запроса к базе данных. ";
       break;
     case AdministrationSystem::UnknowError:
       CurrentState = Failed;
       NotificarionText =
-          "Инициализатор: получена неизвестная ошибка при выполнении "
+          "Администратор: получена неизвестная ошибка при выполнении "
           "операции. ";
       break;
     case AdministrationSystem::CompletedSuccessfully:

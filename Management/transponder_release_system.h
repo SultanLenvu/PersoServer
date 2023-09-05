@@ -2,6 +2,7 @@
 #define TRANSPONDERRELEASESYSTEM_H
 
 #include <Database/database_controller.h>
+#include <Database/postgres_controller.h>
 #include <QObject>
 
 #include "transponder_info_model.h"
@@ -10,19 +11,23 @@ class TransponderReleaseSystem : public QObject {
   Q_OBJECT
 
  private:
-  IDatabaseController* Database;
+  PostgresController* Database;
 
  public:
-  explicit TransponderReleaseSystem(QObject* parent,
-                                    IDatabaseController* database);
+  explicit TransponderReleaseSystem(QObject* parent);
 
-  bool getSeed(const TransponderInfoModel& seed);
-  bool confirmRelease(const TransponderInfoModel& seed);
-  bool refund(const TransponderInfoModel& seed);
+  bool start(void);
+  bool stop(void);
+  bool release(TransponderInfoModel* seed);
+  bool confirmRelease(TransponderInfoModel* seed);
+  bool rerelease(TransponderInfoModel* seed);
+  bool refund(TransponderInfoModel* seed);
+  bool search(TransponderInfoModel* seed);
 
   void applySettings();
 
  private:
+  void createDatabaseController(void);
   void loadSettings(void);
 
  private slots:
