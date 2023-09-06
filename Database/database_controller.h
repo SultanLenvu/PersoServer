@@ -50,8 +50,8 @@ class IDatabaseController : public QObject {
                                      const QStringList& foreignKeys,
                                      QMap<QString, QString>& record) const = 0;
 
-  virtual bool updateRecord(const QString& tableName,
-                            QMap<QString, QString>& record) const = 0;
+  virtual bool updateRecordById(const QString& tableName,
+                                QMap<QString, QString>& record) const = 0;
   virtual bool removeRecordById(const QString& tableName,
                                 const uint32_t id) const = 0;
   virtual bool removeLastRecord(const QString& tableName) const = 0;

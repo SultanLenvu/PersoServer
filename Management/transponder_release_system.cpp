@@ -95,6 +95,7 @@ void TransponderReleaseSystem::confirm(const QMap<QString, QString>* searchData,
     return;
   }
 
+  // Подтверждаем сборку транспондера
   if (!confirmTransponder(productionLineRecord.value("transponder_id"))) {
     emit logging(QString("Получена ошибка при подтвеждении транспондера. ")
                      .arg(productionLineRecord.value("transponder_id")));
@@ -289,7 +290,8 @@ bool TransponderReleaseSystem::confirmBox(const QString& id) const {
       return false;
     }
 
-    // Установка даты начала сборки бокса
+    // Установка даты начала бокса и запуск процесса сборки
+    boxRecord.insert("in_process", "true");
     boxRecord.insert("assembling_start", QDateTime::currentDateTime().toString(
                                              "dd.MM.yyyy hh.mm.ss"));
     if (!Database->updateRecordById("boxes", boxRecord)) {
@@ -300,7 +302,8 @@ bool TransponderReleaseSystem::confirmBox(const QString& id) const {
     }
   } else if (boxRecord.value("assembled_units") ==
              boxRecord.value("capacity")) {
-    // Установка даты окончания сборки бокса
+    // Установка даты окончания и завершаем процесс сборки бокса
+    boxRecord.insert("in_process", "false");
     boxRecord.insert("assembling_end", QDateTime::currentDateTime().toString(
                                            "dd.MM.yyyy hh.mm.ss"));
     if (!Database->updateRecordById("boxes", boxRecord)) {
@@ -365,7 +368,8 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
       return false;
     }
 
-    // Установка даты начала сборки паллеты
+    // Установка даты начала сборки паллеты и запуск процесса
+    palletRecord.insert("in_process", "true");
     palletRecord.insert(
         "assembling_start",
         QDateTime::currentDateTime().toString("dd.MM.yyyy hh.mm.ss"));
@@ -377,7 +381,8 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
     }
   } else if (palletRecord.value("assembled_units") ==
              palletRecord.value("capacity")) {
-    // Установка даты окончания сборки паллеты
+    // Установка даты окончания и завершение процесса сборки паллеты
+    palletRecord.insert("in_process", "false");
     palletRecord.insert("assembling_end", QDateTime::currentDateTime().toString(
                                               "dd.MM.yyyy hh.mm.ss"));
     if (!Database->updateRecordById("pallets", palletRecord)) {
@@ -442,7 +447,8 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
       return false;
     }
 
-    // Установка даты начала сборки заказа
+    // Установка даты начала и запуск процесса сборки заказа
+    orderRecord.insert("in_process", "true");
     orderRecord.insert(
         "assembling_start",
         QDateTime::currentDateTime().toString("dd.MM.yyyy hh.mm.ss"));
@@ -455,7 +461,8 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
     }
   } else if (orderRecord.value("assembled_units") ==
              orderRecord.value("capacity")) {
-    // Установка даты окончания сборки заказа
+    // Установка даты окончания и завершение процесса сборки заказа
+    orderRecord.insert("in_process", "false");
     orderRecord.insert("assembling_end", QDateTime::currentDateTime().toString(
                                              "dd.MM.yyyy hh.mm.ss"));
     if (!Database->updateRecordById("orders", orderRecord)) {
@@ -482,6 +489,63 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
   }
 
   return true;
+}
+
+bool TransponderReleaseSystem::searchNextTransponderForAssembling(
+    const QString& id) const {
+  QMap<QString, QString> transponderRecord;
+  QMap<QString, QString> boxRecord;
+  QMap<QString, QString> palletRecord;
+
+  // Запрашиваем данные транспондера
+  transponderRecord.insert("id", id);
+  transponderRecord.insert("release_counter", "");
+  transponderRecord.insert("box_id", "");
+  if (!Database->getRecordById("transponders", transponderRecord)) {
+    emit logging(
+        QString("Получена ошибка при поиске данных транспондера %1. ").arg(id));
+    return false;
+  }
+
+  // Получаем данные о боксе
+  boxRecord.insert("id", transponderRecord.value("box_id"));
+  boxRecord.insert("assembled_units", "");
+  boxRecord.insert("capacity", "");
+  boxRecord.insert("pallet_id", "");
+  if (!Database->getRecordById("boxes", boxRecord)) {
+    emit logging(
+        QString("Получена ошибка при поиске данных бокса %1. ").arg(id));
+    return false;
+  }
+
+  // Если в бокс еще не заполнен
+  if (boxRecord.value("capacity") == boxRecord.value("assembled_units")) {
+    // Ищем в боксе следующий невыпущенный транспондер
+    transponderRecord.insert("id", "");
+    transponderRecord.insert("transponders.release_counter", "0");
+    if (!Database->getRecordByPart("transponders", transponderRecord)) {
+      emit logging(QString("Получена ошибка при поиске невыпущенного "
+                           "транспондера в боксе %1. ")
+                       .arg(transponderRecord.value("box_id")));
+      return false;
+    }
+
+    // Обновляем линию производства
+  }
+
+  // В противном случае
+  // Ищем следующий свободный бокс в текущей паллете
+
+  // Получаем данные о паллете
+  palletRecord.insert("id", id);
+  palletRecord.insert("assembled_units", "");
+  palletRecord.insert("capacity", "");
+  palletRecord.insert("order_id", "");
+  if (!Database->getRecordById("pallets", palletRecord)) {
+    emit logging(
+        QString("Получена ошибка при поиске данных бокса %1. ").arg(id));
+    return false;
+  }
 }
 
 bool TransponderReleaseSystem::refundTransponder(const QString& id) const {}

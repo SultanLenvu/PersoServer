@@ -59,7 +59,7 @@ class PostgresController : public IDatabaseController {
       const QStringList& foreignKeys,
       QMap<QString, QString>& record) const override;
 
-  virtual bool updateRecord(const QString& tableName,
+  virtual bool updateRecordById(const QString& tableName,
                             QMap<QString, QString>& record) const override;
   virtual bool removeRecordById(const QString& tableName,
                                 const uint32_t id) const override;

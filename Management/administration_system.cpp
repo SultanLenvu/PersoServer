@@ -511,7 +511,7 @@ bool AdministrationSystem::addPallets(
 
   // Заполнение заказа
   orderRecord.insert("capacity", QString::number(orderCapacity));
-  if (!Database->updateRecord("orders", orderRecord)) {
+  if (!Database->updateRecordById("orders", orderRecord)) {
     emit logging(QString("Ошибка при заполнении заказа %1. ")
                      .arg(orderRecord.value("id")));
     return false;
@@ -563,7 +563,7 @@ bool AdministrationSystem::addBoxes(
 
     // Заполнение палеты
     palletRecord.insert("capacity", QString::number(palletCapacity));
-    if (!Database->updateRecord("pallets", palletRecord)) {
+    if (!Database->updateRecordById("pallets", palletRecord)) {
       emit logging(QString("Ошибка при заполнении палеты %1. ")
                        .arg(palletRecord.value("id")));
       return false;
@@ -618,7 +618,7 @@ bool AdministrationSystem::addTransponders(
 
     // Заполнение бокса
     boxRecord.insert("capacity", QString::number(boxCapacity));
-    if (!Database->updateRecord("boxes", boxRecord)) {
+    if (!Database->updateRecordById("boxes", boxRecord)) {
       emit logging(QString("Ошибка при заполнении бокса %1. ")
                        .arg(boxRecord.value("id")));
       return false;
@@ -692,7 +692,7 @@ bool AdministrationSystem::startBoxAssembling(
   if (boxRecord.value("in_process") != "true") {
     boxRecord.insert("in_process", "true");
     boxRecord.insert("production_line_id", productionLineId);
-    if (!Database->updateRecord("boxes", boxRecord)) {
+    if (!Database->updateRecordById("boxes", boxRecord)) {
       emit logging("Получена ошибка при запуске сборки бокса. ");
       return false;
     }
@@ -722,7 +722,7 @@ bool AdministrationSystem::startPalletAssembling(const QString& id) const {
 
   if (palletRecord.value("in_process") != "true") {
     palletRecord.insert("in_process", "true");
-    if (!Database->updateRecord("pallets", palletRecord)) {
+    if (!Database->updateRecordById("pallets", palletRecord)) {
       emit logging("Получена ошибка при запуске сборки палеты. ");
       return false;
     }
@@ -751,7 +751,7 @@ bool AdministrationSystem::startOrderAssembling(const QString& id) const {
 
   if (orderRecord.value("in_process") != "true") {
     orderRecord.insert("in_process", "true");
-    if (!Database->updateRecord("orders", orderRecord)) {
+    if (!Database->updateRecordById("orders", orderRecord)) {
       emit logging("Получена ошибка при запуске сборки заказа. ");
       return false;
     }
@@ -818,7 +818,7 @@ bool AdministrationSystem::stopBoxAssembling(const QString& id) const {
 
   if (boxRecord.value("in_process") != "false") {
     boxRecord.insert("in_process", "false");
-    if (!Database->updateRecord("boxes", boxRecord)) {
+    if (!Database->updateRecordById("boxes", boxRecord)) {
       emit logging("Получена ошибка при остановке сборки бокса. ");
       return false;
     }
@@ -868,7 +868,7 @@ bool AdministrationSystem::stopPalletAssembling(const QString& id) const {
 
   if (palletRecord.value("in_process") != "false") {
     palletRecord.insert("in_process", "false");
-    if (!Database->updateRecord("pallets", palletRecord)) {
+    if (!Database->updateRecordById("pallets", palletRecord)) {
       emit logging("Получена ошибка при остановке сборки палеты. ");
       return false;
     }
@@ -914,7 +914,7 @@ bool AdministrationSystem::stopOrderAssembling(const QString& id) const {
 
   if (orderRecord.value("in_process") != "false") {
     orderRecord.insert("in_process", "false");
-    if (!Database->updateRecord("orders", orderRecord)) {
+    if (!Database->updateRecordById("orders", orderRecord)) {
       emit logging("Получена ошибка при остановке сборки заказа. ");
       return false;
     }

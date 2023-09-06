@@ -49,6 +49,8 @@ class TransponderReleaseSystem : public QObject {
   bool confirmPallet(const QString& id) const;
   bool confirmOrder(const QString& id) const;
 
+  bool searchNextTransponderForAssembling(const QString& id) const;
+
   bool refundTransponder(const QString& id) const;
   bool refundBox(const QString& id) const;
   bool refundPallet(const QString& id) const;
