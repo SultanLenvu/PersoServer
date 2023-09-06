@@ -61,28 +61,35 @@ bool PostgresController::openTransaction() const {
   }
 }
 
-bool PostgresController::closeTransaction(TransactionResult result) const {
+bool PostgresController::closeTransaction() const {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog("Соединение с Postgres не установлено. ");
     return false;
   }
 
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  QString requestText;
-  QString logData;
-  if (result == Complete) {
-    requestText = "COMMIT;";
-    logData = "Транзакция сброшена. ";
-  } else {
-    requestText = "ROLLBACK;";
-    logData = "Транзакция завершена. ";
-  }
-
-  if (request.exec(requestText)) {
-    sendLog(logData);
+  if (request.exec("COMMIT;")) {
+    sendLog("Транзакция закрыта. ");
     return true;
   } else {
     sendLog("Получена ошибка при закрытии транзакции: " +
+            request.lastError().text());
+    return false;
+  }
+}
+
+bool PostgresController::abortTransaction() const {
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog("Соединение с Postgres не установлено. ");
+    return false;
+  }
+
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  if (request.exec("ROLLBACK;")) {
+    sendLog("Транзакция сброшена. ");
+    return true;
+  } else {
+    sendLog("Получена ошибка при сбросе транзакции: " +
             request.lastError().text());
     return false;
   }
@@ -384,7 +391,9 @@ bool PostgresController::getMergedRecordById(
     requestText += QString("JOIN %1 ON %2.%3 = %1.id ")
                        .arg(tables.at(i + 1), tables.at(i), foreignKeys.at(i));
   }
-  requestText += QString("WHERE id = '%1';").arg(record.value("id"));
+  requestText += QString("WHERE %1.id = '%2';")
+                     .arg(tables.first(),
+                          record.value(QString("%1.id").arg(tables.first())));
 
   sendLog("Отправляемый запрос: " + requestText);
 
@@ -464,8 +473,9 @@ bool PostgresController::getMergedRecordByPart(
   }
 }
 
-bool PostgresController::updateRecord(const QString& tableName,
-                                      QMap<QString, QString>& record) const {
+bool PostgresController::updateRecordById(
+    const QString& tableName,
+    QMap<QString, QString>& record) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(

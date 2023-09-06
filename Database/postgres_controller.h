@@ -28,7 +28,8 @@ class PostgresController : public IDatabaseController {
   virtual bool disconnect(void) override;
 
   virtual bool openTransaction(void) const override;
-  virtual bool closeTransaction(TransactionResult result) const override;
+  virtual bool closeTransaction(void) const override;
+  virtual bool abortTransaction(void) const override;
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,

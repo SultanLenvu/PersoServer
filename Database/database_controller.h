@@ -13,8 +13,6 @@
 
 class IDatabaseController : public QObject {
   Q_OBJECT
- public:
-  enum TransactionResult { Complete, Abort };
 
  protected:
   bool LogOption;
@@ -26,7 +24,8 @@ class IDatabaseController : public QObject {
   virtual bool disconnect(void) = 0;
 
   virtual bool openTransaction(void) const = 0;
-  virtual bool closeTransaction(TransactionResult result) const = 0;
+  virtual bool closeTransaction(void) const = 0;
+  virtual bool abortTransaction(void) const = 0;
 
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,

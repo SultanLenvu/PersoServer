@@ -19,7 +19,7 @@ class TransponderInfoModel : public QAbstractTableModel {
   void build(QMap<QString, QString>* data);
   void clear(void);
   bool isEmpty(void);
-  QMap<QString, QString>* getMap(void);
+  const QMap<QString, QString>* getMap(void);
 
   // Функционал модели
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -33,4 +33,4 @@ class TransponderInfoModel : public QAbstractTableModel {
   void deleteData(void);
 };
 
-#endif // TRANSPONDERINFOMODEL_H
+#endif  // TRANSPONDERINFOMODEL_H

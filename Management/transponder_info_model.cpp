@@ -41,7 +41,7 @@ bool TransponderInfoModel::isEmpty() {
   return (!Data) ? true : false;
 }
 
-QMap<QString, QString>* TransponderInfoModel::getMap() {
+const QMap<QString, QString>* TransponderInfoModel::getMap() {
   return Data;
 }
 

@@ -322,7 +322,9 @@ void AdministrationSystem::deleteLastProductionLines() {
                    CompletedSuccessfully);
 }
 
-void AdministrationSystem::releaseTransponder(TransponderInfoModel* seed) {
+void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
+  bool ok = false;
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
   emit logging("Выпуск транспондера. ");
 
   if (!Releaser->start()) {
@@ -330,8 +332,8 @@ void AdministrationSystem::releaseTransponder(TransponderInfoModel* seed) {
     emit operationFinished(DatabaseConnectionError);
     return;
   }
-
-  if (!Releaser->release(seed)) {
+  Releaser->release(model->getMap(), transponderData, ok);
+  if (!ok) {
     emit logging("Получена ошибка при выпуске транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -342,11 +344,14 @@ void AdministrationSystem::releaseTransponder(TransponderInfoModel* seed) {
         "Получена ошибка при остановке системы выпуска транспондеров. ");
   }
 
+  model->build(transponderData);
   emit logging("Транспондер успешно выпущен. ");
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::searchTransponder(TransponderInfoModel* seed) {
+void AdministrationSystem::searchTransponder(TransponderInfoModel* model) {
+  bool ok = false;
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
   emit logging("Поиск транспондера. ");
 
   if (!Releaser->start()) {
@@ -355,7 +360,8 @@ void AdministrationSystem::searchTransponder(TransponderInfoModel* seed) {
     return;
   }
 
-  if (!Releaser->search(seed)) {
+  Releaser->search(model->getMap(), transponderData, ok);
+  if (!ok) {
     emit logging("Получена ошибка при поиске транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -366,11 +372,14 @@ void AdministrationSystem::searchTransponder(TransponderInfoModel* seed) {
         "Получена ошибка при остановке системы выпуска транспондеров. ");
   }
 
+  model->build(transponderData);
   emit logging("Транспондер успешно найден. ");
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* seed) {
+void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
+  bool ok = false;
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
   emit logging("Перевыпуск транспондера. ");
 
   if (!Releaser->start()) {
@@ -379,7 +388,8 @@ void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* seed) {
     return;
   }
 
-  if (!Releaser->rerelease(seed)) {
+  Releaser->rerelease(model->getMap(), transponderData, ok);
+  if (!ok) {
     emit logging("Получена ошибка при перевыпуске транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -390,11 +400,13 @@ void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* seed) {
         "Получена ошибка при остановке системы выпуска транспондеров. ");
   }
 
+  model->build(transponderData);
   emit logging("Транспондер успешно перевыпущен. ");
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::refundTransponder(TransponderInfoModel* seed) {
+void AdministrationSystem::refundTransponder(TransponderInfoModel* model) {
+  bool ok = false;
   emit logging("Возврат транспондера. ");
 
   if (!Releaser->start()) {
@@ -403,7 +415,8 @@ void AdministrationSystem::refundTransponder(TransponderInfoModel* seed) {
     return;
   }
 
-  if (!Releaser->refund(seed)) {
+  Releaser->refund(model->getMap(), ok);
+  if (!ok) {
     emit logging("Получена ошибка при возврате транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -917,13 +930,13 @@ void AdministrationSystem::processingResult(const QString& log,
                                             const ExecutionStatus status) {
   // Закрываем транзакцию
   if (status == CompletedSuccessfully) {
-    if (Database->closeTransaction(IDatabaseController::Complete)) {
+    if (Database->closeTransaction()) {
       emit logging("Транзакция закрыта. ");
     } else {
       emit logging("Получена ошибка при закрытии транзакции. ");
     }
   } else {
-    if (Database->closeTransaction(IDatabaseController::Abort)) {
+    if (Database->abortTransaction()) {
       emit logging("Транзакция закрыта. ");
     } else {
       emit logging("Получена ошибка при закрытии транзакции. ");
