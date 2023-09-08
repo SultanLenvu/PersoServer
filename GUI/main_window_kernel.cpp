@@ -175,6 +175,27 @@ void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
   CurrentGUI->update();
 }
 
+void MainWindowKernel::on_LinkProductionLinePushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  Logger->clear();
+
+  if ((!checkNewProductionLineInput()) ||
+      (gui->BoxIdLineEdit->text().toInt() == 0)) {
+    Interactor->generateError("Некорректный ввод параметров нового заказа. ");
+    return;
+  }
+
+  QMap<QString, QString> linkParameters;
+  linkParameters.insert("login", gui->LoginLineEdit1->text());
+  linkParameters.insert("password", gui->PasswordLineEdit1->text());
+  linkParameters.insert("box_id", gui->BoxIdLineEdit->text());
+
+  Manager->linkProductionLineWithBoxManually(&linkParameters,
+                                             ProductionLineBuffer);
+
+  CurrentGUI->update();
+}
+
 void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
 {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
@@ -189,12 +210,69 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
     return;
   }
 
+  // Собираем сид транспондера
   data->insert("ucid", gui->UcidLineEdit->text());
   data->insert("login", gui->LoginLineEdit2->text());
   data->insert("password", gui->PasswordLineEdit2->text());
   TransponderSeed->build(data);
-  Manager->releaseTransponder(TransponderSeed);
 
+  // Осуществляем подтверждение выпуска
+  Manager->releaseTransponderManually(TransponderSeed);
+
+  // Обновляем интерфейс
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ConfirmTransponderPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkReleaseTransponderInput()) {
+    Interactor->generateError(
+        "Введены некорректные данные для подтверждения транспондера. ");
+    return;
+  }
+
+  // Собираем сид транспондера
+  data->insert("ucid", gui->UcidLineEdit->text());
+  data->insert("login", gui->LoginLineEdit2->text());
+  data->insert("password", gui->PasswordLineEdit2->text());
+  TransponderSeed->build(data);
+
+  // Осуществляем подтверждение выпуска
+  Manager->confirmTransponderManually(TransponderSeed);
+
+  // Обновляем интерфейс
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_RefundTransponderPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+  QString text = gui->SearchTransponderByComboBox->currentText();
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkSearchTransponderInput()) {
+    Interactor->generateError(
+        "Введены некорректные данные для возврата транспондера. ");
+    return;
+  }
+
+  // Собираем сид транспондера
+  data->insert("ucid", gui->UcidLineEdit->text());
+  data->insert("login", gui->LoginLineEdit2->text());
+  data->insert("password", gui->PasswordLineEdit2->text());
+  TransponderSeed->build(data);
+
+  // Осуществляем возврат
+  Manager->refundTransponderManually(TransponderSeed);
+
+  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -211,6 +289,7 @@ void MainWindowKernel::on_SearchTransponderPushButton_slot() {
     return;
   }
 
+  // Собираем сид транспондера
   if (text == "UCID") {
     data->insert("ucid", gui->SearchTransponderLineEdit->text());
   } else if (text == "SN") {
@@ -220,8 +299,10 @@ void MainWindowKernel::on_SearchTransponderPushButton_slot() {
   }
   TransponderSeed->build(data);
 
-  Manager->searchTransponder(TransponderSeed);
+  // Ищем информацию о транспондере
+  Manager->searchTransponderManually(TransponderSeed);
 
+  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -239,6 +320,7 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot()
     return;
   }
 
+  // Собираем сид транспондера
   if (text == "UCID") {
     data->insert("ucid", gui->SearchTransponderLineEdit->text());
   } else if (text == "SN") {
@@ -248,36 +330,10 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot()
   }
   TransponderSeed->build(data);
 
-  Manager->rereleaseTransponder(TransponderSeed);
+  // Перевыпускаем транспондер
+  Manager->rereleaseTransponderManually(TransponderSeed);
 
-  CurrentGUI->update();
-}
-
-void MainWindowKernel::on_RevokeTransponderPushButton_slot()
-{
-  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
-  QMap<QString, QString>* data = new QMap<QString, QString>;
-  QString text = gui->SearchTransponderByComboBox->currentText();
-
-  Logger->clear();
-
-  // Проверка пользовательского ввода
-  if (!checkSearchTransponderInput()) {
-    Interactor->generateError("Введены некорректные данные для поиска. ");
-    return;
-  }
-
-  if (text == "UCID") {
-    data->insert("ucid", gui->SearchTransponderLineEdit->text());
-  } else if (text == "SN") {
-    data->insert("id", gui->SearchTransponderLineEdit->text());
-  } else if (text == "PAN") {
-    data->insert("payment_means", gui->SearchTransponderLineEdit->text());
-  }
-  TransponderSeed->build(data);
-
-  Manager->refundTransponder(TransponderSeed);
-
+  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -601,16 +657,20 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_UpdateProductionLineViewPushButton_slot);
   connect(gui->DeleteLastProductionLinePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
+  connect(gui->LinkProductionLinePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_LinkProductionLinePushButton_slot);
 
   // Транспондеры
   connect(gui->ReleaseTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ReleaseTransponderPushButton_slot);
+  connect(gui->ConfirmTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ConfirmTransponderPushButton_slot);
+  connect(gui->RefundTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_RefundTransponderPushButton_slot);
   connect(gui->SearchTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_SearchTransponderPushButton_slot);
   connect(gui->RereleaseTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_RereleaseTransponderPushButton_slot);
-  connect(gui->RevokeTransponderPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_RevokeTransponderPushButton_slot);
 
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,

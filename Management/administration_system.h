@@ -19,6 +19,7 @@ class AdministrationSystem : public QObject {
     NotExecuted,
     DatabaseConnectionError,
     DatabaseQueryError,
+    LogicError,
     UnknowError,
     CompletedSuccessfully
   };
@@ -44,12 +45,14 @@ class AdministrationSystem : public QObject {
 
   void createNewProductionLine(
       const QMap<QString, QString>* productionLineParameters);
-  void deleteLastProductionLines(void);
+  void deleteLastProductionLine(void);
+  void linkProductionLineWithBox(const QMap<QString, QString>* linkParameters);
 
   void releaseTransponder(TransponderInfoModel* seed);
+  void confirmTransponder(TransponderInfoModel* seed);
+  void refundTransponder(TransponderInfoModel* seed);
   void searchTransponder(TransponderInfoModel* seed);
   void rereleaseTransponder(TransponderInfoModel* seed);
-  void refundTransponder(TransponderInfoModel* seed);
 
  private:
   void createDatabaseController(void);
@@ -68,7 +71,6 @@ class AdministrationSystem : public QObject {
   bool startOrderAssembling(const QString& id) const;
 
   bool removeLastProductionLine(void) const;
-
   bool stopBoxAssembling(const QString& id) const;
   bool stopPalletAssembling(const QString& id) const;
   bool stopOrderAssembling(const QString& id) const;

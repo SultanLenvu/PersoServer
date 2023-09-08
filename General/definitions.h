@@ -8,6 +8,7 @@
 #define ORGANIZATION_NAME "PowerSyntez"
 
 #define MASTER_ACCESS_PASSWORD "1995"
+#define TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
 //===============================================================
 
 /* Определения менеджера */

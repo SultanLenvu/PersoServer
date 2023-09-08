@@ -72,12 +72,14 @@ class MainWindowKernel : public QMainWindow {
   void on_CreateNewProductionLinePushButton_slot(void);
   void on_UpdateProductionLineViewPushButton_slot(void);
   void on_DeleteLastProductionLinePushButton_slot(void);
+  void on_LinkProductionLinePushButton_slot(void);
 
   // Функционал для работы с транспондерами
   void on_ReleaseTransponderPushButton_slot(void);
+  void on_ConfirmTransponderPushButton_slot(void);
+  void on_RefundTransponderPushButton_slot(void);
   void on_SearchTransponderPushButton_slot(void);
   void on_RereleaseTransponderPushButton_slot(void);
-  void on_RevokeTransponderPushButton_slot(void);
 
   // Функционал для настройки сервера
   void on_ApplySettingsPushButton_slot(void);

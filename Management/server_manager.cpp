@@ -222,70 +222,6 @@ void ServerManager::showOrderTable(DatabaseTableModel* buffer) {
   endOperationExecution("showOrderTable");
 }
 
-void ServerManager::releaseTransponder(TransponderInfoModel* seed) {
-  // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
-    return;
-  }
-
-  emit logging("Выпуск транспондера. ");
-  emit releaseTransponder_signal(seed);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
-}
-
-void ServerManager::searchTransponder(TransponderInfoModel* seed) {
-  // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
-    return;
-  }
-
-  emit logging("Выпуск транспондера. ");
-  emit searchTransponder_signal(seed);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
-}
-
-void ServerManager::rereleaseTransponder(TransponderInfoModel* seed) {
-  // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
-    return;
-  }
-
-  emit logging("Выпуск транспондера. ");
-  emit rereleaseTransponder_signal(seed);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
-}
-
-void ServerManager::refundTransponder(TransponderInfoModel* seed) {
-  // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
-    return;
-  }
-
-  emit logging("Выпуск транспондера. ");
-  emit refundTransponder_signal(seed);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
-}
-
 void ServerManager::createNewProductionLine(
     const QMap<QString, QString>* productionLineParameters,
     DatabaseTableModel* buffer) {
@@ -323,7 +259,7 @@ void ServerManager::deleteLastProductionLine(DatabaseTableModel* buffer) {
   }
 
   emit logging("Удаление последней линии производства. ");
-  emit deleteLastProductionLines_signal();
+  emit removeLastProductionLine_signal();
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -361,6 +297,117 @@ void ServerManager::showProductionLineTable(DatabaseTableModel* buffer) {
 
   // Завершаем выполнение операции
   endOperationExecution("showProductionLineTable");
+}
+
+void ServerManager::linkProductionLineWithBoxManually(
+    const QMap<QString, QString>* linkParameters,
+    DatabaseTableModel* buffer) {
+  if (!startOperationExecution("linkProductionLineWithBoxManually")) {
+    return;
+  }
+
+  emit logging("Связывание линии производства с определенным боксом. ");
+  emit linkProductionLineWithBox_signal(linkParameters);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("linkProductionLineWithBoxManually");
+    return;
+  }
+
+  buffer->clear();
+  emit logging("Отображение производственных линий. ");
+  emit getDatabaseTable_signal("production_lines", buffer);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("linkProductionLineWithBoxManually");
+}
+
+void ServerManager::releaseTransponderManually(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit releaseTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
+}
+
+void ServerManager::confirmTransponderManually(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Подтверждение транспондера. ");
+  emit confirmTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
+}
+
+void ServerManager::refundTransponderManually(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit refundTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
+}
+
+void ServerManager::searchTransponderManually(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit searchTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
+}
+
+void ServerManager::rereleaseTransponderManually(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("releaseTransponder")) {
+    return;
+  }
+
+  emit logging("Выпуск транспондера. ");
+  emit rereleaseTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("releaseTransponder");
 }
 
 void ServerManager::createHostInstance() {
@@ -556,17 +603,21 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
 
   connect(this, &ServerManager::createNewProductionLine_signal, Administrator,
           &AdministrationSystem::createNewProductionLine);
-  connect(this, &ServerManager::deleteLastProductionLines_signal, Administrator,
-          &AdministrationSystem::deleteLastProductionLines);
+  connect(this, &ServerManager::removeLastProductionLine_signal, Administrator,
+          &AdministrationSystem::deleteLastProductionLine);
+  connect(this, &ServerManager::linkProductionLineWithBox_signal, Administrator,
+          &AdministrationSystem::linkProductionLineWithBox);
 
   connect(this, &ServerManager::releaseTransponder_signal, Administrator,
           &AdministrationSystem::releaseTransponder);
+  connect(this, &ServerManager::confirmTransponder_signal, Administrator,
+          &AdministrationSystem::confirmTransponder);
+  connect(this, &ServerManager::refundTransponder_signal, Administrator,
+          &AdministrationSystem::refundTransponder);
   connect(this, &ServerManager::searchTransponder_signal, Administrator,
           &AdministrationSystem::searchTransponder);
   connect(this, &ServerManager::rereleaseTransponder_signal, Administrator,
           &AdministrationSystem::rereleaseTransponder);
-  connect(this, &ServerManager::refundTransponder_signal, Administrator,
-          &AdministrationSystem::refundTransponder);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {
@@ -597,6 +648,12 @@ void ServerManager::on_AdministratorFinished_slot(
       CurrentState = Failed;
       NotificarionText =
           "Администратор: ошибка при выполнении запроса к базе данных. ";
+      break;
+    case AdministrationSystem::LogicError:
+      CurrentState = Failed;
+      NotificarionText =
+          "Администратор: получена логическая ошибка при выполнении "
+          "операции. ";
       break;
     case AdministrationSystem::UnknowError:
       CurrentState = Failed;

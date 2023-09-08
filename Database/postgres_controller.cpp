@@ -52,7 +52,6 @@ bool PostgresController::openTransaction() const {
 
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec("BEGIN;")) {
-    sendLog("Транзакция открыта. ");
     return true;
   } else {
     sendLog("Получена ошибка при открытии транзакции: " +
@@ -69,7 +68,6 @@ bool PostgresController::closeTransaction() const {
 
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec("COMMIT;")) {
-    sendLog("Транзакция закрыта. ");
     return true;
   } else {
     sendLog("Получена ошибка при закрытии транзакции: " +
@@ -86,7 +84,6 @@ bool PostgresController::abortTransaction() const {
 
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec("ROLLBACK;")) {
-    sendLog("Транзакция сброшена. ");
     return true;
   } else {
     sendLog("Получена ошибка при сбросе транзакции: " +
@@ -107,7 +104,6 @@ bool PostgresController::getTable(const QString& tableName,
       QString("SELECT * FROM %1 ORDER BY id ASC;").arg(tableName);
   //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
   //                     .arg(QString::number(rowCount));
-  sendLog("Отправляемый запрос: " + requestText);
 
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
@@ -115,9 +111,9 @@ bool PostgresController::getTable(const QString& tableName,
     // Преобразование результатов запроса
     convertResponseToBuffer(request, buffer);
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -129,18 +125,16 @@ bool PostgresController::execCustomRequest(const QString& req,
     return false;
   }
 
-  sendLog(QString("Отправляемый запрос: ") + req);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(req)) {
-    sendLog("Ответ получен. ");
+    sendLog("Запрос выполнен. ");
     // Преобразование результатов запроса
     convertResponseToBuffer(request, buffer);
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + req);
     return false;
   }
 }
@@ -161,16 +155,15 @@ void PostgresController::applySettings() {
 bool PostgresController::clearTable(const QString& tableName) const {
   // Формируем запрос
   QString requestText = QString("DELETE FROM %1;").arg(tableName);
-  sendLog(QString("Отправляемый запрос: ") + requestText);
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
-    sendLog(QString("Очистка выполнена. "));
+    sendLog(QString("Очистка таблицы выполнена. "));
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -200,16 +193,14 @@ bool PostgresController::addRecord(const QString& tableName,
   requestText.chop(2);
   requestText += ");";
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
     sendLog("Запись добавлена. ");
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -225,7 +216,6 @@ bool PostgresController::getRecordById(const QString& tableName,
   requestText.chop(2);
   requestText += QString(" FROM public.%1 WHERE id = '%2';")
                      .arg(tableName, record.value("id"));
-  sendLog(QString("Отправляемый запрос: ") + requestText);
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
@@ -238,9 +228,9 @@ bool PostgresController::getRecordById(const QString& tableName,
       sendLog("Ответные данные не получены. ");
     }
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -274,8 +264,6 @@ bool PostgresController::getRecordByPart(const QString& tableName,
   requestText.chop(4);
   requestText += " ORDER BY id ASC LIMIT 1;";
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
@@ -288,9 +276,9 @@ bool PostgresController::getRecordByPart(const QString& tableName,
       sendLog("Ответные данные не получены. ");
     }
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -315,7 +303,6 @@ bool PostgresController::getLastRecord(const QString& tableName,
   }
   requestText.chop(2);
   requestText += QString(" FROM %1 ORDER BY id DESC LIMIT 1;").arg(tableName);
-  sendLog(QString("Отправляемый запрос: ") + requestText);
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
@@ -331,7 +318,6 @@ bool PostgresController::getLastRecord(const QString& tableName,
       sendLog(
           QString("Проверка на наличие записей в таблице %1. ").arg(tableName));
       requestText = QString("SELECT COUNT(*) FROM %1;").arg(tableName);
-      sendLog(QString("Отправляемый запрос: ") + requestText);
 
       // Выполняем запрос
       if ((request.exec(requestText)) && (request.next())) {
@@ -351,15 +337,15 @@ bool PostgresController::getLastRecord(const QString& tableName,
           sendLog("Таблица не пустая, искомый идентификатор не был найден. ");
           return false;
         }
-      } else {
-        // Обработка ошибки выполнения запроса
+      } else {  // Обработка ошибки выполнения запроса
         sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+        sendLog("Отправленный запрос: " + requestText);
         return false;
       }
     }
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 
@@ -395,8 +381,6 @@ bool PostgresController::getMergedRecordById(
                      .arg(tables.first(),
                           record.value(QString("%1.id").arg(tables.first())));
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
@@ -409,9 +393,9 @@ bool PostgresController::getMergedRecordById(
       sendLog("Ответные данные не получены. ");
     }
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -452,8 +436,6 @@ bool PostgresController::getMergedRecordByPart(
   requestText.chop(4);
   requestText += QString(" ORDER BY %1.id ASC LIMIT 1;").arg(tables.first());
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
@@ -466,9 +448,9 @@ bool PostgresController::getMergedRecordByPart(
       sendLog("Ответные данные не получены. ");
     }
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -494,16 +476,14 @@ bool PostgresController::updateRecordById(
   requestText.chop(2);
   requestText += QString(" WHERE id = '%1';").arg(record.value("id"));
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
-    sendLog("Запрос выполнен. ");
+    sendLog("Запись обновлена. ");
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -522,16 +502,14 @@ bool PostgresController::removeRecordById(const QString& tableName,
   QString requestText = QString("DELETE FROM public.%1 WHERE id = '%2';")
                             .arg(tableName, QString::number(id));
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
-    sendLog("Запрос выполнен. ");
+    sendLog("Запись удалена. ");
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -552,16 +530,14 @@ bool PostgresController::removeLastRecord(const QString& tableName) const {
           "id DESC LIMIT 1);")
           .arg(tableName);
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
     sendLog("Запись удалена. ");
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }
@@ -584,16 +560,14 @@ bool PostgresController::removeLastRecordWithCondition(
           "id DESC LIMIT 1) AND %2;")
           .arg(tableName, condition);
 
-  sendLog("Отправляемый запрос: " + requestText);
-
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
-    sendLog("Запись удалена. ");
+    sendLog("Последняя запись удалена. ");
     return true;
-  } else {
-    // Обработка ошибки выполнения запроса
+  } else {  // Обработка ошибки выполнения запроса
     sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
     return false;
   }
 }

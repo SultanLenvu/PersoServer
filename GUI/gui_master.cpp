@@ -161,7 +161,7 @@ void MasterGUI::createOrderTab() {
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout2);
   TransponderQuantityLabel = new QLabel("Количество транспондеров");
   OrderPanelSubLayout2->addWidget(TransponderQuantityLabel);
-  TransponderQuantityLineEdit = new QLineEdit("1000");
+  TransponderQuantityLineEdit = new QLineEdit("500");
   OrderPanelSubLayout2->addWidget(TransponderQuantityLineEdit);
 
   OrderPanelSubLayout3 = new QHBoxLayout();
@@ -223,27 +223,40 @@ void MasterGUI::createProductionLineTab() {
 
   LoginLayout1 = new QHBoxLayout();
   ProductionLinesControlPanelLayout->addLayout(LoginLayout1);
-  LoginLabel1 = new QLabel("Введите логин: ");
+  LoginLabel1 = new QLabel("Логин: ");
   LoginLayout1->addWidget(LoginLabel1);
   LoginLineEdit1 = new QLineEdit();
   LoginLayout1->addWidget(LoginLineEdit1);
-
   PasswordLayout1 = new QHBoxLayout();
   ProductionLinesControlPanelLayout->addLayout(PasswordLayout1);
-  PasswordLabel1 = new QLabel("Введите пароль: ");
+  PasswordLabel1 = new QLabel("Пароль: ");
   PasswordLayout1->addWidget(PasswordLabel1);
   PasswordLineEdit1 = new QLineEdit();
   PasswordLayout1->addWidget(PasswordLineEdit1);
-
   CreateNewProductionLinePushButton =
       new QPushButton("Создать новую производственную линию");
   ProductionLinesControlPanelLayout->addWidget(
       CreateNewProductionLinePushButton);
 
   // Сжатие по вертикали
-  ProductionLinesControlPanelVS =
+  ProductionLinesControlPanelVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS);
+  ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS1);
+
+  BoxIdLayout = new QHBoxLayout();
+  ProductionLinesControlPanelLayout->addLayout(BoxIdLayout);
+  BoxIdLabel = new QLabel("ID бокса: ");
+  BoxIdLayout->addWidget(BoxIdLabel);
+  BoxIdLineEdit = new QLineEdit();
+  BoxIdLayout->addWidget(BoxIdLineEdit);
+  LinkProductionLinePushButton =
+      new QPushButton("Связать с производственной линией");
+  ProductionLinesControlPanelLayout->addWidget(LinkProductionLinePushButton);
+
+  // Сжатие по вертикали
+  ProductionLinesControlPanelVS2 =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS2);
 
   UpdateProductionLineViewPushButton = new QPushButton("Обновить таблицу");
   ProductionLinesControlPanelLayout->addWidget(
@@ -285,28 +298,35 @@ void MasterGUI::createTransponderTab() {
 
   LoginLayout2 = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(LoginLayout2);
-  LoginLabel2 = new QLabel("Введите логин: ");
+  LoginLabel2 = new QLabel("Логин: ");
   LoginLayout2->addWidget(LoginLabel2);
   LoginLineEdit2 = new QLineEdit();
+  LoginLineEdit2->setText("1");
   LoginLayout2->addWidget(LoginLineEdit2);
 
   PasswordLayout2 = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(PasswordLayout2);
-  PasswordLabel2 = new QLabel("Введите пароль: ");
+  PasswordLabel2 = new QLabel("Пароль: ");
   PasswordLayout2->addWidget(PasswordLabel2);
   PasswordLineEdit2 = new QLineEdit();
+  PasswordLineEdit2->setText("1");
   PasswordLayout2->addWidget(PasswordLineEdit2);
 
   UcidLayout = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(UcidLayout);
-  UcidLabel = new QLabel("Введите UCID: ");
+  UcidLabel = new QLabel("UCID: ");
   UcidLayout->addWidget(UcidLabel);
   UcidLineEdit = new QLineEdit();
   UcidLineEdit->setMaxLength(UCID_LENGTH);
+  UcidLineEdit->setText("11111111111111111111111111111111");
   UcidLayout->addWidget(UcidLineEdit);
 
-  ReleaseTransponderPushButton = new QPushButton("Выпуск");
+  ReleaseTransponderPushButton = new QPushButton("Выпустить");
   TransponderControlPanelLayout->addWidget(ReleaseTransponderPushButton);
+  ConfirmTransponderPushButton = new QPushButton("Подтвердить");
+  TransponderControlPanelLayout->addWidget(ConfirmTransponderPushButton);
+  RefundTransponderPushButton = new QPushButton("Отозвать");
+  TransponderControlPanelLayout->addWidget(RefundTransponderPushButton);
 
   TransponderControlPanelVS =
       new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -327,7 +347,7 @@ void MasterGUI::createTransponderTab() {
 
   SearchTransponderLayout = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(SearchTransponderLayout);
-  SearchTransponderLabel = new QLabel("Введите данные:");
+  SearchTransponderLabel = new QLabel("Значение:");
   SearchTransponderLayout->addWidget(SearchTransponderLabel);
   SearchTransponderLineEdit = new QLineEdit();
   SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
@@ -337,8 +357,6 @@ void MasterGUI::createTransponderTab() {
   TransponderControlPanelLayout->addWidget(SearchTransponderPushButton);
   RereleaseTransponderPushButton = new QPushButton("Перевыпустить");
   TransponderControlPanelLayout->addWidget(RereleaseTransponderPushButton);
-  RevokeTransponderPushButton = new QPushButton("Отозвать");
-  TransponderControlPanelLayout->addWidget(RevokeTransponderPushButton);
 
   // Панель отображения
   TransponderDisplayPanel = new QGroupBox("Данные транспондера");

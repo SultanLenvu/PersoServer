@@ -12,15 +12,20 @@ class TransponderReleaseSystem : public QObject {
   Q_OBJECT
 
  private:
+  bool OrderAssembled;
+  bool OrderTranspondersOut;
   PostgresController* Database;
 
   QMutex Mutex;
 
  public:
   explicit TransponderReleaseSystem(QObject* parent);
-  void applySettings();
+
   bool start(void);
   bool stop(void);
+  void beginAssemblingNewOrder(const QString& id);
+  void beginAssemblingNextOrder(void);
+  void applySettings();
 
  public slots:
   void release(const QMap<QString, QString>* searchData,
@@ -44,12 +49,13 @@ class TransponderReleaseSystem : public QObject {
                          const QString& value,
                          QMap<QString, QString>* resultData);
 
-  bool confirmTransponder(const QString& id) const;
-  bool confirmBox(const QString& id) const;
-  bool confirmPallet(const QString& id) const;
-  bool confirmOrder(const QString& id) const;
+  bool confirmTransponder(const QString& transponderId) const;
+  bool confirmBox(const QString& boxId) const;
+  bool confirmPallet(const QString& palletId) const;
+  bool confirmOrder(const QString& orderId) const;
 
-  bool searchNextTransponderForAssembling(const QString& id) const;
+  bool searchNextTransponderForAssembling(
+      QMap<QString, QString>* productionLineRecord) const;
 
   bool refundTransponder(const QString& id) const;
   bool refundBox(const QString& id) const;
@@ -58,6 +64,9 @@ class TransponderReleaseSystem : public QObject {
 
  private slots:
   void proxyLogging(const QString& log) const;
+  void on_OrderAssemblingCompleted_slot(
+      const QMap<QString, QString>* orderData);
+  void on_OrderTranspondersOut_slot(void);
 
  signals:
   void logging(const QString& log) const;
@@ -68,6 +77,7 @@ class TransponderReleaseSystem : public QObject {
   void palletAssemblingCompleted(
       const QMap<QString, QString>* palletData) const;
   void orderAssemblingCompleted(const QMap<QString, QString>* orderData) const;
+  void orderTranspondersOut(void) const;
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

@@ -96,13 +96,18 @@ class MasterGUI : public GUI {
   QHBoxLayout* LoginLayout1;
   QLabel* LoginLabel1;
   QLineEdit* LoginLineEdit1;
-
   QHBoxLayout* PasswordLayout1;
   QLabel* PasswordLabel1;
   QLineEdit* PasswordLineEdit1;
-
   QPushButton* CreateNewProductionLinePushButton;
-  QSpacerItem* ProductionLinesControlPanelVS;
+  QSpacerItem* ProductionLinesControlPanelVS1;
+
+  QHBoxLayout* BoxIdLayout;
+  QLabel* BoxIdLabel;
+  QLineEdit* BoxIdLineEdit;
+  QPushButton* LinkProductionLinePushButton;
+  QSpacerItem* ProductionLinesControlPanelVS2;
+
   QPushButton* UpdateProductionLineViewPushButton;
   QPushButton* DeleteLastProductionLinePushButton;
 
@@ -129,6 +134,8 @@ class MasterGUI : public GUI {
   QLabel* UcidLabel;
   QLineEdit* UcidLineEdit;
   QPushButton* ReleaseTransponderPushButton;
+  QPushButton* ConfirmTransponderPushButton;
+  QPushButton* RefundTransponderPushButton;
 
   QSpacerItem* TransponderControlPanelVS;
 
@@ -140,7 +147,6 @@ class MasterGUI : public GUI {
   QLabel* SearchTransponderLabel;
   QLineEdit* SearchTransponderLineEdit;
   QPushButton* SearchTransponderPushButton;
-  QPushButton* RevokeTransponderPushButton;
   QPushButton* RereleaseTransponderPushButton;
 
   QGroupBox* TransponderDisplayPanel;
