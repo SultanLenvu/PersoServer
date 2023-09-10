@@ -332,7 +332,7 @@ void ServerManager::linkProductionLineWithBoxManually(
 
 void ServerManager::releaseTransponderManually(TransponderInfoModel* seed) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
+  if (!startOperationExecution("releaseTransponderManually")) {
     return;
   }
 
@@ -343,28 +343,62 @@ void ServerManager::releaseTransponderManually(TransponderInfoModel* seed) {
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
+  endOperationExecution("releaseTransponderManually");
 }
 
-void ServerManager::confirmTransponderManually(TransponderInfoModel* seed) {
+void ServerManager::confirmReleaseTransponderManually(
+    TransponderInfoModel* seed) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
+  if (!startOperationExecution("confirmReleaseTransponderManually")) {
     return;
   }
 
-  emit logging("Подтверждение транспондера. ");
-  emit confirmTransponder_signal(seed);
+  emit logging("Подтверждение выпуска транспондера. ");
+  emit confirmReleaseTransponder_signal(seed);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
+  endOperationExecution("confirmReleaseTransponderManually");
+}
+
+void ServerManager::rereleaseTransponderManually(TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("rereleaseTransponderManually")) {
+    return;
+  }
+
+  emit logging("Перевыпуск транспондера. ");
+  emit rereleaseTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("rereleaseTransponderManually");
+}
+
+void ServerManager::confirmRereleaseTransponderManually(
+    TransponderInfoModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("confirmRereleaseTransponderManually")) {
+    return;
+  }
+
+  emit logging("Подтверждение перевыпуска транспондера. ");
+  emit confirmRereleaseTransponder_signal(seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("confirmRereleaseTransponderManually");
 }
 
 void ServerManager::refundTransponderManually(TransponderInfoModel* seed) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
+  if (!startOperationExecution("refundTransponderManually")) {
     return;
   }
 
@@ -375,12 +409,12 @@ void ServerManager::refundTransponderManually(TransponderInfoModel* seed) {
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
+  endOperationExecution("refundTransponderManually");
 }
 
 void ServerManager::searchTransponderManually(TransponderInfoModel* seed) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
+  if (!startOperationExecution("searchTransponderManually")) {
     return;
   }
 
@@ -391,23 +425,7 @@ void ServerManager::searchTransponderManually(TransponderInfoModel* seed) {
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
-}
-
-void ServerManager::rereleaseTransponderManually(TransponderInfoModel* seed) {
-  // Начинаем выполнение операции
-  if (!startOperationExecution("releaseTransponder")) {
-    return;
-  }
-
-  emit logging("Выпуск транспондера. ");
-  emit rereleaseTransponder_signal(seed);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("releaseTransponder");
+  endOperationExecution("searchTransponderManually");
 }
 
 void ServerManager::createHostInstance() {
@@ -610,14 +628,16 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
 
   connect(this, &ServerManager::releaseTransponder_signal, Administrator,
           &AdministrationSystem::releaseTransponder);
-  connect(this, &ServerManager::confirmTransponder_signal, Administrator,
-          &AdministrationSystem::confirmTransponder);
+  connect(this, &ServerManager::confirmReleaseTransponder_signal, Administrator,
+          &AdministrationSystem::confirmReleaseTransponder);
+  connect(this, &ServerManager::rereleaseTransponder_signal, Administrator,
+          &AdministrationSystem::rereleaseTransponder);
+  connect(this, &ServerManager::confirmRereleaseTransponder_signal,
+          Administrator, &AdministrationSystem::confirmRereleaseTransponder);
   connect(this, &ServerManager::refundTransponder_signal, Administrator,
           &AdministrationSystem::refundTransponder);
   connect(this, &ServerManager::searchTransponder_signal, Administrator,
           &AdministrationSystem::searchTransponder);
-  connect(this, &ServerManager::rereleaseTransponder_signal, Administrator,
-          &AdministrationSystem::rereleaseTransponder);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {

@@ -70,8 +70,7 @@ bool PostgresController::closeTransaction() const {
   if (request.exec("COMMIT;")) {
     return true;
   } else {
-    sendLog("Получена ошибка при закрытии транзакции: " +
-            request.lastError().text());
+    sendLog(request.lastError().text());
     return false;
   }
 }
@@ -86,8 +85,7 @@ bool PostgresController::abortTransaction() const {
   if (request.exec("ROLLBACK;")) {
     return true;
   } else {
-    sendLog("Получена ошибка при сбросе транзакции: " +
-            request.lastError().text());
+    sendLog(request.lastError().text());
     return false;
   }
 }
@@ -112,7 +110,7 @@ bool PostgresController::getTable(const QString& tableName,
     convertResponseToBuffer(request, buffer);
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -133,7 +131,7 @@ bool PostgresController::execCustomRequest(const QString& req,
     convertResponseToBuffer(request, buffer);
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + req);
     return false;
   }
@@ -162,7 +160,7 @@ bool PostgresController::clearTable(const QString& tableName) const {
     sendLog(QString("Очистка таблицы выполнена. "));
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -199,7 +197,7 @@ bool PostgresController::addRecord(const QString& tableName,
     sendLog("Запись добавлена. ");
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -225,11 +223,12 @@ bool PostgresController::getRecordById(const QString& tableName,
       sendLog("Ответные данные получены. ");
       convertResponseToMap(request, record);
     } else {
+      record.clear();
       sendLog("Ответные данные не получены. ");
     }
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -277,7 +276,7 @@ bool PostgresController::getRecordByPart(const QString& tableName,
     }
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -338,13 +337,13 @@ bool PostgresController::getLastRecord(const QString& tableName,
           return false;
         }
       } else {  // Обработка ошибки выполнения запроса
-        sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+        sendLog(request.lastError().text());
         sendLog("Отправленный запрос: " + requestText);
         return false;
       }
     }
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -394,7 +393,7 @@ bool PostgresController::getMergedRecordById(
     }
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -449,7 +448,7 @@ bool PostgresController::getMergedRecordByPart(
     }
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -470,7 +469,11 @@ bool PostgresController::updateRecordById(
   QString requestText = QString("UPDATE public.%1 SET ").arg(tableName);
   for (QMap<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
-    requestText += QString("%1 = '%2', ").arg(it.key(), it.value());
+    if (it.value() != "NULL") {
+      requestText += QString("%1 = '%2', ").arg(it.key(), it.value());
+    } else {
+      requestText += QString("%1 = %2, ").arg(it.key(), it.value());
+    }
   }
 
   requestText.chop(2);
@@ -482,7 +485,7 @@ bool PostgresController::updateRecordById(
     sendLog("Запись обновлена. ");
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -508,7 +511,7 @@ bool PostgresController::removeRecordById(const QString& tableName,
     sendLog("Запись удалена. ");
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -536,7 +539,7 @@ bool PostgresController::removeLastRecord(const QString& tableName) const {
     sendLog("Запись удалена. ");
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }
@@ -566,7 +569,7 @@ bool PostgresController::removeLastRecordWithCondition(
     sendLog("Последняя запись удалена. ");
     return true;
   } else {  // Обработка ошибки выполнения запроса
-    sendLog("Ошибка выполнения запроса: " + request.lastError().text());
+    sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
   }

@@ -325,8 +325,6 @@ void MasterGUI::createTransponderTab() {
   TransponderControlPanelLayout->addWidget(ReleaseTransponderPushButton);
   ConfirmTransponderPushButton = new QPushButton("Подтвердить");
   TransponderControlPanelLayout->addWidget(ConfirmTransponderPushButton);
-  RefundTransponderPushButton = new QPushButton("Отозвать");
-  TransponderControlPanelLayout->addWidget(RefundTransponderPushButton);
 
   TransponderControlPanelVS =
       new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -334,8 +332,6 @@ void MasterGUI::createTransponderTab() {
 
   SearchTransponderByLayout = new QHBoxLayout();
   TransponderControlPanelLayout->addLayout(SearchTransponderByLayout);
-  SearchTransponderByLabel = new QLabel("Поиск по: ");
-  SearchTransponderByLayout->addWidget(SearchTransponderByLabel);
   SearchTransponderByComboBox = new QComboBox();
   SearchTransponderByComboBox->addItem("SN");
   SearchTransponderByComboBox->addItem("UCID");
@@ -344,19 +340,58 @@ void MasterGUI::createTransponderTab() {
   SearchTransponderByLayout->addWidget(SearchTransponderByComboBox);
   connect(SearchTransponderByComboBox, &QComboBox::currentTextChanged, this,
           &MasterGUI::on_SearchTransponderByComboBox_slot);
-
-  SearchTransponderLayout = new QHBoxLayout();
-  TransponderControlPanelLayout->addLayout(SearchTransponderLayout);
-  SearchTransponderLabel = new QLabel("Значение:");
-  SearchTransponderLayout->addWidget(SearchTransponderLabel);
   SearchTransponderLineEdit = new QLineEdit();
   SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
-  SearchTransponderLayout->addWidget(SearchTransponderLineEdit);
+  SearchTransponderByLayout->addWidget(SearchTransponderLineEdit);
 
   SearchTransponderPushButton = new QPushButton("Найти");
   TransponderControlPanelLayout->addWidget(SearchTransponderPushButton);
+  RefundTransponderPushButton = new QPushButton("Отозвать");
+  TransponderControlPanelLayout->addWidget(RefundTransponderPushButton);
+
+  LoginLayout3 = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(LoginLayout3);
+  LoginLabel3 = new QLabel("Логин: ");
+  LoginLayout3->addWidget(LoginLabel3);
+  LoginLineEdit3 = new QLineEdit();
+  LoginLineEdit3->setText("1");
+  LoginLayout3->addWidget(LoginLineEdit3);
+
+  PasswordLayout3 = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(PasswordLayout3);
+  PasswordLabel3 = new QLabel("Пароль: ");
+  PasswordLayout3->addWidget(PasswordLabel3);
+  PasswordLineEdit3 = new QLineEdit();
+  PasswordLineEdit3->setText("1");
+  PasswordLayout3->addWidget(PasswordLineEdit3);
+
+  RereleaseTransponderLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(RereleaseTransponderLayout);
+  RereleaseTransponderByComboBox = new QComboBox();
+  RereleaseTransponderByComboBox->addItem("SN");
+  RereleaseTransponderByComboBox->addItem("PAN");
+  RereleaseTransponderByComboBox->setCurrentIndex(0);
+  RereleaseTransponderLayout->addWidget(RereleaseTransponderByComboBox);
+  connect(RereleaseTransponderByComboBox, &QComboBox::currentTextChanged, this,
+          &MasterGUI::on_RereleaseTransponderByComboBox_slot);
+  RereleaseTransponderLineEdit = new QLineEdit();
+  RereleaseTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
+  RereleaseTransponderLayout->addWidget(RereleaseTransponderLineEdit);
+
+  NewUcidLayout = new QHBoxLayout();
+  TransponderControlPanelLayout->addLayout(NewUcidLayout);
+  NewUcidLabel = new QLabel("UCID:");
+  NewUcidLayout->addWidget(NewUcidLabel);
+  NewUcidLineEdit = new QLineEdit();
+  NewUcidLineEdit->setMaxLength(UCID_LENGTH);
+  NewUcidLayout->addWidget(NewUcidLineEdit);
+
   RereleaseTransponderPushButton = new QPushButton("Перевыпустить");
   TransponderControlPanelLayout->addWidget(RereleaseTransponderPushButton);
+  ConfirmRereleaseTransponderPushButton =
+      new QPushButton("Подтвердить перевыпуск");
+  TransponderControlPanelLayout->addWidget(
+      ConfirmRereleaseTransponderPushButton);
 
   // Панель отображения
   TransponderDisplayPanel = new QGroupBox("Данные транспондера");
@@ -561,11 +596,9 @@ void MasterGUI::createSettingsTab() {
 
   FirmwareBasePathLabel = new QLabel("Путь к файлу с прошивкой");
   FirmwareSettingsLayout->addWidget(FirmwareBasePathLabel, 0, 0, 1, 1);
-  FirmwareBasePathLineEdit = new QLineEdit(
-      settings.value("FirmwareGenerationSystem/Firmware/Path").toString());
+  FirmwareBasePathLineEdit =
+      new QLineEdit(settings.value("Firmware/Base/Path").toString());
   FirmwareBasePathLineEdit->setMaxLength(200);
-  FirmwareBasePathLineEdit->setText(
-      settings.value("Firmware/Base/Path").toString());
   FirmwareSettingsLayout->addWidget(FirmwareBasePathLineEdit, 0, 1, 1, 1);
   ExploreFirmwareBasePathPushButton = new QPushButton("Обзор");
   FirmwareSettingsLayout->addWidget(ExploreFirmwareBasePathPushButton, 0, 2, 1,
@@ -575,12 +608,9 @@ void MasterGUI::createSettingsTab() {
 
   FirmwareDataPathLabel = new QLabel("Путь к файлу с данными");
   FirmwareSettingsLayout->addWidget(FirmwareDataPathLabel, 1, 0, 1, 1);
-  FirmwareDataPathLineEdit = new QLineEdit(
-      settings.value("FirmwareGenerationSystem/TransponderSeed/Path")
-          .toString());
+  FirmwareDataPathLineEdit =
+      new QLineEdit(settings.value("Firmware/Data/Path").toString());
   FirmwareDataPathLineEdit->setMaxLength(200);
-  FirmwareDataPathLineEdit->setText(
-      settings.value("Firmware/Data/Path").toString());
   FirmwareSettingsLayout->addWidget(FirmwareDataPathLineEdit, 1, 1, 1, 1);
   ExploreFirmwareDataPathPushButton = new QPushButton("Обзор");
   FirmwareSettingsLayout->addWidget(ExploreFirmwareDataPathPushButton, 1, 2, 1,
@@ -639,6 +669,17 @@ void MasterGUI::on_SearchTransponderByComboBox_slot(const QString& text) {
     SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
   } else {
     SearchTransponderLineEdit->setMaxLength(0);
+  }
+}
+
+void MasterGUI::on_RereleaseTransponderByComboBox_slot(const QString& text) {
+  if (text == "PAN") {
+    RereleaseTransponderLineEdit->setMaxLength(PAYMENT_MEANS_LENGTH);
+  } else if (text == "SN") {
+    RereleaseTransponderLineEdit->setMaxLength(
+        TRANSPONDER_SERIAL_NUMBER_LENGTH);
+  } else {
+    RereleaseTransponderLineEdit->setMaxLength(0);
   }
 }
 

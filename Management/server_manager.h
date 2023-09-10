@@ -84,10 +84,11 @@ class ServerManager : public QObject {
       DatabaseTableModel* buffer);
 
   void releaseTransponderManually(TransponderInfoModel* model);
-  void confirmTransponderManually(TransponderInfoModel* model);
-  void refundTransponderManually(TransponderInfoModel* model);
-  void searchTransponderManually(TransponderInfoModel* model);
+  void confirmReleaseTransponderManually(TransponderInfoModel* model);
   void rereleaseTransponderManually(TransponderInfoModel* model);
+  void confirmRereleaseTransponderManually(TransponderInfoModel* model);
+  void searchTransponderManually(TransponderInfoModel* model);
+  void refundTransponderManually(TransponderInfoModel* model);
 
  private:
   void createHostInstance(void);
@@ -146,10 +147,11 @@ class ServerManager : public QObject {
 
   // Сигналы для системы выпуска транспондеров
   void releaseTransponder_signal(TransponderInfoModel* seed);
-  void confirmTransponder_signal(TransponderInfoModel* seed);
-  void refundTransponder_signal(TransponderInfoModel* seed);
-  void searchTransponder_signal(TransponderInfoModel* seed);
+  void confirmReleaseTransponder_signal(TransponderInfoModel* seed);
   void rereleaseTransponder_signal(TransponderInfoModel* seed);
+  void confirmRereleaseTransponder_signal(TransponderInfoModel* seed);
+  void searchTransponder_signal(TransponderInfoModel* seed);
+  void refundTransponder_signal(TransponderInfoModel* seed);
 };
 
 //==================================================================================

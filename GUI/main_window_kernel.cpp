@@ -207,6 +207,7 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
   if (!checkReleaseTransponderInput()) {
     Interactor->generateError(
         "Введены некорректные данные для выпуска транспондера. ");
+    delete data;
     return;
   }
 
@@ -233,6 +234,7 @@ void MainWindowKernel::on_ConfirmTransponderPushButton_slot() {
   if (!checkReleaseTransponderInput()) {
     Interactor->generateError(
         "Введены некорректные данные для подтверждения транспондера. ");
+    delete data;
     return;
   }
 
@@ -243,34 +245,78 @@ void MainWindowKernel::on_ConfirmTransponderPushButton_slot() {
   TransponderSeed->build(data);
 
   // Осуществляем подтверждение выпуска
-  Manager->confirmTransponderManually(TransponderSeed);
+  Manager->confirmReleaseTransponderManually(TransponderSeed);
 
   // Обновляем интерфейс
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_RefundTransponderPushButton_slot() {
+void MainWindowKernel::on_RereleaseTransponderPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QMap<QString, QString>* data = new QMap<QString, QString>;
-  QString text = gui->SearchTransponderByComboBox->currentText();
+  QString choice = gui->SearchTransponderByComboBox->currentText();
+  QString input = gui->RereleaseTransponderLineEdit->text();
+  QString ucid = gui->NewUcidLineEdit->text();
 
   Logger->clear();
 
   // Проверка пользовательского ввода
-  if (!checkSearchTransponderInput()) {
+  if (!checkRereleaseTransponderInput()) {
     Interactor->generateError(
-        "Введены некорректные данные для возврата транспондера. ");
+        "Введены некорректные данные для перевыпуска транспондера. ");
+    delete data;
     return;
   }
 
   // Собираем сид транспондера
-  data->insert("ucid", gui->UcidLineEdit->text());
-  data->insert("login", gui->LoginLineEdit2->text());
-  data->insert("password", gui->PasswordLineEdit2->text());
+  data->insert("login", gui->LoginLineEdit3->text());
+  data->insert("password", gui->PasswordLineEdit3->text());
+  if (choice == "SN") {
+    data->insert("id", input);
+  } else if (choice == "PAN") {
+    data->insert("payment_means", input);
+  }
+  data->insert("ucid", ucid);
   TransponderSeed->build(data);
 
-  // Осуществляем возврат
-  Manager->refundTransponderManually(TransponderSeed);
+  // Перевыпускаем транспондер
+  Manager->rereleaseTransponderManually(TransponderSeed);
+
+  // Обновляем интерфейс
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_ConfirmRereleaseTransponderPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QMap<QString, QString>* data = new QMap<QString, QString>;
+  QString choice = gui->SearchTransponderByComboBox->currentText();
+  QString input = gui->RereleaseTransponderLineEdit->text();
+  QString ucid = gui->NewUcidLineEdit->text();
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkRereleaseTransponderInput()) {
+    Interactor->generateError(
+        "Введены некорректные данные для подтверждения перевыпуска "
+        "транспондера. ");
+    delete data;
+    return;
+  }
+
+  // Собираем сид транспондера
+  data->insert("login", gui->LoginLineEdit3->text());
+  data->insert("password", gui->PasswordLineEdit3->text());
+  if (choice == "SN") {
+    data->insert("id", input);
+  } else if (choice == "PAN") {
+    data->insert("payment_means", input);
+  }
+  data->insert("ucid", ucid);
+  TransponderSeed->build(data);
+
+  // Осуществляем подтверждение перевыпуска
+  Manager->confirmRereleaseTransponderManually(TransponderSeed);
 
   // Обновляем интерфейс
   CurrentGUI->update();
@@ -286,6 +332,7 @@ void MainWindowKernel::on_SearchTransponderPushButton_slot() {
   // Проверка пользовательского ввода
   if (!checkSearchTransponderInput()) {
     Interactor->generateError("Введены некорректные данные для поиска. ");
+    delete data;
     return;
   }
 
@@ -306,32 +353,28 @@ void MainWindowKernel::on_SearchTransponderPushButton_slot() {
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_RereleaseTransponderPushButton_slot()
-{
+void MainWindowKernel::on_RefundTransponderPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QMap<QString, QString>* data = new QMap<QString, QString>;
-  QString text = gui->SearchTransponderByComboBox->currentText();
 
   Logger->clear();
 
   // Проверка пользовательского ввода
   if (!checkSearchTransponderInput()) {
-    Interactor->generateError("Введены некорректные данные для поиска. ");
+    Interactor->generateError(
+        "Введены некорректные данные для возврата транспондера. ");
+    delete data;
     return;
   }
 
   // Собираем сид транспондера
-  if (text == "UCID") {
-    data->insert("ucid", gui->SearchTransponderLineEdit->text());
-  } else if (text == "SN") {
-    data->insert("id", gui->SearchTransponderLineEdit->text());
-  } else if (text == "PAN") {
-    data->insert("payment_means", gui->SearchTransponderLineEdit->text());
-  }
+  data->insert("ucid", gui->UcidLineEdit->text());
+  data->insert("login", gui->LoginLineEdit2->text());
+  data->insert("password", gui->PasswordLineEdit2->text());
   TransponderSeed->build(data);
 
-  // Перевыпускаем транспондер
-  Manager->rereleaseTransponderManually(TransponderSeed);
+  // Осуществляем возврат
+  Manager->refundTransponderManually(TransponderSeed);
 
   // Обновляем интерфейс
   CurrentGUI->update();
@@ -474,14 +517,14 @@ bool MainWindowKernel::checkNewOrderInput() const {
 
 bool MainWindowKernel::checkNewProductionLineInput() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QString login = gui->LoginLineEdit1->text();
+  QString pass = gui->PasswordLineEdit1->text();
 
-  if ((gui->LoginLineEdit1->text().size() == 0) ||
-      (gui->LoginLineEdit1->text().size() > 20)) {
+  if ((login.size() == 0) || (login.size() > 20)) {
     return false;
   }
 
-  if ((gui->PasswordLineEdit1->text().size() == 0) ||
-      (gui->PasswordLineEdit1->text().size() > 20)) {
+  if ((pass.size() == 0) || (pass.size() > 20)) {
     return false;
   }
 
@@ -491,23 +534,24 @@ bool MainWindowKernel::checkNewProductionLineInput() const {
 bool MainWindowKernel::checkReleaseTransponderInput() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QRegularExpression regex("[A-Fa-f0-9]+");
+  QString login = gui->LoginLineEdit2->text();
+  QString pass = gui->PasswordLineEdit2->text();
+  QString ucid = gui->UcidLineEdit->text();
 
-  if (gui->UcidLineEdit->text().size() != UCID_LENGTH) {
+  if (ucid.size() != UCID_LENGTH) {
     return false;
   }
 
-  QRegularExpressionMatch match = regex.match(gui->UcidLineEdit->text());
-  if ((!match.hasMatch()) || (match.captured(0) != gui->UcidLineEdit->text())) {
+  QRegularExpressionMatch match = regex.match(ucid);
+  if ((!match.hasMatch()) || (match.captured(0) != ucid)) {
     return false;
   }
 
-  if ((gui->LoginLineEdit2->text().size() == 0) ||
-      (gui->LoginLineEdit2->text().size() > 20)) {
+  if ((login.size() == 0) || (login.size() > 20)) {
     return false;
   }
 
-  if ((gui->PasswordLineEdit2->text().size() == 0) ||
-      (gui->PasswordLineEdit2->text().size() > 20)) {
+  if ((pass.size() == 0) || (pass.size() > 20)) {
     return false;
   }
 
@@ -518,34 +562,80 @@ bool MainWindowKernel::checkSearchTransponderInput() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QRegularExpression ucidRegex("[A-Fa-f0-9]+");
   QRegularExpression panRegex("[0-9]+");
-  QString text = gui->SearchTransponderByComboBox->currentText();
+  QString choice = gui->SearchTransponderByComboBox->currentText();
+  QString input = gui->SearchTransponderLineEdit->text();
 
-  if (text == "UCID") {
-    if (text.size() != UCID_LENGTH) {
+  if (choice == "UCID") {
+    if (input.size() != UCID_LENGTH) {
       return false;
     }
 
-    QRegularExpressionMatch match =
-        ucidRegex.match(gui->SearchTransponderLineEdit->text());
-    if ((!match.hasMatch()) || (match.captured(0) != text)) {
+    QRegularExpressionMatch match = ucidRegex.match(input);
+    if ((!match.hasMatch()) || (match.captured(0) != input)) {
       return false;
     }
-  } else if (text == "SN") {
-    if (gui->SearchTransponderLineEdit->text().toInt() == 0) {
+  } else if (choice == "SN") {
+    if (input.toInt() == 0) {
       return false;
     }
-  } else if (text == "PAN") {
-    if (gui->SearchTransponderLineEdit->text().length() !=
-        PAYMENT_MEANS_LENGTH) {
+  } else if (choice == "PAN") {
+    if (input.length() != PAYMENT_MEANS_LENGTH) {
       return false;
     }
 
     QRegularExpressionMatch match =
         panRegex.match(gui->SearchTransponderLineEdit->text());
-    if ((!match.hasMatch()) || (match.captured(0) != text)) {
+    if ((!match.hasMatch()) || (match.captured(0) != input)) {
       return false;
     }
   } else {
+    return false;
+  }
+
+  return true;
+}
+
+bool MainWindowKernel::checkRereleaseTransponderInput() const {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QRegularExpression ucidRegex("[A-Fa-f0-9]+");
+  QRegularExpression panRegex("[0-9]+");
+  QString choice = gui->RereleaseTransponderByComboBox->currentText();
+  QString input = gui->RereleaseTransponderLineEdit->text();
+  QString ucid = gui->NewUcidLineEdit->text();
+  QString login = gui->LoginLineEdit3->text();
+  QString pass = gui->PasswordLineEdit3->text();
+
+  if ((login.size() == 0) || (login.size() > 20)) {
+    return false;
+  }
+
+  if ((pass.size() == 0) || (pass.size() > 20)) {
+    return false;
+  }
+
+  if (choice == "SN") {
+    if (input.toInt() == 0) {
+      return false;
+    }
+  } else if (choice == "PAN") {
+    if (input.length() != PAYMENT_MEANS_LENGTH) {
+      return false;
+    }
+
+    QRegularExpressionMatch match = panRegex.match(input);
+    if ((!match.hasMatch()) || (match.captured(0) != input)) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  if (ucid.size() != UCID_LENGTH) {
+    return false;
+  }
+
+  QRegularExpressionMatch match = ucidRegex.match(ucid);
+  if ((!match.hasMatch()) || (match.captured(0) != ucid)) {
     return false;
   }
 
@@ -665,12 +755,15 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_ReleaseTransponderPushButton_slot);
   connect(gui->ConfirmTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ConfirmTransponderPushButton_slot);
-  connect(gui->RefundTransponderPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_RefundTransponderPushButton_slot);
-  connect(gui->SearchTransponderPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_SearchTransponderPushButton_slot);
   connect(gui->RereleaseTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_RereleaseTransponderPushButton_slot);
+  connect(gui->ConfirmRereleaseTransponderPushButton, &QPushButton::clicked,
+          this,
+          &MainWindowKernel::on_ConfirmRereleaseTransponderPushButton_slot);
+  connect(gui->SearchTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_SearchTransponderPushButton_slot);
+  connect(gui->RefundTransponderPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_RefundTransponderPushButton_slot);
 
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,

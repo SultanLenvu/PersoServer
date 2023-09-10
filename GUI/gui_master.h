@@ -43,7 +43,7 @@ class MasterGUI : public GUI {
   QTableView* DatabaseRandomBufferView;
   //============================================================
 
-  /* Интерфейс для упралвения заказами */
+  /* Интерфейс для управления заказами */
   //============================================================
   QWidget* OrderTab;
   QHBoxLayout* OrderTabMainLayout;
@@ -135,19 +135,29 @@ class MasterGUI : public GUI {
   QLineEdit* UcidLineEdit;
   QPushButton* ReleaseTransponderPushButton;
   QPushButton* ConfirmTransponderPushButton;
-  QPushButton* RefundTransponderPushButton;
 
   QSpacerItem* TransponderControlPanelVS;
 
   QHBoxLayout* SearchTransponderByLayout;
-  QLabel* SearchTransponderByLabel;
   QComboBox* SearchTransponderByComboBox;
-
-  QHBoxLayout* SearchTransponderLayout;
-  QLabel* SearchTransponderLabel;
   QLineEdit* SearchTransponderLineEdit;
   QPushButton* SearchTransponderPushButton;
+  QPushButton* RefundTransponderPushButton;
+
+  QHBoxLayout* LoginLayout3;
+  QLabel* LoginLabel3;
+  QLineEdit* LoginLineEdit3;
+  QHBoxLayout* PasswordLayout3;
+  QLabel* PasswordLabel3;
+  QLineEdit* PasswordLineEdit3;
+  QHBoxLayout* RereleaseTransponderLayout;
+  QComboBox* RereleaseTransponderByComboBox;
+  QLineEdit* RereleaseTransponderLineEdit;
+  QHBoxLayout* NewUcidLayout;
+  QLabel* NewUcidLabel;
+  QLineEdit* NewUcidLineEdit;
   QPushButton* RereleaseTransponderPushButton;
+  QPushButton* ConfirmRereleaseTransponderPushButton;
 
   QGroupBox* TransponderDisplayPanel;
   QHBoxLayout* TransponderDisplayLayout;
@@ -264,6 +274,7 @@ class MasterGUI : public GUI {
   void on_ExploreFirmwareDataPathPushButton_slot(void);
 
   void on_SearchTransponderByComboBox_slot(const QString& text);
+  void on_RereleaseTransponderByComboBox_slot(const QString& text);
 
  signals:
 };

@@ -48,11 +48,13 @@ class AdministrationSystem : public QObject {
   void deleteLastProductionLine(void);
   void linkProductionLineWithBox(const QMap<QString, QString>* linkParameters);
 
-  void releaseTransponder(TransponderInfoModel* seed);
-  void confirmTransponder(TransponderInfoModel* seed);
-  void refundTransponder(TransponderInfoModel* seed);
-  void searchTransponder(TransponderInfoModel* seed);
-  void rereleaseTransponder(TransponderInfoModel* seed);
+  void releaseTransponder(TransponderInfoModel* model);
+  void confirmReleaseTransponder(TransponderInfoModel* model);
+  void rereleaseTransponder(TransponderInfoModel* model);
+  void confirmRereleaseTransponder(TransponderInfoModel* model);
+  void searchTransponder(TransponderInfoModel* model);
+
+  void refundTransponder(TransponderInfoModel* model);
 
  private:
   void createDatabaseController(void);

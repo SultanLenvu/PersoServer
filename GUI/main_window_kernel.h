@@ -77,9 +77,10 @@ class MainWindowKernel : public QMainWindow {
   // Функционал для работы с транспондерами
   void on_ReleaseTransponderPushButton_slot(void);
   void on_ConfirmTransponderPushButton_slot(void);
-  void on_RefundTransponderPushButton_slot(void);
-  void on_SearchTransponderPushButton_slot(void);
   void on_RereleaseTransponderPushButton_slot(void);
+  void on_ConfirmRereleaseTransponderPushButton_slot(void);
+  void on_SearchTransponderPushButton_slot(void);
+  void on_RefundTransponderPushButton_slot(void);
 
   // Функционал для настройки сервера
   void on_ApplySettingsPushButton_slot(void);
@@ -91,6 +92,7 @@ class MainWindowKernel : public QMainWindow {
   bool checkNewProductionLineInput(void) const;
   bool checkReleaseTransponderInput(void) const;
   bool checkSearchTransponderInput() const;
+  bool checkRereleaseTransponderInput() const;
 
   void createTopMenu(void);  // Создание верхнего меню
   void createTopMenuActions(void);  // Создание функционала для верхнего меню

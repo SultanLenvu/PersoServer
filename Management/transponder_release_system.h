@@ -11,6 +11,14 @@
 class TransponderReleaseSystem : public QObject {
   Q_OBJECT
 
+ public:
+  enum ReturnStatus {
+    Success,
+    RunOutFreeTransponders,
+    CurrentOrderAssembled,
+    Failed
+  };
+
  private:
   bool OrderAssembled;
   bool OrderTranspondersOut;
@@ -31,11 +39,13 @@ class TransponderReleaseSystem : public QObject {
   void release(const QMap<QString, QString>* searchData,
                QMap<QString, QString>* resultData,
                bool& ok);
-  void confirm(const QMap<QString, QString>* searchData, bool& ok);
+  void confirmRelease(const QMap<QString, QString>* searchData, bool& ok);
+
   void rerelease(const QMap<QString, QString>* searchData,
                  QMap<QString, QString>* resultData,
                  bool& ok);
-  void refund(const QMap<QString, QString>* searchData, bool& ok);
+  void confirmRerelease(const QMap<QString, QString>* searchData, bool& ok);
+
   void search(const QMap<QString, QString>* searchData,
               QMap<QString, QString>* resultData,
               bool& ok);
@@ -44,10 +54,11 @@ class TransponderReleaseSystem : public QObject {
   void createDatabaseController(void);
   void loadSettings(void);
 
- private:
   bool getTranponderData(const QString& key,
                          const QString& value,
                          QMap<QString, QString>* resultData);
+  bool checkRerelease(const QMap<QString, QString>& transponderRecord,
+                      const QMap<QString, QString>& searchData);
 
   bool confirmTransponder(const QString& transponderId) const;
   bool confirmBox(const QString& boxId) const;
@@ -56,11 +67,6 @@ class TransponderReleaseSystem : public QObject {
 
   bool searchNextTransponderForAssembling(
       QMap<QString, QString>* productionLineRecord) const;
-
-  bool refundTransponder(const QString& id) const;
-  bool refundBox(const QString& id) const;
-  bool refundPallet(const QString& id) const;
-  bool refundOrder(const QString& id) const;
 
  private slots:
   void proxyLogging(const QString& log) const;
