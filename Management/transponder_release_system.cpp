@@ -12,9 +12,9 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
   connect(this, &TransponderReleaseSystem::orderAssemblingCompleted, this,
           &TransponderReleaseSystem::on_OrderAssemblingCompleted_slot);
 
-  OrderTranspondersOut = false;
+  FreeTranspondersOut = false;
   connect(this, &TransponderReleaseSystem::orderTranspondersOut, this,
-          &TransponderReleaseSystem::on_OrderTranspondersOut_slot);
+          &TransponderReleaseSystem::on_FreeTranspondersOut_slot);
 }
 
 bool TransponderReleaseSystem::start() {
@@ -50,13 +50,13 @@ void TransponderReleaseSystem::applySettings() {
 
 void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
                                        QMap<QString, QString>* resultData,
-                                       bool& ok) {
+                                       ReturnStatus* status) {
   QMap<QString, QString> productionLineRecord;
   QMap<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
 
@@ -70,7 +70,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
         QString(
             "Получена ошибка при поиске данных производственной линии '%1'. ")
             .arg(searchData->value("login")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -82,7 +82,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
     emit logging(
         QString("Получена ошибка при поиске данных транспондера '%1'. ")
             .arg(searchData->value("login")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -93,7 +93,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
     emit logging(
         QString("Транспондер %1 уже был выпущен, повторный выпуск невозможен. ")
             .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -106,7 +106,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
     emit logging(
         QString("Получена ошибка при сохранении UCID транспондера %1. ")
             .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -116,27 +116,27 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
                          resultData)) {
     emit logging(
         "Получена ошибка при получении объединенных данных о транспондере. ");
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
-  ok = true;
+  *status = Success;
 }
 
 void TransponderReleaseSystem::confirmRelease(
     const QMap<QString, QString>* searchData,
-    bool& ok) {
+    ReturnStatus* status) {
   QMap<QString, QString> productionLineRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
-    ok = false;
+    *status = Failed;
     return;
   }
 
@@ -147,7 +147,7 @@ void TransponderReleaseSystem::confirmRelease(
   productionLineRecord.insert("id", "");
   if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
     emit logging("Получена ошибка при поиске данных производственной линии. ");
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -156,7 +156,7 @@ void TransponderReleaseSystem::confirmRelease(
   if (!confirmTransponder(productionLineRecord.value("transponder_id"))) {
     emit logging(QString("Получена ошибка при подтвеждении транспондера %1. ")
                      .arg(productionLineRecord.value("transponder_id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -166,28 +166,28 @@ void TransponderReleaseSystem::confirmRelease(
     emit logging(QString("Получена ошибка при поиске очередного транспондера "
                          "для производственной линии %1. ")
                      .arg(productionLineRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
-    ok = false;
+    *status = Failed;
     return;
   }
-  ok = true;
+  *status = Success;
 }
 
 void TransponderReleaseSystem::rerelease(
     const QMap<QString, QString>* searchData,
     QMap<QString, QString>* resultData,
-    bool& ok) {
+    ReturnStatus* status) {
   QMap<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
 
@@ -201,7 +201,7 @@ void TransponderReleaseSystem::rerelease(
     emit logging(
         QString("Получена ошибка при поиске данных транспондера '%1'. ")
             .arg(searchData->value("login")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -211,7 +211,7 @@ void TransponderReleaseSystem::rerelease(
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -222,7 +222,7 @@ void TransponderReleaseSystem::rerelease(
     emit logging(QString("Получена ошибка при включении ожидания подтверждения "
                          "транспондера %1. ")
                      .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -231,27 +231,27 @@ void TransponderReleaseSystem::rerelease(
   if (!getTranponderData("id", transponderRecord.value("id"), resultData)) {
     emit logging(
         "Получена ошибка при получении объединенных данных о транспондере. ");
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
-  ok = true;
+  *status = Success;
 }
 
 void TransponderReleaseSystem::confirmRerelease(
     const QMap<QString, QString>* searchData,
-    bool& ok) {
+    ReturnStatus* status) {
   QMap<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
 
@@ -264,7 +264,7 @@ void TransponderReleaseSystem::confirmRerelease(
     emit logging(
         QString("Получена ошибка при поиске данных транспондера '%1'. ")
             .arg(searchData->value("login")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -275,7 +275,7 @@ void TransponderReleaseSystem::confirmRerelease(
     emit logging(QString("Транспондер %1 не был перевыпущен, "
                          "переподтверждение перевыпуска невозможно. ")
                      .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -285,7 +285,7 @@ void TransponderReleaseSystem::confirmRerelease(
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
@@ -300,42 +300,42 @@ void TransponderReleaseSystem::confirmRerelease(
     emit logging(
         QString("Получена ошибка при сохранении UCID транспондера %1. ")
             .arg(transponderRecord.value("id")));
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
-  ok = true;
+  *status = Success;
 }
 
 void TransponderReleaseSystem::search(const QMap<QString, QString>* searchData,
                                       QMap<QString, QString>* resultData,
-                                      bool& ok) {
+                                      ReturnStatus* status) {
   // Открываем транзакцию
   if (!Database->openTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
 
   if (!getTranponderData(searchData->constBegin().key(),
                          searchData->constBegin().value(), resultData)) {
     emit logging("Получена ошибка при поиске транспондера. ");
-    ok = false;
+    *status = Failed;
     Database->abortTransaction();
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
-    ok = false;
+    *status = TransactionError;
     return;
   }
-  ok = true;
+  *status = Success;
 }
 
 void TransponderReleaseSystem::createDatabaseController() {
@@ -843,6 +843,6 @@ void TransponderReleaseSystem::on_OrderAssemblingCompleted_slot(
   OrderAssembled = true;
 }
 
-void TransponderReleaseSystem::on_OrderTranspondersOut_slot() {
-  OrderTranspondersOut = true;
+void TransponderReleaseSystem::on_FreeTranspondersOut_slot() {
+  FreeTranspondersOut = true;
 }

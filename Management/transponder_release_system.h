@@ -14,14 +14,14 @@ class TransponderReleaseSystem : public QObject {
  public:
   enum ReturnStatus {
     Success,
-    RunOutFreeTransponders,
+    CurrentOrderRunOut,
     CurrentOrderAssembled,
     Failed
   };
 
  private:
   bool OrderAssembled;
-  bool OrderTranspondersOut;
+  bool FreeTranspondersOut;
   PostgresController* Database;
 
   QMutex Mutex;
@@ -38,17 +38,19 @@ class TransponderReleaseSystem : public QObject {
  public slots:
   void release(const QMap<QString, QString>* searchData,
                QMap<QString, QString>* resultData,
-               bool& ok);
-  void confirmRelease(const QMap<QString, QString>* searchData, bool& ok);
+               ReturnStatus* status);
+  void confirmRelease(const QMap<QString, QString>* searchData,
+                      ReturnStatus* status);
 
   void rerelease(const QMap<QString, QString>* searchData,
                  QMap<QString, QString>* resultData,
-                 bool& ok);
-  void confirmRerelease(const QMap<QString, QString>* searchData, bool& ok);
+                 ReturnStatus* status);
+  void confirmRerelease(const QMap<QString, QString>* searchData,
+                        ReturnStatus* status);
 
   void search(const QMap<QString, QString>* searchData,
               QMap<QString, QString>* resultData,
-              bool& ok);
+              ReturnStatus* status);
 
  private:
   void createDatabaseController(void);
@@ -72,7 +74,7 @@ class TransponderReleaseSystem : public QObject {
   void proxyLogging(const QString& log) const;
   void on_OrderAssemblingCompleted_slot(
       const QMap<QString, QString>* orderData);
-  void on_OrderTranspondersOut_slot(void);
+  void on_FreeTranspondersOut_slot(void);
 
  signals:
   void logging(const QString& log) const;

@@ -455,7 +455,8 @@ void AdministrationSystem::linkProductionLineWithBox(
 }
 
 void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
-  bool ok = false;
+  TransponderReleaseSystem::ReturnStatus status =
+      TransponderReleaseSystem::Success;
   QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
   if (!Releaser->start()) {
@@ -463,8 +464,8 @@ void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
     emit operationFinished(DatabaseConnectionError);
     return;
   }
-  Releaser->release(model->getMap(), transponderData, ok);
-  if (!ok) {
+  Releaser->release(model->getMap(), transponderData, &status);
+  if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при выпуске транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -481,7 +482,8 @@ void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
 
 void AdministrationSystem::confirmReleaseTransponder(
     TransponderInfoModel* model) {
-  bool ok = false;
+  TransponderReleaseSystem::ReturnStatus status =
+      TransponderReleaseSystem::Success;
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
@@ -489,8 +491,8 @@ void AdministrationSystem::confirmReleaseTransponder(
     return;
   }
 
-  Releaser->confirmRelease(model->getMap(), ok);
-  if (!ok) {
+  Releaser->confirmRelease(model->getMap(), &status);
+  if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -505,7 +507,8 @@ void AdministrationSystem::confirmReleaseTransponder(
 }
 
 void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
-  bool ok = false;
+  TransponderReleaseSystem::ReturnStatus status =
+      TransponderReleaseSystem::Success;
   QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
   if (!Releaser->start()) {
@@ -514,8 +517,8 @@ void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
     return;
   }
 
-  Releaser->rerelease(model->getMap(), transponderData, ok);
-  if (!ok) {
+  Releaser->rerelease(model->getMap(), transponderData, &status);
+  if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при перевыпуске транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -532,7 +535,8 @@ void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
 
 void AdministrationSystem::confirmRereleaseTransponder(
     TransponderInfoModel* model) {
-  bool ok = false;
+  TransponderReleaseSystem::ReturnStatus status =
+      TransponderReleaseSystem::Success;
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
@@ -540,8 +544,8 @@ void AdministrationSystem::confirmRereleaseTransponder(
     return;
   }
 
-  Releaser->confirmRerelease(model->getMap(), ok);
-  if (!ok) {
+  Releaser->confirmRerelease(model->getMap(), &status);
+  if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;
@@ -556,7 +560,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
 }
 
 void AdministrationSystem::searchTransponder(TransponderInfoModel* model) {
-  bool ok = false;
+  TransponderReleaseSystem::ReturnStatus status;
   QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
   if (!Releaser->start()) {
@@ -565,8 +569,8 @@ void AdministrationSystem::searchTransponder(TransponderInfoModel* model) {
     return;
   }
 
-  Releaser->search(model->getMap(), transponderData, ok);
-  if (!ok) {
+  Releaser->search(model->getMap(), transponderData, &status);
+  if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при поиске транспондера. ");
     emit operationFinished(DatabaseQueryError);
     return;

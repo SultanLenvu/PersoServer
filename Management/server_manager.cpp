@@ -658,7 +658,7 @@ void ServerManager::on_AdministratorFinished_slot(
     case AdministrationSystem::NotExecuted:
       CurrentState = Failed;
       NotificarionText = "Администратор: операция не была запущена. ";
-      emit break;
+      break;
     case AdministrationSystem::DatabaseConnectionError:
       CurrentState = Failed;
       NotificarionText =

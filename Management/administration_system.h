@@ -20,6 +20,7 @@ class AdministrationSystem : public QObject {
     DatabaseConnectionError,
     DatabaseQueryError,
     LogicError,
+    ReleaserError,
     UnknowError,
     CompletedSuccessfully
   };
@@ -53,7 +54,6 @@ class AdministrationSystem : public QObject {
   void rereleaseTransponder(TransponderInfoModel* model);
   void confirmRereleaseTransponder(TransponderInfoModel* model);
   void searchTransponder(TransponderInfoModel* model);
-
   void refundTransponder(TransponderInfoModel* model);
 
  private:
@@ -78,6 +78,8 @@ class AdministrationSystem : public QObject {
   bool stopOrderAssembling(const QString& id) const;
 
   void processingResult(const QString& log, const ExecutionStatus status);
+  void processingReleaserReturnStatus(
+      const TransponderReleaseSystem::ReturnStatus status);
 
  private slots:
   void proxyLogging(const QString& log) const;
