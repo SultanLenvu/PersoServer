@@ -48,6 +48,7 @@ class AdministrationSystem : public QObject {
       const QMap<QString, QString>* productionLineParameters);
   void deleteLastProductionLine(void);
   void linkProductionLineWithBox(const QMap<QString, QString>* linkParameters);
+  void redistibuteProductionLines(void);
 
   void releaseTransponder(TransponderInfoModel* model);
   void confirmReleaseTransponder(TransponderInfoModel* model);

@@ -100,14 +100,17 @@ bool PostgresController::getTable(const QString& tableName,
 
   QString requestText =
       QString("SELECT * FROM %1 ORDER BY id ASC;").arg(tableName);
-  //  requestText += QString(" ORDER BY PRIMARY KEY DESC LIMIT %1;")
-  //                     .arg(QString::number(rowCount));
 
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(requestText)) {
     sendLog("Запрос выполнен. ");
-    // Преобразование результатов запроса
-    convertResponseToBuffer(request, buffer);
+    if (request.next()) {
+      sendLog("Ответные данные получены. ");
+      convertResponseToBuffer(request, buffer);
+    } else {
+      sendLog("Ответные данные не получены. ");
+      buffer->clear();
+    }
     return true;
   } else {  // Обработка ошибки выполнения запроса
     sendLog(request.lastError().text());
@@ -127,8 +130,13 @@ bool PostgresController::execCustomRequest(const QString& req,
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (request.exec(req)) {
     sendLog("Запрос выполнен. ");
-    // Преобразование результатов запроса
-    convertResponseToBuffer(request, buffer);
+    if (request.next()) {
+      sendLog("Ответные данные получены. ");
+      convertResponseToBuffer(request, buffer);
+    } else {
+      sendLog("Ответные данные не получены. ");
+      buffer->clear();
+    }
     return true;
   } else {  // Обработка ошибки выполнения запроса
     sendLog(request.lastError().text());

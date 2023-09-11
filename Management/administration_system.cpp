@@ -47,7 +47,6 @@ void AdministrationSystem::clearDatabaseTable(const QString& tableName) {
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   if (Database->clearTable(tableName)) {
     processingResult("Очистка выполнена. ", CompletedSuccessfully);
@@ -74,7 +73,6 @@ void AdministrationSystem::getDatabaseTable(const QString& tableName,
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   if (!Database->getTable(tableName, 10, buffer)) {
     processingResult("Ошибка при получении данных из таблицы базы данных. ",
@@ -100,7 +98,6 @@ void AdministrationSystem::getCustomResponse(const QString& req,
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   if (!Database->execCustomRequest(req, buffer)) {
     processingResult("Ошибка при выполнении кастомного запроса. ",
@@ -128,7 +125,6 @@ void AdministrationSystem::initIssuerTable() {
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   // Получаем идентифкатор последнего добавленного заказа
   record.insert("id", "");
@@ -208,7 +204,6 @@ void AdministrationSystem::createNewOrder(
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   emit logging("Добавление заказа. ");
   if (!addOrder(orderParameters)) {
@@ -272,7 +267,6 @@ void AdministrationSystem::createNewProductionLine(
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   // Добавляем линию производства
   emit logging("Добавление линии производства. ");
@@ -300,7 +294,6 @@ void AdministrationSystem::deleteLastProductionLine() {
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   if (!removeLastProductionLine()) {
     processingResult(
@@ -332,7 +325,6 @@ void AdministrationSystem::linkProductionLineWithBox(
                      DatabaseQueryError);
     return;
   }
-  emit logging("Транзакция открыта. ");
 
   // Запрашиваем данные о производственной линии
   productionLineRecord.insert("login", linkParameters->value("login"));
@@ -450,6 +442,54 @@ void AdministrationSystem::linkProductionLineWithBox(
 
   processingResult(
       QString("Линия производства %1 успешно связана с боксом %2. ")
+          .arg(productionLineRecord.value("id"), newBoxRecord.value("id")),
+      CompletedSuccessfully);
+}
+
+void AdministrationSystem::allocateIdleProductionLines() {
+  QMap<QString, QString> productionLineRecord;
+  QMap<QString, QString> newBoxRecord;
+  QMap<QString, QString> transponderRecord;
+
+  emit logging("Подключение к базе данных. ");
+  if (!Database->connect()) {
+    processingResult("Не удалось установить соединение с базой данных. ",
+                     DatabaseConnectionError);
+    return;
+  }
+
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    processingResult("Получена ошибка при открытии транзакции. ",
+                     DatabaseQueryError);
+    return;
+  }
+
+  // Ищем все неактивные производственные линии
+  do {
+    productionLineRecord.insert("login", "");
+    productionLineRecord.insert("password", "");
+    productionLineRecord.insert("transponder_id", "NULL");
+    productionLineRecord.insert("id", "");
+    if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
+      processingResult(QString("Получена ошибка при поиске неактивной "
+                               "производственной линии '%1'. ")
+                           .arg(productionLineRecord.value("login")),
+                       DatabaseQueryError);
+      return;
+    }
+
+    // Если незадействованная линия найдена
+    if (!productionLineRecord.isEmpty()) {
+      processingResult(QString("Все производственные линии активны. ")
+                           .arg(productionLineRecord.value("login")),
+                       DatabaseQueryError);
+      return;
+    }
+  } while (!productionLineRecord.isEmpty());
+
+  processingResult(
+      QString("Линии производства успешно перераспределены %2. ")
           .arg(productionLineRecord.value("id"), newBoxRecord.value("id")),
       CompletedSuccessfully);
 }
@@ -1091,15 +1131,11 @@ void AdministrationSystem::processingResult(const QString& log,
                                             const ExecutionStatus status) {
   // Закрываем транзакцию
   if (status == CompletedSuccessfully) {
-    if (Database->closeTransaction()) {
-      emit logging("Транзакция закрыта. ");
-    } else {
+    if (!Database->closeTransaction()) {
       emit logging("Получена ошибка при закрытии транзакции. ");
     }
   } else {
-    if (Database->abortTransaction()) {
-      emit logging("Транзакция закрыта. ");
-    } else {
+    if (!Database->abortTransaction()) {
       emit logging("Получена ошибка при закрытии транзакции. ");
     }
   }
