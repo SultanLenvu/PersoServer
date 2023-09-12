@@ -17,8 +17,8 @@ void MasterGUI::create() {
 }
 
 void MasterGUI::update() {
-  DatabaseRandomBufferView->resizeColumnsToContents();
-  DatabaseRandomBufferView->update();
+  DatabaseRandomModelView->resizeColumnsToContents();
+  DatabaseRandomModelView->update();
 
   OrderTableView->resizeColumnsToContents();
   OrderTableView->update();
@@ -118,8 +118,8 @@ void MasterGUI::createDatabaseTab() {
   DatabaseBufferLayout = new QVBoxLayout();
   DatabaseBufferGroup->setLayout(DatabaseBufferLayout);
 
-  DatabaseRandomBufferView = new QTableView();
-  DatabaseBufferLayout->addWidget(DatabaseRandomBufferView);
+  DatabaseRandomModelView = new QTableView();
+  DatabaseBufferLayout->addWidget(DatabaseRandomModelView);
 
   // Настройка пропорции между объектами на макете
   DatabaseMainLayout->setStretch(0, 1);
@@ -171,19 +171,34 @@ void MasterGUI::createOrderTab() {
   BoxCapacityLineEdit = new QLineEdit("50");
   OrderPanelSubLayout3->addWidget(BoxCapacityLineEdit);
 
-  OrderPanelSubLayout4 = new QHBoxLayout();
-  OrderControlPanelLayout->addLayout(OrderPanelSubLayout4);
+  OrderPanelSublayout4 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSublayout4);
   PalletCapacityLabel = new QLabel("Емкость палеты");
-  OrderPanelSubLayout4->addWidget(PalletCapacityLabel);
+  OrderPanelSublayout4->addWidget(PalletCapacityLabel);
   PalletCapacityLineEdit = new QLineEdit("10");
-  OrderPanelSubLayout4->addWidget(PalletCapacityLineEdit);
+  OrderPanelSublayout4->addWidget(PalletCapacityLineEdit);
 
   CreateNewOrderPushButton = new QPushButton("Создать новый заказ");
   OrderControlPanelLayout->addWidget(CreateNewOrderPushButton);
 
-  OrderControlPanelVS =
+  OrderControlPanelVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  OrderControlPanelLayout->addItem(OrderControlPanelVS);
+  OrderControlPanelLayout->addItem(OrderControlPanelVS1);
+
+  OrderIdLayout1 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderIdLayout1);
+  OrderIdLabel1 = new QLabel("ID заказа: ");
+  OrderIdLayout1->addWidget(OrderIdLabel1);
+  OrderIdLineEdit1 = new QLineEdit();
+  OrderIdLayout1->addWidget(OrderIdLineEdit1);
+  StartOrderAssemblingPushButton = new QPushButton("Начать сборку заказа");
+  OrderControlPanelLayout->addWidget(StartOrderAssemblingPushButton);
+  StopOrderAssemblingPushButton = new QPushButton("Остановить сборку заказа");
+  OrderControlPanelLayout->addWidget(StopOrderAssemblingPushButton);
+
+  OrderControlPanelVS2 =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  OrderControlPanelLayout->addItem(OrderControlPanelVS2);
 
   UpdateOrderViewPushButton = new QPushButton("Обновить таблицу");
   OrderControlPanelLayout->addWidget(UpdateOrderViewPushButton);
@@ -238,10 +253,24 @@ void MasterGUI::createProductionLineTab() {
   ProductionLinesControlPanelLayout->addWidget(
       CreateNewProductionLinePushButton);
 
-  // Сжатие по вертикали
   ProductionLinesControlPanelVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS1);
+
+  OrderIdLayout2 = new QHBoxLayout();
+  ProductionLinesControlPanelLayout->addLayout(OrderIdLayout2);
+  OrderIdLabel2 = new QLabel("ID заказа: ");
+  OrderIdLayout2->addWidget(OrderIdLabel2);
+  OrderIdLineEdit2 = new QLineEdit();
+  OrderIdLayout2->addWidget(OrderIdLineEdit2);
+  AllocateInactiveProductionLinesPushButton =
+      new QPushButton("Распределить неактивные производственные линии");
+  ProductionLinesControlPanelLayout->addWidget(
+      AllocateInactiveProductionLinesPushButton);
+
+  ProductionLinesControlPanelVS2 =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS2);
 
   BoxIdLayout = new QHBoxLayout();
   ProductionLinesControlPanelLayout->addLayout(BoxIdLayout);
@@ -254,10 +283,14 @@ void MasterGUI::createProductionLineTab() {
   ProductionLinesControlPanelLayout->addWidget(LinkProductionLinePushButton);
 
   // Сжатие по вертикали
-  ProductionLinesControlPanelVS2 =
+  ProductionLinesControlPanelVS3 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS2);
+  ProductionLinesControlPanelLayout->addItem(ProductionLinesControlPanelVS3);
 
+  DeactivateAllProductionLinesPushButton =
+      new QPushButton("Остановить все производственные линии");
+  ProductionLinesControlPanelLayout->addWidget(
+      DeactivateAllProductionLinesPushButton);
   UpdateProductionLineViewPushButton = new QPushButton("Обновить таблицу");
   ProductionLinesControlPanelLayout->addWidget(
       UpdateProductionLineViewPushButton);

@@ -32,23 +32,25 @@ class AdministrationSystem : public QObject {
 
  public:
   explicit AdministrationSystem(QObject* parent);
-
- public:
   void applySettings(void);
 
+ public slots:
   void clearDatabaseTable(const QString& tableName);
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
   void initIssuerTable(void);
 
   void createNewOrder(const QMap<QString, QString>* orderParameters);
+  void startOrderAssembling(const QString& orderId);
+  void stopOrderAssembling(const QString& orderId);
   void deleteLastOrder(void);
 
   void createNewProductionLine(
       const QMap<QString, QString>* productionLineParameters);
-  void deleteLastProductionLine(void);
+  void allocateInactiveProductionLines(const QString& orderId);
   void linkProductionLineWithBox(const QMap<QString, QString>* linkParameters);
-  void redistibuteProductionLines(void);
+  void shutdownAllProductionLines(void);
+  void deleteLastProductionLine(void);
 
   void releaseTransponder(TransponderInfoModel* model);
   void confirmReleaseTransponder(TransponderInfoModel* model);
@@ -61,6 +63,10 @@ class AdministrationSystem : public QObject {
   void createDatabaseController(void);
   void loadSettings(void);
 
+  bool initOperation(void);
+  void processingOperationResult(const QString& log,
+                                 const ExecutionStatus status);
+
   bool addOrder(const QMap<QString, QString>* orderParameters) const;
   bool addPallets(const QMap<QString, QString>* orderParameters) const;
   bool addBoxes(const QMap<QString, QString>* orderParameters) const;
@@ -68,17 +74,16 @@ class AdministrationSystem : public QObject {
   bool addProductionLine(
       const QMap<QString, QString>* productionLineParameters) const;
 
-  bool startBoxAssembling(const QString& id,
+  bool startBoxProcessing(const QString& id,
                           const QString& productionLineId) const;
-  bool startPalletAssembling(const QString& id) const;
-  bool startOrderAssembling(const QString& id) const;
+  bool startPalletProcessing(const QString& id) const;
+  bool startOrderProcessing(const QString& id) const;
 
   bool removeLastProductionLine(void) const;
-  bool stopBoxAssembling(const QString& id) const;
-  bool stopPalletAssembling(const QString& id) const;
-  bool stopOrderAssembling(const QString& id) const;
+  bool stopBoxProcessing(const QString& id) const;
+  bool stopPalletProcessing(const QString& id) const;
+  bool stopOrderProcessing(const QString& id) const;
 
-  void processingResult(const QString& log, const ExecutionStatus status);
   void processingReleaserReturnStatus(
       const TransponderReleaseSystem::ReturnStatus status);
 

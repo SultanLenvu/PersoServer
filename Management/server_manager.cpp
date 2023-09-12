@@ -43,24 +43,24 @@ void ServerManager::start() {
   }
 
   emit logging("Запуск сервера персонализации. ");
-  emit serverStart_signal();
+  emit startServer_signal();
 }
 
 void ServerManager::stop() {
   emit logging("Остановка сервера персонализации. ");
-  emit serverStop_signal();
+  emit stopServer_signal();
 }
 
 void ServerManager::showDatabaseTable(const QString& name,
-                                      DatabaseTableModel* buffer) {
+                                      DatabaseTableModel* model) {
   // Начинаем выполнение операции
   if (!startOperationExecution("showDatabaseTable")) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal(name, buffer);
+  emit getDatabaseTable_signal(name, model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -70,7 +70,7 @@ void ServerManager::showDatabaseTable(const QString& name,
 }
 
 void ServerManager::clearDatabaseTable(const QString& name,
-                                       DatabaseTableModel* buffer) {
+                                       DatabaseTableModel* model) {
   // Начинаем выполнение операции
   if (!startOperationExecution("clearDatabaseTable")) {
     return;
@@ -88,9 +88,9 @@ void ServerManager::clearDatabaseTable(const QString& name,
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal(name, buffer);
+  emit getDatabaseTable_signal(name, model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -99,7 +99,7 @@ void ServerManager::clearDatabaseTable(const QString& name,
   endOperationExecution("clearDatabaseTable");
 }
 
-void ServerManager::initIssuers(DatabaseTableModel* buffer) {
+void ServerManager::initIssuers(DatabaseTableModel* model) {
   if (!startOperationExecution("initIssuers")) {
     return;
   }
@@ -116,9 +116,9 @@ void ServerManager::initIssuers(DatabaseTableModel* buffer) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение таблицы базы данных. ");
-  emit getDatabaseTable_signal("issuers", buffer);
+  emit getDatabaseTable_signal("issuers", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -128,15 +128,15 @@ void ServerManager::initIssuers(DatabaseTableModel* buffer) {
 }
 
 void ServerManager::performCustomRequest(const QString& req,
-                                         DatabaseTableModel* buffer) {
+                                         DatabaseTableModel* model) {
   // Начинаем выполнение операции
   if (!startOperationExecution("performCustomRequest")) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Представление ответа на кастомный запрос. ");
-  emit getCustomResponse_signal(req, buffer);
+  emit getCustomResponse_signal(req, model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -147,7 +147,7 @@ void ServerManager::performCustomRequest(const QString& req,
 
 void ServerManager::createNewOrder(
     const QMap<QString, QString>* orderParameters,
-    DatabaseTableModel* buffer) {
+    DatabaseTableModel* model) {
   if (!startOperationExecution("createNewOrder")) {
     return;
   }
@@ -165,9 +165,9 @@ void ServerManager::createNewOrder(
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение заказов. ");
-  emit getDatabaseTable_signal("orders", buffer);
+  emit getDatabaseTable_signal("orders", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -176,7 +176,67 @@ void ServerManager::createNewOrder(
   endOperationExecution("createNewOrder");
 }
 
-void ServerManager::deleteLastOrder(DatabaseTableModel* buffer) {
+void ServerManager::startOrderAssemblingManually(const QString& orderId,
+                                                 DatabaseTableModel* model) {
+  if (!startOperationExecution("startOrderAssemblingManually")) {
+    return;
+  }
+
+  emit logging(QString("Запуск сборки заказа %1. ").arg(orderId));
+  emit startOrderAssembling_signal(orderId);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("startOrderAssemblingManually");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение заказов. ");
+  emit getDatabaseTable_signal("orders", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("startOrderAssemblingManually");
+}
+
+void ServerManager::stopOrderAssemblingManually(const QString& orderId,
+                                                DatabaseTableModel* model) {
+  if (!startOperationExecution("startOrderAssemblingManually")) {
+    return;
+  }
+
+  emit logging(QString("Остановка сборки заказа %1. ").arg(orderId));
+  emit stopOrderAssembling_signal(orderId);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("startOrderAssemblingManually");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение заказов. ");
+  emit getDatabaseTable_signal("orders", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("startOrderAssemblingManually");
+}
+
+void ServerManager::deleteLastOrder(DatabaseTableModel* model) {
   if (!startOperationExecution("createNewOrder")) {
     return;
   }
@@ -194,9 +254,9 @@ void ServerManager::deleteLastOrder(DatabaseTableModel* buffer) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение заказов. ");
-  emit getDatabaseTable_signal("orders", buffer);
+  emit getDatabaseTable_signal("orders", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -205,15 +265,15 @@ void ServerManager::deleteLastOrder(DatabaseTableModel* buffer) {
   endOperationExecution("createNewOrder");
 }
 
-void ServerManager::showOrderTable(DatabaseTableModel* buffer) {
+void ServerManager::showOrderTable(DatabaseTableModel* model) {
   // Начинаем выполнение операции
   if (!startOperationExecution("showOrderTable")) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение заказов. ");
-  emit getDatabaseTable_signal("orders", buffer);
+  emit getDatabaseTable_signal("orders", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -224,7 +284,7 @@ void ServerManager::showOrderTable(DatabaseTableModel* buffer) {
 
 void ServerManager::createNewProductionLine(
     const QMap<QString, QString>* productionLineParameters,
-    DatabaseTableModel* buffer) {
+    DatabaseTableModel* model) {
   if (!startOperationExecution("createNewProductionLine")) {
     return;
   }
@@ -242,9 +302,9 @@ void ServerManager::createNewProductionLine(
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение производственных линий. ");
-  emit getDatabaseTable_signal("production_lines", buffer);
+  emit getDatabaseTable_signal("production_lines", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -253,7 +313,70 @@ void ServerManager::createNewProductionLine(
   endOperationExecution("createNewProductionLine");
 }
 
-void ServerManager::deleteLastProductionLine(DatabaseTableModel* buffer) {
+void ServerManager::allocateInactiveProductionLinesManually(
+    const QString& orderId,
+    DatabaseTableModel* model) {
+  if (!startOperationExecution("allocateInactiveProductionLinesManually")) {
+    return;
+  }
+
+  emit logging(
+      QString("Распределение неактивных линий производства в заказе %1. ")
+          .arg(orderId));
+  emit allocateInactiveProductionLines_signal(orderId);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("allocateInactiveProductionLinesManually");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение производственных линий. ");
+  emit getDatabaseTable_signal("production_lines", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("allocateInactiveProductionLinesManually");
+}
+
+void ServerManager::shutdownAllProductionLinesManually(
+    DatabaseTableModel* model) {
+  if (!startOperationExecution("shutdownAllProductionLinesManually")) {
+    return;
+  }
+
+  emit logging(QString("Остановка всех производственных линий. "));
+  emit shutdownAllProductionLines_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Проверка состояния
+  if (CurrentState == Failed) {
+    // Завершаем выполнение операции
+    endOperationExecution("shutdownAllProductionLinesManually");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение производственных линий. ");
+  emit getDatabaseTable_signal("production_lines", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("shutdownAllProductionLinesManually");
+}
+
+void ServerManager::deleteLastProductionLine(DatabaseTableModel* model) {
   if (!startOperationExecution("deleteLastProductionLine")) {
     return;
   }
@@ -271,9 +394,9 @@ void ServerManager::deleteLastProductionLine(DatabaseTableModel* buffer) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение производственных линий. ");
-  emit getDatabaseTable_signal("production_lines", buffer);
+  emit getDatabaseTable_signal("production_lines", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -282,15 +405,15 @@ void ServerManager::deleteLastProductionLine(DatabaseTableModel* buffer) {
   endOperationExecution("deleteLastProductionLine");
 }
 
-void ServerManager::showProductionLineTable(DatabaseTableModel* buffer) {
+void ServerManager::showProductionLineTable(DatabaseTableModel* model) {
   // Начинаем выполнение операции
   if (!startOperationExecution("showProductionLineTable")) {
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение линий производства. ");
-  emit getDatabaseTable_signal("production_lines", buffer);
+  emit getDatabaseTable_signal("production_lines", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -301,7 +424,7 @@ void ServerManager::showProductionLineTable(DatabaseTableModel* buffer) {
 
 void ServerManager::linkProductionLineWithBoxManually(
     const QMap<QString, QString>* linkParameters,
-    DatabaseTableModel* buffer) {
+    DatabaseTableModel* model) {
   if (!startOperationExecution("linkProductionLineWithBoxManually")) {
     return;
   }
@@ -319,9 +442,9 @@ void ServerManager::linkProductionLineWithBoxManually(
     return;
   }
 
-  buffer->clear();
+  model->clear();
   emit logging("Отображение производственных линий. ");
-  emit getDatabaseTable_signal("production_lines", buffer);
+  emit getDatabaseTable_signal("production_lines", model);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -402,8 +525,8 @@ void ServerManager::refundTransponderManually(TransponderInfoModel* seed) {
     return;
   }
 
-  emit logging("Выпуск транспондера. ");
-  emit refundTransponder_signal(seed);
+  emit logging("Возврат транспондера. ");
+  // emit refundTransponder_signal(seed);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -451,8 +574,8 @@ void ServerManager::createHostInstance() {
           &ServerManager::on_ServerThreadFinished_slot);
 
   // Подключаем функционал
-  connect(this, &ServerManager::serverStart_signal, Host, &PersoHost::start);
-  connect(this, &ServerManager::serverStop_signal, Host, &PersoHost::stop);
+  connect(this, &ServerManager::startServer_signal, Host, &PersoHost::start);
+  connect(this, &ServerManager::stopServer_signal, Host, &PersoHost::stop);
 
   // Запускаем поток сервера
   ServerThread->start();
@@ -616,11 +739,20 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
 
   connect(this, &ServerManager::createNewOrder_signal, Administrator,
           &AdministrationSystem::createNewOrder);
+  connect(this, &ServerManager::startOrderAssembling_signal, Administrator,
+          &AdministrationSystem::startOrderAssembling);
+  connect(this, &ServerManager::stopOrderAssembling_signal, Administrator,
+          &AdministrationSystem::stopOrderAssembling);
   connect(this, &ServerManager::deleteLastOrder_signal, Administrator,
           &AdministrationSystem::deleteLastOrder);
 
   connect(this, &ServerManager::createNewProductionLine_signal, Administrator,
           &AdministrationSystem::createNewProductionLine);
+  connect(this, &ServerManager::allocateInactiveProductionLines_signal,
+          Administrator,
+          &AdministrationSystem::allocateInactiveProductionLines);
+  connect(this, &ServerManager::shutdownAllProductionLines_signal,
+          Administrator, &AdministrationSystem::shutdownAllProductionLines);
   connect(this, &ServerManager::removeLastProductionLine_signal, Administrator,
           &AdministrationSystem::deleteLastProductionLine);
   connect(this, &ServerManager::linkProductionLineWithBox_signal, Administrator,
@@ -634,8 +766,8 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
           &AdministrationSystem::rereleaseTransponder);
   connect(this, &ServerManager::confirmRereleaseTransponder_signal,
           Administrator, &AdministrationSystem::confirmRereleaseTransponder);
-  connect(this, &ServerManager::refundTransponder_signal, Administrator,
-          &AdministrationSystem::refundTransponder);
+  //  connect(this, &ServerManager::refundTransponder_signal, Administrator,
+  //          &AdministrationSystem::refundTransponder);
   connect(this, &ServerManager::searchTransponder_signal, Administrator,
           &AdministrationSystem::searchTransponder);
 }
@@ -671,9 +803,12 @@ void ServerManager::on_AdministratorFinished_slot(
       break;
     case AdministrationSystem::LogicError:
       CurrentState = Failed;
+      NotificarionText = "Администратор: получена логическая ошибка. ";
+      break;
+    case AdministrationSystem::ReleaserError:
+      CurrentState = Failed;
       NotificarionText =
-          "Администратор: получена логическая ошибка при выполнении "
-          "операции. ";
+          "Администратор: получена ошибка в распределителе транспондеров. ";
       break;
     case AdministrationSystem::UnknowError:
       CurrentState = Failed;

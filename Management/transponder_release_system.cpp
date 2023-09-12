@@ -65,12 +65,20 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
   productionLineRecord.insert("password", searchData->value("password"));
   productionLineRecord.insert("transponder_id", "");
   productionLineRecord.insert("id", "");
+  productionLineRecord.insert("active", "");
   if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
     emit logging(
         QString(
             "Получена ошибка при поиске данных производственной линии '%1'. ")
             .arg(searchData->value("login")));
     *status = Failed;
+    Database->abortTransaction();
+    return;
+  }
+
+  // Если производственная линия не активна, то возвращаемся
+  if (productionLineRecord.value("active") == "false") {
+    *status = ProductionLineNotActive;
     Database->abortTransaction();
     return;
   }
@@ -145,9 +153,17 @@ void TransponderReleaseSystem::confirmRelease(
   productionLineRecord.insert("password", searchData->value("password"));
   productionLineRecord.insert("transponder_id", "");
   productionLineRecord.insert("id", "");
+  productionLineRecord.insert("active", "");
   if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
     emit logging("Получена ошибка при поиске данных производственной линии. ");
     *status = Failed;
+    Database->abortTransaction();
+    return;
+  }
+
+  // Если производственная линия не активна, то возвращаемся
+  if (productionLineRecord.value("active") == "false") {
+    *status = ProductionLineNotActive;
     Database->abortTransaction();
     return;
   }

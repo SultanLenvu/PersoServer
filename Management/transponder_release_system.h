@@ -14,6 +14,8 @@ class TransponderReleaseSystem : public QObject {
  public:
   enum ReturnStatus {
     Success,
+    TransactionError,
+    ProductionLineNotActive,
     CurrentOrderRunOut,
     CurrentOrderAssembled,
     Failed

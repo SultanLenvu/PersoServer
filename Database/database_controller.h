@@ -54,10 +54,10 @@ class IDatabaseController : public QObject {
                                 QMap<QString, QString>& record) const = 0;
   virtual bool removeRecordById(const QString& tableName,
                                 const uint32_t id) const = 0;
-  virtual bool removeLastRecord(const QString& tableName) const = 0;
-  virtual bool removeLastRecordWithCondition(
+  virtual bool removeLastRecordById(const QString& tableName) const = 0;
+  virtual bool removeLastRecordByCondition(
       const QString& tableName,
-      const QString& condition) const = 0;
+      QMap<QString, QString>& condition) const = 0;
 
   virtual void applySettings() = 0;
 

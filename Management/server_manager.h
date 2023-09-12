@@ -71,17 +71,24 @@ class ServerManager : public QObject {
 
   void createNewOrder(const QMap<QString, QString>* orderParameters,
                       DatabaseTableModel* buffer);
+  void startOrderAssemblingManually(const QString& orderId,
+                                    DatabaseTableModel* model);
+  void stopOrderAssemblingManually(const QString& orderId,
+                                   DatabaseTableModel* model);
   void deleteLastOrder(DatabaseTableModel* buffer);
   void showOrderTable(DatabaseTableModel* buffer);
 
   void createNewProductionLine(
       const QMap<QString, QString>* productionLineParameters,
-      DatabaseTableModel* buffer);
-  void deleteLastProductionLine(DatabaseTableModel* buffer);
-  void showProductionLineTable(DatabaseTableModel* buffer);
+      DatabaseTableModel* model);
+  void allocateInactiveProductionLinesManually(const QString& orderId,
+                                               DatabaseTableModel* model);
+  void shutdownAllProductionLinesManually(DatabaseTableModel* model);
+  void deleteLastProductionLine(DatabaseTableModel* model);
+  void showProductionLineTable(DatabaseTableModel* model);
   void linkProductionLineWithBoxManually(
       const QMap<QString, QString>* linkParameters,
-      DatabaseTableModel* buffer);
+      DatabaseTableModel* model);
 
   void releaseTransponderManually(TransponderInfoModel* model);
   void confirmReleaseTransponderManually(TransponderInfoModel* model);
@@ -126,8 +133,8 @@ class ServerManager : public QObject {
   void applySettings_signal(void);
 
   // Сигналы для хоста
-  void serverStart_signal(void);
-  void serverStop_signal(void);
+  void startServer_signal(void);
+  void stopServer_signal(void);
 
   // Сигналы для системы администрирования
   void getDatabaseTable_signal(const QString& tableName,
@@ -137,10 +144,14 @@ class ServerManager : public QObject {
   void initIssuerTable_signal(void);
 
   void createNewOrder_signal(const QMap<QString, QString>* orderParameters);
+  void startOrderAssembling_signal(const QString& orderId);
+  void stopOrderAssembling_signal(const QString& orderId);
   void deleteLastOrder_signal(void);
 
   void createNewProductionLine_signal(
       const QMap<QString, QString>* productionLineParameters);
+  void allocateInactiveProductionLines_signal(const QString& orderId);
+  void shutdownAllProductionLines_signal(void);
   void removeLastProductionLine_signal(void);
   void linkProductionLineWithBox_signal(
       const QMap<QString, QString>* linkParameters);
@@ -151,7 +162,6 @@ class ServerManager : public QObject {
   void rereleaseTransponder_signal(TransponderInfoModel* seed);
   void confirmRereleaseTransponder_signal(TransponderInfoModel* seed);
   void searchTransponder_signal(TransponderInfoModel* seed);
-  void refundTransponder_signal(TransponderInfoModel* seed);
 };
 
 //==================================================================================

@@ -62,7 +62,7 @@ void MainWindowKernel::on_ShowDatabaseTablePushButton_slot() {
   Logger->clear();
 
   Manager->showDatabaseTable(gui->DatabaseTableChoice->currentText(),
-                             RandomBuffer);
+                             RandomModel);
 
   CurrentGUI->update();
 }
@@ -72,7 +72,7 @@ void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
   Logger->clear();
 
   Manager->clearDatabaseTable(gui->DatabaseTableChoice->currentText(),
-                              RandomBuffer);
+                              RandomModel);
 
   CurrentGUI->update();
 }
@@ -80,7 +80,7 @@ void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
 void MainWindowKernel::on_InitIssuerTablePushButton_slot() {
   Logger->clear();
 
-  Manager->initIssuers(RandomBuffer);
+  Manager->initIssuers(RandomModel);
 
   CurrentGUI->update();
 }
@@ -90,7 +90,7 @@ void MainWindowKernel::on_TransmitCustomRequestPushButton_slot() {
   Logger->clear();
 
   Manager->performCustomRequest(gui->CustomRequestLineEdit->text(),
-                                RandomBuffer);
+                                RandomModel);
 
   CurrentGUI->update();
 }
@@ -120,7 +120,37 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
     orderParameters.insert("PanFilePath", gui->PanFilePathLineEdit->text());
   }
 
-  Manager->createNewOrder(&orderParameters, OrderBuffer);
+  Manager->createNewOrder(&orderParameters, OrderModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_StartOrderAssemblingPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  Logger->clear();
+
+  if (gui->OrderIdLineEdit1->text().toInt() == 0) {
+    Interactor->generateError("Некорректный ввод идентификатора заказа. ");
+    return;
+  }
+
+  Manager->startOrderAssemblingManually(gui->OrderIdLineEdit1->text(),
+                                        OrderModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_StopOrderAssemblingPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  Logger->clear();
+
+  if (gui->OrderIdLineEdit1->text().toInt() == 0) {
+    Interactor->generateError("Некорректный ввод идентификатора заказа. ");
+    return;
+  }
+
+  Manager->stopOrderAssemblingManually(gui->OrderIdLineEdit1->text(),
+                                       OrderModel);
 
   CurrentGUI->update();
 }
@@ -128,7 +158,7 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
 void MainWindowKernel::on_UpdateOrderViewPushButton_slot() {
   Logger->clear();
 
-  Manager->showDatabaseTable("orders", OrderBuffer);
+  Manager->showDatabaseTable("orders", OrderModel);
 
   CurrentGUI->update();
 }
@@ -136,7 +166,7 @@ void MainWindowKernel::on_UpdateOrderViewPushButton_slot() {
 void MainWindowKernel::on_DeleteLastOrderPushButton_slot() {
   Logger->clear();
 
-  Manager->deleteLastOrder(OrderBuffer);
+  Manager->deleteLastOrder(OrderModel);
 
   CurrentGUI->update();
 }
@@ -154,24 +184,23 @@ void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
   productionLineParameters.insert("Login", gui->LoginLineEdit1->text());
   productionLineParameters.insert("Password", gui->PasswordLineEdit1->text());
   Manager->createNewProductionLine(&productionLineParameters,
-                                   ProductionLineBuffer);
+                                   ProductionLineModel);
 
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_UpdateProductionLineViewPushButton_slot() {
+void MainWindowKernel::on_AllocateInactiveProductionLinesPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   Logger->clear();
 
-  Manager->showDatabaseTable("production_lines", ProductionLineBuffer);
+  if (gui->OrderIdLineEdit2->text().toInt() == 0) {
+    Interactor->generateError("Некорректный ввод идентификатора заказа. ");
+    return;
+  }
 
-  CurrentGUI->update();
-}
+  Manager->allocateInactiveProductionLinesManually(
+      gui->OrderIdLineEdit2->text(), ProductionLineModel);
 
-void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
-  Logger->clear();
-
-  Manager->deleteLastProductionLine(ProductionLineBuffer);
-  
   CurrentGUI->update();
 }
 
@@ -191,7 +220,31 @@ void MainWindowKernel::on_LinkProductionLinePushButton_slot() {
   linkParameters.insert("box_id", gui->BoxIdLineEdit->text());
 
   Manager->linkProductionLineWithBoxManually(&linkParameters,
-                                             ProductionLineBuffer);
+                                             ProductionLineModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_DeactivateAllProductionLinesPushButton_slot() {
+  Logger->clear();
+
+  Manager->shutdownAllProductionLinesManually(ProductionLineModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_UpdateProductionLineViewPushButton_slot() {
+  Logger->clear();
+
+  Manager->showDatabaseTable("production_lines", ProductionLineModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_DeleteLastProductionLinePushButton_slot() {
+  Logger->clear();
+
+  Manager->deleteLastProductionLine(ProductionLineModel);
 
   CurrentGUI->update();
 }
@@ -409,7 +462,7 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   settings.setValue("Firmware/Base/Path",
                     gui->FirmwareBasePathLineEdit->text());
   settings.setValue("Firmware/Data/Path",
-                    gui->ExploreFirmwareDataPathPushButton->text());
+                    gui->FirmwareDataPathLineEdit->text());
 
   // Применение новых настроек
   Manager->applySettings();
@@ -735,6 +788,10 @@ void MainWindowKernel::connectMasterInterface() {
   // Заказы
   connect(gui->CreateNewOrderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_CreateNewOrderPushButton_slot);
+  connect(gui->StartOrderAssemblingPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_StartOrderAssemblingPushButton_slot);
+  connect(gui->StopOrderAssemblingPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_StopOrderAssemblingPushButton_slot);
   connect(gui->UpdateOrderViewPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_UpdateOrderViewPushButton_slot);
   connect(gui->DeleteLastOrderPushButton, &QPushButton::clicked, this,
@@ -743,12 +800,18 @@ void MainWindowKernel::connectMasterInterface() {
   // Производственные линии
   connect(gui->CreateNewProductionLinePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_CreateNewProductionLinePushButton_slot);
+  connect(gui->AllocateInactiveProductionLinesPushButton, &QPushButton::clicked,
+          this,
+          &MainWindowKernel::on_AllocateInactiveProductionLinesPushButton_slot);
+  connect(gui->LinkProductionLinePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_LinkProductionLinePushButton_slot);
+  connect(gui->DeactivateAllProductionLinesPushButton, &QPushButton::clicked,
+          this,
+          &MainWindowKernel::on_DeactivateAllProductionLinesPushButton_slot);
   connect(gui->UpdateProductionLineViewPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_UpdateProductionLineViewPushButton_slot);
   connect(gui->DeleteLastProductionLinePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_DeleteLastProductionLinePushButton_slot);
-  connect(gui->LinkProductionLinePushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_LinkProductionLinePushButton_slot);
 
   // Транспондеры
   connect(gui->ReleaseTransponderPushButton, &QPushButton::clicked, this,
@@ -770,9 +833,9 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_ApplySettingsPushButton_slot);
 
   // Соединяем модели и представления
-  gui->DatabaseRandomBufferView->setModel(RandomBuffer);
-  gui->OrderTableView->setModel(OrderBuffer);
-  gui->ProductionLineTableView->setModel(ProductionLineBuffer);
+  gui->DatabaseRandomModelView->setModel(RandomModel);
+  gui->OrderTableView->setModel(OrderModel);
+  gui->ProductionLineTableView->setModel(ProductionLineModel);
   gui->TransponderSeedTableView->setModel(TransponderSeed);
 
   // Связываем отображения графиков с логикой их формирования
@@ -807,8 +870,8 @@ void MainWindowKernel::setupLogSystem() {
 }
 
 void MainWindowKernel::createModels() {
-  RandomBuffer = new DatabaseTableModel(this);
-  OrderBuffer = new DatabaseTableModel(this);
-  ProductionLineBuffer = new DatabaseTableModel(this);
+  RandomModel = new DatabaseTableModel(this);
+  OrderModel = new DatabaseTableModel(this);
+  ProductionLineModel = new DatabaseTableModel(this);
   TransponderSeed = new TransponderInfoModel(this);
 }

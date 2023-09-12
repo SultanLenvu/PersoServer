@@ -37,9 +37,9 @@ class MainWindowKernel : public QMainWindow {
   LogSystem* Logger;
   UserInteractionSystem* Interactor;
 
-  DatabaseTableModel* RandomBuffer;
-  DatabaseTableModel* OrderBuffer;
-  DatabaseTableModel* ProductionLineBuffer;
+  DatabaseTableModel* RandomModel;
+  DatabaseTableModel* OrderModel;
+  DatabaseTableModel* ProductionLineModel;
   TransponderInfoModel* TransponderSeed;
 
  public:
@@ -65,14 +65,18 @@ class MainWindowKernel : public QMainWindow {
 
   // Функционал для работы с заказами
   void on_CreateNewOrderPushButton_slot(void);
+  void on_StartOrderAssemblingPushButton_slot(void);
+  void on_StopOrderAssemblingPushButton_slot(void);
   void on_UpdateOrderViewPushButton_slot(void);
   void on_DeleteLastOrderPushButton_slot(void);
 
   // Функционал для работы с производственными линиями
   void on_CreateNewProductionLinePushButton_slot(void);
+  void on_AllocateInactiveProductionLinesPushButton_slot(void);
+  void on_LinkProductionLinePushButton_slot(void);
+  void on_DeactivateAllProductionLinesPushButton_slot(void);
   void on_UpdateProductionLineViewPushButton_slot(void);
   void on_DeleteLastProductionLinePushButton_slot(void);
-  void on_LinkProductionLinePushButton_slot(void);
 
   // Функционал для работы с транспондерами
   void on_ReleaseTransponderPushButton_slot(void);

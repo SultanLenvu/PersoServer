@@ -40,7 +40,7 @@ class MasterGUI : public GUI {
   // Отображение записей в БД
   QGroupBox* DatabaseBufferGroup;
   QVBoxLayout* DatabaseBufferLayout;
-  QTableView* DatabaseRandomBufferView;
+  QTableView* DatabaseRandomModelView;
   //============================================================
 
   /* Интерфейс для управления заказами */
@@ -58,25 +58,28 @@ class MasterGUI : public GUI {
   QLabel* PanFilePathLabel;
   QLineEdit* PanFilePathLineEdit;
   QPushButton* PanFileExplorePushButton;
-
   QHBoxLayout* OrderPanelSubLayout1;
   QLabel* IssuerNameComboLabel;
   QComboBox* IssuerNameComboBox;
-
   QHBoxLayout* OrderPanelSubLayout2;
   QLabel* TransponderQuantityLabel;
   QLineEdit* TransponderQuantityLineEdit;
-
   QHBoxLayout* OrderPanelSubLayout3;
   QLabel* BoxCapacityLabel;
   QLineEdit* BoxCapacityLineEdit;
-
-  QHBoxLayout* OrderPanelSubLayout4;
+  QHBoxLayout* OrderPanelSublayout4;
   QLabel* PalletCapacityLabel;
   QLineEdit* PalletCapacityLineEdit;
-
   QPushButton* CreateNewOrderPushButton;
-  QSpacerItem* OrderControlPanelVS;
+  QSpacerItem* OrderControlPanelVS1;
+
+  QHBoxLayout* OrderIdLayout1;
+  QLabel* OrderIdLabel1;
+  QLineEdit* OrderIdLineEdit1;
+  QPushButton* StartOrderAssemblingPushButton;
+  QPushButton* StopOrderAssemblingPushButton;
+  QSpacerItem* OrderControlPanelVS2;
+
   QPushButton* UpdateOrderViewPushButton;
   QPushButton* DeleteLastOrderPushButton;
 
@@ -102,12 +105,19 @@ class MasterGUI : public GUI {
   QPushButton* CreateNewProductionLinePushButton;
   QSpacerItem* ProductionLinesControlPanelVS1;
 
+  QHBoxLayout* OrderIdLayout2;
+  QLabel* OrderIdLabel2;
+  QLineEdit* OrderIdLineEdit2;
+  QPushButton* AllocateInactiveProductionLinesPushButton;
+  QSpacerItem* ProductionLinesControlPanelVS2;
+
   QHBoxLayout* BoxIdLayout;
   QLabel* BoxIdLabel;
   QLineEdit* BoxIdLineEdit;
   QPushButton* LinkProductionLinePushButton;
-  QSpacerItem* ProductionLinesControlPanelVS2;
+  QSpacerItem* ProductionLinesControlPanelVS3;
 
+  QPushButton* DeactivateAllProductionLinesPushButton;
   QPushButton* UpdateProductionLineViewPushButton;
   QPushButton* DeleteLastProductionLinePushButton;
 

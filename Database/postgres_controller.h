@@ -61,12 +61,15 @@ class PostgresController : public IDatabaseController {
 
   virtual bool updateRecordById(const QString& tableName,
                             QMap<QString, QString>& record) const override;
+  bool updateAllRecordsByPart(const QString& tableName,
+                              QMap<QString, QString>& conditions,
+                              QMap<QString, QString>& newValues) const;
   virtual bool removeRecordById(const QString& tableName,
                                 const uint32_t id) const override;
-  virtual bool removeLastRecord(const QString& tableName) const override;
-  virtual bool removeLastRecordWithCondition(
+  virtual bool removeLastRecordById(const QString& tableName) const override;
+  virtual bool removeLastRecordByCondition(
       const QString& tableName,
-      const QString& condition) const override;
+      QMap<QString, QString>& condition) const override;
 
  private:
   void loadSettings(void);
