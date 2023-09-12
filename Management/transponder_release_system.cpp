@@ -7,14 +7,6 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
   loadSettings();
 
   createDatabaseController();
-
-  OrderAssembled = false;
-  connect(this, &TransponderReleaseSystem::orderAssemblingCompleted, this,
-          &TransponderReleaseSystem::on_OrderAssemblingCompleted_slot);
-
-  FreeTranspondersOut = false;
-  connect(this, &TransponderReleaseSystem::orderTranspondersOut, this,
-          &TransponderReleaseSystem::on_FreeTranspondersOut_slot);
 }
 
 bool TransponderReleaseSystem::start() {
@@ -78,6 +70,9 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
 
   // Если производственная линия не активна, то возвращаемся
   if (productionLineRecord.value("active") == "false") {
+    emit logging(QString("Производственная линия %1 не запущена. Выпуск "
+                         "транспондера невозможен. ")
+                     .arg(productionLineRecord.value("id")));
     *status = ProductionLineNotActive;
     Database->abortTransaction();
     return;
@@ -501,9 +496,6 @@ bool TransponderReleaseSystem::confirmTransponder(
     return false;
   }
 
-  // Испускаем сигнал о конце сборки транспондера
-  emit transponderAssemblingCompleted(&transponderRecord);
-
   if (!confirmBox(transponderRecord.value("box_id"))) {
     emit logging(QString("Получена ошибка при подтверждении бокса %1. ")
                      .arg(transponderRecord.value("box_id")));
@@ -555,9 +547,6 @@ bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
               .arg(boxId));
       return false;
     }
-
-    // Испускаем сигнал о конце сборки бокса
-    emit boxAssemblingCompleted(&boxRecord);
 
     // Подтверждаем сборку в палете
     if (!confirmPallet(boxRecord.value("pallet_id"))) {
@@ -614,9 +603,6 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
       return false;
     }
 
-    // Испускаем сигнал о конце сборки паллеты
-    emit palletAssemblingCompleted(&palletRecord);
-
     // Подтверждаем сборку в заказе
     if (!confirmOrder(palletRecord.value("order_id"))) {
       emit logging(QString("Получена ошибка при подтверждении заказа %1. ")
@@ -668,9 +654,6 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
               .arg(id));
       return false;
     }
-
-    // Испускаем сигнал о конце сборки заказа
-    emit orderAssemblingCompleted(&orderRecord);
   }
 
   return true;
@@ -681,6 +664,7 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
   QMap<QString, QString> transponderRecord;
   QMap<QString, QString> boxRecord;
   QMap<QString, QString> palletRecord;
+  bool freeTranspondersRunOut = false;
 
   // Получаем данные о текущем транспондере
   transponderRecord.insert("id", productionLineRecord->value("transponder_id"));
@@ -828,14 +812,20 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
       } else {  // Если свободной паллеты в текущем заказе не найдено
         emit logging(QString("В заказе %1 закончились свободные транспондеры. ")
                          .arg(palletRecord.value("order_id")));
-        emit orderTranspondersOut();
-        return true;
+        freeTranspondersRunOut = true;
       }
     }
   }
 
-  // Связываем линию производства с найденным транспондером
-  productionLineRecord->insert("transponder_id", transponderRecord.value("id"));
+  if (freeTranspondersRunOut) {  // Если свободные транспондеры кончились, то
+    // производственная линия останавливается
+    productionLineRecord->insert("transponder_id", "NULL");
+    productionLineRecord->insert("active", "false");
+  } else {  // В противном случае связываем линию производства с найденным
+            // транспондером
+    productionLineRecord->insert("transponder_id",
+                                 transponderRecord.value("id"));
+  }
   if (!Database->updateRecordById("production_lines", *productionLineRecord)) {
     emit logging(QString("Получена ошибка при связывании линии производства с "
                          "найденным транспондером %1. ")
@@ -852,13 +842,4 @@ void TransponderReleaseSystem::proxyLogging(const QString& log) const {
   } else {
     emit logging("Unknown - " + log);
   }
-}
-
-void TransponderReleaseSystem::on_OrderAssemblingCompleted_slot(
-    const QMap<QString, QString>* orderData) {
-  OrderAssembled = true;
-}
-
-void TransponderReleaseSystem::on_FreeTranspondersOut_slot() {
-  FreeTranspondersOut = true;
 }

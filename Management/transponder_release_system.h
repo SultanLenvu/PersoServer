@@ -22,8 +22,6 @@ class TransponderReleaseSystem : public QObject {
   };
 
  private:
-  bool OrderAssembled;
-  bool FreeTranspondersOut;
   PostgresController* Database;
 
   QMutex Mutex;
@@ -74,20 +72,9 @@ class TransponderReleaseSystem : public QObject {
 
  private slots:
   void proxyLogging(const QString& log) const;
-  void on_OrderAssemblingCompleted_slot(
-      const QMap<QString, QString>* orderData);
-  void on_FreeTranspondersOut_slot(void);
 
  signals:
   void logging(const QString& log) const;
-
-  void transponderAssemblingCompleted(
-      const QMap<QString, QString>* boxData) const;
-  void boxAssemblingCompleted(const QMap<QString, QString>* boxData) const;
-  void palletAssemblingCompleted(
-      const QMap<QString, QString>* palletData) const;
-  void orderAssemblingCompleted(const QMap<QString, QString>* orderData) const;
-  void orderTranspondersOut(void) const;
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

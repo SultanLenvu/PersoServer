@@ -197,7 +197,69 @@ void AdministrationSystem::createNewOrder(
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::startOrderAssembling(const QString& orderId) {}
+void AdministrationSystem::startOrderAssembling(const QString& orderId) {
+  QMap<QString, QString> boxRecord;
+  QMap<QString, QString> productionLineRecord;
+
+  // Инициализируем выполнение операции
+  if (!initOperation()) {
+    return;
+  }
+
+  // Ищем все неактивные производственные линии
+  while (1) {
+    productionLineRecord.insert("login", "");
+    productionLineRecord.insert("password", "");
+    productionLineRecord.insert("transponder_id", "");
+    productionLineRecord.insert("id", "");
+    productionLineRecord.insert("active", "false");
+    if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
+      processingOperationResult(QString("Получена ошибка при поиске неактивной "
+                                        "производственной линии '%1'. ")
+                                    .arg(productionLineRecord.value("login")),
+                                DatabaseQueryError);
+      return;
+    }
+
+    // Если незадействованная линия не найдена
+    if (productionLineRecord.isEmpty()) {
+      emit logging(QString("Все производственные линии активны. "));
+      break;
+    }
+
+    // Ищем бокс для производственной линии
+    if (!searchBoxForProductionLine(orderId, productionLineRecord.value("id"),
+                                    boxRecord)) {
+      processingOperationResult(
+          QString("Получена ошибка при запуске сборки бокса %1. ")
+              .arg(boxRecord.value("id")),
+          DatabaseQueryError);
+      return;
+    }
+
+    // Если свободных боксов не найдено
+    if (boxRecord.isEmpty()) {
+      emit logging(QString("В заказе %1 заняты все боксы. ").arg(orderId));
+      break;
+    }
+
+    // Запускаем сборку бокса
+    if (!startBoxProcessing(boxRecord.value("id"),
+                            productionLineRecord.value("id"))) {
+      processingOperationResult(
+          QString("Получена ошибка при запуске сборки бокса %1. ")
+              .arg(boxRecord.value("id")),
+          DatabaseQueryError);
+      return;
+    }
+
+    boxRecord.clear();
+    productionLineRecord.clear();
+  }
+
+  processingOperationResult(QString("Сборка заказа %1 запущена. ").arg(orderId),
+                            CompletedSuccessfully);
+}
 
 void AdministrationSystem::stopOrderAssembling(const QString& orderId) {}
 
@@ -310,9 +372,10 @@ void AdministrationSystem::linkProductionLineWithBox(
                                        productionLineRecord.value("id")),
                               LogicError);
     return;
-  }  // Если бокс занят другой производственной линией, то связывание
-     // недопустимо
-  else if (newBoxRecord.value("in_process") == "true") {
+  }
+  // Если бокс занят другой производственной линией, то связывание
+  // недопустимо
+  if (newBoxRecord.value("in_process") == "true") {
     processingOperationResult(
         QString("Бокс %1 уже в процессе сборки, связывание с "
                 "производственной линией %2 невозможно. ")
@@ -321,7 +384,6 @@ void AdministrationSystem::linkProductionLineWithBox(
         LogicError);
     return;
   }
-  // В противном случае
 
   // Получаем данные текущего транспондера, если он был определен
   if (productionLineRecord.value("transponder_id").toInt() > 0) {
@@ -337,48 +399,21 @@ void AdministrationSystem::linkProductionLineWithBox(
     }
 
     // Останавливаем сборку соответсвующего бокса
-    stopBoxProcessing(transponderRecord.value("box_id"));
+    if (!stopBoxProcessing(transponderRecord.value("box_id"))) {
+      processingOperationResult(
+          QString("Получена ошибка при остановке сборки бокса %1. ")
+              .arg(transponderRecord.value("box_id")),
+          DatabaseQueryError);
+      return;
+    }
   }
 
   // Запускаем процесс сборки бокса
-  startBoxProcessing(newBoxRecord.value("id"),
-                     productionLineRecord.value("id"));
-
-  // Ищем в новом боксе первый невыпущенный транспондер в боксе
-  transponderRecord.insert("id", "");
-  transponderRecord.insert("release_counter", "0");
-  transponderRecord.insert("box_id", newBoxRecord.value("id"));
-  if (!Database->getRecordByPart("transponders", transponderRecord)) {
+  if (!startBoxProcessing(newBoxRecord.value("id"),
+                          productionLineRecord.value("id"))) {
     processingOperationResult(
-        QString("Получена ошибка при поиске невыпущенного "
-                "транспондера в боксе %1. ")
-            .arg(linkParameters->value("box_id")),
-        DatabaseQueryError);
-    return;
-  }
-
-  // Связываем транспондер с производственной линией
-  productionLineRecord.insert("transponder_id", transponderRecord.value("id"));
-  if (!Database->updateRecordById("production_lines", productionLineRecord)) {
-    processingOperationResult(
-        QString("Получена ошибка при производственной линии %1 с "
-                "транспондером %2. ")
-            .arg(productionLineRecord.value("id"),
-                 transponderRecord.value("id")),
-        DatabaseQueryError);
-    return;
-  }
-
-  // Связываем бокс с производственной линией и обновляем время начала сборки
-  newBoxRecord.insert("in_process", "true");
-  newBoxRecord.insert("assembling_start", QDateTime::currentDateTime().toString(
-                                              TIMESTAMP_TEMPLATE));
-  newBoxRecord.insert("production_line_id", productionLineRecord.value("id"));
-  if (!Database->updateRecordById("boxes", newBoxRecord)) {
-    processingOperationResult(
-        QString("Получена ошибка при производственной линии %1 с "
-                "боксом %2. ")
-            .arg(productionLineRecord.value("id"), newBoxRecord.value("id")),
+        QString("Получена ошибка при запуске сборки бокса %1. ")
+            .arg(newBoxRecord.value("id")),
         DatabaseQueryError);
     return;
   }
@@ -537,6 +572,8 @@ void AdministrationSystem::allocateInactiveProductionLines(
 
     productionLineRecord.clear();
     mergedRecord.clear();
+    foreignKeys.clear();
+    tables.clear();
   }
 
   processingOperationResult(QString("Все линии производства распределены. "),
@@ -544,15 +581,16 @@ void AdministrationSystem::allocateInactiveProductionLines(
 }
 
 void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
-  TransponderReleaseSystem::ReturnStatus status =
-      TransponderReleaseSystem::Success;
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
+  TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
   }
+
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
+
   Releaser->release(model->getMap(), transponderData, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при выпуске транспондера. ");
@@ -573,8 +611,7 @@ void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
 
 void AdministrationSystem::confirmReleaseTransponder(
     TransponderInfoModel* model) {
-  TransponderReleaseSystem::ReturnStatus status =
-      TransponderReleaseSystem::Success;
+  TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
@@ -600,15 +637,15 @@ void AdministrationSystem::confirmReleaseTransponder(
 }
 
 void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
-  TransponderReleaseSystem::ReturnStatus status =
-      TransponderReleaseSystem::Success;
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
+  TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
   }
+
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
   Releaser->rerelease(model->getMap(), transponderData, &status);
   if (status != TransponderReleaseSystem::Success) {
@@ -630,8 +667,7 @@ void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
 
 void AdministrationSystem::confirmRereleaseTransponder(
     TransponderInfoModel* model) {
-  TransponderReleaseSystem::ReturnStatus status =
-      TransponderReleaseSystem::Success;
+  TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
@@ -658,13 +694,14 @@ void AdministrationSystem::confirmRereleaseTransponder(
 
 void AdministrationSystem::searchTransponder(TransponderInfoModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
   }
+
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
   Releaser->search(model->getMap(), transponderData, &status);
   if (status != TransponderReleaseSystem::Success) {
@@ -758,6 +795,10 @@ bool AdministrationSystem::addOrder(
   orderRecord.insert("capacity", "0");
   orderRecord.insert("full_personalization",
                      orderParameters->value("FullPersonalization"));
+  orderRecord.insert("transponder_model",
+                     orderParameters->value("transponder_model"));
+  orderRecord.insert("accr_reference",
+                     orderParameters->value("accr_reference"));
   if (!Database->addRecord("orders", orderRecord)) {
     emit logging("Ошибка при добавлении заказа. ");
     return false;
@@ -901,7 +942,6 @@ bool AdministrationSystem::addTransponders(
 
       // Формируем новую запись
       transponderRecord.insert("id", QString::number(lastId + 1));
-      transponderRecord.insert("model", "TC1001");
       transponderRecord.insert("payment_means", "0000000000000000000");
       transponderRecord.insert("release_counter", "0");
       transponderRecord.insert("box_id", boxRecord.value("id"));
@@ -955,24 +995,7 @@ bool AdministrationSystem::addProductionLine(
   }
   lastId = productionLineRecord.value("id").toInt();
 
-  //  // Если свободных боксов нет
-  //  if (mergedRecord.isEmpty()) {
-  //    // То производственная линия не запускается
-  //    emit logging("Отсутствуют свободные боксы. ");
-  //    productionLineRecord = *productionLineParameters;
-  //    productionLineRecord.insert("id", QString::number(lastId + 1));
-  //    productionLineRecord.insert("transponder_id", "NULL");
-  //    productionLineRecord.insert("active", "false");
-  //    if (!Database->addRecord("production_lines", productionLineRecord)) {
-  //      emit logging("Получена ошибка при добавлении линии производства. ");
-  //      return false;
-  //    }
-  //    emit logging("Производственная линия создана, но не запущена. ");
-  //    return true;
-  //  }
-  //  // В противном случае связываем производственную линию с первым
-  //  транспондером
-  //  // в свободном боксе и запускаем
+  // Добавляем новую линию производства
   productionLineRecord = *productionLineParameters;
   productionLineRecord.insert("id", QString::number(lastId + 1));
   productionLineRecord.insert("transponder_id", "NULL");
@@ -982,14 +1005,6 @@ bool AdministrationSystem::addProductionLine(
     return false;
   }
 
-  //  // Запускаем сборку бокса
-  //  if (!startBoxAssembling(mergedRecord.value("box_id"),
-  //                          productionLineRecord.value("id"))) {
-  //    emit logging(QString("Получена ошибка при запуске сборки бокса %1. ")
-  //                     .arg(mergedRecord.value("box_id")));
-  //    return false;
-  //  }
-
   return true;
 }
 
@@ -997,7 +1012,10 @@ bool AdministrationSystem::startBoxProcessing(
     const QString& id,
     const QString& productionLineId) const {
   QMap<QString, QString> boxRecord;
+  QMap<QString, QString> productionLineRecord;
+  QMap<QString, QString> transponderRecord;
 
+  // Получаем данные о боксе
   boxRecord.insert("id", id);
   boxRecord.insert("pallet_id", "");
   boxRecord.insert("in_process", "");
@@ -1006,11 +1024,39 @@ bool AdministrationSystem::startBoxProcessing(
     return false;
   }
 
+  // Ищем в боксе первый невыпущенный транспондер в боксе
+  transponderRecord.insert("id", "");
+  transponderRecord.insert("release_counter", "0");
+  transponderRecord.insert("box_id", id);
+  if (!Database->getRecordByPart("transponders", transponderRecord)) {
+    emit logging(QString("Получена ошибка при поиске "
+                         "невыпущенного транспондера в боксе %1. ")
+                     .arg(id));
+    return false;
+  }
+
+  // Связываем транспондер с производственной линией
+  productionLineRecord.insert("id", productionLineId);
+  productionLineRecord.insert("transponder_id", transponderRecord.value("id"));
+  productionLineRecord.insert("active", "true");
+  if (!Database->updateRecordById("production_lines", productionLineRecord)) {
+    emit logging(
+        QString("Получена ошибка при связывании производственной линии %1 с "
+                "транспондером %2. ")
+            .arg(productionLineRecord.value("id"),
+                 transponderRecord.value("id")));
+    return false;
+  }
+
+  // Связываем бокс с производственной линией и обновляем время начала сборки
   if (boxRecord.value("in_process") != "true") {
     boxRecord.insert("in_process", "true");
     boxRecord.insert("production_line_id", productionLineId);
     if (!Database->updateRecordById("boxes", boxRecord)) {
-      emit logging("Получена ошибка при запуске сборки бокса. ");
+      emit logging(
+          QString("Получена ошибка при связывании производственной линии %1 с "
+                  "боксом %2. ")
+              .arg(productionLineId, id));
       return false;
     }
 
@@ -1099,7 +1145,6 @@ bool AdministrationSystem::removeLastProductionLine() const {
 
   // Получение бокса, связанного с последней добавленной линией производства
   boxRecord.insert("id", "");
-  boxRecord.insert("in_process", "");
   boxRecord.insert("production_line_id", productionLineRecord.value("id"));
   if (!Database->getRecordByPart("boxes", boxRecord)) {
     emit logging(
@@ -1114,12 +1159,10 @@ bool AdministrationSystem::removeLastProductionLine() const {
     return false;
   }
 
-  if (boxRecord.value("in_process") == "true") {
-    if (!stopBoxProcessing(boxRecord.value("id"))) {
-      emit logging(QString("Получена ошибка при остановке сборки бокса %1. ")
-                       .arg(boxRecord.value("id")));
-      return false;
-    }
+  if (!stopBoxProcessing(boxRecord.value("id"))) {
+    emit logging(QString("Получена ошибка при остановке сборки бокса %1. ")
+                     .arg(boxRecord.value("id")));
+    return false;
   }
 
   return true;
@@ -1128,20 +1171,33 @@ bool AdministrationSystem::removeLastProductionLine() const {
 bool AdministrationSystem::stopBoxProcessing(const QString& id) const {
   QMap<QString, QString> boxRecord;
   QMap<QString, QString> mergedRecord;
+  QMap<QString, QString> productionLineRecord;
   QStringList tables;
   QStringList foreignKeys;
 
+  // Получаем данные о боксе
   boxRecord.insert("id", id);
   boxRecord.insert("pallet_id", "");
   boxRecord.insert("in_process", "");
+  boxRecord.insert("production_line_id", "");
   if (!Database->getRecordById("boxes", boxRecord)) {
     emit logging("Получена ошибка при поиске данных о боксе. ");
     return false;
   }
 
+  // Останавливаем производственную линию, связанную с боксом
+  productionLineRecord.insert("id", boxRecord.value("production_line_id"));
+  productionLineRecord.insert("active", "false");
+  productionLineRecord.insert("transponder_id", "NULL");
+  if (!Database->updateRecordById("production_lines", productionLineRecord)) {
+    emit logging(
+        QString("Получена ошибка при остановке производственной линии %1.")
+            .arg(productionLineRecord.value("id")));
+    return false;
+  }
+
   if (boxRecord.value("in_process") != "false") {
     boxRecord.insert("in_process", "false");
-    boxRecord.insert("production_line_id", "NULL");
     if (!Database->updateRecordById("boxes", boxRecord)) {
       emit logging("Получена ошибка при остановке сборки бокса. ");
       return false;
@@ -1245,6 +1301,50 @@ bool AdministrationSystem::stopOrderProcessing(const QString& id) const {
   } else {
     emit logging(QString("Заказ %1 не находится в процессе сборки. ")
                      .arg(orderRecord.value("id")));
+  }
+
+  return true;
+}
+
+bool AdministrationSystem::searchBoxForProductionLine(
+    const QString& orderId,
+    const QString& productionLineId,
+    QMap<QString, QString>& boxRecord) const {
+  QStringList tables;
+  QStringList foreignKeys;
+
+  // Ищем незавершенные боксы
+  tables.append("boxes");
+  tables.append("pallets");
+  tables.append("orders");
+  foreignKeys.append("pallet_id");
+  foreignKeys.append("order_id");
+  boxRecord.insert("boxes.id", "");
+  boxRecord.insert("boxes.ready_indicator", "false");
+  boxRecord.insert("boxes.production_line_id", productionLineId);
+  boxRecord.insert("boxes.in_process", "false");
+  boxRecord.insert("pallets.order_id", orderId);
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, boxRecord)) {
+    emit logging(
+        QString("Получена ошибка при поиске незавершенного бокса в заказе %1. ")
+            .arg(orderId));
+    return false;
+  }
+
+  // Если незавершенных боксов нет, то ищем свободные боксы
+  if (boxRecord.isEmpty()) {
+    boxRecord.clear();
+
+    boxRecord.insert("id", "");
+    boxRecord.insert("ready_indicator", "false");
+    boxRecord.insert("in_process", "false");
+    boxRecord.insert("pallet_id", "");
+    if (!Database->getRecordByPart("boxes", boxRecord)) {
+      emit logging(
+          QString("Получена ошибка при поиске свободного бокса в заказе %1. ")
+              .arg(orderId));
+      return false;
+    }
   }
 
   return true;

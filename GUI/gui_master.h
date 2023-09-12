@@ -70,6 +70,12 @@ class MasterGUI : public GUI {
   QHBoxLayout* OrderPanelSublayout4;
   QLabel* PalletCapacityLabel;
   QLineEdit* PalletCapacityLineEdit;
+  QHBoxLayout* OrderPanelSublayout5;
+  QLabel* TransponderModelLabel;
+  QLineEdit* TransponderModelLineEdit;
+  QHBoxLayout* AccrReferenceSublayout6;
+  QLabel* AccrReferenceLabel;
+  QLineEdit* AccrReferenceLineEdit;
   QPushButton* CreateNewOrderPushButton;
   QSpacerItem* OrderControlPanelVS1;
 

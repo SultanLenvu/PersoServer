@@ -22,7 +22,8 @@
 #define TRANSPONDER_SERIAL_NUMBER_LENGTH 10
 #define PAYMENT_MEANS_LENGTH 19
 #define EFC_CONTEXT_MARK_LENGTH 12
-#define GROUP_OBU_ID_LENGTH 4
+#define TRANSPONDER_MODEL_LENGTH 7
+#define ACCR_REFERENCE_LENGTH 4
 #define COMMON_KEY_LENGTH 16
 #define MASTER_KEY_LENGTH 32
 //===============================================================

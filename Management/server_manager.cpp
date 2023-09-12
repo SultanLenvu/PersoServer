@@ -808,7 +808,8 @@ void ServerManager::on_AdministratorFinished_slot(
     case AdministrationSystem::ReleaserError:
       CurrentState = Failed;
       NotificarionText =
-          "Администратор: получена ошибка в распределителе транспондеров. ";
+          "Администратор: получена ошибка в системе распределения "
+          "транспондеров. ";
       break;
     case AdministrationSystem::UnknowError:
       CurrentState = Failed;

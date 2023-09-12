@@ -178,6 +178,20 @@ void MasterGUI::createOrderTab() {
   PalletCapacityLineEdit = new QLineEdit("10");
   OrderPanelSublayout4->addWidget(PalletCapacityLineEdit);
 
+  OrderPanelSublayout5 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSublayout5);
+  TransponderModelLabel = new QLabel("Модель транспондера");
+  OrderPanelSublayout5->addWidget(TransponderModelLabel);
+  TransponderModelLineEdit = new QLineEdit(" TC1001");
+  OrderPanelSublayout5->addWidget(TransponderModelLineEdit);
+
+  AccrReferenceSublayout6 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(AccrReferenceSublayout6);
+  AccrReferenceLabel = new QLabel("ACCR Reference");
+  AccrReferenceSublayout6->addWidget(AccrReferenceLabel);
+  AccrReferenceLineEdit = new QLineEdit("1DD1");
+  AccrReferenceSublayout6->addWidget(AccrReferenceLineEdit);
+
   CreateNewOrderPushButton = new QPushButton("Создать новый заказ");
   OrderControlPanelLayout->addWidget(CreateNewOrderPushButton);
 

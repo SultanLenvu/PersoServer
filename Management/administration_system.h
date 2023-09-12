@@ -84,6 +84,10 @@ class AdministrationSystem : public QObject {
   bool stopPalletProcessing(const QString& id) const;
   bool stopOrderProcessing(const QString& id) const;
 
+  bool searchBoxForProductionLine(const QString& orderId,
+                                  const QString& productionLineId,
+                                  QMap<QString, QString>& boxRecord) const;
+
   void processingReleaserReturnStatus(
       const TransponderReleaseSystem::ReturnStatus status);
 

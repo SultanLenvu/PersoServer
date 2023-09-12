@@ -119,6 +119,9 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
   if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
     orderParameters.insert("PanFilePath", gui->PanFilePathLineEdit->text());
   }
+  orderParameters.insert("transponder_model",
+                         gui->TransponderModelLineEdit->text());
+  orderParameters.insert("accr_reference", gui->AccrReferenceLineEdit->text());
 
   Manager->createNewOrder(&orderParameters, OrderModel);
 
@@ -541,6 +544,8 @@ bool MainWindowKernel::checkNewOrderInput() const {
       gui->TransponderQuantityLineEdit->text().toInt();
   int32_t boxCapacity = gui->BoxCapacityLineEdit->text().toInt();
   int32_t palletCapacity = gui->PalletCapacityLineEdit->text().toInt();
+  QString transponderModel = gui->TransponderModelLineEdit->text();
+  QString accrReference = gui->AccrReferenceLineEdit->text();
 
   if (transponderQuantity <= 0) {
     return false;
@@ -563,6 +568,16 @@ bool MainWindowKernel::checkNewOrderInput() const {
     if ((!info.exists()) || (!info.isFile()) || (info.suffix() != "csv")) {
       return false;
     }
+  }
+
+  if ((transponderModel.length() > TRANSPONDER_MODEL_LENGTH) ||
+      (transponderModel.length() == 0)) {
+    return false;
+  }
+
+  if ((accrReference.length() > ACCR_REFERENCE_LENGTH) ||
+      (accrReference.length() == 0)) {
+    return false;
   }
 
   return true;
