@@ -364,7 +364,7 @@ void MasterGUI::createTransponderTab() {
   UcidLabel = new QLabel("UCID: ");
   UcidLayout->addWidget(UcidLabel);
   UcidLineEdit = new QLineEdit();
-  UcidLineEdit->setMaxLength(UCID_LENGTH);
+  UcidLineEdit->setMaxLength(UCID_CHAR_LENGTH);
   UcidLineEdit->setText("11111111111111111111111111111111");
   UcidLayout->addWidget(UcidLineEdit);
 
@@ -388,7 +388,8 @@ void MasterGUI::createTransponderTab() {
   connect(SearchTransponderByComboBox, &QComboBox::currentTextChanged, this,
           &MasterGUI::on_SearchTransponderByComboBox_slot);
   SearchTransponderLineEdit = new QLineEdit();
-  SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
+  SearchTransponderLineEdit->setMaxLength(
+      TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH);
   SearchTransponderByLayout->addWidget(SearchTransponderLineEdit);
 
   SearchTransponderPushButton = new QPushButton("Найти");
@@ -422,7 +423,8 @@ void MasterGUI::createTransponderTab() {
   connect(RereleaseTransponderByComboBox, &QComboBox::currentTextChanged, this,
           &MasterGUI::on_RereleaseTransponderByComboBox_slot);
   RereleaseTransponderLineEdit = new QLineEdit();
-  RereleaseTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
+  RereleaseTransponderLineEdit->setMaxLength(
+      TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH);
   RereleaseTransponderLayout->addWidget(RereleaseTransponderLineEdit);
 
   NewUcidLayout = new QHBoxLayout();
@@ -430,7 +432,7 @@ void MasterGUI::createTransponderTab() {
   NewUcidLabel = new QLabel("UCID:");
   NewUcidLayout->addWidget(NewUcidLabel);
   NewUcidLineEdit = new QLineEdit();
-  NewUcidLineEdit->setMaxLength(UCID_LENGTH);
+  NewUcidLineEdit->setMaxLength(UCID_CHAR_LENGTH);
   NewUcidLayout->addWidget(NewUcidLineEdit);
 
   RereleaseTransponderPushButton = new QPushButton("Перевыпустить");
@@ -476,26 +478,36 @@ void MasterGUI::createTransportKeyTab() {
   TransportKeyControlPanelGroup->setLayout(TransportKeyControlPanelLayout);
 
   // Кнопки
-  UpdateTransportKeyPushButton = new QPushButton("Обновить");
-  TransportKeyControlPanelLayout->addWidget(UpdateTransportKeyPushButton);
+  UpdateTransportMasterKeysPushButton = new QPushButton("Обновить таблицу");
+  TransportKeyControlPanelLayout->addWidget(
+      UpdateTransportMasterKeysPushButton);
 
   TransportKeyVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   TransportKeyControlPanelLayout->addItem(TransportKeyVS1);
 
-  ClearTransportKeyPushButton = new QPushButton("Очистить");
-  TransportKeyControlPanelLayout->addWidget(ClearTransportKeyPushButton);
+  IssuerIdLayout1 = new QHBoxLayout();
+  TransportKeyControlPanelLayout->addLayout(IssuerIdLayout1);
+  IssuerIdLabel1 = new QLabel("ID эмитента: ");
+  IssuerIdLayout1->addWidget(IssuerIdLabel1);
+  IssuerIdLineEdit1 = new QLineEdit();
+  PasswordLineEdit3->setText("1");
+  IssuerIdLayout1->addWidget(IssuerIdLineEdit1);
+
+  InitTransportMasterKeysPushButton = new QPushButton("Инициализировать");
+  TransportKeyControlPanelLayout->addWidget(InitTransportMasterKeysPushButton);
 
   // Отображение буфера считанных данных из БД
-  TransportKeyViewGroup = new QGroupBox(QString("Таблица"));
-  TransportKeyViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  TransportKeyMainLayout->addWidget(TransportKeyViewGroup);
+  TransportMasterKeysViewGroup = new QGroupBox(QString("Таблица"));
+  TransportMasterKeysViewGroup->setAlignment(Qt::AlignHCenter |
+                                             Qt::AlignVCenter);
+  TransportKeyMainLayout->addWidget(TransportMasterKeysViewGroup);
 
-  TransportKeyViewLayout = new QVBoxLayout();
-  TransportKeyViewGroup->setLayout(TransportKeyViewLayout);
+  TransportMasterKeysViewLayout = new QVBoxLayout();
+  TransportMasterKeysViewGroup->setLayout(TransportMasterKeysViewLayout);
 
-  TransportKeyView = new QTableView();
-  TransportKeyViewLayout->addWidget(TransportKeyView);
+  TransportMasterKeysView = new QTableView();
+  TransportMasterKeysViewLayout->addWidget(TransportMasterKeysView);
 
   // Настройка пропорции между объектами на макете
   TransportKeyMainLayout->setStretch(0, 1);
@@ -520,26 +532,25 @@ void MasterGUI::createCommercialKeyTab(void) {
   CommercialKeyControlPanelGroup->setLayout(CommercialKeyControlPanelLayout);
 
   // Кнопки
-  UpdateCommercialKeyPushButton = new QPushButton("Обновить");
-  CommercialKeyControlPanelLayout->addWidget(UpdateCommercialKeyPushButton);
+  UpdateCommercialMasterKeysPushButton = new QPushButton("Обновить таблицу");
+  CommercialKeyControlPanelLayout->addWidget(
+      UpdateCommercialMasterKeysPushButton);
 
   CommercialKeyVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   CommercialKeyControlPanelLayout->addItem(CommercialKeyVS1);
 
-  ClearCommercialKeyPushButton = new QPushButton("Очистить");
-  CommercialKeyControlPanelLayout->addWidget(ClearCommercialKeyPushButton);
-
   // Отображение буфера считанных данных из БД
-  CommercialKeyViewGroup = new QGroupBox(QString("Таблица"));
-  CommercialKeyViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  CommercialKeyMainLayout->addWidget(CommercialKeyViewGroup);
+  CommercialMasterKeysViewGroup = new QGroupBox(QString("Таблица"));
+  CommercialMasterKeysViewGroup->setAlignment(Qt::AlignHCenter |
+                                              Qt::AlignVCenter);
+  CommercialKeyMainLayout->addWidget(CommercialMasterKeysViewGroup);
 
-  CommercialKeyViewLayout = new QVBoxLayout();
-  CommercialKeyViewGroup->setLayout(CommercialKeyViewLayout);
+  CommercialMasterKeysViewLayout = new QVBoxLayout();
+  CommercialMasterKeysViewGroup->setLayout(CommercialMasterKeysViewLayout);
 
-  CommercialKeyView = new QTableView();
-  CommercialKeyViewLayout->addWidget(CommercialKeyView);
+  CommercialMasterKeysView = new QTableView();
+  CommercialMasterKeysViewLayout->addWidget(CommercialMasterKeysView);
 
   // Настройка пропорции между объектами на макете
   CommercialKeyMainLayout->setStretch(0, 1);
@@ -709,11 +720,12 @@ void MasterGUI::on_PanFileExplorePushButton_slot() {
 
 void MasterGUI::on_SearchTransponderByComboBox_slot(const QString& text) {
   if (text == "UCID") {
-    SearchTransponderLineEdit->setMaxLength(UCID_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(UCID_CHAR_LENGTH);
   } else if (text == "PAN") {
-    SearchTransponderLineEdit->setMaxLength(PAYMENT_MEANS_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(PAYMENT_MEANS_CHAR_LENGTH);
   } else if (text == "SN") {
-    SearchTransponderLineEdit->setMaxLength(TRANSPONDER_SERIAL_NUMBER_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(
+        TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH);
   } else {
     SearchTransponderLineEdit->setMaxLength(0);
   }
@@ -721,10 +733,10 @@ void MasterGUI::on_SearchTransponderByComboBox_slot(const QString& text) {
 
 void MasterGUI::on_RereleaseTransponderByComboBox_slot(const QString& text) {
   if (text == "PAN") {
-    RereleaseTransponderLineEdit->setMaxLength(PAYMENT_MEANS_LENGTH);
+    RereleaseTransponderLineEdit->setMaxLength(PAYMENT_MEANS_CHAR_LENGTH);
   } else if (text == "SN") {
     RereleaseTransponderLineEdit->setMaxLength(
-        TRANSPONDER_SERIAL_NUMBER_LENGTH);
+        TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH);
   } else {
     RereleaseTransponderLineEdit->setMaxLength(0);
   }

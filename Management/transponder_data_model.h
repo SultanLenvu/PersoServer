@@ -1,12 +1,12 @@
-#ifndef TRANSPONDERINFOMODEL_H
-#define TRANSPONDERINFOMODEL_H
+#ifndef TRANSPONDER_DATA_MODEL_H
+#define TRANSPONDER_DATA_MODEL_H
 
 #include <QAbstractTableModel>
 #include <QMap>
 #include <QMutex>
 #include <QString>
 
-class TransponderInfoModel : public QAbstractTableModel {
+class TransponderDataModel : public QAbstractTableModel {
   Q_OBJECT
  private:
   QMap<QString, QString>* Data;
@@ -14,7 +14,7 @@ class TransponderInfoModel : public QAbstractTableModel {
   QMutex Mutex;
 
  public:
-  explicit TransponderInfoModel(QObject* parent = nullptr);
+  explicit TransponderDataModel(QObject* parent = nullptr);
 
   void build(QMap<QString, QString>* data);
   void clear(void);
@@ -33,4 +33,4 @@ class TransponderInfoModel : public QAbstractTableModel {
   void deleteData(void);
 };
 
-#endif  // TRANSPONDERINFOMODEL_H
+#endif  // TRANSPONDER_DATA_MODEL_H

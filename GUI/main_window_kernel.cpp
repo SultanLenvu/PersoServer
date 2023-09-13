@@ -436,6 +436,31 @@ void MainWindowKernel::on_RefundTransponderPushButton_slot() {
   CurrentGUI->update();
 }
 
+void MainWindowKernel::on_UpdateTransportMasterKeysPushButton_slot() {
+  Logger->clear();
+
+  Manager->showDatabaseTable("transport_master_keys", TransportMasterKeysModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_InitTransportMasterKeysPushButton_slot() {}
+
+void MainWindowKernel::on_UpdateCommercialMasterKeysPushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  Logger->clear();
+
+  if (gui->IssuerIdLineEdit1->text().toInt() == 0) {
+    Interactor->generateError("Некорректный ввод идентификатора эмитента. ");
+    return;
+  }
+
+  Manager->initTransportMasterKeys(gui->IssuerIdLineEdit1->text(),
+                                   CommercialMasterKeysModel);
+
+  CurrentGUI->update();
+}
+
 void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QSettings settings;
@@ -570,12 +595,12 @@ bool MainWindowKernel::checkNewOrderInput() const {
     }
   }
 
-  if ((transponderModel.length() > TRANSPONDER_MODEL_LENGTH) ||
+  if ((transponderModel.length() > TRANSPONDER_MODEL_CHAR_LENGTH) ||
       (transponderModel.length() == 0)) {
     return false;
   }
 
-  if ((accrReference.length() > ACCR_REFERENCE_LENGTH) ||
+  if ((accrReference.length() > ACCR_REFERENCE_CHAR_LENGTH) ||
       (accrReference.length() == 0)) {
     return false;
   }
@@ -606,7 +631,7 @@ bool MainWindowKernel::checkReleaseTransponderInput() const {
   QString pass = gui->PasswordLineEdit2->text();
   QString ucid = gui->UcidLineEdit->text();
 
-  if (ucid.size() != UCID_LENGTH) {
+  if (ucid.size() != UCID_CHAR_LENGTH) {
     return false;
   }
 
@@ -634,7 +659,7 @@ bool MainWindowKernel::checkSearchTransponderInput() const {
   QString input = gui->SearchTransponderLineEdit->text();
 
   if (choice == "UCID") {
-    if (input.size() != UCID_LENGTH) {
+    if (input.size() != UCID_CHAR_LENGTH) {
       return false;
     }
 
@@ -647,7 +672,7 @@ bool MainWindowKernel::checkSearchTransponderInput() const {
       return false;
     }
   } else if (choice == "PAN") {
-    if (input.length() != PAYMENT_MEANS_LENGTH) {
+    if (input.length() != PAYMENT_MEANS_CHAR_LENGTH) {
       return false;
     }
 
@@ -686,7 +711,7 @@ bool MainWindowKernel::checkRereleaseTransponderInput() const {
       return false;
     }
   } else if (choice == "PAN") {
-    if (input.length() != PAYMENT_MEANS_LENGTH) {
+    if (input.length() != PAYMENT_MEANS_CHAR_LENGTH) {
       return false;
     }
 
@@ -698,7 +723,7 @@ bool MainWindowKernel::checkRereleaseTransponderInput() const {
     return false;
   }
 
-  if (ucid.size() != UCID_LENGTH) {
+  if (ucid.size() != UCID_CHAR_LENGTH) {
     return false;
   }
 
@@ -843,6 +868,17 @@ void MainWindowKernel::connectMasterInterface() {
   connect(gui->RefundTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_RefundTransponderPushButton_slot);
 
+  // Транспортные мастер ключи
+  connect(gui->UpdateTransportMasterKeysPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_UpdateTransportMasterKeysPushButton_slot);
+  connect(gui->InitTransportMasterKeysPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_InitTransportMasterKeysPushButton_slot);
+
+  // Коммерческие мастер ключи
+  connect(gui->UpdateCommercialMasterKeysPushButton, &QPushButton::clicked,
+          this,
+          &MainWindowKernel::on_UpdateCommercialMasterKeysPushButton_slot);
+
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ApplySettingsPushButton_slot);
@@ -852,6 +888,8 @@ void MainWindowKernel::connectMasterInterface() {
   gui->OrderTableView->setModel(OrderModel);
   gui->ProductionLineTableView->setModel(ProductionLineModel);
   gui->TransponderSeedTableView->setModel(TransponderSeed);
+  gui->TransportMasterKeysView->setModel(TransportMasterKeysModel);
+  gui->CommercialMasterKeysView->setModel(CommercialMasterKeysModel);
 
   // Связываем отображения графиков с логикой их формирования
 }
@@ -888,5 +926,7 @@ void MainWindowKernel::createModels() {
   RandomModel = new DatabaseTableModel(this);
   OrderModel = new DatabaseTableModel(this);
   ProductionLineModel = new DatabaseTableModel(this);
-  TransponderSeed = new TransponderInfoModel(this);
+  TransportMasterKeysModel = new DatabaseTableModel(this);
+  CommercialMasterKeysModel = new DatabaseTableModel(this);
+  TransponderSeed = new TransponderDataModel(this);
 }

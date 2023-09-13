@@ -104,7 +104,7 @@ void ServerManager::initIssuers(DatabaseTableModel* model) {
     return;
   }
 
-  emit logging("Создание эмитентов. ");
+  emit logging("Инициализация данных об эмитентах. ");
   emit initIssuerTable_signal();
 
   // Запускаем цикл ожидания
@@ -112,12 +112,12 @@ void ServerManager::initIssuers(DatabaseTableModel* model) {
 
   if (CurrentState != Completed) {
     // Завершаем выполнение операции
-    endOperationExecution("clearDatabaseTable");
+    endOperationExecution("initIssuers");
     return;
   }
 
   model->clear();
-  emit logging("Отображение таблицы базы данных. ");
+  emit logging("Отображение эмитентов. ");
   emit getDatabaseTable_signal("issuers", model);
 
   // Запускаем цикл ожидания
@@ -125,6 +125,35 @@ void ServerManager::initIssuers(DatabaseTableModel* model) {
 
   // Завершаем выполнение операции
   endOperationExecution("initIssuers");
+}
+
+void ServerManager::initTransportMasterKeys(const QString& issuerId,
+                                            DatabaseTableModel* model) {
+  if (!startOperationExecution("initTransportMasterKeys")) {
+    return;
+  }
+
+  emit logging("Инициализация транспортных мастер ключей. ");
+  emit initTransportMasterKeysTable_signal(issuerId);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("initTransportMasterKeys");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение транспортных мастер ключей. ");
+  emit getDatabaseTable_signal("transport_master_keys", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("initTransportMasterKeys");
 }
 
 void ServerManager::performCustomRequest(const QString& req,
@@ -453,7 +482,7 @@ void ServerManager::linkProductionLineWithBoxManually(
   endOperationExecution("linkProductionLineWithBoxManually");
 }
 
-void ServerManager::releaseTransponderManually(TransponderInfoModel* seed) {
+void ServerManager::releaseTransponderManually(TransponderDataModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("releaseTransponderManually")) {
     return;
@@ -470,7 +499,7 @@ void ServerManager::releaseTransponderManually(TransponderInfoModel* seed) {
 }
 
 void ServerManager::confirmReleaseTransponderManually(
-    TransponderInfoModel* seed) {
+    TransponderDataModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("confirmReleaseTransponderManually")) {
     return;
@@ -486,7 +515,7 @@ void ServerManager::confirmReleaseTransponderManually(
   endOperationExecution("confirmReleaseTransponderManually");
 }
 
-void ServerManager::rereleaseTransponderManually(TransponderInfoModel* seed) {
+void ServerManager::rereleaseTransponderManually(TransponderDataModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("rereleaseTransponderManually")) {
     return;
@@ -503,7 +532,7 @@ void ServerManager::rereleaseTransponderManually(TransponderInfoModel* seed) {
 }
 
 void ServerManager::confirmRereleaseTransponderManually(
-    TransponderInfoModel* seed) {
+    TransponderDataModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("confirmRereleaseTransponderManually")) {
     return;
@@ -519,7 +548,7 @@ void ServerManager::confirmRereleaseTransponderManually(
   endOperationExecution("confirmRereleaseTransponderManually");
 }
 
-void ServerManager::refundTransponderManually(TransponderInfoModel* seed) {
+void ServerManager::refundTransponderManually(TransponderDataModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("refundTransponderManually")) {
     return;
@@ -535,7 +564,7 @@ void ServerManager::refundTransponderManually(TransponderInfoModel* seed) {
   endOperationExecution("refundTransponderManually");
 }
 
-void ServerManager::searchTransponderManually(TransponderInfoModel* seed) {
+void ServerManager::searchTransponderManually(TransponderDataModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("searchTransponderManually")) {
     return;
@@ -736,6 +765,8 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
           &AdministrationSystem::clearDatabaseTable);
   connect(this, &ServerManager::initIssuerTable_signal, Administrator,
           &AdministrationSystem::initIssuerTable);
+  connect(this, &ServerManager::initTransportMasterKeysTable_signal,
+          Administrator, &AdministrationSystem::initTransportMasterKeysTable);
 
   connect(this, &ServerManager::createNewOrder_signal, Administrator,
           &AdministrationSystem::createNewOrder);
@@ -808,7 +839,7 @@ void ServerManager::on_AdministratorFinished_slot(
     case AdministrationSystem::ReleaserError:
       CurrentState = Failed;
       NotificarionText =
-          "Администратор: получена ошибка в системе распределения "
+          "Администратор: получена ошибка в системе выпуска "
           "транспондеров. ";
       break;
     case AdministrationSystem::UnknowError:

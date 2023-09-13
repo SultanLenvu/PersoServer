@@ -29,10 +29,6 @@ bool TransponderReleaseSystem::stop() {
   return true;
 }
 
-void TransponderReleaseSystem::beginAssemblingNewOrder(const QString& id) {}
-
-void TransponderReleaseSystem::beginAssemblingNextOrder() {}
-
 void TransponderReleaseSystem::applySettings() {
   emit logging("Применение новых настроек. ");
   loadSettings();
@@ -43,6 +39,8 @@ void TransponderReleaseSystem::applySettings() {
 void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
                                        QMap<QString, QString>* resultData,
                                        ReturnStatus* status) {
+  QMutexLocker locker(&Mutex);
+
   QMap<QString, QString> productionLineRecord;
   QMap<QString, QString> transponderRecord;
 
@@ -135,6 +133,8 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
 void TransponderReleaseSystem::confirmRelease(
     const QMap<QString, QString>* searchData,
     ReturnStatus* status) {
+  QMutexLocker locker(&Mutex);
+
   QMap<QString, QString> productionLineRecord;
 
   // Открываем транзакцию
@@ -194,6 +194,8 @@ void TransponderReleaseSystem::rerelease(
     const QMap<QString, QString>* searchData,
     QMap<QString, QString>* resultData,
     ReturnStatus* status) {
+  QMutexLocker locker(&Mutex);
+
   QMap<QString, QString> transponderRecord;
 
   // Открываем транзакцию
@@ -258,6 +260,8 @@ void TransponderReleaseSystem::rerelease(
 void TransponderReleaseSystem::confirmRerelease(
     const QMap<QString, QString>* searchData,
     ReturnStatus* status) {
+  QMutexLocker locker(&Mutex);
+
   QMap<QString, QString> transponderRecord;
 
   // Открываем транзакцию
@@ -327,6 +331,8 @@ void TransponderReleaseSystem::confirmRerelease(
 void TransponderReleaseSystem::search(const QMap<QString, QString>* searchData,
                                       QMap<QString, QString>* resultData,
                                       ReturnStatus* status) {
+  QMutexLocker locker(&Mutex);
+
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = TransactionError;
@@ -373,11 +379,11 @@ bool TransponderReleaseSystem::getTranponderData(
   foreignKeys.append("pallet_id");
   foreignKeys.append("order_id");
   foreignKeys.append("issuer_id");
-  resultData->insert("model", "");
+  resultData->insert("transponder_model", "");
   resultData->insert("release_counter", "");
   resultData->insert("awaiting_confirmation", "");
   resultData->insert("ucid", "");
-  resultData->insert("group_id", "");
+  resultData->insert("accr_reference", "");
   resultData->insert("payment_means", "");
   resultData->insert("efc_context_mark", "");
   resultData->insert("full_personalization", "");

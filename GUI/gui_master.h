@@ -190,14 +190,17 @@ class MasterGUI : public GUI {
   QGroupBox* TransportKeyControlPanelGroup;
   QVBoxLayout* TransportKeyControlPanelLayout;
 
-  QPushButton* UpdateTransportKeyPushButton;
+  QPushButton* UpdateTransportMasterKeysPushButton;
   QSpacerItem* TransportKeyVS1;
-  QPushButton* ClearTransportKeyPushButton;
+  QHBoxLayout* IssuerIdLayout1;
+  QLabel* IssuerIdLabel1;
+  QLineEdit* IssuerIdLineEdit1;
+  QPushButton* InitTransportMasterKeysPushButton;
 
   // Отображение записей
-  QGroupBox* TransportKeyViewGroup;
-  QVBoxLayout* TransportKeyViewLayout;
-  QTableView* TransportKeyView;
+  QGroupBox* TransportMasterKeysViewGroup;
+  QVBoxLayout* TransportMasterKeysViewLayout;
+  QTableView* TransportMasterKeysView;
   //============================================================
 
   /* Интерфейс коммерческих ключей безопасности */
@@ -209,14 +212,13 @@ class MasterGUI : public GUI {
   QGroupBox* CommercialKeyControlPanelGroup;
   QVBoxLayout* CommercialKeyControlPanelLayout;
 
-  QPushButton* UpdateCommercialKeyPushButton;
+  QPushButton* UpdateCommercialMasterKeysPushButton;
   QSpacerItem* CommercialKeyVS1;
-  QPushButton* ClearCommercialKeyPushButton;
 
   // Отображение записей
-  QGroupBox* CommercialKeyViewGroup;
-  QVBoxLayout* CommercialKeyViewLayout;
-  QTableView* CommercialKeyView;
+  QGroupBox* CommercialMasterKeysViewGroup;
+  QVBoxLayout* CommercialMasterKeysViewLayout;
+  QTableView* CommercialMasterKeysView;
   //============================================================
 
   /* Настройки сервера */

@@ -9,7 +9,7 @@
 #include "Database/database_table_model.h"
 #include "Database/postgres_controller.h"
 #include "firmware_generation_system.h"
-#include "transponder_info_model.h"
+#include "transponder_data_model.h"
 #include "transponder_release_system.h"
 
 class AdministrationSystem : public QObject {
@@ -39,6 +39,7 @@ class AdministrationSystem : public QObject {
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
   void initIssuerTable(void);
+  void initTransportMasterKeysTable(const QString& issuerId);
 
   void createNewOrder(const QMap<QString, QString>* orderParameters);
   void startOrderAssembling(const QString& orderId);
@@ -52,12 +53,12 @@ class AdministrationSystem : public QObject {
   void shutdownAllProductionLines(void);
   void deleteLastProductionLine(void);
 
-  void releaseTransponder(TransponderInfoModel* model);
-  void confirmReleaseTransponder(TransponderInfoModel* model);
-  void rereleaseTransponder(TransponderInfoModel* model);
-  void confirmRereleaseTransponder(TransponderInfoModel* model);
-  void searchTransponder(TransponderInfoModel* model);
-  void refundTransponder(TransponderInfoModel* model);
+  void releaseTransponder(TransponderDataModel* model);
+  void confirmReleaseTransponder(TransponderDataModel* model);
+  void rereleaseTransponder(TransponderDataModel* model);
+  void confirmRereleaseTransponder(TransponderDataModel* model);
+  void searchTransponder(TransponderDataModel* model);
+  void refundTransponder(TransponderDataModel* model);
 
  private:
   void createDatabaseController(void);

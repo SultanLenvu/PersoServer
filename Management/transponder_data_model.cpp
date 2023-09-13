@@ -1,12 +1,12 @@
-#include "transponder_info_model.h"
+#include "transponder_data_model.h"
 
-TransponderInfoModel::TransponderInfoModel(QObject* parent)
+TransponderDataModel::TransponderDataModel(QObject* parent)
     : QAbstractTableModel(parent) {
-  setObjectName("TransponderInfoModel");
+  setObjectName("TransponderDataModel");
   Data = nullptr;
 }
 
-void TransponderInfoModel::build(QMap<QString, QString>* data) {
+void TransponderDataModel::build(QMap<QString, QString>* data) {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
@@ -26,7 +26,7 @@ void TransponderInfoModel::build(QMap<QString, QString>* data) {
   endResetModel();
 }
 
-void TransponderInfoModel::clear() {
+void TransponderDataModel::clear() {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
@@ -37,23 +37,23 @@ void TransponderInfoModel::clear() {
   endResetModel();
 }
 
-bool TransponderInfoModel::isEmpty() {
+bool TransponderDataModel::isEmpty() {
   return (!Data) ? true : false;
 }
 
-const QMap<QString, QString>* TransponderInfoModel::getMap() {
+const QMap<QString, QString>* TransponderDataModel::getMap() {
   return Data;
 }
 
-int TransponderInfoModel::columnCount(const QModelIndex& parent) const {
+int TransponderDataModel::columnCount(const QModelIndex& parent) const {
   return 1;
 }
 
-int TransponderInfoModel::rowCount(const QModelIndex& parent) const {
+int TransponderDataModel::rowCount(const QModelIndex& parent) const {
   return (Data) ? Data->size() : 0;
 }
 
-QVariant TransponderInfoModel::data(const QModelIndex& index, int role) const {
+QVariant TransponderDataModel::data(const QModelIndex& index, int role) const {
   if (!Data) {
     return QVariant();
   }
@@ -72,7 +72,7 @@ QVariant TransponderInfoModel::data(const QModelIndex& index, int role) const {
     return QVariant();
 }
 
-QVariant TransponderInfoModel::headerData(int section,
+QVariant TransponderDataModel::headerData(int section,
                                           Qt::Orientation orientation,
                                           int role) const {
   if (!Data) {
@@ -97,7 +97,7 @@ QVariant TransponderInfoModel::headerData(int section,
   }
 }
 
-void TransponderInfoModel::deleteData() {
+void TransponderDataModel::deleteData() {
   if (!Data)
     return;
 

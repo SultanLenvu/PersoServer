@@ -15,7 +15,7 @@
 #include "Database/database_table_model.h"
 #include "GUI/log_system.h"
 #include "Management/server_manager.h"
-#include "Management/transponder_info_model.h"
+#include "Management/transponder_data_model.h"
 #include "Management/user_settings.h"
 
 #include "General/definitions.h"
@@ -40,7 +40,9 @@ class MainWindowKernel : public QMainWindow {
   DatabaseTableModel* RandomModel;
   DatabaseTableModel* OrderModel;
   DatabaseTableModel* ProductionLineModel;
-  TransponderInfoModel* TransponderSeed;
+  DatabaseTableModel* TransportMasterKeysModel;
+  DatabaseTableModel* CommercialMasterKeysModel;
+  TransponderDataModel* TransponderSeed;
 
  public:
   MainWindowKernel(QWidget* parent = nullptr);
@@ -85,6 +87,13 @@ class MainWindowKernel : public QMainWindow {
   void on_ConfirmRereleaseTransponderPushButton_slot(void);
   void on_SearchTransponderPushButton_slot(void);
   void on_RefundTransponderPushButton_slot(void);
+
+  // Функционал для работы с транспортными мастер ключами
+  void on_UpdateTransportMasterKeysPushButton_slot(void);
+  void on_InitTransportMasterKeysPushButton_slot(void);
+
+  // Функционал для работы с коммерческими мастер ключами
+  void on_UpdateCommercialMasterKeysPushButton_slot(void);
 
   // Функционал для настройки сервера
   void on_ApplySettingsPushButton_slot(void);

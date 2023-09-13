@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QMutex>
+#include <QMutexLocker>
 #include <QObject>
 
 #include <Database/database_controller.h>
@@ -31,8 +32,6 @@ class TransponderReleaseSystem : public QObject {
 
   bool start(void);
   bool stop(void);
-  void beginAssemblingNewOrder(const QString& id);
-  void beginAssemblingNextOrder(void);
   void applySettings();
 
  public slots:

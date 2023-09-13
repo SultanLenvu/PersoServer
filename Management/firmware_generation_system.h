@@ -8,7 +8,7 @@
 
 #include <Database/database_controller.h>
 #include <Database/postgres_controller.h>
-#include "transponder_info_model.h"
+#include "transponder_data_model.h"
 
 class FirmwareGenerationSystem : public QObject
 {
@@ -30,12 +30,12 @@ class FirmwareGenerationSystem : public QObject
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
+  void applySettings(void);
+
+  bool generate(TransponderDataModel* seed, QByteArray* firmware);
 
  public slots:
   void proxyLogging(const QString& log);
-  void applySettings(void);
-
-  bool getAssembledFirmware(TransponderInfoModel* seed, QByteArray* firmware);
 
  private:
   void loadSettings(void);

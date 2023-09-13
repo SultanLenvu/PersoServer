@@ -158,6 +158,72 @@ void AdministrationSystem::initIssuerTable() {
                             CompletedSuccessfully);
 }
 
+void AdministrationSystem::initTransportMasterKeysTable(
+    const QString& issuerId) {
+  QMap<QString, QString> transportKeysRecord;
+  bool emptyFlag = false;
+
+  // Инициализируем выполнение операции
+  if (!initOperation()) {
+    return;
+  }
+
+  emit logging(
+      QString("Проверка существования транспортных ключей эмитента %1. ")
+          .arg(issuerId));
+  transportKeysRecord.insert("issuer_id", issuerId);
+  if (!Database->getRecordById("transport_master_keys", transportKeysRecord)) {
+    processingOperationResult(
+        QString("Ошибка при поиске транспортных мастер ключей эмитента %1. ")
+            .arg(issuerId),
+        DatabaseQueryError);
+    return;
+  }
+
+  if (transportKeysRecord.isEmpty()) {
+    emptyFlag = true;
+  }
+
+  // Конструируем запись
+  transportKeysRecord.insert("issuer_id", issuerId);
+  transportKeysRecord.insert("accr_key", TRANSPORT_MACCRKEY_DEFAULT_VALUE);
+  transportKeysRecord.insert("per_key", TRANSPORT_MPERKEY_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key1", TRANSPORT_MAUKEY1_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key2", TRANSPORT_MAUKEY2_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key3", TRANSPORT_MAUKEY3_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key4", TRANSPORT_MAUKEY4_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key5", TRANSPORT_MAUKEY5_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key6", TRANSPORT_MAUKEY6_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key7", TRANSPORT_MAUKEY7_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key8", TRANSPORT_MAUKEY8_DEFAULT_VALUE);
+
+  // Если транспортные ключи для эмитента отсутствуют, то создаем новую запись
+  if (emptyFlag) {
+    if (!Database->addRecord("transport_master_keys", transportKeysRecord)) {
+      processingOperationResult(
+          QString(
+              "Ошибка при добавлении транспортных мастер ключей эмитента %1. ")
+              .arg(issuerId),
+          DatabaseQueryError);
+      return;
+    }
+  } else {  // В противном случае обновляем запись
+    if (!Database->updateRecordById("transport_master_keys",
+                                    transportKeysRecord)) {
+      processingOperationResult(
+          QString(
+              "Ошибка при добавлении транспортных мастер ключей эмитента %1. ")
+              .arg(issuerId),
+          DatabaseQueryError);
+      return;
+    }
+  }
+
+  processingOperationResult(
+      "Инициализация таблицы транспортных мастер ключей успешно завершена. ",
+      CompletedSuccessfully);
+}
+
 void AdministrationSystem::createNewOrder(
     const QMap<QString, QString>* orderParameters) {
   // Инициализируем выполнение операции
@@ -261,7 +327,67 @@ void AdministrationSystem::startOrderAssembling(const QString& orderId) {
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::stopOrderAssembling(const QString& orderId) {}
+void AdministrationSystem::stopOrderAssembling(const QString& orderId) {
+  QMap<QString, QString> conditions;
+  QMap<QString, QString> newValues;
+
+  // Инициализируем выполнение операции
+  if (!initOperation()) {
+    return;
+  }
+
+  emit logging("Деактивация линий производства. ");
+  conditions.insert("active", "true");
+  newValues.insert("active", "false");
+  newValues.insert("transponder_id", "NULL");
+  if (!Database->updateAllRecordsByPart("production_lines", conditions,
+                                        newValues)) {
+    processingOperationResult(
+        QString("Получена ошибка при остановке линий производства. "),
+        DatabaseQueryError);
+    return;
+  }
+  newValues.clear();
+  conditions.clear();
+
+  emit logging("Остановка процесса сборки всех боксов. ");
+  conditions.insert("in_process", "true");
+  newValues.insert("in_process", "false");
+  if (!Database->updateAllRecordsByPart("boxes", conditions, newValues)) {
+    processingOperationResult(
+        QString("Получена ошибка при остановке сборки всех боксов. "),
+        DatabaseQueryError);
+    return;
+  }
+  newValues.clear();
+  conditions.clear();
+
+  emit logging("Остановка процесса сборки всех паллет.");
+  conditions.insert("in_process", "true");
+  newValues.insert("in_process", "false");
+  if (!Database->updateAllRecordsByPart("pallets", conditions, newValues)) {
+    processingOperationResult(
+        QString("Получена ошибка при остановке сборки всех паллет."),
+        DatabaseQueryError);
+    return;
+  }
+  newValues.clear();
+  conditions.clear();
+
+  emit logging(QString("Остановка процесса сборки заказа %1.").arg(orderId));
+  newValues.insert("id", orderId);
+  newValues.insert("in_process", "false");
+  if (!Database->updateRecordById("orders", newValues)) {
+    processingOperationResult(
+        QString("Получена ошибка при остановке сборки заказа %1.").arg(orderId),
+        DatabaseQueryError);
+    return;
+  }
+
+  processingOperationResult(
+      QString("Сборка заказа %1 остановлена. ").arg(orderId),
+      CompletedSuccessfully);
+}
 
 void AdministrationSystem::deleteLastOrder() {
   QMap<QString, QString> conditions;
@@ -427,8 +553,6 @@ void AdministrationSystem::linkProductionLineWithBox(
 void AdministrationSystem::shutdownAllProductionLines() {
   QMap<QString, QString> conditions;
   QMap<QString, QString> newValues;
-  QStringList tables;
-  QStringList foreignKeys;
 
   // Инициализируем выполнение операции
   if (!initOperation()) {
@@ -580,7 +704,7 @@ void AdministrationSystem::allocateInactiveProductionLines(
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
+void AdministrationSystem::releaseTransponder(TransponderDataModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -610,7 +734,7 @@ void AdministrationSystem::releaseTransponder(TransponderInfoModel* model) {
 }
 
 void AdministrationSystem::confirmReleaseTransponder(
-    TransponderInfoModel* model) {
+    TransponderDataModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -636,7 +760,7 @@ void AdministrationSystem::confirmReleaseTransponder(
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
+void AdministrationSystem::rereleaseTransponder(TransponderDataModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -666,7 +790,7 @@ void AdministrationSystem::rereleaseTransponder(TransponderInfoModel* model) {
 }
 
 void AdministrationSystem::confirmRereleaseTransponder(
-    TransponderInfoModel* model) {
+    TransponderDataModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -692,7 +816,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::searchTransponder(TransponderInfoModel* model) {
+void AdministrationSystem::searchTransponder(TransponderDataModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -721,7 +845,7 @@ void AdministrationSystem::searchTransponder(TransponderInfoModel* model) {
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::refundTransponder(TransponderInfoModel* model) {
+void AdministrationSystem::refundTransponder(TransponderDataModel* model) {
   emit operationFinished(CompletedSuccessfully);
 }
 
@@ -1319,6 +1443,7 @@ bool AdministrationSystem::searchBoxForProductionLine(
   tables.append("orders");
   foreignKeys.append("pallet_id");
   foreignKeys.append("order_id");
+
   boxRecord.insert("boxes.id", "");
   boxRecord.insert("boxes.ready_indicator", "false");
   boxRecord.insert("boxes.production_line_id", productionLineId);
@@ -1333,13 +1458,12 @@ bool AdministrationSystem::searchBoxForProductionLine(
 
   // Если незавершенных боксов нет, то ищем свободные боксы
   if (boxRecord.isEmpty()) {
-    boxRecord.clear();
-
-    boxRecord.insert("id", "");
-    boxRecord.insert("ready_indicator", "false");
-    boxRecord.insert("in_process", "false");
-    boxRecord.insert("pallet_id", "");
-    if (!Database->getRecordByPart("boxes", boxRecord)) {
+    boxRecord.insert("boxes.id", "");
+    boxRecord.insert("boxes.ready_indicator", "false");
+    boxRecord.insert("boxes.production_line_id", "");
+    boxRecord.insert("boxes.in_process", "false");
+    boxRecord.insert("pallets.order_id", orderId);
+    if (!Database->getMergedRecordByPart(tables, foreignKeys, boxRecord)) {
       emit logging(
           QString("Получена ошибка при поиске свободного бокса в заказе %1. ")
               .arg(orderId));

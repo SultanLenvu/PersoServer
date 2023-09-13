@@ -23,8 +23,8 @@ void FirmwareGenerationSystem::applySettings() {
   loadSettings();
 }
 
-bool FirmwareGenerationSystem::getAssembledFirmware(TransponderInfoModel* seed,
-                                                    QByteArray* firmware) {}
+bool FirmwareGenerationSystem::generate(TransponderDataModel* seed,
+                                        QByteArray* firmware) {}
 
 void FirmwareGenerationSystem::loadSettings() {
   QSettings settings;
