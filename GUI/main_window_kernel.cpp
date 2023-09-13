@@ -444,19 +444,19 @@ void MainWindowKernel::on_UpdateTransportMasterKeysPushButton_slot() {
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_InitTransportMasterKeysPushButton_slot() {}
-
-void MainWindowKernel::on_UpdateCommercialMasterKeysPushButton_slot() {
-  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+void MainWindowKernel::on_InitTransportMasterKeysPushButton_slot() {
   Logger->clear();
 
-  if (gui->IssuerIdLineEdit1->text().toInt() == 0) {
-    Interactor->generateError("Некорректный ввод идентификатора эмитента. ");
-    return;
-  }
+  Manager->initTransportMasterKeys(TransportMasterKeysModel);
 
-  Manager->initTransportMasterKeys(gui->IssuerIdLineEdit1->text(),
-                                   CommercialMasterKeysModel);
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_UpdateCommercialMasterKeysPushButton_slot() {
+  Logger->clear();
+
+  Manager->showDatabaseTable("commercial_master_keys",
+                             CommercialMasterKeysModel);
 
   CurrentGUI->update();
 }

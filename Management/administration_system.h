@@ -39,7 +39,7 @@ class AdministrationSystem : public QObject {
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
   void initIssuerTable(void);
-  void initTransportMasterKeysTable(const QString& issuerId);
+  void initTransportMasterKeysTable(void);
 
   void createNewOrder(const QMap<QString, QString>* orderParameters);
   void startOrderAssembling(const QString& orderId);

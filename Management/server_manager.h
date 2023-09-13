@@ -67,8 +67,7 @@ class ServerManager : public QObject {
   void showDatabaseTable(const QString& name, DatabaseTableModel* model);
   void clearDatabaseTable(const QString& name, DatabaseTableModel* model);
   void initIssuers(DatabaseTableModel* model);
-  void initTransportMasterKeys(const QString& issuerId,
-                               DatabaseTableModel* model);
+  void initTransportMasterKeys(DatabaseTableModel* model);
 
   void performCustomRequest(const QString& req, DatabaseTableModel* model);
 
@@ -145,7 +144,7 @@ class ServerManager : public QObject {
   void clearDatabaseTable_signal(const QString& tableName);
   void getCustomResponse_signal(const QString& req, DatabaseTableModel* model);
   void initIssuerTable_signal(void);
-  void initTransportMasterKeysTable_signal(const QString& issuerId);
+  void initTransportMasterKeysTable_signal(void);
 
   void createNewOrder_signal(const QMap<QString, QString>* orderParameters);
   void startOrderAssembling_signal(const QString& orderId);

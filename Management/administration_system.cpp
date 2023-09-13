@@ -158,34 +158,24 @@ void AdministrationSystem::initIssuerTable() {
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::initTransportMasterKeysTable(
-    const QString& issuerId) {
+void AdministrationSystem::initTransportMasterKeysTable() {
   QMap<QString, QString> transportKeysRecord;
-  bool emptyFlag = false;
 
   // Инициализируем выполнение операции
   if (!initOperation()) {
     return;
   }
 
-  emit logging(
-      QString("Проверка существования транспортных ключей эмитента %1. ")
-          .arg(issuerId));
-  transportKeysRecord.insert("issuer_id", issuerId);
-  if (!Database->getRecordById("transport_master_keys", transportKeysRecord)) {
-    processingOperationResult(
-        QString("Ошибка при поиске транспортных мастер ключей эмитента %1. ")
-            .arg(issuerId),
-        DatabaseQueryError);
+  transportKeysRecord.insert("id", "");
+  if (!Database->getLastRecord("transport_master_keys", transportKeysRecord)) {
+    processingOperationResult("Ошибка при поиске последнего заказа. ",
+                              DatabaseQueryError);
     return;
   }
 
-  if (transportKeysRecord.isEmpty()) {
-    emptyFlag = true;
-  }
-
   // Конструируем запись
-  transportKeysRecord.insert("issuer_id", issuerId);
+  transportKeysRecord.insert(
+      "id", QString::number(transportKeysRecord.value("id").toInt() + 1));
   transportKeysRecord.insert("accr_key", TRANSPORT_MACCRKEY_DEFAULT_VALUE);
   transportKeysRecord.insert("per_key", TRANSPORT_MPERKEY_DEFAULT_VALUE);
   transportKeysRecord.insert("au_key1", TRANSPORT_MAUKEY1_DEFAULT_VALUE);
@@ -198,25 +188,11 @@ void AdministrationSystem::initTransportMasterKeysTable(
   transportKeysRecord.insert("au_key8", TRANSPORT_MAUKEY8_DEFAULT_VALUE);
 
   // Если транспортные ключи для эмитента отсутствуют, то создаем новую запись
-  if (emptyFlag) {
-    if (!Database->addRecord("transport_master_keys", transportKeysRecord)) {
-      processingOperationResult(
-          QString(
-              "Ошибка при добавлении транспортных мастер ключей эмитента %1. ")
-              .arg(issuerId),
-          DatabaseQueryError);
-      return;
-    }
-  } else {  // В противном случае обновляем запись
-    if (!Database->updateRecordById("transport_master_keys",
-                                    transportKeysRecord)) {
-      processingOperationResult(
-          QString(
-              "Ошибка при добавлении транспортных мастер ключей эмитента %1. ")
-              .arg(issuerId),
-          DatabaseQueryError);
-      return;
-    }
+  if (!Database->addRecord("transport_master_keys", transportKeysRecord)) {
+    processingOperationResult(
+        QString("Ошибка при добавлении транспортных мастер ключей. "),
+        DatabaseQueryError);
+    return;
   }
 
   processingOperationResult(

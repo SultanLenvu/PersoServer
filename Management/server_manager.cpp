@@ -127,14 +127,13 @@ void ServerManager::initIssuers(DatabaseTableModel* model) {
   endOperationExecution("initIssuers");
 }
 
-void ServerManager::initTransportMasterKeys(const QString& issuerId,
-                                            DatabaseTableModel* model) {
+void ServerManager::initTransportMasterKeys(DatabaseTableModel* model) {
   if (!startOperationExecution("initTransportMasterKeys")) {
     return;
   }
 
   emit logging("Инициализация транспортных мастер ключей. ");
-  emit initTransportMasterKeysTable_signal(issuerId);
+  emit initTransportMasterKeysTable_signal();
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();

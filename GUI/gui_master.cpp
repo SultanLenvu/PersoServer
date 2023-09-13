@@ -28,6 +28,12 @@ void MasterGUI::update() {
 
   TransponderSeedTableView->resizeColumnsToContents();
   TransponderSeedTableView->update();
+
+  TransportMasterKeysView->resizeColumnsToContents();
+  TransportMasterKeysView->update();
+
+  CommercialMasterKeysView->resizeColumnsToContents();
+  CommercialMasterKeysView->update();
 }
 
 void MasterGUI::createTabs() {
