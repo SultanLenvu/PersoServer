@@ -10,14 +10,6 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
   loadSettings();
 }
 
-void FirmwareGenerationSystem::proxyLogging(const QString& log) {
-  if (sender()->objectName() == "IDatabaseController") {
-    emit logging("Database controller - " + log);
-  } else {
-    emit logging("Unknown - " + log);
-  }
-}
-
 void FirmwareGenerationSystem::applySettings() {
   emit logging("Применение новых настроек. ");
   loadSettings();
@@ -32,6 +24,8 @@ void FirmwareGenerationSystem::loadSettings() {
   FirmwareBase->setFileName(settings.value("Firmware/Base/Path").toString());
   FirmwareData->setFileName(settings.value("Firmware/Data/Path").toString());
 }
+
+void FirmwareGenerationSystem::generateCommonKeys(TransponderSeedModel* seed) {}
 
 void FirmwareGenerationSystem::generateFirmwareData() {}
 

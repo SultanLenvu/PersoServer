@@ -9,7 +9,7 @@
 #include "Database/database_table_model.h"
 #include "Database/postgres_controller.h"
 #include "firmware_generation_system.h"
-#include "transponder_data_model.h"
+#include "transponder_seed_model.h"
 #include "transponder_release_system.h"
 
 class AdministrationSystem : public QObject {
@@ -51,12 +51,18 @@ class AdministrationSystem : public QObject {
   void shutdownAllProductionLines(void);
   void deleteLastProductionLine(void);
 
-  void releaseTransponder(TransponderSeedModel* model);
-  void confirmReleaseTransponder(TransponderSeedModel* model);
-  void rereleaseTransponder(TransponderSeedModel* model);
-  void confirmRereleaseTransponder(TransponderSeedModel* model);
-  void searchTransponder(TransponderSeedModel* model);
-  void refundTransponder(TransponderSeedModel* model);
+  void releaseTransponder(const QMap<QString, QString>* releaseParameters,
+                          TransponderSeedModel* model);
+  void confirmReleaseTransponder(
+      const QMap<QString, QString>* confirmParameters);
+  void rereleaseTransponder(const QMap<QString, QString>* rereleaseParameters,
+                            TransponderSeedModel* model);
+  void confirmRereleaseTransponder(
+      const QMap<QString, QString>* confirmParameters);
+  void searchTransponder(const QMap<QString, QString>* searchParameters,
+                         TransponderSeedModel* model);
+  void refundTransponder(const QMap<QString, QString>* refundParameters,
+                         TransponderSeedModel* model);
 
   void initIssuerTable(void);
   void initTransportMasterKeysTable(void);

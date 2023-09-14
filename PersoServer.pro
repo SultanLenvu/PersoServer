@@ -20,11 +20,10 @@ SOURCES += \
     Management/perso_client_connection.cpp \
     Management/perso_host.cpp \
     Management/server_manager.cpp \
-    Management/transponder_data_model.cpp \
     Management/transponder_release_system.cpp \
+    Management/transponder_seed_model.cpp \
     Miscellaneous/thread_object_builder.cpp \
     Security/des.cpp \
-    Security/transponder_key_generator.cpp \
     main.cpp \
     GUI/main_window_kernel.cpp \
     GUI/gui.cpp \
@@ -51,12 +50,11 @@ HEADERS += \
     Management/perso_client_connection.h \
     Management/perso_host.h \
     Management/server_manager.h \
-    Management/transponder_data_model.h \
     Management/transponder_release_system.h \
+    Management/transponder_seed_model.h \
     Management/user_settings.h \
     Miscellaneous/thread_object_builder.h \
-    Security/des.h \
-    Security/transponder_key_generator.h
+    Security/des.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

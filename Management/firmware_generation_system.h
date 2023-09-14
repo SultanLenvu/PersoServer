@@ -4,11 +4,11 @@
 #include <QAbstractTableModel>
 #include <QFile>
 #include <QObject>
+#include <QSettings>
 #include <QString>
 
-#include <Database/database_controller.h>
-#include <Database/postgres_controller.h>
-#include "transponder_data_model.h"
+#include "Security/des.h"
+#include "transponder_seed_model.h"
 
 class FirmwareGenerationSystem : public QObject
 {
@@ -34,14 +34,13 @@ class FirmwareGenerationSystem : public QObject
 
   bool generate(TransponderSeedModel* seed, QByteArray* firmware);
 
- public slots:
-  void proxyLogging(const QString& log);
-
  private:
   void loadSettings(void);
 
   void generateFirmwareData(void);
   void assembleFirmware(void);
+
+  void generateCommonKeys(TransponderSeedModel* seed);
 
  signals:
   void logging(const QString& log) const;

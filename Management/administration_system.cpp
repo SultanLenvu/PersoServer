@@ -565,7 +565,9 @@ void AdministrationSystem::allocateInactiveProductionLines(
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::releaseTransponder(TransponderSeedModel* model) {
+void AdministrationSystem::releaseTransponder(
+    const QMap<QString, QString>* releaseParameters,
+    TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -574,9 +576,9 @@ void AdministrationSystem::releaseTransponder(TransponderSeedModel* model) {
     return;
   }
 
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
-
-  Releaser->release(model->data(), transponderData, &status);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  Releaser->release(releaseParameters, attributes, masterKeys, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при выпуске транспондера. ");
     emit operationFinished(ReleaserError);
@@ -590,12 +592,12 @@ void AdministrationSystem::releaseTransponder(TransponderSeedModel* model) {
     return;
   }
 
-  model->build(transponderData);
+  model->build(attributes, masterKeys);
   emit operationFinished(CompletedSuccessfully);
 }
 
 void AdministrationSystem::confirmReleaseTransponder(
-    TransponderSeedModel* model) {
+    const QMap<QString, QString>* confirmParameters) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -604,7 +606,7 @@ void AdministrationSystem::confirmReleaseTransponder(
     return;
   }
 
-  Releaser->confirmRelease(model->data(), &status);
+  Releaser->confirmRelease(confirmParameters, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(ReleaserError);
@@ -621,7 +623,9 @@ void AdministrationSystem::confirmReleaseTransponder(
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::rereleaseTransponder(TransponderSeedModel* model) {
+void AdministrationSystem::rereleaseTransponder(
+    const QMap<QString, QString>* rereleaseParameters,
+    TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -630,9 +634,9 @@ void AdministrationSystem::rereleaseTransponder(TransponderSeedModel* model) {
     return;
   }
 
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
-
-  Releaser->rerelease(model->data(), transponderData, &status);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  Releaser->rerelease(rereleaseParameters, attributes, masterKeys, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при перевыпуске транспондера. ");
     emit operationFinished(ReleaserError);
@@ -646,12 +650,12 @@ void AdministrationSystem::rereleaseTransponder(TransponderSeedModel* model) {
     return;
   }
 
-  model->build(transponderData);
+  model->build(attributes, masterKeys);
   emit operationFinished(CompletedSuccessfully);
 }
 
 void AdministrationSystem::confirmRereleaseTransponder(
-    TransponderSeedModel* model) {
+    const QMap<QString, QString>* confirmParameters) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -660,7 +664,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
     return;
   }
 
-  Releaser->confirmRerelease(model->data(), &status);
+  Releaser->confirmRerelease(confirmParameters, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(ReleaserError);
@@ -677,7 +681,9 @@ void AdministrationSystem::confirmRereleaseTransponder(
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::searchTransponder(TransponderSeedModel* model) {
+void AdministrationSystem::searchTransponder(
+    const QMap<QString, QString>* searchParameters,
+    TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -686,9 +692,9 @@ void AdministrationSystem::searchTransponder(TransponderSeedModel* model) {
     return;
   }
 
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>();
-
-  Releaser->search(model->data(), transponderData, &status);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  Releaser->search(searchParameters, attributes, masterKeys, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при поиске транспондера. ");
     emit operationFinished(ReleaserError);
@@ -702,11 +708,13 @@ void AdministrationSystem::searchTransponder(TransponderSeedModel* model) {
     return;
   }
 
-  model->build(transponderData);
+  model->build(attributes, masterKeys);
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::refundTransponder(TransponderSeedModel* model) {
+void AdministrationSystem::refundTransponder(
+    const QMap<QString, QString>* refundParameters,
+    TransponderSeedModel* model) {
   emit operationFinished(CompletedSuccessfully);
 }
 

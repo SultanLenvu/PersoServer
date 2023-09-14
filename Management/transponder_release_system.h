@@ -35,28 +35,32 @@ class TransponderReleaseSystem : public QObject {
   void applySettings();
 
  public slots:
-  void release(const QMap<QString, QString>* searchData,
-               QMap<QString, QString>* transponderSeed,
+  void release(const QMap<QString, QString>* releaseParameters,
+               QMap<QString, QString>* attributes,
+               QMap<QString, QString>* masterKeys,
                ReturnStatus* status);
-  void confirmRelease(const QMap<QString, QString>* searchData,
+  void confirmRelease(const QMap<QString, QString>* confirmParameters,
                       ReturnStatus* status);
 
-  void rerelease(const QMap<QString, QString>* searchData,
-                 QMap<QString, QString>* transponderSeed,
+  void rerelease(const QMap<QString, QString>* rereleaseParameters,
+                 QMap<QString, QString>* attributes,
+                 QMap<QString, QString>* masterKeys,
                  ReturnStatus* status);
-  void confirmRerelease(const QMap<QString, QString>* searchData,
+  void confirmRerelease(const QMap<QString, QString>* confirmParameters,
                         ReturnStatus* status);
 
-  void search(const QMap<QString, QString>* searchData,
-              QMap<QString, QString>* resultData,
+  void search(const QMap<QString, QString>* searchParameters,
+              QMap<QString, QString>* attributes,
+              QMap<QString, QString>* masterKeys,
               ReturnStatus* status);
 
  private:
   void createDatabaseController(void);
   void loadSettings(void);
 
-  bool generateTransponderSeed(const QMap<QString, QString>* searchData,
-                               QMap<QString, QString>* seed);
+  bool generateTransponderSeed(const QPair<QString, QString>* searchPair,
+                               QMap<QString, QString>* attributes,
+                               QMap<QString, QString>* masterKeys);
   bool checkRerelease(const QMap<QString, QString>& transponderRecord,
                       const QMap<QString, QString>& searchData);
 

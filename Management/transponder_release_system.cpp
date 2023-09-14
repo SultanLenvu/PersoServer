@@ -36,11 +36,14 @@ void TransponderReleaseSystem::applySettings() {
   Database->applySettings();
 }
 
-void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
-                                       QMap<QString, QString>* transponderSeed,
-                                       ReturnStatus* status) {
+void TransponderReleaseSystem::release(
+    const QMap<QString, QString>* releaseParameters,
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys,
+    ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
+  QPair<QString, QString> searchPair;
   QMap<QString, QString> productionLineRecord;
   QMap<QString, QString> transponderRecord;
 
@@ -51,8 +54,8 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
   }
 
   // Получаем данные о производственной линии
-  productionLineRecord.insert("login", searchData->value("login"));
-  productionLineRecord.insert("password", searchData->value("password"));
+  productionLineRecord.insert("login", releaseParameters->value("login"));
+  productionLineRecord.insert("password", releaseParameters->value("password"));
   productionLineRecord.insert("transponder_id", "");
   productionLineRecord.insert("id", "");
   productionLineRecord.insert("active", "");
@@ -60,7 +63,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
     emit logging(
         QString(
             "Получена ошибка при поиске данных производственной линии '%1'. ")
-            .arg(searchData->value("login")));
+            .arg(releaseParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
     return;
@@ -82,7 +85,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
   if (!Database->getRecordById("transponders", transponderRecord)) {
     emit logging(
         QString("Получена ошибка при поиске данных транспондера '%1'. ")
-            .arg(searchData->value("login")));
+            .arg(releaseParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
     return;
@@ -101,7 +104,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
 
   // Сохраняем полученный UCID и ожидаем подтверждения
   transponderRecord.insert("id", productionLineRecord.value("transponder_id"));
-  transponderRecord.insert("ucid", searchData->value("ucid"));
+  transponderRecord.insert("ucid", releaseParameters->value("ucid"));
   transponderRecord.insert("awaiting_confirmation", "true");
   if (!Database->updateRecordById("transponders", transponderRecord)) {
     emit logging(
@@ -113,7 +116,9 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
   }
 
   // Выгружаем всю информацию о выпускаемом транспондере
-  if (!generateTransponderSeed(searchData, transponderSeed)) {
+  searchPair.first = "id";
+  searchPair.second = transponderRecord.value("id");
+  if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
     emit logging(
         "Получена ошибка при получении объединенных данных о транспондере. ");
     *status = Failed;
@@ -130,7 +135,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
 }
 
 void TransponderReleaseSystem::confirmRelease(
-    const QMap<QString, QString>* searchData,
+    const QMap<QString, QString>* confirmParameters,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -143,8 +148,8 @@ void TransponderReleaseSystem::confirmRelease(
   }
 
   // Запрашиваем данные о производственной линии
-  productionLineRecord.insert("login", searchData->value("login"));
-  productionLineRecord.insert("password", searchData->value("password"));
+  productionLineRecord.insert("login", confirmParameters->value("login"));
+  productionLineRecord.insert("password", confirmParameters->value("password"));
   productionLineRecord.insert("transponder_id", "");
   productionLineRecord.insert("id", "");
   productionLineRecord.insert("active", "");
@@ -190,11 +195,13 @@ void TransponderReleaseSystem::confirmRelease(
 }
 
 void TransponderReleaseSystem::rerelease(
-    const QMap<QString, QString>* searchData,
-    QMap<QString, QString>* resultData,
+    const QMap<QString, QString>* rereleaseParameters,
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
+  QPair<QString, QString> searchPair;
   QMap<QString, QString> transponderRecord;
 
   // Открываем транзакцию
@@ -204,22 +211,23 @@ void TransponderReleaseSystem::rerelease(
   }
 
   // Получаем данные о перевыпускаемом транспондере
-  transponderRecord.insert("id", searchData->value("id"));
-  transponderRecord.insert("payment_means", searchData->value("payment_means"));
+  transponderRecord.insert("id", rereleaseParameters->value("id"));
+  transponderRecord.insert("payment_means",
+                           rereleaseParameters->value("payment_means"));
   transponderRecord.insert("release_counter", "");
   transponderRecord.insert("ucid", "");
   transponderRecord.insert("box_id", "");
   if (!Database->getRecordByPart("transponders", transponderRecord)) {
     emit logging(
         QString("Получена ошибка при поиске данных транспондера '%1'. ")
-            .arg(searchData->value("login")));
+            .arg(rereleaseParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
     return;
   }
 
   // Осуществляем логические проверки
-  if (!checkRerelease(transponderRecord, *searchData)) {
+  if (!checkRerelease(transponderRecord, *rereleaseParameters)) {
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
@@ -240,7 +248,9 @@ void TransponderReleaseSystem::rerelease(
   }
 
   // Выгружаем всю информацию о перевыпущенном транспондере
-  if (!generateTransponderSeed(searchData, resultData)) {
+  searchPair.first = "id";
+  searchPair.second = transponderRecord.value("id");
+  if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
     emit logging(
         "Получена ошибка при получении объединенных данных о транспондере. ");
     *status = Failed;
@@ -257,7 +267,7 @@ void TransponderReleaseSystem::rerelease(
 }
 
 void TransponderReleaseSystem::confirmRerelease(
-    const QMap<QString, QString>* searchData,
+    const QMap<QString, QString>* confirmParameters,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -270,14 +280,15 @@ void TransponderReleaseSystem::confirmRerelease(
   }
 
   // Получаем данные о перевыпускаемом транспондере
-  transponderRecord.insert("id", searchData->value("id"));
-  transponderRecord.insert("payment_means", searchData->value("payment_means"));
+  transponderRecord.insert("id", confirmParameters->value("id"));
+  transponderRecord.insert("payment_means",
+                           confirmParameters->value("payment_means"));
   transponderRecord.insert("ucid", "");
   transponderRecord.insert("release_counter", "");
   if (!Database->getRecordByPart("transponders", transponderRecord)) {
     emit logging(
         QString("Получена ошибка при поиске данных транспондера '%1'. ")
-            .arg(searchData->value("login")));
+            .arg(confirmParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
     return;
@@ -285,7 +296,7 @@ void TransponderReleaseSystem::confirmRerelease(
 
   // Проверка, что транспондер ожидает подтверждения
   if (transponderRecord.value("awaiting_confirmation") !=
-      searchData->value("true")) {
+      confirmParameters->value("true")) {
     emit logging(QString("Транспондер %1 не был перевыпущен, "
                          "переподтверждение перевыпуска невозможно. ")
                      .arg(transponderRecord.value("id")));
@@ -295,7 +306,7 @@ void TransponderReleaseSystem::confirmRerelease(
   }
 
   // Осуществляем логические проверки
-  if (!checkRerelease(transponderRecord, *searchData)) {
+  if (!checkRerelease(transponderRecord, *confirmParameters)) {
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
@@ -309,7 +320,7 @@ void TransponderReleaseSystem::confirmRerelease(
   transponderRecord.insert(
       "release_counter",
       QString::number(transponderRecord.value("release_counter").toInt() + 1));
-  transponderRecord.insert("ucid", searchData->value("ucid"));
+  transponderRecord.insert("ucid", confirmParameters->value("ucid"));
   if (!Database->updateRecordById("transponders", transponderRecord)) {
     emit logging(
         QString("Получена ошибка при сохранении UCID транспондера %1. ")
@@ -327,10 +338,14 @@ void TransponderReleaseSystem::confirmRerelease(
   *status = Success;
 }
 
-void TransponderReleaseSystem::search(const QMap<QString, QString>* searchData,
-                                      QMap<QString, QString>* resultData,
-                                      ReturnStatus* status) {
+void TransponderReleaseSystem::search(
+    const QMap<QString, QString>* searchParameters,
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys,
+    ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
+
+  QPair<QString, QString> searchPair;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -338,7 +353,9 @@ void TransponderReleaseSystem::search(const QMap<QString, QString>* searchData,
     return;
   }
 
-  if (!generateTransponderSeed(searchData, resultData)) {
+  searchPair.first = searchParameters->constBegin().key();
+  searchPair.second = searchParameters->constBegin().value();
+  if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
     emit logging("Получена ошибка при поиске транспондера. ");
     *status = Failed;
     Database->abortTransaction();
@@ -362,13 +379,14 @@ void TransponderReleaseSystem::createDatabaseController() {
 void TransponderReleaseSystem::loadSettings() {}
 
 bool TransponderReleaseSystem::generateTransponderSeed(
-    const QMap<QString, QString>* searchData,
-    QMap<QString, QString>* seed) {
-  QMap<QString, QString> attributes;
+    const QPair<QString, QString>* searchPair,
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys) {
   QStringList tables;
   QStringList foreignKeys;
+  QString keyTableName;
 
-  // Формируем сид
+  // Запрашиваем атрибуты
   tables.append("transponders");
   tables.append("boxes");
   tables.append("pallets");
@@ -378,53 +396,46 @@ bool TransponderReleaseSystem::generateTransponderSeed(
   foreignKeys.append("pallet_id");
   foreignKeys.append("order_id");
   foreignKeys.append("issuer_id");
-  seed->insert("transponder_model", "");
-  seed->insert("release_counter", "");
-  seed->insert("awaiting_confirmation", "");
-  seed->insert("ucid", "");
-  seed->insert("accr_reference", "");
-  seed->insert("payment_means", "");
-  seed->insert("efc_context_mark", "");
-  seed->insert("full_personalization", "");
-  seed->insert("boxes.in_process", "");
-  seed->insert("transponders." + searchData->constBegin().key(),
-               searchData->constBegin().value());
+  attributes->insert("transponder_model", "");
+  attributes->insert("release_counter", "");
+  attributes->insert("awaiting_confirmation", "");
+  attributes->insert("ucid", "");
+  attributes->insert("accr_reference", "");
+  attributes->insert("payment_means", "");
+  attributes->insert("efc_context_mark", "");
+  attributes->insert("full_personalization", "");
+  attributes->insert("boxes.in_process", "");
+  attributes->insert("transport_master_keys_id", "");
+  attributes->insert("commercial_master_keys_id", "");
+  attributes->insert("transponders." + searchPair->first, searchPair->second);
 
-  if (!Database->getMergedRecordByPart(tables, foreignKeys, *seed)) {
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, *attributes)) {
     return false;
   }
 
-  QMap<QString, QString>* keys = new QMap<QString, QString>();
-  tables.clear();
-  foreignKeys.clear();
-
-  tables.append("issuers");
-  keys->insert("accr_key", "");
-  keys->insert("per_key", "");
-  keys->insert("au_key1", "");
-  keys->insert("au_key2", "");
-  keys->insert("au_key3", "");
-  keys->insert("au_key4", "");
-  keys->insert("au_key5", "");
-  keys->insert("au_key6", "");
-  keys->insert("au_key7", "");
-  keys->insert("au_key8", "");
-  keys->insert("efc_context_mark", seed->value("efc_context_mark"));
-  if (seed->value("full_personalization") == "false") {
-    tables.append("transport_master_keys");
-    foreignKeys.append("transport_master_keys_id");
+  // Запрашиваем мастер ключи
+  masterKeys->insert("accr_key", "");
+  masterKeys->insert("per_key", "");
+  masterKeys->insert("au_key1", "");
+  masterKeys->insert("au_key2", "");
+  masterKeys->insert("au_key3", "");
+  masterKeys->insert("au_key4", "");
+  masterKeys->insert("au_key5", "");
+  masterKeys->insert("au_key6", "");
+  masterKeys->insert("au_key7", "");
+  masterKeys->insert("au_key8", "");
+  if (attributes->value("full_personalization") == "false") {
+    keyTableName = "transport_master_keys";
+    masterKeys->insert("id", attributes->value("transport_master_keys_id"));
   } else {
-    tables.append("commercial_master_keys");
-    foreignKeys.append("commercial_master_keys_id");
+    keyTableName = "commercial_master_keys";
+    masterKeys->insert("id", attributes->value("commercial_master_keys_id"));
   }
 
-  if (!Database->getMergedRecordByPart(tables, foreignKeys, *keys)) {
+  if (!Database->getRecordById(keyTableName, *masterKeys)) {
     return false;
   }
-  keys->remove("efc_context_mark");
-
-  // Добавляем ключи к сиду
-  seed->unite(*keys);
+  masterKeys->remove("id");
 
   return true;
 }

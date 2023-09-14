@@ -18,7 +18,7 @@
 #include "administration_system.h"
 #include "administration_system_builder.h"
 #include "perso_host.h"
-#include "transponder_data_model.h"
+#include "transponder_seed_model.h"
 #include "user_settings.h"
 
 class ServerManager : public QObject {
@@ -57,7 +57,7 @@ class ServerManager : public QObject {
 
   void performCustomRequest(const QString& req, DatabaseTableModel* model);
 
-  void createNewOrder(const QMap<QString, QString>* orderParameters,
+  void createNewOrder(const QMap<QString, QString>* orderParameterseters,
                       DatabaseTableModel* model);
   void startOrderAssemblingManually(const QString& orderId,
                                     DatabaseTableModel* model);
@@ -67,7 +67,7 @@ class ServerManager : public QObject {
   void showOrderTable(DatabaseTableModel* model);
 
   void createNewProductionLine(
-      const QMap<QString, QString>* productionLineParameters,
+      const QMap<QString, QString>* productionLineParameterseters,
       DatabaseTableModel* model);
   void allocateInactiveProductionLinesManually(const QString& orderId,
                                                DatabaseTableModel* model);
@@ -75,20 +75,28 @@ class ServerManager : public QObject {
   void deleteLastProductionLine(DatabaseTableModel* model);
   void showProductionLineTable(DatabaseTableModel* model);
   void linkProductionLineWithBoxManually(
-      const QMap<QString, QString>* linkParameters,
+      const QMap<QString, QString>* linkParameterseters,
       DatabaseTableModel* model);
 
-  void releaseTransponderManually(TransponderSeedModel* model);
-  void confirmReleaseTransponderManually(TransponderSeedModel* model);
-  void rereleaseTransponderManually(TransponderSeedModel* model);
-  void confirmRereleaseTransponderManually(TransponderSeedModel* model);
-  void searchTransponderManually(TransponderSeedModel* model);
-  void refundTransponderManually(TransponderSeedModel* model);
+  void releaseTransponderManually(
+      const QMap<QString, QString>* releaseParameters,
+      TransponderSeedModel* model);
+  void confirmReleaseTransponderManually(
+      const QMap<QString, QString>* confirmParameters);
+  void rereleaseTransponderManually(
+      const QMap<QString, QString>* rereleaseParameters,
+      TransponderSeedModel* model);
+  void confirmRereleaseTransponderManually(
+      const QMap<QString, QString>* confirmParameters);
+  void searchTransponderManually(const QMap<QString, QString>* searchParameters,
+                                 TransponderSeedModel* model);
+  void refundTransponderManually(const QMap<QString, QString>* refundParameters,
+                                 TransponderSeedModel* model);
 
   void initIssuers(DatabaseTableModel* model);
   void initTransportMasterKeys(DatabaseTableModel* model);
   void linkIssuerWithMasterKeys(DatabaseTableModel* model,
-                                const QMap<QString, QString>* parameters);
+                                const QMap<QString, QString>* Parameterseters);
 
  private:
   void createHostInstance(void);
@@ -135,29 +143,39 @@ class ServerManager : public QObject {
   void clearDatabaseTable_signal(const QString& tableName);
   void getCustomResponse_signal(const QString& req, DatabaseTableModel* model);
 
-  void createNewOrder_signal(const QMap<QString, QString>* orderParameters);
+  void createNewOrder_signal(
+      const QMap<QString, QString>* orderParameterseters);
   void startOrderAssembling_signal(const QString& orderId);
   void stopOrderAssembling_signal(const QString& orderId);
   void deleteLastOrder_signal(void);
 
   void createNewProductionLine_signal(
-      const QMap<QString, QString>* productionLineParameters);
+      const QMap<QString, QString>* productionLineParameterseters);
   void allocateInactiveProductionLines_signal(const QString& orderId);
   void shutdownAllProductionLines_signal(void);
   void removeLastProductionLine_signal(void);
   void linkProductionLineWithBox_signal(
-      const QMap<QString, QString>* linkParameters);
+      const QMap<QString, QString>* linkParameterseters);
 
-  void releaseTransponder_signal(TransponderSeedModel* seed);
-  void confirmReleaseTransponder_signal(TransponderSeedModel* seed);
-  void rereleaseTransponder_signal(TransponderSeedModel* seed);
-  void confirmRereleaseTransponder_signal(TransponderSeedModel* seed);
-  void searchTransponder_signal(TransponderSeedModel* seed);
+  void releaseTransponder_signal(
+      const QMap<QString, QString>* releaseParameters,
+      TransponderSeedModel* seed);
+  void confirmReleaseTransponder_signal(
+      const QMap<QString, QString>* confirmParameters);
+  void rereleaseTransponder_signal(
+      const QMap<QString, QString>* rereleaseParameters,
+      TransponderSeedModel* seed);
+  void confirmRereleaseTransponder_signal(
+      const QMap<QString, QString>* confirmParameters);
+  void searchTransponder_signal(const QMap<QString, QString>* searchParameters,
+                                TransponderSeedModel* seed);
+  void refundTransponder_signal(const QMap<QString, QString>* refundParameters,
+                                TransponderSeedModel* seed);
 
   void initIssuerTable_signal(void);
   void initTransportMasterKeysTable_signal(void);
   void linkIssuerWithMasterKeys_signal(
-      const QMap<QString, QString>* linkParameters);
+      const QMap<QString, QString>* linkParameterseters);
 };
 
 //==================================================================================

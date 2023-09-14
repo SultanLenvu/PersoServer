@@ -425,14 +425,16 @@ void ServerManager::linkProductionLineWithBoxManually(
   endOperationExecution("linkProductionLineWithBoxManually");
 }
 
-void ServerManager::releaseTransponderManually(TransponderSeedModel* seed) {
+void ServerManager::releaseTransponderManually(
+    const QMap<QString, QString>* releaseParameters,
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("releaseTransponderManually")) {
     return;
   }
 
   emit logging("Выпуск транспондера. ");
-  emit releaseTransponder_signal(seed);
+  emit releaseTransponder_signal(releaseParameters, seed);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -442,14 +444,14 @@ void ServerManager::releaseTransponderManually(TransponderSeedModel* seed) {
 }
 
 void ServerManager::confirmReleaseTransponderManually(
-    TransponderSeedModel* seed) {
+    const QMap<QString, QString>* confirmParameters) {
   // Начинаем выполнение операции
   if (!startOperationExecution("confirmReleaseTransponderManually")) {
     return;
   }
 
   emit logging("Подтверждение выпуска транспондера. ");
-  emit confirmReleaseTransponder_signal(seed);
+  emit confirmReleaseTransponder_signal(confirmParameters);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -458,14 +460,16 @@ void ServerManager::confirmReleaseTransponderManually(
   endOperationExecution("confirmReleaseTransponderManually");
 }
 
-void ServerManager::rereleaseTransponderManually(TransponderSeedModel* seed) {
+void ServerManager::rereleaseTransponderManually(
+    const QMap<QString, QString>* rereleaseParameters,
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("rereleaseTransponderManually")) {
     return;
   }
 
   emit logging("Перевыпуск транспондера. ");
-  emit rereleaseTransponder_signal(seed);
+  emit rereleaseTransponder_signal(rereleaseParameters, seed);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -475,14 +479,14 @@ void ServerManager::rereleaseTransponderManually(TransponderSeedModel* seed) {
 }
 
 void ServerManager::confirmRereleaseTransponderManually(
-    TransponderSeedModel* seed) {
+    const QMap<QString, QString>* confirmParameters) {
   // Начинаем выполнение операции
   if (!startOperationExecution("confirmRereleaseTransponderManually")) {
     return;
   }
 
   emit logging("Подтверждение перевыпуска транспондера. ");
-  emit confirmRereleaseTransponder_signal(seed);
+  emit confirmRereleaseTransponder_signal(confirmParameters);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -491,36 +495,40 @@ void ServerManager::confirmRereleaseTransponderManually(
   endOperationExecution("confirmRereleaseTransponderManually");
 }
 
-void ServerManager::refundTransponderManually(TransponderSeedModel* seed) {
-  // Начинаем выполнение операции
-  if (!startOperationExecution("refundTransponderManually")) {
-    return;
-  }
-
-  emit logging("Возврат транспондера. ");
-  // emit refundTransponder_signal(seed);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("refundTransponderManually");
-}
-
-void ServerManager::searchTransponderManually(TransponderSeedModel* seed) {
+void ServerManager::searchTransponderManually(
+    const QMap<QString, QString>* searchParameters,
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("searchTransponderManually")) {
     return;
   }
 
   emit logging("Выпуск транспондера. ");
-  emit searchTransponder_signal(seed);
+  emit searchTransponder_signal(searchParameters, seed);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
   endOperationExecution("searchTransponderManually");
+}
+
+void ServerManager::refundTransponderManually(
+    const QMap<QString, QString>* refundParameters,
+    TransponderSeedModel* seed) {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("refundTransponderManually")) {
+    return;
+  }
+
+  emit logging("Возврат транспондера. ");
+  emit refundTransponder_signal(refundParameters, seed);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("refundTransponderManually");
 }
 
 void ServerManager::initIssuers(DatabaseTableModel* model) {

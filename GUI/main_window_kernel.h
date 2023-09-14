@@ -15,7 +15,7 @@
 #include "Database/database_table_model.h"
 #include "GUI/log_system.h"
 #include "Management/server_manager.h"
-#include "Management/transponder_data_model.h"
+#include "Management/transponder_seed_model.h"
 #include "Management/user_settings.h"
 
 #include "General/definitions.h"
