@@ -31,7 +31,6 @@ class MasterGUI : public GUI {
   QComboBox* DatabaseTableChoice;
   QPushButton* ShowDatabaseTablePushButton;
   QPushButton* ClearDatabaseTablePushButton;
-  QPushButton* InitIssuerTablePushButton;
   QSpacerItem* DatabaseControlPanelVS1;
 
   QPushButton* TransmitCustomRequestPushButton;
@@ -181,44 +180,33 @@ class MasterGUI : public GUI {
   QPlainTextEdit* FirmwareDsrcDataView;
   //============================================================
 
-  /* Интерфейс транспортных ключей безопасности */
+  /* Интерфейс для управления эмитентами */
   //============================================================
-  QWidget* TransportKeyTab;
-  QHBoxLayout* TransportKeyMainLayout;
+  QWidget* IssuerTab;
+  QHBoxLayout* IssuerTabMainLayout;
 
   // Панель управления
-  QGroupBox* TransportKeyControlPanelGroup;
-  QVBoxLayout* TransportKeyControlPanelLayout;
+  QGroupBox* IssuerControlPanelGroup;
+  QVBoxLayout* IssuerControlPanelLayout;
 
-  QPushButton* UpdateTransportMasterKeysPushButton;
+  QComboBox* IssuerTableChoice;
+  QPushButton* ShowIssuerTablePushButton;
+  QPushButton* InitTransportMasterKeysPushButton;
+  QPushButton* InitIssuerTablePushButton;
   QSpacerItem* TransportKeyVS1;
+
   QHBoxLayout* IssuerIdLayout1;
   QLabel* IssuerIdLabel1;
   QLineEdit* IssuerIdLineEdit1;
-  QPushButton* InitTransportMasterKeysPushButton;
+  QHBoxLayout* MasterKeysIdLayout1;
+  QComboBox* MasterKeysChoice;
+  QLineEdit* MasterKeysLineEdit1;
+  QPushButton* LinkIssuerWithKeysPushButton;
 
   // Отображение записей
-  QGroupBox* TransportMasterKeysViewGroup;
-  QVBoxLayout* TransportMasterKeysViewLayout;
-  QTableView* TransportMasterKeysView;
-  //============================================================
-
-  /* Интерфейс коммерческих ключей безопасности */
-  //============================================================
-  QWidget* CommercialKeyTab;
-  QHBoxLayout* CommercialKeyMainLayout;
-
-  // Панель управления
-  QGroupBox* CommercialKeyControlPanelGroup;
-  QVBoxLayout* CommercialKeyControlPanelLayout;
-
-  QPushButton* UpdateCommercialMasterKeysPushButton;
-  QSpacerItem* CommercialKeyVS1;
-
-  // Отображение записей
-  QGroupBox* CommercialMasterKeysViewGroup;
-  QVBoxLayout* CommercialMasterKeysViewLayout;
-  QTableView* CommercialMasterKeysView;
+  QGroupBox* IssuerViewGroup;
+  QVBoxLayout* IssuerTableViewLayout;
+  QTableView* IssuerTableView;
   //============================================================
 
   /* Настройки сервера */
@@ -279,8 +267,7 @@ class MasterGUI : public GUI {
   void createOrderTab(void);
   void createProductionLineTab(void);
   void createTransponderTab(void);
-  void createTransportKeyTab(void);
-  void createCommercialKeyTab(void);
+  void createIssuerTab(void);
 
   void createSettingsTab(void);
 

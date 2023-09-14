@@ -29,11 +29,11 @@ void MasterGUI::update() {
   TransponderSeedTableView->resizeColumnsToContents();
   TransponderSeedTableView->update();
 
-  TransportMasterKeysView->resizeColumnsToContents();
-  TransportMasterKeysView->update();
+  IssuerTableView->resizeColumnsToContents();
+  IssuerTableView->update();
 
-  CommercialMasterKeysView->resizeColumnsToContents();
-  CommercialMasterKeysView->update();
+  IssuerTableView->resizeColumnsToContents();
+  IssuerTableView->update();
 }
 
 void MasterGUI::createTabs() {
@@ -51,8 +51,7 @@ void MasterGUI::createTabs() {
   createOrderTab();
   createProductionLineTab();
   createTransponderTab();
-  createTransportKeyTab();
-  createCommercialKeyTab();
+  createIssuerTab();
 
   // Конструируем вкладку настроек
   createSettingsTab();
@@ -102,9 +101,6 @@ void MasterGUI::createDatabaseTab() {
   DatabaseControlPanelLayout->addWidget(ShowDatabaseTablePushButton);
   ClearDatabaseTablePushButton = new QPushButton("Очистить таблицу");
   DatabaseControlPanelLayout->addWidget(ClearDatabaseTablePushButton);
-  InitIssuerTablePushButton =
-      new QPushButton("Инициализация таблицы эмитентов");
-  DatabaseControlPanelLayout->addWidget(InitIssuerTablePushButton);
 
   DatabaseControlPanelVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -466,101 +462,75 @@ void MasterGUI::createTransponderTab() {
   TransponderTabMainLayout->setStretch(1, 3);
 }
 
-void MasterGUI::createTransportKeyTab() {
-  TransportKeyTab = new QWidget();
-  Tabs->addTab(TransportKeyTab, "Транспортные ключи");
+void MasterGUI::createIssuerTab() {
+  IssuerTab = new QWidget();
+  Tabs->addTab(IssuerTab, "Эмитенты");
 
   // Основной макет
-  TransportKeyMainLayout = new QHBoxLayout();
-  TransportKeyTab->setLayout(TransportKeyMainLayout);
+  IssuerTabMainLayout = new QHBoxLayout();
+  IssuerTab->setLayout(IssuerTabMainLayout);
 
   // Панель управления
-  TransportKeyControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  TransportKeyControlPanelGroup->setAlignment(Qt::AlignHCenter |
-                                              Qt::AlignVCenter);
-  TransportKeyMainLayout->addWidget(TransportKeyControlPanelGroup);
+  IssuerControlPanelGroup = new QGroupBox(QString("Панель управления"));
+  IssuerControlPanelGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  IssuerTabMainLayout->addWidget(IssuerControlPanelGroup);
 
-  TransportKeyControlPanelLayout = new QVBoxLayout();
-  TransportKeyControlPanelGroup->setLayout(TransportKeyControlPanelLayout);
+  IssuerControlPanelLayout = new QVBoxLayout();
+  IssuerControlPanelGroup->setLayout(IssuerControlPanelLayout);
 
-  // Кнопки
-  UpdateTransportMasterKeysPushButton = new QPushButton("Обновить таблицу");
-  TransportKeyControlPanelLayout->addWidget(
-      UpdateTransportMasterKeysPushButton);
+  IssuerTableChoice = new QComboBox();
+  IssuerTableChoice->addItem("Заказчики");
+  IssuerTableChoice->addItem("Транспортные мастер ключи");
+  IssuerTableChoice->addItem("Коммерческие мастер ключи");
+  IssuerTableChoice->setCurrentIndex(0);
+  IssuerControlPanelLayout->addWidget(IssuerTableChoice);
+
+  ShowIssuerTablePushButton = new QPushButton("Загрузить");
+  IssuerControlPanelLayout->addWidget(ShowIssuerTablePushButton);
+  InitTransportMasterKeysPushButton =
+      new QPushButton("Инициализировать транспортные ключи");
+  IssuerControlPanelLayout->addWidget(InitTransportMasterKeysPushButton);
+  InitIssuerTablePushButton = new QPushButton("Инициализировать эмитентов");
+  IssuerControlPanelLayout->addWidget(InitIssuerTablePushButton);
 
   TransportKeyVS1 =
       new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  TransportKeyControlPanelLayout->addItem(TransportKeyVS1);
+  IssuerControlPanelLayout->addItem(TransportKeyVS1);
 
   IssuerIdLayout1 = new QHBoxLayout();
-  TransportKeyControlPanelLayout->addLayout(IssuerIdLayout1);
+  IssuerControlPanelLayout->addLayout(IssuerIdLayout1);
   IssuerIdLabel1 = new QLabel("ID эмитента: ");
   IssuerIdLayout1->addWidget(IssuerIdLabel1);
   IssuerIdLineEdit1 = new QLineEdit();
-  PasswordLineEdit3->setText("1");
   IssuerIdLayout1->addWidget(IssuerIdLineEdit1);
 
-  InitTransportMasterKeysPushButton = new QPushButton("Инициализировать");
-  TransportKeyControlPanelLayout->addWidget(InitTransportMasterKeysPushButton);
+  MasterKeysIdLayout1 = new QHBoxLayout();
+  IssuerControlPanelLayout->addLayout(MasterKeysIdLayout1);
+  MasterKeysChoice = new QComboBox();
+  MasterKeysChoice->addItem("Транспортные мастер ключи");
+  MasterKeysChoice->addItem("Коммерческие мастер ключи");
+  MasterKeysChoice->setCurrentIndex(0);
+  MasterKeysIdLayout1->addWidget(MasterKeysChoice);
+  MasterKeysLineEdit1 = new QLineEdit();
+  MasterKeysIdLayout1->addWidget(MasterKeysLineEdit1);
+
+  LinkIssuerWithKeysPushButton = new QPushButton("Связать эмитента и ключи");
+  IssuerControlPanelLayout->addWidget(LinkIssuerWithKeysPushButton);
 
   // Отображение буфера считанных данных из БД
-  TransportMasterKeysViewGroup = new QGroupBox(QString("Таблица"));
-  TransportMasterKeysViewGroup->setAlignment(Qt::AlignHCenter |
-                                             Qt::AlignVCenter);
-  TransportKeyMainLayout->addWidget(TransportMasterKeysViewGroup);
+  IssuerViewGroup = new QGroupBox(QString("Таблица"));
+  IssuerViewGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  IssuerTabMainLayout->addWidget(IssuerViewGroup);
 
-  TransportMasterKeysViewLayout = new QVBoxLayout();
-  TransportMasterKeysViewGroup->setLayout(TransportMasterKeysViewLayout);
+  IssuerTableViewLayout = new QVBoxLayout();
+  IssuerViewGroup->setLayout(IssuerTableViewLayout);
 
-  TransportMasterKeysView = new QTableView();
-  TransportMasterKeysViewLayout->addWidget(TransportMasterKeysView);
-
-  // Настройка пропорции между объектами на макете
-  TransportKeyMainLayout->setStretch(0, 1);
-  TransportKeyMainLayout->setStretch(1, 3);
-}
-
-void MasterGUI::createCommercialKeyTab(void) {
-  CommercialKeyTab = new QWidget();
-  Tabs->addTab(CommercialKeyTab, "Коммерческие ключи");
-
-  // Основной макет
-  CommercialKeyMainLayout = new QHBoxLayout();
-  CommercialKeyTab->setLayout(CommercialKeyMainLayout);
-
-  // Панель управления
-  CommercialKeyControlPanelGroup = new QGroupBox(QString("Панель управления"));
-  CommercialKeyControlPanelGroup->setAlignment(Qt::AlignHCenter |
-                                               Qt::AlignVCenter);
-  CommercialKeyMainLayout->addWidget(CommercialKeyControlPanelGroup);
-
-  CommercialKeyControlPanelLayout = new QVBoxLayout();
-  CommercialKeyControlPanelGroup->setLayout(CommercialKeyControlPanelLayout);
-
-  // Кнопки
-  UpdateCommercialMasterKeysPushButton = new QPushButton("Обновить таблицу");
-  CommercialKeyControlPanelLayout->addWidget(
-      UpdateCommercialMasterKeysPushButton);
-
-  CommercialKeyVS1 =
-      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  CommercialKeyControlPanelLayout->addItem(CommercialKeyVS1);
-
-  // Отображение буфера считанных данных из БД
-  CommercialMasterKeysViewGroup = new QGroupBox(QString("Таблица"));
-  CommercialMasterKeysViewGroup->setAlignment(Qt::AlignHCenter |
-                                              Qt::AlignVCenter);
-  CommercialKeyMainLayout->addWidget(CommercialMasterKeysViewGroup);
-
-  CommercialMasterKeysViewLayout = new QVBoxLayout();
-  CommercialMasterKeysViewGroup->setLayout(CommercialMasterKeysViewLayout);
-
-  CommercialMasterKeysView = new QTableView();
-  CommercialMasterKeysViewLayout->addWidget(CommercialMasterKeysView);
+  IssuerTableView = new QTableView();
+  IssuerTableViewLayout->addWidget(IssuerTableView);
 
   // Настройка пропорции между объектами на макете
-  CommercialKeyMainLayout->setStretch(0, 1);
-  CommercialKeyMainLayout->setStretch(1, 3);
+  IssuerTabMainLayout->setStretch(0, 1);
+  IssuerTabMainLayout->setStretch(1, 3);
 }
 
 void MasterGUI::createSettingsTab() {

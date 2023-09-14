@@ -1,12 +1,16 @@
 #include "transponder_data_model.h"
 
-TransponderDataModel::TransponderDataModel(QObject* parent)
+TransponderSeedModel::TransponderSeedModel(QObject* parent)
     : QAbstractTableModel(parent) {
-  setObjectName("TransponderDataModel");
+  setObjectName("TransponderSeedModel");
   Data = nullptr;
 }
 
-void TransponderDataModel::build(QMap<QString, QString>* data) {
+TransponderSeedModel::~TransponderSeedModel() {
+  deleteAll();
+}
+
+void TransponderSeedModel::build(const QMap<QString, QString>* data) {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
@@ -18,7 +22,7 @@ void TransponderDataModel::build(QMap<QString, QString>* data) {
   beginResetModel();
 
   // Очищаем старые данные
-  deleteData();
+  deleteAll();
 
   // Устанавливаем новые данные
   Data = data;
@@ -26,34 +30,34 @@ void TransponderDataModel::build(QMap<QString, QString>* data) {
   endResetModel();
 }
 
-void TransponderDataModel::clear() {
+void TransponderSeedModel::clear() {
   // Блокируем доступ
   QMutexLocker locker(&Mutex);
 
   beginResetModel();
 
-  deleteData();
+  deleteAll();
 
   endResetModel();
 }
 
-bool TransponderDataModel::isEmpty() {
+bool TransponderSeedModel::isEmpty() {
   return (!Data) ? true : false;
 }
 
-const QMap<QString, QString>* TransponderDataModel::getMap() {
+const QMap<QString, QString>* TransponderSeedModel::data() {
   return Data;
 }
 
-int TransponderDataModel::columnCount(const QModelIndex& parent) const {
+int TransponderSeedModel::columnCount(const QModelIndex& parent) const {
   return 1;
 }
 
-int TransponderDataModel::rowCount(const QModelIndex& parent) const {
+int TransponderSeedModel::rowCount(const QModelIndex& parent) const {
   return (Data) ? Data->size() : 0;
 }
 
-QVariant TransponderDataModel::data(const QModelIndex& index, int role) const {
+QVariant TransponderSeedModel::data(const QModelIndex& index, int role) const {
   if (!Data) {
     return QVariant();
   }
@@ -72,7 +76,7 @@ QVariant TransponderDataModel::data(const QModelIndex& index, int role) const {
     return QVariant();
 }
 
-QVariant TransponderDataModel::headerData(int section,
+QVariant TransponderSeedModel::headerData(int section,
                                           Qt::Orientation orientation,
                                           int role) const {
   if (!Data) {
@@ -97,12 +101,7 @@ QVariant TransponderDataModel::headerData(int section,
   }
 }
 
-void TransponderDataModel::deleteData() {
-  if (!Data)
-    return;
-
-  Data->clear();
-
+void TransponderSeedModel::deleteAll() {
   delete Data;
   Data = nullptr;
 }

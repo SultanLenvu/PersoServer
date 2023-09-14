@@ -32,7 +32,7 @@ class FirmwareGenerationSystem : public QObject
   explicit FirmwareGenerationSystem(QObject* parent);
   void applySettings(void);
 
-  bool generate(TransponderDataModel* seed, QByteArray* firmware);
+  bool generate(TransponderSeedModel* seed, QByteArray* firmware);
 
  public slots:
   void proxyLogging(const QString& log);

@@ -40,9 +40,11 @@ class MainWindowKernel : public QMainWindow {
   DatabaseTableModel* RandomModel;
   DatabaseTableModel* OrderModel;
   DatabaseTableModel* ProductionLineModel;
-  DatabaseTableModel* TransportMasterKeysModel;
-  DatabaseTableModel* CommercialMasterKeysModel;
-  TransponderDataModel* TransponderSeed;
+  DatabaseTableModel* IssuerModel;
+
+  TransponderSeedModel* TransponderSeed;
+
+  QMap<QString, QString>* MatchingTable;
 
  public:
   MainWindowKernel(QWidget* parent = nullptr);
@@ -62,7 +64,6 @@ class MainWindowKernel : public QMainWindow {
 
   void on_ShowDatabaseTablePushButton_slot(void);
   void on_ClearDatabaseTablePushButton_slot(void);
-  void on_InitIssuerTablePushButton_slot(void);
   void on_TransmitCustomRequestPushButton_slot(void);
 
   // Функционал для работы с заказами
@@ -89,11 +90,10 @@ class MainWindowKernel : public QMainWindow {
   void on_RefundTransponderPushButton_slot(void);
 
   // Функционал для работы с транспортными мастер ключами
-  void on_UpdateTransportMasterKeysPushButton_slot(void);
+  void on_ShowIssuerTablePushButton_slot(void);
   void on_InitTransportMasterKeysPushButton_slot(void);
-
-  // Функционал для работы с коммерческими мастер ключами
-  void on_UpdateCommercialMasterKeysPushButton_slot(void);
+  void on_InitIssuerTablePushButton_slot(void);
+  void on_LinkIssuerWithKeysPushButton_slot(void);
 
   // Функционал для настройки сервера
   void on_ApplySettingsPushButton_slot(void);
@@ -104,8 +104,9 @@ class MainWindowKernel : public QMainWindow {
   bool checkNewOrderInput(void) const;
   bool checkNewProductionLineInput(void) const;
   bool checkReleaseTransponderInput(void) const;
-  bool checkSearchTransponderInput() const;
-  bool checkRereleaseTransponderInput() const;
+  bool checkSearchTransponderInput(void) const;
+  bool checkRereleaseTransponderInput(void) const;
+  bool checkLinkIssuerInput(void) const;
 
   void createTopMenu(void);  // Создание верхнего меню
   void createTopMenuActions(void);  // Создание функционала для верхнего меню
@@ -120,6 +121,7 @@ class MainWindowKernel : public QMainWindow {
   void setupManager(void);
   void setupLogSystem(void);
   void createModels(void);
+  void createMatchingTable(void);
 
  private slots:
   void proxyLogging(const QString& log) const;

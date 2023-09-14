@@ -36,13 +36,13 @@ class TransponderReleaseSystem : public QObject {
 
  public slots:
   void release(const QMap<QString, QString>* searchData,
-               QMap<QString, QString>* resultData,
+               QMap<QString, QString>* transponderSeed,
                ReturnStatus* status);
   void confirmRelease(const QMap<QString, QString>* searchData,
                       ReturnStatus* status);
 
   void rerelease(const QMap<QString, QString>* searchData,
-                 QMap<QString, QString>* resultData,
+                 QMap<QString, QString>* transponderSeed,
                  ReturnStatus* status);
   void confirmRerelease(const QMap<QString, QString>* searchData,
                         ReturnStatus* status);
@@ -55,9 +55,8 @@ class TransponderReleaseSystem : public QObject {
   void createDatabaseController(void);
   void loadSettings(void);
 
-  bool getTranponderData(const QString& key,
-                         const QString& value,
-                         QMap<QString, QString>* resultData);
+  bool generateTransponderSeed(const QMap<QString, QString>* searchData,
+                               QMap<QString, QString>* seed);
   bool checkRerelease(const QMap<QString, QString>& transponderRecord,
                       const QMap<QString, QString>& searchData);
 

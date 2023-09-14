@@ -37,7 +37,7 @@ void TransponderReleaseSystem::applySettings() {
 }
 
 void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
-                                       QMap<QString, QString>* resultData,
+                                       QMap<QString, QString>* transponderSeed,
                                        ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -113,8 +113,7 @@ void TransponderReleaseSystem::release(const QMap<QString, QString>* searchData,
   }
 
   // Выгружаем всю информацию о выпускаемом транспондере
-  if (!getTranponderData("id", productionLineRecord.value("transponder_id"),
-                         resultData)) {
+  if (!generateTransponderSeed(searchData, transponderSeed)) {
     emit logging(
         "Получена ошибка при получении объединенных данных о транспондере. ");
     *status = Failed;
@@ -241,7 +240,7 @@ void TransponderReleaseSystem::rerelease(
   }
 
   // Выгружаем всю информацию о перевыпущенном транспондере
-  if (!getTranponderData("id", transponderRecord.value("id"), resultData)) {
+  if (!generateTransponderSeed(searchData, resultData)) {
     emit logging(
         "Получена ошибка при получении объединенных данных о транспондере. ");
     *status = Failed;
@@ -339,8 +338,7 @@ void TransponderReleaseSystem::search(const QMap<QString, QString>* searchData,
     return;
   }
 
-  if (!getTranponderData(searchData->constBegin().key(),
-                         searchData->constBegin().value(), resultData)) {
+  if (!generateTransponderSeed(searchData, resultData)) {
     emit logging("Получена ошибка при поиске транспондера. ");
     *status = Failed;
     Database->abortTransaction();
@@ -363,13 +361,14 @@ void TransponderReleaseSystem::createDatabaseController() {
 
 void TransponderReleaseSystem::loadSettings() {}
 
-bool TransponderReleaseSystem::getTranponderData(
-    const QString& searchKey,
-    const QString& searchValue,
-    QMap<QString, QString>* resultData) {
+bool TransponderReleaseSystem::generateTransponderSeed(
+    const QMap<QString, QString>* searchData,
+    QMap<QString, QString>* seed) {
+  QMap<QString, QString> attributes;
   QStringList tables;
   QStringList foreignKeys;
 
+  // Формируем сид
   tables.append("transponders");
   tables.append("boxes");
   tables.append("pallets");
@@ -379,20 +378,54 @@ bool TransponderReleaseSystem::getTranponderData(
   foreignKeys.append("pallet_id");
   foreignKeys.append("order_id");
   foreignKeys.append("issuer_id");
-  resultData->insert("transponder_model", "");
-  resultData->insert("release_counter", "");
-  resultData->insert("awaiting_confirmation", "");
-  resultData->insert("ucid", "");
-  resultData->insert("accr_reference", "");
-  resultData->insert("payment_means", "");
-  resultData->insert("efc_context_mark", "");
-  resultData->insert("full_personalization", "");
-  resultData->insert("boxes.in_process", "");
-  resultData->insert("transponders." + searchKey, searchValue);
+  seed->insert("transponder_model", "");
+  seed->insert("release_counter", "");
+  seed->insert("awaiting_confirmation", "");
+  seed->insert("ucid", "");
+  seed->insert("accr_reference", "");
+  seed->insert("payment_means", "");
+  seed->insert("efc_context_mark", "");
+  seed->insert("full_personalization", "");
+  seed->insert("boxes.in_process", "");
+  seed->insert("transponders." + searchData->constBegin().key(),
+               searchData->constBegin().value());
 
-  if (!Database->getMergedRecordById(tables, foreignKeys, *resultData)) {
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, *seed)) {
     return false;
   }
+
+  QMap<QString, QString>* keys = new QMap<QString, QString>();
+  tables.clear();
+  foreignKeys.clear();
+
+  tables.append("issuers");
+  keys->insert("accr_key", "");
+  keys->insert("per_key", "");
+  keys->insert("au_key1", "");
+  keys->insert("au_key2", "");
+  keys->insert("au_key3", "");
+  keys->insert("au_key4", "");
+  keys->insert("au_key5", "");
+  keys->insert("au_key6", "");
+  keys->insert("au_key7", "");
+  keys->insert("au_key8", "");
+  keys->insert("efc_context_mark", seed->value("efc_context_mark"));
+  if (seed->value("full_personalization") == "false") {
+    tables.append("transport_master_keys");
+    foreignKeys.append("transport_master_keys_id");
+  } else {
+    tables.append("commercial_master_keys");
+    foreignKeys.append("commercial_master_keys_id");
+  }
+
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, *keys)) {
+    return false;
+  }
+  keys->remove("efc_context_mark");
+
+  // Добавляем ключи к сиду
+  seed->unite(*keys);
+
   return true;
 }
 

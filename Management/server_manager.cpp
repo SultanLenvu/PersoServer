@@ -99,62 +99,6 @@ void ServerManager::clearDatabaseTable(const QString& name,
   endOperationExecution("clearDatabaseTable");
 }
 
-void ServerManager::initIssuers(DatabaseTableModel* model) {
-  if (!startOperationExecution("initIssuers")) {
-    return;
-  }
-
-  emit logging("Инициализация данных об эмитентах. ");
-  emit initIssuerTable_signal();
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  if (CurrentState != Completed) {
-    // Завершаем выполнение операции
-    endOperationExecution("initIssuers");
-    return;
-  }
-
-  model->clear();
-  emit logging("Отображение эмитентов. ");
-  emit getDatabaseTable_signal("issuers", model);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("initIssuers");
-}
-
-void ServerManager::initTransportMasterKeys(DatabaseTableModel* model) {
-  if (!startOperationExecution("initTransportMasterKeys")) {
-    return;
-  }
-
-  emit logging("Инициализация транспортных мастер ключей. ");
-  emit initTransportMasterKeysTable_signal();
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  if (CurrentState != Completed) {
-    // Завершаем выполнение операции
-    endOperationExecution("initTransportMasterKeys");
-    return;
-  }
-
-  model->clear();
-  emit logging("Отображение транспортных мастер ключей. ");
-  emit getDatabaseTable_signal("transport_master_keys", model);
-
-  // Запускаем цикл ожидания
-  WaitingLoop->exec();
-
-  // Завершаем выполнение операции
-  endOperationExecution("initTransportMasterKeys");
-}
-
 void ServerManager::performCustomRequest(const QString& req,
                                          DatabaseTableModel* model) {
   // Начинаем выполнение операции
@@ -451,14 +395,14 @@ void ServerManager::showProductionLineTable(DatabaseTableModel* model) {
 }
 
 void ServerManager::linkProductionLineWithBoxManually(
-    const QMap<QString, QString>* linkParameters,
+    const QMap<QString, QString>* parameters,
     DatabaseTableModel* model) {
   if (!startOperationExecution("linkProductionLineWithBoxManually")) {
     return;
   }
 
   emit logging("Связывание линии производства с определенным боксом. ");
-  emit linkProductionLineWithBox_signal(linkParameters);
+  emit linkProductionLineWithBox_signal(parameters);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
@@ -481,7 +425,7 @@ void ServerManager::linkProductionLineWithBoxManually(
   endOperationExecution("linkProductionLineWithBoxManually");
 }
 
-void ServerManager::releaseTransponderManually(TransponderDataModel* seed) {
+void ServerManager::releaseTransponderManually(TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("releaseTransponderManually")) {
     return;
@@ -498,7 +442,7 @@ void ServerManager::releaseTransponderManually(TransponderDataModel* seed) {
 }
 
 void ServerManager::confirmReleaseTransponderManually(
-    TransponderDataModel* seed) {
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("confirmReleaseTransponderManually")) {
     return;
@@ -514,7 +458,7 @@ void ServerManager::confirmReleaseTransponderManually(
   endOperationExecution("confirmReleaseTransponderManually");
 }
 
-void ServerManager::rereleaseTransponderManually(TransponderDataModel* seed) {
+void ServerManager::rereleaseTransponderManually(TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("rereleaseTransponderManually")) {
     return;
@@ -531,7 +475,7 @@ void ServerManager::rereleaseTransponderManually(TransponderDataModel* seed) {
 }
 
 void ServerManager::confirmRereleaseTransponderManually(
-    TransponderDataModel* seed) {
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("confirmRereleaseTransponderManually")) {
     return;
@@ -547,7 +491,7 @@ void ServerManager::confirmRereleaseTransponderManually(
   endOperationExecution("confirmRereleaseTransponderManually");
 }
 
-void ServerManager::refundTransponderManually(TransponderDataModel* seed) {
+void ServerManager::refundTransponderManually(TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("refundTransponderManually")) {
     return;
@@ -563,7 +507,7 @@ void ServerManager::refundTransponderManually(TransponderDataModel* seed) {
   endOperationExecution("refundTransponderManually");
 }
 
-void ServerManager::searchTransponderManually(TransponderDataModel* seed) {
+void ServerManager::searchTransponderManually(TransponderSeedModel* seed) {
   // Начинаем выполнение операции
   if (!startOperationExecution("searchTransponderManually")) {
     return;
@@ -577,6 +521,94 @@ void ServerManager::searchTransponderManually(TransponderDataModel* seed) {
 
   // Завершаем выполнение операции
   endOperationExecution("searchTransponderManually");
+}
+
+void ServerManager::initIssuers(DatabaseTableModel* model) {
+  if (!startOperationExecution("initIssuers")) {
+    return;
+  }
+
+  emit logging("Инициализация данных об эмитентах. ");
+  emit initIssuerTable_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("initIssuers");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение эмитентов. ");
+  emit getDatabaseTable_signal("issuers", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("initIssuers");
+}
+
+void ServerManager::initTransportMasterKeys(DatabaseTableModel* model) {
+  if (!startOperationExecution("initTransportMasterKeys")) {
+    return;
+  }
+
+  emit logging("Инициализация транспортных мастер ключей. ");
+  emit initTransportMasterKeysTable_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("initTransportMasterKeys");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение транспортных мастер ключей. ");
+  emit getDatabaseTable_signal("transport_master_keys", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("initTransportMasterKeys");
+}
+
+void ServerManager::linkIssuerWithMasterKeys(
+    DatabaseTableModel* model,
+    const QMap<QString, QString>* parameters) {
+  if (!startOperationExecution("linkIssuerWithMasterKeys")) {
+    return;
+  }
+
+  emit logging(QString("Связывание эмитента %1 с мастер ключами %2. ")
+                   .arg(parameters->value("issuer_id"),
+                        parameters->value("master_keys_id")));
+  emit linkIssuerWithMasterKeys_signal(parameters);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  if (CurrentState != Completed) {
+    // Завершаем выполнение операции
+    endOperationExecution("linkIssuerWithMasterKeys");
+    return;
+  }
+
+  model->clear();
+  emit logging("Отображение эмитентов. ");
+  emit getDatabaseTable_signal("issuers", model);
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("linkIssuerWithMasterKeys");
 }
 
 void ServerManager::createHostInstance() {
@@ -762,10 +794,6 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
           &AdministrationSystem::getCustomResponse);
   connect(this, &ServerManager::clearDatabaseTable_signal, Administrator,
           &AdministrationSystem::clearDatabaseTable);
-  connect(this, &ServerManager::initIssuerTable_signal, Administrator,
-          &AdministrationSystem::initIssuerTable);
-  connect(this, &ServerManager::initTransportMasterKeysTable_signal,
-          Administrator, &AdministrationSystem::initTransportMasterKeysTable);
 
   connect(this, &ServerManager::createNewOrder_signal, Administrator,
           &AdministrationSystem::createNewOrder);
@@ -800,6 +828,13 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
   //          &AdministrationSystem::refundTransponder);
   connect(this, &ServerManager::searchTransponder_signal, Administrator,
           &AdministrationSystem::searchTransponder);
+
+  connect(this, &ServerManager::initIssuerTable_signal, Administrator,
+          &AdministrationSystem::initIssuerTable);
+  connect(this, &ServerManager::initTransportMasterKeysTable_signal,
+          Administrator, &AdministrationSystem::initTransportMasterKeysTable);
+  connect(this, &ServerManager::linkIssuerWithMasterKeys_signal, Administrator,
+          &AdministrationSystem::linkIssuerWithMasterKeys);
 }
 
 void ServerManager::on_ServerThreadFinished_slot() {

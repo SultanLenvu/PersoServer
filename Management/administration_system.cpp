@@ -85,121 +85,6 @@ void AdministrationSystem::getCustomResponse(const QString& req,
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::initIssuerTable() {
-  QMap<QString, QString> record;
-  int32_t lastId = 0;
-
-  // Инициализируем выполнение операции
-  if (!initOperation()) {
-    return;
-  }
-
-  // Получаем идентифкатор последнего добавленного заказа
-  record.insert("id", "");
-  if (!Database->getLastRecord("issuers", record)) {
-    processingOperationResult("Ошибка при поиске последнего заказа. ",
-                              DatabaseQueryError);
-    return;
-  }
-  lastId = record.value("id").toInt();
-
-  emit logging("Инициализация таблицы эмитентов. ");
-  record.insert("id", QString::number(++lastId));
-  record.insert("name", "Пауэр Синтез");
-  record.insert("efc_context_mark", "000000000001");
-  if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
-    return;
-  }
-  record.clear();
-
-  record.insert("id", QString::number(++lastId));
-  record.insert("name", "Автодор");
-  record.insert("efc_context_mark", "570002FF0070");
-  if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
-    return;
-  }
-  record.clear();
-
-  record.insert("id", QString::number(++lastId));
-  record.insert("name", "Новое качество дорог");
-  record.insert("efc_context_mark", "000000000001");
-  if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
-    return;
-  }
-  record.clear();
-
-  record.insert("id", QString::number(++lastId));
-  record.insert("name", "Западный скоростной диаметр");
-  record.insert("efc_context_mark", "570001FF0070");
-  if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
-    return;
-  }
-  record.clear();
-
-  record.insert("id", QString::number(++lastId));
-  record.insert("name", "Объединенные системы сбора платы");
-  record.insert("efc_context_mark", "000000000001");
-  if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
-    return;
-  }
-  record.clear();
-
-  processingOperationResult("Инициализация успешно завершена. ",
-                            CompletedSuccessfully);
-}
-
-void AdministrationSystem::initTransportMasterKeysTable() {
-  QMap<QString, QString> transportKeysRecord;
-
-  // Инициализируем выполнение операции
-  if (!initOperation()) {
-    return;
-  }
-
-  transportKeysRecord.insert("id", "");
-  if (!Database->getLastRecord("transport_master_keys", transportKeysRecord)) {
-    processingOperationResult("Ошибка при поиске последнего заказа. ",
-                              DatabaseQueryError);
-    return;
-  }
-
-  // Конструируем запись
-  transportKeysRecord.insert(
-      "id", QString::number(transportKeysRecord.value("id").toInt() + 1));
-  transportKeysRecord.insert("accr_key", TRANSPORT_MACCRKEY_DEFAULT_VALUE);
-  transportKeysRecord.insert("per_key", TRANSPORT_MPERKEY_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key1", TRANSPORT_MAUKEY1_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key2", TRANSPORT_MAUKEY2_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key3", TRANSPORT_MAUKEY3_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key4", TRANSPORT_MAUKEY4_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key5", TRANSPORT_MAUKEY5_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key6", TRANSPORT_MAUKEY6_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key7", TRANSPORT_MAUKEY7_DEFAULT_VALUE);
-  transportKeysRecord.insert("au_key8", TRANSPORT_MAUKEY8_DEFAULT_VALUE);
-
-  // Если транспортные ключи для эмитента отсутствуют, то создаем новую запись
-  if (!Database->addRecord("transport_master_keys", transportKeysRecord)) {
-    processingOperationResult(
-        QString("Ошибка при добавлении транспортных мастер ключей. "),
-        DatabaseQueryError);
-    return;
-  }
-
-  processingOperationResult(
-      "Инициализация таблицы транспортных мастер ключей успешно завершена. ",
-      CompletedSuccessfully);
-}
-
 void AdministrationSystem::createNewOrder(
     const QMap<QString, QString>* orderParameters) {
   // Инициализируем выполнение операции
@@ -680,7 +565,7 @@ void AdministrationSystem::allocateInactiveProductionLines(
                             CompletedSuccessfully);
 }
 
-void AdministrationSystem::releaseTransponder(TransponderDataModel* model) {
+void AdministrationSystem::releaseTransponder(TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -691,7 +576,7 @@ void AdministrationSystem::releaseTransponder(TransponderDataModel* model) {
 
   QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
-  Releaser->release(model->getMap(), transponderData, &status);
+  Releaser->release(model->data(), transponderData, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при выпуске транспондера. ");
     emit operationFinished(ReleaserError);
@@ -710,7 +595,7 @@ void AdministrationSystem::releaseTransponder(TransponderDataModel* model) {
 }
 
 void AdministrationSystem::confirmReleaseTransponder(
-    TransponderDataModel* model) {
+    TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -719,7 +604,7 @@ void AdministrationSystem::confirmReleaseTransponder(
     return;
   }
 
-  Releaser->confirmRelease(model->getMap(), &status);
+  Releaser->confirmRelease(model->data(), &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(ReleaserError);
@@ -736,7 +621,7 @@ void AdministrationSystem::confirmReleaseTransponder(
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::rereleaseTransponder(TransponderDataModel* model) {
+void AdministrationSystem::rereleaseTransponder(TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -747,7 +632,7 @@ void AdministrationSystem::rereleaseTransponder(TransponderDataModel* model) {
 
   QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
-  Releaser->rerelease(model->getMap(), transponderData, &status);
+  Releaser->rerelease(model->data(), transponderData, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при перевыпуске транспондера. ");
     emit operationFinished(ReleaserError);
@@ -766,7 +651,7 @@ void AdministrationSystem::rereleaseTransponder(TransponderDataModel* model) {
 }
 
 void AdministrationSystem::confirmRereleaseTransponder(
-    TransponderDataModel* model) {
+    TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -775,7 +660,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
     return;
   }
 
-  Releaser->confirmRerelease(model->getMap(), &status);
+  Releaser->confirmRerelease(model->data(), &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(ReleaserError);
@@ -792,7 +677,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::searchTransponder(TransponderDataModel* model) {
+void AdministrationSystem::searchTransponder(TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
   if (!Releaser->start()) {
@@ -803,7 +688,7 @@ void AdministrationSystem::searchTransponder(TransponderDataModel* model) {
 
   QMap<QString, QString>* transponderData = new QMap<QString, QString>();
 
-  Releaser->search(model->getMap(), transponderData, &status);
+  Releaser->search(model->data(), transponderData, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при поиске транспондера. ");
     emit operationFinished(ReleaserError);
@@ -821,12 +706,160 @@ void AdministrationSystem::searchTransponder(TransponderDataModel* model) {
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::refundTransponder(TransponderDataModel* model) {
+void AdministrationSystem::refundTransponder(TransponderSeedModel* model) {
   emit operationFinished(CompletedSuccessfully);
 }
 
-void AdministrationSystem::loadSettings() {
+void AdministrationSystem::initIssuerTable() {
+  QMap<QString, QString> record;
+  int32_t lastId = 0;
+
+  // Инициализируем выполнение операции
+  if (!initOperation()) {
+    return;
+  }
+
+  // Получаем идентифкатор последнего добавленного заказа
+  record.insert("id", "");
+  if (!Database->getLastRecord("issuers", record)) {
+    processingOperationResult("Ошибка при поиске последнего заказа. ",
+                              DatabaseQueryError);
+    return;
+  }
+  lastId = record.value("id").toInt();
+
+  emit logging("Инициализация таблицы эмитентов. ");
+  record.insert("id", QString::number(++lastId));
+  record.insert("name", "Пауэр Синтез");
+  record.insert("efc_context_mark", "000000000001");
+  if (!Database->addRecord("issuers", record)) {
+    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
+                              DatabaseQueryError);
+    return;
+  }
+  record.clear();
+
+  record.insert("id", QString::number(++lastId));
+  record.insert("name", "Автодор");
+  record.insert("efc_context_mark", "570002FF0070");
+  if (!Database->addRecord("issuers", record)) {
+    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
+                              DatabaseQueryError);
+    return;
+  }
+  record.clear();
+
+  record.insert("id", QString::number(++lastId));
+  record.insert("name", "Новое качество дорог");
+  record.insert("efc_context_mark", "000000000001");
+  if (!Database->addRecord("issuers", record)) {
+    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
+                              DatabaseQueryError);
+    return;
+  }
+  record.clear();
+
+  record.insert("id", QString::number(++lastId));
+  record.insert("name", "Западный скоростной диаметр");
+  record.insert("efc_context_mark", "570001FF0070");
+  if (!Database->addRecord("issuers", record)) {
+    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
+                              DatabaseQueryError);
+    return;
+  }
+  record.clear();
+
+  record.insert("id", QString::number(++lastId));
+  record.insert("name", "Объединенные системы сбора платы");
+  record.insert("efc_context_mark", "000000000001");
+  if (!Database->addRecord("issuers", record)) {
+    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
+                              DatabaseQueryError);
+    return;
+  }
+  record.clear();
+
+  processingOperationResult("Инициализация успешно завершена. ",
+                            CompletedSuccessfully);
 }
+
+void AdministrationSystem::initTransportMasterKeysTable() {
+  QMap<QString, QString> transportKeysRecord;
+
+  // Инициализируем выполнение операции
+  if (!initOperation()) {
+    return;
+  }
+
+  transportKeysRecord.insert("id", "");
+  if (!Database->getLastRecord("transport_master_keys", transportKeysRecord)) {
+    processingOperationResult("Ошибка при поиске последнего заказа. ",
+                              DatabaseQueryError);
+    return;
+  }
+
+  // Конструируем запись
+  transportKeysRecord.insert(
+      "id", QString::number(transportKeysRecord.value("id").toInt() + 1));
+  transportKeysRecord.insert("accr_key", TRANSPORT_MACCRKEY_DEFAULT_VALUE);
+  transportKeysRecord.insert("per_key", TRANSPORT_MPERKEY_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key1", TRANSPORT_MAUKEY1_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key2", TRANSPORT_MAUKEY2_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key3", TRANSPORT_MAUKEY3_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key4", TRANSPORT_MAUKEY4_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key5", TRANSPORT_MAUKEY5_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key6", TRANSPORT_MAUKEY6_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key7", TRANSPORT_MAUKEY7_DEFAULT_VALUE);
+  transportKeysRecord.insert("au_key8", TRANSPORT_MAUKEY8_DEFAULT_VALUE);
+
+  // Если транспортные ключи для эмитента отсутствуют, то создаем новую запись
+  if (!Database->addRecord("transport_master_keys", transportKeysRecord)) {
+    processingOperationResult(
+        QString("Ошибка при добавлении транспортных мастер ключей. "),
+        DatabaseQueryError);
+    return;
+  }
+
+  processingOperationResult(
+      "Инициализация таблицы транспортных мастер ключей успешно завершена. ",
+      CompletedSuccessfully);
+}
+
+void AdministrationSystem::linkIssuerWithMasterKeys(
+    const QMap<QString, QString>* linkParameters) {
+  QMap<QString, QString> issuerRecord;
+
+  // Инициализируем выполнение операции
+  if (!initOperation()) {
+    return;
+  }
+
+  emit logging(QString("Обновление записи эмитента %1.")
+                   .arg(linkParameters->value("issuer_id")));
+  issuerRecord.insert("id", linkParameters->value("issuer_id"));
+  if (linkParameters->value("master_keys_type") == "transport_master_keys") {
+    issuerRecord.insert("transport_master_keys_id",
+                        linkParameters->value("master_keys_id"));
+  } else {
+    issuerRecord.insert("commercial_master_keys_id",
+                        linkParameters->value("master_keys_id"));
+  }
+  if (!Database->updateRecordById("issuers", issuerRecord)) {
+    processingOperationResult(
+        QString("Получена ошибка при обновлении записи эмитента %1.")
+            .arg(linkParameters->value("issuer_id")),
+        DatabaseQueryError);
+    return;
+  }
+
+  processingOperationResult(
+      QString("Эмитент %1 успешно связан с мастер ключами %2. ")
+          .arg(linkParameters->value("issuer_id"),
+               linkParameters->value("master_keys_id")),
+      CompletedSuccessfully);
+}
+
+void AdministrationSystem::loadSettings() {}
 
 bool AdministrationSystem::initOperation() {
   emit logging("Подключение к базе данных. ");

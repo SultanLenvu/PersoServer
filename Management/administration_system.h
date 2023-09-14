@@ -38,8 +38,6 @@ class AdministrationSystem : public QObject {
   void clearDatabaseTable(const QString& tableName);
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);
-  void initIssuerTable(void);
-  void initTransportMasterKeysTable(void);
 
   void createNewOrder(const QMap<QString, QString>* orderParameters);
   void startOrderAssembling(const QString& orderId);
@@ -53,12 +51,16 @@ class AdministrationSystem : public QObject {
   void shutdownAllProductionLines(void);
   void deleteLastProductionLine(void);
 
-  void releaseTransponder(TransponderDataModel* model);
-  void confirmReleaseTransponder(TransponderDataModel* model);
-  void rereleaseTransponder(TransponderDataModel* model);
-  void confirmRereleaseTransponder(TransponderDataModel* model);
-  void searchTransponder(TransponderDataModel* model);
-  void refundTransponder(TransponderDataModel* model);
+  void releaseTransponder(TransponderSeedModel* model);
+  void confirmReleaseTransponder(TransponderSeedModel* model);
+  void rereleaseTransponder(TransponderSeedModel* model);
+  void confirmRereleaseTransponder(TransponderSeedModel* model);
+  void searchTransponder(TransponderSeedModel* model);
+  void refundTransponder(TransponderSeedModel* model);
+
+  void initIssuerTable(void);
+  void initTransportMasterKeysTable(void);
+  void linkIssuerWithMasterKeys(const QMap<QString, QString>* linkParameters);
 
  private:
   void createDatabaseController(void);

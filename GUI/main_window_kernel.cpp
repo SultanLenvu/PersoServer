@@ -27,6 +27,9 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
 
   // Создаем модели для представлений
   createModels();
+
+  // Создаем таблицу соответствий
+  createMatchingTable();
 }
 
 MainWindowKernel::~MainWindowKernel() {}
@@ -73,14 +76,6 @@ void MainWindowKernel::on_ClearDatabaseTablePushButton_slot() {
 
   Manager->clearDatabaseTable(gui->DatabaseTableChoice->currentText(),
                               RandomModel);
-
-  CurrentGUI->update();
-}
-
-void MainWindowKernel::on_InitIssuerTablePushButton_slot() {
-  Logger->clear();
-
-  Manager->initIssuers(RandomModel);
 
   CurrentGUI->update();
 }
@@ -273,10 +268,8 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
   data->insert("password", gui->PasswordLineEdit2->text());
   TransponderSeed->build(data);
 
-  // Осуществляем подтверждение выпуска
   Manager->releaseTransponderManually(TransponderSeed);
 
-  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -300,10 +293,8 @@ void MainWindowKernel::on_ConfirmTransponderPushButton_slot() {
   data->insert("password", gui->PasswordLineEdit2->text());
   TransponderSeed->build(data);
 
-  // Осуществляем подтверждение выпуска
   Manager->confirmReleaseTransponderManually(TransponderSeed);
 
-  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -335,10 +326,8 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot() {
   data->insert("ucid", ucid);
   TransponderSeed->build(data);
 
-  // Перевыпускаем транспондер
   Manager->rereleaseTransponderManually(TransponderSeed);
 
-  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -371,10 +360,8 @@ void MainWindowKernel::on_ConfirmRereleaseTransponderPushButton_slot() {
   data->insert("ucid", ucid);
   TransponderSeed->build(data);
 
-  // Осуществляем подтверждение перевыпуска
   Manager->confirmRereleaseTransponderManually(TransponderSeed);
 
-  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -402,10 +389,8 @@ void MainWindowKernel::on_SearchTransponderPushButton_slot() {
   }
   TransponderSeed->build(data);
 
-  // Ищем информацию о транспондере
   Manager->searchTransponderManually(TransponderSeed);
 
-  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
@@ -429,17 +414,17 @@ void MainWindowKernel::on_RefundTransponderPushButton_slot() {
   data->insert("password", gui->PasswordLineEdit2->text());
   TransponderSeed->build(data);
 
-  // Осуществляем возврат
   Manager->refundTransponderManually(TransponderSeed);
 
-  // Обновляем интерфейс
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_UpdateTransportMasterKeysPushButton_slot() {
+void MainWindowKernel::on_ShowIssuerTablePushButton_slot() {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QString tableName = gui->IssuerTableChoice->currentText();
   Logger->clear();
 
-  Manager->showDatabaseTable("transport_master_keys", TransportMasterKeysModel);
+  Manager->showDatabaseTable(MatchingTable->value(tableName), IssuerModel);
 
   CurrentGUI->update();
 }
@@ -447,16 +432,42 @@ void MainWindowKernel::on_UpdateTransportMasterKeysPushButton_slot() {
 void MainWindowKernel::on_InitTransportMasterKeysPushButton_slot() {
   Logger->clear();
 
-  Manager->initTransportMasterKeys(TransportMasterKeysModel);
+  Manager->initTransportMasterKeys(IssuerModel);
 
   CurrentGUI->update();
 }
 
-void MainWindowKernel::on_UpdateCommercialMasterKeysPushButton_slot() {
+void MainWindowKernel::on_InitIssuerTablePushButton_slot() {
   Logger->clear();
 
-  Manager->showDatabaseTable("commercial_master_keys",
-                             CommercialMasterKeysModel);
+  Manager->initIssuers(IssuerModel);
+
+  CurrentGUI->update();
+}
+
+void MainWindowKernel::on_LinkIssuerWithKeysPushButton_slot() {
+  QMap<QString, QString> linkParameters;
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QString issuerId = gui->IssuerIdLineEdit1->text();
+  QString masterKeysId = gui->MasterKeysLineEdit1->text();
+  QString masterKeysType = gui->MasterKeysChoice->currentText();
+
+  Logger->clear();
+
+  // Проверка пользовательского ввода
+  if (!checkLinkIssuerInput()) {
+    Interactor->generateError(
+        "Введены некорректные данные для связывания эмитента с ключами. ");
+    return;
+  }
+
+  // Собираем параметры
+  linkParameters.insert("issuer_id", issuerId);
+  linkParameters.insert("master_keys_id", masterKeysId);
+  linkParameters.insert("master_keys_type",
+                        MatchingTable->value(masterKeysType));
+
+  Manager->linkIssuerWithMasterKeys(IssuerModel, &linkParameters);
 
   CurrentGUI->update();
 }
@@ -735,6 +746,22 @@ bool MainWindowKernel::checkRereleaseTransponderInput() const {
   return true;
 }
 
+bool MainWindowKernel::checkLinkIssuerInput() const {
+  MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
+  QString issuerId = gui->IssuerIdLineEdit1->text();
+  QString masterKeysId = gui->MasterKeysLineEdit1->text();
+
+  if (issuerId.toInt() == 0) {
+    return false;
+  }
+
+  if (masterKeysId.toInt() == 0) {
+    return false;
+  }
+
+  return true;
+}
+
 void MainWindowKernel::createTopMenu() {
   menuBar()->clear();
   createTopMenuActions();
@@ -868,16 +895,13 @@ void MainWindowKernel::connectMasterInterface() {
   connect(gui->RefundTransponderPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_RefundTransponderPushButton_slot);
 
-  // Транспортные мастер ключи
-  connect(gui->UpdateTransportMasterKeysPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::on_UpdateTransportMasterKeysPushButton_slot);
+  // Эмитенты
+  connect(gui->ShowIssuerTablePushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ShowIssuerTablePushButton_slot);
   connect(gui->InitTransportMasterKeysPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_InitTransportMasterKeysPushButton_slot);
-
-  // Коммерческие мастер ключи
-  connect(gui->UpdateCommercialMasterKeysPushButton, &QPushButton::clicked,
-          this,
-          &MainWindowKernel::on_UpdateCommercialMasterKeysPushButton_slot);
+  connect(gui->LinkIssuerWithKeysPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_LinkIssuerWithKeysPushButton_slot);
 
   // Сохранение настроек
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
@@ -888,8 +912,7 @@ void MainWindowKernel::connectMasterInterface() {
   gui->OrderTableView->setModel(OrderModel);
   gui->ProductionLineTableView->setModel(ProductionLineModel);
   gui->TransponderSeedTableView->setModel(TransponderSeed);
-  gui->TransportMasterKeysView->setModel(TransportMasterKeysModel);
-  gui->CommercialMasterKeysView->setModel(CommercialMasterKeysModel);
+  gui->IssuerTableView->setModel(IssuerModel);
 
   // Связываем отображения графиков с логикой их формирования
 }
@@ -926,7 +949,13 @@ void MainWindowKernel::createModels() {
   RandomModel = new DatabaseTableModel(this);
   OrderModel = new DatabaseTableModel(this);
   ProductionLineModel = new DatabaseTableModel(this);
-  TransportMasterKeysModel = new DatabaseTableModel(this);
-  CommercialMasterKeysModel = new DatabaseTableModel(this);
-  TransponderSeed = new TransponderDataModel(this);
+  IssuerModel = new DatabaseTableModel(this);
+  TransponderSeed = new TransponderSeedModel(this);
+}
+
+void MainWindowKernel::createMatchingTable() {
+  MatchingTable = new QMap<QString, QString>;
+  MatchingTable->insert("Транспортные мастер ключи", "transport_master_keys");
+  MatchingTable->insert("Коммерческие мастер ключи", "commercial_master_keys");
+  MatchingTable->insert("Заказчики", "issuers");
 }

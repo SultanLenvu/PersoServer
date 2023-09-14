@@ -26,18 +26,6 @@ class ServerManager : public QObject {
 
  public:
   enum OperationState { Ready, WaitingExecution, Failed, Completed };
-  enum DatabaseTableIndex {
-    RandomTable = 0,
-    ProductionLineTable,
-    TransponderTable,
-    OrderTable,
-    IssuerTable,
-    BoxTable,
-    PalletTable,
-    CommercialKeyTable,
-    TransportKeyTable,
-    TableCounter
-  };
 
  private:
   OperationState CurrentState;
@@ -66,8 +54,6 @@ class ServerManager : public QObject {
 
   void showDatabaseTable(const QString& name, DatabaseTableModel* model);
   void clearDatabaseTable(const QString& name, DatabaseTableModel* model);
-  void initIssuers(DatabaseTableModel* model);
-  void initTransportMasterKeys(DatabaseTableModel* model);
 
   void performCustomRequest(const QString& req, DatabaseTableModel* model);
 
@@ -92,12 +78,17 @@ class ServerManager : public QObject {
       const QMap<QString, QString>* linkParameters,
       DatabaseTableModel* model);
 
-  void releaseTransponderManually(TransponderDataModel* model);
-  void confirmReleaseTransponderManually(TransponderDataModel* model);
-  void rereleaseTransponderManually(TransponderDataModel* model);
-  void confirmRereleaseTransponderManually(TransponderDataModel* model);
-  void searchTransponderManually(TransponderDataModel* model);
-  void refundTransponderManually(TransponderDataModel* model);
+  void releaseTransponderManually(TransponderSeedModel* model);
+  void confirmReleaseTransponderManually(TransponderSeedModel* model);
+  void rereleaseTransponderManually(TransponderSeedModel* model);
+  void confirmRereleaseTransponderManually(TransponderSeedModel* model);
+  void searchTransponderManually(TransponderSeedModel* model);
+  void refundTransponderManually(TransponderSeedModel* model);
+
+  void initIssuers(DatabaseTableModel* model);
+  void initTransportMasterKeys(DatabaseTableModel* model);
+  void linkIssuerWithMasterKeys(DatabaseTableModel* model,
+                                const QMap<QString, QString>* parameters);
 
  private:
   void createHostInstance(void);
@@ -143,8 +134,6 @@ class ServerManager : public QObject {
                                DatabaseTableModel* model);
   void clearDatabaseTable_signal(const QString& tableName);
   void getCustomResponse_signal(const QString& req, DatabaseTableModel* model);
-  void initIssuerTable_signal(void);
-  void initTransportMasterKeysTable_signal(void);
 
   void createNewOrder_signal(const QMap<QString, QString>* orderParameters);
   void startOrderAssembling_signal(const QString& orderId);
@@ -159,12 +148,16 @@ class ServerManager : public QObject {
   void linkProductionLineWithBox_signal(
       const QMap<QString, QString>* linkParameters);
 
-  // Сигналы для системы выпуска транспондеров
-  void releaseTransponder_signal(TransponderDataModel* seed);
-  void confirmReleaseTransponder_signal(TransponderDataModel* seed);
-  void rereleaseTransponder_signal(TransponderDataModel* seed);
-  void confirmRereleaseTransponder_signal(TransponderDataModel* seed);
-  void searchTransponder_signal(TransponderDataModel* seed);
+  void releaseTransponder_signal(TransponderSeedModel* seed);
+  void confirmReleaseTransponder_signal(TransponderSeedModel* seed);
+  void rereleaseTransponder_signal(TransponderSeedModel* seed);
+  void confirmRereleaseTransponder_signal(TransponderSeedModel* seed);
+  void searchTransponder_signal(TransponderSeedModel* seed);
+
+  void initIssuerTable_signal(void);
+  void initTransportMasterKeysTable_signal(void);
+  void linkIssuerWithMasterKeys_signal(
+      const QMap<QString, QString>* linkParameters);
 };
 
 //==================================================================================

@@ -6,20 +6,21 @@
 #include <QMutex>
 #include <QString>
 
-class TransponderDataModel : public QAbstractTableModel {
+class TransponderSeedModel : public QAbstractTableModel {
   Q_OBJECT
  private:
-  QMap<QString, QString>* Data;
+  const QMap<QString, QString>* Data;
 
   QMutex Mutex;
 
  public:
-  explicit TransponderDataModel(QObject* parent = nullptr);
+  explicit TransponderSeedModel(QObject* parent = nullptr);
+  ~TransponderSeedModel();
 
-  void build(QMap<QString, QString>* data);
+  void build(const QMap<QString, QString>* data);
   void clear(void);
   bool isEmpty(void);
-  const QMap<QString, QString>* getMap(void);
+  const QMap<QString, QString>* data(void);
 
   // Функционал модели
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -30,7 +31,7 @@ class TransponderDataModel : public QAbstractTableModel {
                       int role = Qt::DisplayRole) const override;
 
  private:
-  void deleteData(void);
+  void deleteAll(void);
 };
 
 #endif  // TRANSPONDER_DATA_MODEL_H
