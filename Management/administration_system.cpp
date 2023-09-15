@@ -570,6 +570,8 @@ void AdministrationSystem::releaseTransponder(
     TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
+  emit logging("Генерация сида транспондера. ");
+
   if (!Releaser->start()) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
@@ -591,8 +593,13 @@ void AdministrationSystem::releaseTransponder(
     emit operationFinished(ReleaserError);
     return;
   }
-
   model->build(attributes, masterKeys);
+
+  emit logging("Генерация прошивки транспондера. ");
+  QByteArray firmware;
+
+  Generator->generate(model, &firmware);
+
   emit operationFinished(CompletedSuccessfully);
 }
 
@@ -705,7 +712,7 @@ void AdministrationSystem::searchTransponder(
     emit logging(
         "Получена ошибка при остановке системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
-    return;
+    4 return;
   }
 
   model->build(attributes, masterKeys);
