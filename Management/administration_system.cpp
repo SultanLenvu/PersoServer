@@ -596,9 +596,11 @@ void AdministrationSystem::releaseTransponder(
   model->build(attributes, masterKeys);
 
   emit logging("Генерация прошивки транспондера. ");
-  QByteArray firmware;
-
-  Generator->generate(model, &firmware);
+  emit logging(releaseParameters->value("firmware_ref"));
+  // Сделал грязь
+  Generator->generate(
+      model, reinterpret_cast<QByteArray*>(
+                 releaseParameters->value("firmware_pointer").toInt()));
 
   emit operationFinished(CompletedSuccessfully);
 }
@@ -712,7 +714,7 @@ void AdministrationSystem::searchTransponder(
     emit logging(
         "Получена ошибка при остановке системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
-    4 return;
+    return;
   }
 
   model->build(attributes, masterKeys);

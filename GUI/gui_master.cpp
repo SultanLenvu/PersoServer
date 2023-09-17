@@ -448,14 +448,14 @@ void MasterGUI::createTransponderTab() {
   TransponderDisplayPanel = new QGroupBox("Данные транспондера");
   TransponderTabMainLayout->addWidget(TransponderDisplayPanel);
 
-  TransponderDisplayLayout = new QHBoxLayout();
+  TransponderDisplayLayout = new QVBoxLayout();
   TransponderDisplayPanel->setLayout(TransponderDisplayLayout);
 
   TransponderSeedTableView = new QTableView();
   TransponderDisplayLayout->addWidget(TransponderSeedTableView);
 
-  FirmwareDsrcDataView = new QPlainTextEdit();
-  TransponderDisplayLayout->addWidget(FirmwareDsrcDataView);
+  AssembledFirmwareView = new QPlainTextEdit();
+  TransponderDisplayLayout->addWidget(AssembledFirmwareView);
 
   // Настройка пропорции между объектами на основном макете
   TransponderTabMainLayout->setStretch(0, 1);
@@ -720,12 +720,12 @@ void MasterGUI::on_RereleaseTransponderByComboBox_slot(const QString& text) {
 
 void MasterGUI::on_ExploreFirmwareBasePathPushButton_slot() {
   QString filePath =
-      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
+      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex, *.bin");
   FirmwareBasePathLineEdit->setText(filePath);
 }
 
 void MasterGUI::on_ExploreFirmwareDataPathPushButton_slot() {
   QString filePath =
-      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex");
+      QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex, *.bin");
   FirmwareDataPathLineEdit->setText(filePath);
 }

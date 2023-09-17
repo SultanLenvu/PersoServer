@@ -16,7 +16,23 @@ void FirmwareGenerationSystem::applySettings() {
 }
 
 bool FirmwareGenerationSystem::generate(TransponderSeedModel* seed,
-                                        QByteArray* firmware) {}
+                                        QByteArray* firmware) {
+  if (!FirmwareData->open(QIODevice::ReadOnly)) {
+    emit logging("Не удалось открыть файл прошивки на чтение.");
+    return false;
+  }
+
+  char* buffer = new char[FIRMWARE_DATA_SIZE];
+
+  QDataStream in(FirmwareData);
+  in.readRawData(buffer, FIRMWARE_DATA_SIZE);
+
+  firmware->append(QByteArray::fromRawData(buffer, FIRMWARE_DATA_SIZE).toHex());
+
+  FirmwareData->close();
+
+  return true;
+}
 
 void FirmwareGenerationSystem::loadSettings() {
   QSettings settings;

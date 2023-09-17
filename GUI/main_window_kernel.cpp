@@ -251,6 +251,7 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
 {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QMap<QString, QString> releaseParameters;
+  QByteArray firmware;
 
   Logger->clear();
 
@@ -264,8 +265,15 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
   releaseParameters.insert("ucid", gui->UcidLineEdit->text());
   releaseParameters.insert("login", gui->LoginLineEdit2->text());
   releaseParameters.insert("password", gui->PasswordLineEdit2->text());
+  // Сделал грязь
+  releaseParameters.insert(
+      "firmware_pointer",
+      QString::number(reinterpret_cast<uint64_t>(&firmware)));
 
   Manager->releaseTransponderManually(&releaseParameters, TransponderSeed);
+
+  gui->AssembledFirmwareView->clear();
+  gui->AssembledFirmwareView->appendPlainText(firmware);
 
   CurrentGUI->update();
 }
@@ -542,14 +550,12 @@ bool MainWindowKernel::checkNewSettings() const {
   }
 
   QFileInfo fileInfo(gui->FirmwareBasePathLineEdit->text());
-  if ((!fileInfo.isFile()) || (fileInfo.suffix() != "hex") ||
-      (!fileInfo.exists())) {
+  if ((!fileInfo.isFile()) || (!fileInfo.exists())) {
     return false;
   }
 
   fileInfo.setFile(gui->FirmwareDataPathLineEdit->text());
-  if ((!fileInfo.isFile()) || (fileInfo.suffix() != "hex") ||
-      (!fileInfo.exists())) {
+  if ((!fileInfo.isFile()) || (!fileInfo.exists())) {
     return false;
   }
 

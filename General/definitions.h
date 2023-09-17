@@ -58,6 +58,11 @@
 
 /* Определения, касающиеся ключей безопасности транспондера */
 //========================================================================
+#define FIRMWARE_BASE_SIZE 126976
+#define FIRMWARE_DATA_SIZE 4096
+#define FIRMWARE_BASE_START_ADDRESS 0x0801F000
+#define FIRMWARE_DATA_START_ADDRESS 0x08000000
+
 #define SECURITY_KEY_COUNT 10
 #define COMMON_KEY_BYTE_LENGTH 8
 #define MASTER_KEY_BYTE_LENGTH 16

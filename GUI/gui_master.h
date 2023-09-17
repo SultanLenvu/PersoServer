@@ -175,9 +175,9 @@ class MasterGUI : public GUI {
   QPushButton* ConfirmRereleaseTransponderPushButton;
 
   QGroupBox* TransponderDisplayPanel;
-  QHBoxLayout* TransponderDisplayLayout;
+  QVBoxLayout* TransponderDisplayLayout;
   QTableView* TransponderSeedTableView;
-  QPlainTextEdit* FirmwareDsrcDataView;
+  QPlainTextEdit* AssembledFirmwareView;
   //============================================================
 
   /* Интерфейс для управления эмитентами */
