@@ -61,7 +61,8 @@ class FirmwareGenerationSystem : public QObject
   QFile* FirmwareBase;
   QFile* FirmwareData;
 
-  QByteArray* GeneratedFirmware;
+  QByteArray GeneratedFirmware;
+  QMap<QString, uint32_t> PositionMap;
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
@@ -71,6 +72,7 @@ class FirmwareGenerationSystem : public QObject
 
  private:
   void loadSettings(void);
+  void createPositionMap(void);
 
   void generateFirmwareData(void);
   void assembleFirmware(void);

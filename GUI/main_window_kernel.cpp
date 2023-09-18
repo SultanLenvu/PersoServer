@@ -273,7 +273,7 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
   Manager->releaseTransponderManually(&releaseParameters, TransponderSeed);
 
   gui->AssembledFirmwareView->clear();
-  gui->AssembledFirmwareView->appendPlainText(firmware);
+  gui->AssembledFirmwareView->appendPlainText(firmware.toHex());
 
   CurrentGUI->update();
 }
