@@ -19,8 +19,8 @@ class TransponderSeedModel : public QAbstractTableModel {
              const QMap<QString, QString>* masterKeys);
   void clear(void);
   bool isEmpty(void);
-  const QMap<QString, QString>* attributes(void);
-  const QMap<QString, QString>* masterKeys(void);
+  const QMap<QString, QString>* attributes(void) const;
+  const QMap<QString, QString>* masterKeys(void) const;
 
   // Методы модели
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;

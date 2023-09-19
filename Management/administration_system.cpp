@@ -1092,7 +1092,8 @@ bool AdministrationSystem::addTransponders(
 
       // Формируем новую запись
       transponderRecord.insert("id", QString::number(lastId + 1));
-      transponderRecord.insert("payment_means", "0000000000000000000");
+      transponderRecord.insert("personal_account_number",
+                               "0000000000000000000");
       transponderRecord.insert("release_counter", "0");
       transponderRecord.insert("box_id", boxRecord.value("id"));
 

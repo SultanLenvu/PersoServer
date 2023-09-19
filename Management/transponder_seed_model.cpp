@@ -46,11 +46,11 @@ bool TransponderSeedModel::isEmpty() {
   return false;
 }
 
-const QMap<QString, QString>* TransponderSeedModel::attributes() {
+const QMap<QString, QString>* TransponderSeedModel::attributes() const {
   return Attributes;
 }
 
-const QMap<QString, QString>* TransponderSeedModel::masterKeys() {
+const QMap<QString, QString>* TransponderSeedModel::masterKeys() const {
   return MasterKeys;
 }
 

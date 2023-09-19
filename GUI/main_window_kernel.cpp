@@ -321,7 +321,7 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot() {
   if (choice == "SN") {
     rereleaseParameters.insert("id", input);
   } else if (choice == "PAN") {
-    rereleaseParameters.insert("payment_means", input);
+    rereleaseParameters.insert("personal_account_number", input);
   }
   rereleaseParameters.insert("ucid", ucid);
 
@@ -352,7 +352,7 @@ void MainWindowKernel::on_ConfirmRereleaseTransponderPushButton_slot() {
   if (choice == "SN") {
     confirmParameters.insert("id", input);
   } else if (choice == "PAN") {
-    confirmParameters.insert("payment_means", input);
+    confirmParameters.insert("personal_account_number", input);
   }
   confirmParameters.insert("ucid", ucid);
 
@@ -379,7 +379,7 @@ void MainWindowKernel::on_SearchTransponderPushButton_slot() {
   } else if (text == "SN") {
     searchParameters.insert("id", gui->SearchTransponderLineEdit->text());
   } else if (text == "PAN") {
-    searchParameters.insert("payment_means",
+    searchParameters.insert("personal_account_number",
                             gui->SearchTransponderLineEdit->text());
   }
 

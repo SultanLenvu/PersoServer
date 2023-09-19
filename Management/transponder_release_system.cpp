@@ -212,8 +212,9 @@ void TransponderReleaseSystem::rerelease(
 
   // Получаем данные о перевыпускаемом транспондере
   transponderRecord.insert("id", rereleaseParameters->value("id"));
-  transponderRecord.insert("payment_means",
-                           rereleaseParameters->value("payment_means"));
+  transponderRecord.insert(
+      "personal_account_number",
+      rereleaseParameters->value("personal_account_number"));
   transponderRecord.insert("release_counter", "");
   transponderRecord.insert("ucid", "");
   transponderRecord.insert("box_id", "");
@@ -281,8 +282,8 @@ void TransponderReleaseSystem::confirmRerelease(
 
   // Получаем данные о перевыпускаемом транспондере
   transponderRecord.insert("id", confirmParameters->value("id"));
-  transponderRecord.insert("payment_means",
-                           confirmParameters->value("payment_means"));
+  transponderRecord.insert("personal_account_number",
+                           confirmParameters->value("personal_account_number"));
   transponderRecord.insert("ucid", "");
   transponderRecord.insert("release_counter", "");
   if (!Database->getRecordByPart("transponders", transponderRecord)) {
@@ -396,13 +397,18 @@ bool TransponderReleaseSystem::generateTransponderSeed(
   foreignKeys.append("pallet_id");
   foreignKeys.append("order_id");
   foreignKeys.append("issuer_id");
+
+  attributes->insert("manufacturer_id", "");
+  attributes->insert("equipment_class", "");
   attributes->insert("transponder_model", "");
+  attributes->insert("accr_reference", "");
+  attributes->insert("ucid", "");
+
+  attributes->insert("efc_context_mark", "");
+  attributes->insert("personal_account_number", "");
+
   attributes->insert("release_counter", "");
   attributes->insert("awaiting_confirmation", "");
-  attributes->insert("ucid", "");
-  attributes->insert("accr_reference", "");
-  attributes->insert("payment_means", "");
-  attributes->insert("efc_context_mark", "");
   attributes->insert("full_personalization", "");
   attributes->insert("boxes.in_process", "");
   attributes->insert("transport_master_keys_id", "");

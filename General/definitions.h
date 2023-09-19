@@ -93,11 +93,11 @@
 #define EQUIPMENT_CLASS_FPI 612
 #define TRANSPONDER_PART_NO_FPI 652
 #define BATTERY_INSERTATION_DATE_FPI 692
-#define ACCE_REFERENCE_FPI 732
+#define ACCR_REFERENCE_FPI 732
 #define SOUND_FPI 772
 #define BATTERY_LOW_COUNTER_LIMIT_FPI 812
 
-#define AUKEY1_FPI 841
+#define AUKEY1_FPI 835
 #define AUKEY2_FPI 850
 #define AUKEY3_FPI 859
 #define AUKEY4_FPI 868
@@ -111,7 +111,7 @@
 #define TRANSPONDER_LOG_FPI 2360
 
 // Длины атрибутов в октетах
-#define EFCCM_SIZE 6
+#define EFC_CONTEXT_MARK_SIZE 6
 #define EQUIPMENT_OBU_ID_SIZE 4
 #define PAYMENT_MEANS_SIZE 14
 
@@ -125,6 +125,8 @@
 #define BATTERY_LOW_COUNTER_LIMIT_SIZE 2
 
 #define TRANSPONDER_LOG_SIZE 50
+
+#define COMMON_KEY_SIZE 8
 //========================================================================
 
 #endif // DEFINITIONS_H

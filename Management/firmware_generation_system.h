@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QDataStream>
+#include <QDateTime>
 #include <QFile>
 #include <QObject>
 #include <QSettings>
@@ -11,39 +12,6 @@
 #include "General/definitions.h"
 #include "Security/des.h"
 #include "transponder_seed_model.h"
-/*
-// Физическое представление данных транспондера: данные, не изменяемые
-транзакциях typedef struct
-{
-  // Атрибуты приложения EFC и системного приложения
-  DsrcAttribute efcAttributes[CONST_EFC_ATTRIBUTES_COUNT];
-  DsrcAttribute systemAttributes[CONST_SYSTEM_ATTRIBUTES_COUNT];
-
-  // Ключи безопасности приложения EFC
-  SecurityKey keys[SECURITY_KEYS_COUNT]; // Ключи безопасности транзакции
-
-  // Системный пароль
-  uint8_t password[SYSTEM_PASSWORD_LENGTH];
-
-  // Ключ инициализации
-  uint32_t initKey;
-} ConstObuDataType;
-
-// Физическое представление данных транспондера: данные, изменяемые в
-транзакциях typedef struct
-{
-  // Атрибуты приложения EFC и системного приложения
-  DsrcAttribute efcAttributes[VAR_EFC_ATTRIBUTES_COUNT];
-  DsrcAttribute systemAttributes[VAR_SYSTEM_ATTRIBUTES_COUNT];
-
-  // Данные о предыдущей транзакции
-  PreviousTransactionData previousTransaction;
-
-  // Логирование для тестирования и сбора статистики
-  ObuLog log;
-
-} VarObuDataType;
-*/
 
 class FirmwareGenerationSystem : public QObject
 {
@@ -62,22 +30,23 @@ class FirmwareGenerationSystem : public QObject
   QFile* FirmwareData;
 
   QByteArray GeneratedFirmware;
-  QMap<QString, uint32_t> PositionMap;
+  QMap<QString, QByteArray> CommonKeys;
+  QMap<QString, QByteArray> MasterKeys;
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
   void applySettings(void);
 
-  bool generate(TransponderSeedModel* seed, QByteArray* firmware);
+  bool generate(const TransponderSeedModel* seed, QByteArray* firmware);
 
  private:
   void loadSettings(void);
-  void createPositionMap(void);
 
   void generateFirmwareData(void);
   void assembleFirmware(void);
 
-  void generateCommonKeys(TransponderSeedModel* seed);
+  void generateCommonKeys(const TransponderSeedModel* seed);
+  void generatePaymentMeans(const QString& pan, QString& paymentMeans);
 
  signals:
   void logging(const QString& log) const;
