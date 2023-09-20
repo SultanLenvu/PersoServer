@@ -570,6 +570,25 @@ void MasterGUI::createSettingsTab() {
       new QLineEdit(settings.value("PersoHost/Port").toString());
   PersoServerSettingsLayout->addWidget(PersoServerPortLineEdit, 1, 1, 1, 1);
 
+  MaxNumberClientConnectionLabel =
+      new QLabel("Максимальное количество клиентов");
+  PersoServerSettingsLayout->addWidget(MaxNumberClientConnectionLabel, 2, 0, 1,
+                                       1);
+
+  MaxNumberClientConnectionLineEdit = new QLineEdit(
+      settings.value("PersoHost/MaxNumberClientConnection").toString());
+  PersoServerSettingsLayout->addWidget(MaxNumberClientConnectionLineEdit, 2, 1,
+                                       1, 1);
+
+  ClientConnectionMaxDurationLabel =
+      new QLabel("Максимальная длительность подключения клиентов (мс)");
+  PersoServerSettingsLayout->addWidget(ClientConnectionMaxDurationLabel, 3, 0,
+                                       1, 1);
+  ClientConnectionMaxDurationLineEdit = new QLineEdit(
+      settings.value("PersoHost/ClientConnectionMaxDuration").toString());
+  PersoServerSettingsLayout->addWidget(ClientConnectionMaxDurationLineEdit, 3,
+                                       1, 1, 1);
+
   // Настройки базы данных
   DatabaseSettingsGroupBox = new QGroupBox(QString("Настройки базы данных"));
   SettingsMainSubLayout->addWidget(DatabaseSettingsGroupBox);
@@ -628,29 +647,29 @@ void MasterGUI::createSettingsTab() {
   FirmwareSettingsLayout = new QGridLayout();
   FirmwareSettingsGroupBox->setLayout(FirmwareSettingsLayout);
 
-  FirmwareBasePathLabel = new QLabel("Путь к файлу с прошивкой");
-  FirmwareSettingsLayout->addWidget(FirmwareBasePathLabel, 0, 0, 1, 1);
-  FirmwareBasePathLineEdit =
+  FirmwareBaseFilePathLabel = new QLabel("Путь к файлу с прошивкой");
+  FirmwareSettingsLayout->addWidget(FirmwareBaseFilePathLabel, 0, 0, 1, 1);
+  FirmwareBaseFilePathLineEdit =
       new QLineEdit(settings.value("Firmware/Base/Path").toString());
-  FirmwareBasePathLineEdit->setMaxLength(200);
-  FirmwareSettingsLayout->addWidget(FirmwareBasePathLineEdit, 0, 1, 1, 1);
-  ExploreFirmwareBasePathPushButton = new QPushButton("Обзор");
-  FirmwareSettingsLayout->addWidget(ExploreFirmwareBasePathPushButton, 0, 2, 1,
-                                    1);
-  connect(ExploreFirmwareBasePathPushButton, &QPushButton::clicked, this,
-          &MasterGUI::on_ExploreFirmwareBasePathPushButton_slot);
+  FirmwareBaseFilePathLineEdit->setMaxLength(200);
+  FirmwareSettingsLayout->addWidget(FirmwareBaseFilePathLineEdit, 0, 1, 1, 1);
+  ExploreFirmwareBaseFilePathPushButton = new QPushButton("Обзор");
+  FirmwareSettingsLayout->addWidget(ExploreFirmwareBaseFilePathPushButton, 0, 2,
+                                    1, 1);
+  connect(ExploreFirmwareBaseFilePathPushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_ExploreFirmwareBaseFilePathPushButton_slot);
 
-  FirmwareDataPathLabel = new QLabel("Путь к файлу с данными");
-  FirmwareSettingsLayout->addWidget(FirmwareDataPathLabel, 1, 0, 1, 1);
-  FirmwareDataPathLineEdit =
+  FirmwareDataFilePathLabel = new QLabel("Путь к файлу с данными");
+  FirmwareSettingsLayout->addWidget(FirmwareDataFilePathLabel, 1, 0, 1, 1);
+  FirmwareDataFilePathLineEdit =
       new QLineEdit(settings.value("Firmware/Data/Path").toString());
-  FirmwareDataPathLineEdit->setMaxLength(200);
-  FirmwareSettingsLayout->addWidget(FirmwareDataPathLineEdit, 1, 1, 1, 1);
-  ExploreFirmwareDataPathPushButton = new QPushButton("Обзор");
-  FirmwareSettingsLayout->addWidget(ExploreFirmwareDataPathPushButton, 1, 2, 1,
-                                    1);
-  connect(ExploreFirmwareDataPathPushButton, &QPushButton::clicked, this,
-          &MasterGUI::on_ExploreFirmwareDataPathPushButton_slot);
+  FirmwareDataFilePathLineEdit->setMaxLength(200);
+  FirmwareSettingsLayout->addWidget(FirmwareDataFilePathLineEdit, 1, 1, 1, 1);
+  ExploreFirmwareDataFilePathPushButton = new QPushButton("Обзор");
+  FirmwareSettingsLayout->addWidget(ExploreFirmwareDataFilePathPushButton, 1, 2,
+                                    1, 1);
+  connect(ExploreFirmwareDataFilePathPushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_ExploreFirmwareDataFilePathPushButton_slot);
 
   // Кнопка сохранения настроек
   ApplySettingsPushButton = new QPushButton("Применить изменения");
@@ -718,14 +737,14 @@ void MasterGUI::on_RereleaseTransponderByComboBox_slot(const QString& text) {
   }
 }
 
-void MasterGUI::on_ExploreFirmwareBasePathPushButton_slot() {
+void MasterGUI::on_ExploreFirmwareBaseFilePathPushButton_slot() {
   QString filePath =
       QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex, *.bin");
-  FirmwareBasePathLineEdit->setText(filePath);
+  FirmwareBaseFilePathLineEdit->setText(filePath);
 }
 
-void MasterGUI::on_ExploreFirmwareDataPathPushButton_slot() {
+void MasterGUI::on_ExploreFirmwareDataFilePathPushButton_slot() {
   QString filePath =
       QFileDialog::getOpenFileName(this, "Выберите файл", "", "*.hex, *.bin");
-  FirmwareDataPathLineEdit->setText(filePath);
+  FirmwareDataFilePathLineEdit->setText(filePath);
 }

@@ -479,6 +479,10 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   settings.setValue("PersoHost/Ip", gui->PersoServerIpLineEdit->text());
   settings.setValue("PersoHost/Port",
                     gui->PersoServerPortLineEdit->text().toInt());
+  settings.setValue("PersoHost/MaxNumberClientConnection",
+                    gui->MaxNumberClientConnectionLineEdit->text().toInt());
+  settings.setValue("PersoHost/ClientConnectionMaxDuration",
+                    gui->ClientConnectionMaxDurationLineEdit->text().toInt());
   settings.setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
   settings.setValue("Database/Server/Port",
                     gui->DatabasePortLineEdit->text().toInt());
@@ -490,9 +494,9 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
   settings.setValue("Database/Log/Active",
                     gui->DatabaseLogOption->checkState() == Qt::Checked);
   settings.setValue("Firmware/Base/Path",
-                    gui->FirmwareBasePathLineEdit->text());
+                    gui->FirmwareBaseFilePathLineEdit->text());
   settings.setValue("Firmware/Data/Path",
-                    gui->FirmwareDataPathLineEdit->text());
+                    gui->FirmwareDataFilePathLineEdit->text());
 
   // Применение новых настроек
   Manager->applySettings();
@@ -537,6 +541,14 @@ bool MainWindowKernel::checkNewSettings() const {
     return false;
   }
 
+  if (gui->MaxNumberClientConnectionLineEdit->text().toInt() <= 0) {
+    return false;
+  }
+
+  if (gui->ClientConnectionMaxDurationLineEdit->text().toInt() <= 0) {
+    return false;
+  }
+
   IP = QHostAddress(gui->DatabaseIpLineEdit->text());
 
   if (IP.isNull()) {
@@ -549,12 +561,12 @@ bool MainWindowKernel::checkNewSettings() const {
     return false;
   }
 
-  QFileInfo fileInfo(gui->FirmwareBasePathLineEdit->text());
+  QFileInfo fileInfo(gui->FirmwareBaseFilePathLineEdit->text());
   if ((!fileInfo.isFile()) || (!fileInfo.exists())) {
     return false;
   }
 
-  fileInfo.setFile(gui->FirmwareDataPathLineEdit->text());
+  fileInfo.setFile(gui->FirmwareDataFilePathLineEdit->text());
   if ((!fileInfo.isFile()) || (!fileInfo.exists())) {
     return false;
   }

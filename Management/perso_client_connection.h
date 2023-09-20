@@ -12,7 +12,6 @@
 
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
-#include "user_settings.h"
 
 class PersoClientConnection : public QObject {
   Q_OBJECT

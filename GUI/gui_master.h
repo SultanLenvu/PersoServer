@@ -226,6 +226,10 @@ class MasterGUI : public GUI {
   QLineEdit* PersoServerIpLineEdit;
   QLabel* PersoServerPortLabel;
   QLineEdit* PersoServerPortLineEdit;
+  QLabel* ClientConnectionDurationLabel;
+  QLineEdit* ClientConnectionDurationLineEdit;
+  QLabel* MaxClientConnectionLabel;
+  QLineEdit* MaxClientConnectionLineEdit;
 
   // Настройки базы данных
   QGroupBox* DatabaseSettingsGroupBox;
@@ -246,12 +250,12 @@ class MasterGUI : public GUI {
   // Настройки генератора прошивок
   QGroupBox* FirmwareSettingsGroupBox;
   QGridLayout* FirmwareSettingsLayout;
-  QLabel* FirmwareBasePathLabel;
-  QLineEdit* FirmwareBasePathLineEdit;
-  QPushButton* ExploreFirmwareBasePathPushButton;
-  QLabel* FirmwareDataPathLabel;
-  QLineEdit* FirmwareDataPathLineEdit;
-  QPushButton* ExploreFirmwareDataPathPushButton;
+  QLabel* FirmwareBaseFilePathLabel;
+  QLineEdit* FirmwareBaseFilePathLineEdit;
+  QPushButton* ExploreFirmwareBaseFilePathPushButton;
+  QLabel* FirmwareDataFilePathLabel;
+  QLineEdit* FirmwareDataFilePathLineEdit;
+  QPushButton* ExploreFirmwareDataFilePathPushButton;
   //============================================================
  public:
   explicit MasterGUI(QWidget* parent);
@@ -275,8 +279,8 @@ class MasterGUI : public GUI {
   void on_FullPersonalizationCheckBoxChanged_slot(void);
   void on_PanFileExplorePushButton_slot(void);
 
-  void on_ExploreFirmwareBasePathPushButton_slot(void);
-  void on_ExploreFirmwareDataPathPushButton_slot(void);
+  void on_ExploreFirmwareBaseFilePathPushButton_slot(void);
+  void on_ExploreFirmwareDataFilePathPushButton_slot(void);
 
   void on_SearchTransponderByComboBox_slot(const QString& text);
   void on_RereleaseTransponderByComboBox_slot(const QString& text);

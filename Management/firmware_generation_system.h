@@ -13,8 +13,42 @@
 #include "Security/des.h"
 #include "transponder_seed_model.h"
 
-class FirmwareGenerationSystem : public QObject
+/*
+// Физическое представление данных транспондера: данные, не изменяемые
+транзакциях typedef struct
 {
+        // Атрибуты приложения EFC и системного приложения
+DsrcAttribute efcAttributes[CONST_EFC_ATTRIBUTES_COUNT];
+DsrcAttribute systemAttributes[CONST_SYSTEM_ATTRIBUTES_COUNT];
+
+// Ключи безопасности приложения EFC
+SecurityKey keys[SECURITY_KEYS_COUNT];  // Ключи безопасности транзакции
+
+// Системный пароль
+uint8_t password[SYSTEM_PASSWORD_LENGTH];
+
+// Ключ инициализации
+uint32_t initKey;
+}
+ConstObuDataType;
+
+// Физическое представление данных транспондера: данные, изменяемые в
+// транзакциях
+typedef struct {
+  // Атрибуты приложения EFC и системного приложения
+  DsrcAttribute efcAttributes[VAR_EFC_ATTRIBUTES_COUNT];
+  DsrcAttribute systemAttributes[VAR_SYSTEM_ATTRIBUTES_COUNT];
+
+  // Данные о предыдущей транзакции
+  PreviousTransactionData previousTransaction;
+
+  // Логирование для тестирования и сбора статистики
+  ObuLog log;
+
+} VarObuDataType;
+*/
+
+class FirmwareGenerationSystem : public QObject {
   Q_OBJECT
  public:
   enum ExecutionStatus {
@@ -26,25 +60,28 @@ class FirmwareGenerationSystem : public QObject
   };
 
  private:
-  QFile* FirmwareBase;
-  QFile* FirmwareData;
+  QFile* FirmwareBaseFile;
+  QFile* FirmwareDataFile;
 
   QByteArray GeneratedFirmware;
   QMap<QString, QByteArray> CommonKeys;
-  QMap<QString, QByteArray> MasterKeys;
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
   void applySettings(void);
 
-  bool generate(const TransponderSeedModel* seed, QByteArray* firmware);
+  bool generate(const TransponderSeedModel* seed,
+                QByteArray* assembledFirmware);
 
  private:
   void loadSettings(void);
+  void createPositionMap(void);
 
-  void generateFirmwareData(void);
-  void assembleFirmware(void);
+  bool assembleFirmware(const QByteArray* firmwareData,
+                        QByteArray* assembledFirmware);
 
+  bool generateFirmwareData(const TransponderSeedModel* seed,
+                            QByteArray* firmwareData);
   void generateCommonKeys(const TransponderSeedModel* seed);
   void generatePaymentMeans(const QString& pan, QString& paymentMeans);
 

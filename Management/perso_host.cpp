@@ -50,7 +50,7 @@ void PersoHost::incomingConnection(qintptr socketDescriptor) {
   emit checkNewClientInstance();
 
   // Если достигнут лимит подключений
-  if (Clients.size() == CLIENT_MAX_COUNT) {
+  if (Clients.size() == MaxNumberClientConnections) {
     pauseAccepting();  // Блокируем прием новых подключений
     PauseIndicator = true;
 
@@ -60,6 +60,13 @@ void PersoHost::incomingConnection(qintptr socketDescriptor) {
 
 void PersoHost::applySettings() {
   emit logging("Применение новых настроек. ");
+  QSettings settings;
+
+  MaxNumberClientConnections =
+      settings.value("PersoHost/MaxNumberClientConnection").toInt();
+  ClientConnectionMaxDuration =
+      settings.value("PersoHost/ClientConnectionMaxDuration").toInt();
+
   Database->applySettings();
 }
 

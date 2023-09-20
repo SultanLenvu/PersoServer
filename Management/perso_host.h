@@ -16,6 +16,9 @@
 class PersoHost : public QTcpServer {
   Q_OBJECT
  private:
+  int32_t MaxNumberClientConnections;
+  int32_t ClientConnectionMaxDuration;
+
   QList<QThread*> ClientThreads;
   QList<PersoClientConnection*> Clients;
   bool PauseIndicator;
