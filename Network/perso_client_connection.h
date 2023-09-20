@@ -17,8 +17,8 @@ class PersoClientConnection : public QObject {
   Q_OBJECT
 
  private:
+  int32_t MaximumConnectionTime;
   uint32_t ID;
-  qintptr SocketDescriptor;
 
   QTcpSocket* Socket;
 
@@ -43,6 +43,11 @@ class PersoClientConnection : public QObject {
   void instanceTesting(void);
 
  private:
+  void loadSettings(void);
+  void createSocket(qintptr socketDescriptor);
+  void createExpirationTimer(void);
+  void createWaitTimer(void);
+
   void processingDataBlock(void);
 
   void createDataBlock(void);

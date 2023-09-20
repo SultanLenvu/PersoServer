@@ -481,7 +481,7 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
                     gui->PersoServerPortLineEdit->text().toInt());
   settings.setValue("PersoHost/MaxNumberClientConnection",
                     gui->MaxNumberClientConnectionLineEdit->text().toInt());
-  settings.setValue("PersoHost/ClientConnectionMaxDuration",
+  settings.setValue("PersoHost/ClientConnection/MaxDuration",
                     gui->ClientConnectionMaxDurationLineEdit->text().toInt());
   settings.setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
   settings.setValue("Database/Server/Port",

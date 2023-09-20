@@ -7,13 +7,48 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
   // Идентификатор клиента
   ID = id;
 
-  // Дескриптор системного сокета
-  SocketDescriptor = socketDescriptor;
+  // Загружаем настройки
+  loadSettings();
 
-  // Пока поток клиента не запущен
-  // Сокет клиента
+  // Создаем сокет в соответствии с системным дескриптором
+  createSocket(socketDescriptor);
+
+  // Блок данных пока не получен
+  ReceivedDataBlockSize = 0;
+
+  // Создаем таймер экспирации подключения
+  createExpirationTimer();
+
+  // Создаем таймер для приема блоков данных частями
+  createWaitTimer();
+}
+
+PersoClientConnection::~PersoClientConnection() {}
+
+uint32_t PersoClientConnection::getId() {
+  return ID;
+}
+
+void PersoClientConnection::applySettings() {
+  QSettings settings(ORGANIZATION_NAME, PROGRAM_NAME);
+}
+
+void PersoClientConnection::instanceTesting() {
+  if (thread() != QApplication::instance()->thread())
+    emit logging("Отдельный поток выделен. ");
+  else
+    emit logging("Отдельный поток не выделен. ");
+}
+
+void PersoClientConnection::loadSettings() {
+  QSettings settings;
+  MaximumConnectionTime =
+      settings.value("PersoHost/ClientConnection/MaxDuration").toInt();
+}
+
+void PersoClientConnection::createSocket(qintptr socketDescriptor) {
   Socket = new QTcpSocket(this);
-  Socket->setSocketDescriptor(SocketDescriptor);
+  Socket->setSocketDescriptor(socketDescriptor);
   connect(Socket, &QTcpSocket::readyRead, this,
           &PersoClientConnection::on_SocketReadyRead_slot);
   connect(Socket, &QTcpSocket::disconnected, this,
@@ -21,10 +56,12 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
   connect(Socket,
           QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error), this,
           &PersoClientConnection::on_SocketError_slot);
+}
 
+void PersoClientConnection::createExpirationTimer() {
   // Таймер для отсчета времени экспирации
   ExpirationTimer = new QTimer(this);
-  ExpirationTimer->setInterval(CLIENT_CONNECTION_MAX_DURATION);
+  ExpirationTimer->setInterval(MaximumConnectionTime);
   // Если время подключения вышло, то вызываем соответствующий обработчик
   connect(ExpirationTimer, &QTimer::timeout, this,
           &PersoClientConnection::on_ExpirationTimerTimeout_slot);
@@ -39,7 +76,9 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
 
   // Запускаем таймер экспирации
   ExpirationTimer->start();
+}
 
+void PersoClientConnection::createWaitTimer() {
   // Таймер ожидания для приема блоков данных по частям
   WaitTimer = new QTimer(this);
   WaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
@@ -58,26 +97,6 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
           WaitTimer, &QTimer::stop);
   // Если время подключения вышло, то таймер ожидания останавливается
   connect(ExpirationTimer, &QTimer::timeout, WaitTimer, &QTimer::stop);
-
-  // Данные пока не получены
-  ReceivedDataBlockSize = 0;
-}
-
-PersoClientConnection::~PersoClientConnection() {}
-
-uint32_t PersoClientConnection::getId() {
-  return ID;
-}
-
-void PersoClientConnection::applySettings() {
-  QSettings settings(ORGANIZATION_NAME, PROGRAM_NAME);
-}
-
-void PersoClientConnection::instanceTesting() {
-  if (thread() != QApplication::instance()->thread())
-    emit logging("Отдельный поток выделен. ");
-  else
-    emit logging("Отдельный поток не выделен. ");
 }
 
 void PersoClientConnection::processingDataBlock(void) {

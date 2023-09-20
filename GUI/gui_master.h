@@ -226,10 +226,10 @@ class MasterGUI : public GUI {
   QLineEdit* PersoServerIpLineEdit;
   QLabel* PersoServerPortLabel;
   QLineEdit* PersoServerPortLineEdit;
-  QLabel* ClientConnectionDurationLabel;
-  QLineEdit* ClientConnectionDurationLineEdit;
-  QLabel* MaxClientConnectionLabel;
-  QLineEdit* MaxClientConnectionLineEdit;
+  QLabel* MaxNumberClientConnectionLabel;
+  QLineEdit* MaxNumberClientConnectionLineEdit;
+  QLabel* ClientConnectionMaxDurationLabel;
+  QLineEdit* ClientConnectionMaxDurationLineEdit;
 
   // Настройки базы данных
   QGroupBox* DatabaseSettingsGroupBox;

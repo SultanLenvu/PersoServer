@@ -2,13 +2,20 @@
 
 PersoHost::PersoHost(QObject* parent) : QTcpServer(parent) {
   setObjectName("PersoHost");
-
   PauseIndicator = false;
+  MaxNumberClientConnections = 0;
+
+  // Загружаем настройки
+  loadSettings();
+
+  // Создаем идентификаторы для клиентов
+  createClientIdentifiers();
 
   // Интерфейс для централизованного доступа к базе данных
   Database = new PostgresController(this, QString("ServerConnection"));
   connect(Database, &IDatabaseController::logging, this,
           &PersoHost::proxyLogging);
+
   // Настраиваем контроллер базы данных
   Database->applySettings();
 }
@@ -43,37 +50,53 @@ void PersoHost::stop() {
 void PersoHost::incomingConnection(qintptr socketDescriptor) {
   emit logging("Получен запрос на новое подключение. ");
 
+  // Если свободных идентификаторов нет
+  if (FreeClientIds.size() == 0) {
+    pauseAccepting();  // Блокируем прием новых подключений
+    PauseIndicator = true;
+
+    emit logging("Достигнут лимит подключений, прием новых приостановлен. ");
+    return;
+  }
+
   // Создаем среду выполнения для клиента
   createClientInstance(socketDescriptor);
 
   // Проверяем созданную среду выполнения
   emit checkNewClientInstance();
+}
 
-  // Если достигнут лимит подключений
-  if (Clients.size() == MaxNumberClientConnections) {
-    pauseAccepting();  // Блокируем прием новых подключений
-    PauseIndicator = true;
+void PersoHost::loadSettings() {
+  QSettings settings;
 
-    emit logging("Достигнут лимит подключений, прием новых приостановлен. ");
+  MaxNumberClientConnections =
+      settings.value("PersoHost/MaxNumberClientConnection").toInt();
+}
+
+void PersoHost::createClientIdentifiers() {
+  FreeClientIds.clear();
+  for (int32_t i = 1; i < MaxNumberClientConnections; i++) {
+    FreeClientIds.insert(i);
   }
 }
 
 void PersoHost::applySettings() {
   emit logging("Применение новых настроек. ");
-  QSettings settings;
 
-  MaxNumberClientConnections =
-      settings.value("PersoHost/MaxNumberClientConnection").toInt();
-  ClientConnectionMaxDuration =
-      settings.value("PersoHost/ClientConnectionMaxDuration").toInt();
+  loadSettings();
+  createClientIdentifiers();
 
   Database->applySettings();
 }
 
 void PersoHost::createClientInstance(qintptr socketDescriptor) {
+  // Выделяем свободный идентификатор
+  int32_t clientId = *FreeClientIds.constBegin();
+  FreeClientIds.remove(clientId);
+
   // Создаем новое клиент-подключение
   PersoClientConnection* newClient =
-      new PersoClientConnection(Clients.size(), socketDescriptor);
+      new PersoClientConnection(clientId, socketDescriptor);
 
   connect(newClient, &PersoClientConnection::logging, this,
           &PersoHost::proxyLogging);
@@ -83,7 +106,7 @@ void PersoHost::createClientInstance(qintptr socketDescriptor) {
           &PersoClientConnection::instanceTesting);
 
   // Добавляем клиента в реестр
-  Clients.append(newClient);
+  Clients.insert(clientId, newClient);
   emit logging(QString("Новый клиент создан и зарегистрирован в реестре с "
                        "идентификатором %1. ")
                    .arg(QString::number(Clients.last()->getId())));
@@ -104,7 +127,7 @@ void PersoHost::createClientInstance(qintptr socketDescriptor) {
           &PersoHost::on_ClientThreadDeleted_slot);
 
   // Добавляем поток в соответствующий реестр
-  ClientThreads.append(newClientThread);
+  ClientThreads.insert(clientId, newClientThread);
 
   // Запускаем поток
   newClientThread->start();
@@ -125,16 +148,13 @@ void PersoHost::proxyLogging(const QString& log) {
 }
 
 void PersoHost::on_ClientDisconnected_slot() {
+  // Освобождаем занятый идентификатор
   uint32_t clientId = dynamic_cast<PersoClientConnection*>(sender())->getId();
+  FreeClientIds.insert(clientId);
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров
-  for (int32_t i = 0; i < Clients.size(); i++) {
-    if (clientId == Clients.at(i)->getId()) {
-      Clients.removeAt(clientId);
-      ClientThreads.removeAt(clientId);
-      break;
-    }
-  }
+  ClientThreads.remove(clientId);
+  Clients.remove(clientId);
 
   emit logging(
       QString("Клиент %1 удален из реестра. ").arg(QString::number(clientId)));

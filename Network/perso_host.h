@@ -2,8 +2,10 @@
 #define PERSOSERVER_H
 
 #include <QList>
+#include <QMap>
 #include <QMutex>
 #include <QObject>
+#include <QSet>
 #include <QString>
 #include <QTcpServer>
 #include <QThread>
@@ -17,10 +19,10 @@ class PersoHost : public QTcpServer {
   Q_OBJECT
  private:
   int32_t MaxNumberClientConnections;
-  int32_t ClientConnectionMaxDuration;
 
-  QList<QThread*> ClientThreads;
-  QList<PersoClientConnection*> Clients;
+  QSet<int32_t> FreeClientIds;
+  QMap<int32_t, QThread*> ClientThreads;
+  QMap<int32_t, PersoClientConnection*> Clients;
   bool PauseIndicator;
 
   IDatabaseController* Database;
@@ -41,6 +43,8 @@ class PersoHost : public QTcpServer {
   virtual void incomingConnection(qintptr socketDescriptor) override;
 
  private:
+  void loadSettings(void);
+  void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
 
  private slots:
