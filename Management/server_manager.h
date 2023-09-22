@@ -15,11 +15,10 @@
 #include "Database/database_table_model.h"
 #include "Database/postgres_controller.h"
 #include "Miscellaneous/thread_object_builder.h"
+#include "Network/perso_host.h"
 #include "administration_system.h"
 #include "administration_system_builder.h"
-#include "perso_host.h"
 #include "transponder_seed_model.h"
-#include "user_settings.h"
 
 class ServerManager : public QObject {
   Q_OBJECT
@@ -49,9 +48,11 @@ class ServerManager : public QObject {
 
   void applySettings();
 
-  void start(void);
-  void stop(void);
+  void startServer(void);
+  void stopServer(void);
 
+  void connectDatabaseManually(void);
+  void disconnectDatabaseManually(void);
   void showDatabaseTable(const QString& name, DatabaseTableModel* model);
   void clearDatabaseTable(const QString& name, DatabaseTableModel* model);
 
@@ -138,6 +139,8 @@ class ServerManager : public QObject {
   void stopServer_signal(void);
 
   // Сигналы для системы администрирования
+  void connectDatabase_signal(void);
+  void disconnectDatabase_signal(void);
   void getDatabaseTable_signal(const QString& tableName,
                                DatabaseTableModel* model);
   void clearDatabaseTable_signal(const QString& tableName);

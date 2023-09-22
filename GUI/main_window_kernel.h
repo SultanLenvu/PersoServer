@@ -16,7 +16,6 @@
 #include "GUI/log_system.h"
 #include "Management/server_manager.h"
 #include "Management/transponder_seed_model.h"
-#include "Management/user_settings.h"
 
 #include "General/definitions.h"
 
@@ -31,7 +30,7 @@ class MainWindowKernel : public QMainWindow {
 
   QAction* ProductionInterfaceRequestAct;
   QAction* AboutProgramAct;
-  QAction* MasterInterfaceRequestAct;
+  QAction* OpenInitialGuiRequestAct;
 
   ServerManager* Manager;
   LogSystem* Logger;
@@ -53,15 +52,15 @@ class MainWindowKernel : public QMainWindow {
   ServerManager* manager(void);
 
  public slots:
-  void openMasterInterface_slot(void);
+  void on_OpenMasterGuiPushButton_slot(void);
+  void on_OpenInitialGuiRequestAct_slot(void);
 
-  void start_slot(void);
-  void stop_slot(void);
+  void on_ServerStartPushButton_slot(void);
+  void on_ServerStopPushButton_slot(void);
 
   // Функционал для работы с базой данных
   void on_ConnectDatabasePushButton_slot(void);
   void on_DisconnectDatabasePushButton_slot(void);
-
   void on_ShowDatabaseTablePushButton_slot(void);
   void on_ClearDatabaseTablePushButton_slot(void);
   void on_TransmitCustomRequestPushButton_slot(void);
@@ -117,9 +116,9 @@ class MainWindowKernel : public QMainWindow {
   void createMasterInterface(void);
   void connectMasterInterface(void);
 
+  void setupLogger(void);
   void setupInterructionSystem(void);
   void setupManager(void);
-  void setupLogSystem(void);
   void createModels(void);
   void createMatchingTable(void);
 

@@ -36,7 +36,7 @@ void ServerManager::applySettings() {
   emit applySettings_signal();
 }
 
-void ServerManager::start() {
+void ServerManager::startServer() {
   if ((Host) && (Host->isListening())) {
     emit logging("Сервер уже запущен. ");
     return;
@@ -46,9 +46,41 @@ void ServerManager::start() {
   emit startServer_signal();
 }
 
-void ServerManager::stop() {
+void ServerManager::stopServer() {
   emit logging("Остановка сервера персонализации. ");
   emit stopServer_signal();
+}
+
+void ServerManager::connectDatabaseManually() {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("connectDatabaseManually")) {
+    return;
+  }
+
+  emit logging("Прямое подключение к базе данных. ");
+  emit connectDatabase_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("connectDatabaseManually");
+}
+
+void ServerManager::disconnectDatabaseManually() {
+  // Начинаем выполнение операции
+  if (!startOperationExecution("disconnectDatabaseManually")) {
+    return;
+  }
+
+  emit logging("Прямое отключение от базы данных. ");
+  emit disconnectDatabase_signal();
+
+  // Запускаем цикл ожидания
+  WaitingLoop->exec();
+
+  // Завершаем выполнение операции
+  endOperationExecution("disconnectDatabaseManually");
 }
 
 void ServerManager::showDatabaseTable(const QString& name,
@@ -796,6 +828,10 @@ void ServerManager::on_AdministratorBuilderCompleted_slot() {
           &ServerManager::on_AdministratorFinished_slot);
 
   // Подключаем функционал
+  connect(this, &ServerManager::connectDatabase_signal, Administrator,
+          &AdministrationSystem::connectDatabase);
+  connect(this, &ServerManager::disconnectDatabase_signal, Administrator,
+          &AdministrationSystem::disconnectDatabase);
   connect(this, &ServerManager::getDatabaseTable_signal, Administrator,
           &AdministrationSystem::getDatabaseTable);
   connect(this, &ServerManager::getCustomResponse_signal, Administrator,

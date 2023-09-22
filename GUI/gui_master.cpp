@@ -57,7 +57,48 @@ void MasterGUI::createTabs() {
   createSettingsTab();
 }
 
-void MasterGUI::createServerTab() {}
+void MasterGUI::createServerTab() {
+  ServerTab = new QWidget();
+  Tabs->addTab(ServerTab, "Сервер");
+
+  // Основной макет
+  ServerMainLayout = new QHBoxLayout();
+  ServerTab->setLayout(ServerMainLayout);
+
+  // Панель управления
+  ServerControlPanelGroup = new QGroupBox(QString("Панель управления"));
+  ServerControlPanelGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  ServerMainLayout->addWidget(ServerControlPanelGroup);
+
+  ServerControlPanelLayout = new QVBoxLayout();
+  ServerControlPanelGroup->setLayout(ServerControlPanelLayout);
+
+  // Кнопки
+  ServerStartPushButton = new QPushButton("Запустить");
+  ServerControlPanelLayout->addWidget(ServerStartPushButton);
+
+  ServerStopPushButton = new QPushButton("Остановить");
+  ServerControlPanelLayout->addWidget(ServerStopPushButton);
+
+  ServerControlPanelVS =
+      new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  ServerControlPanelLayout->addItem(ServerControlPanelVS);
+
+  // Отображение графика нагрузки на сервер
+  ServerChartGroup = new QGroupBox(QString("Нагрузка на сервер"));
+  ServerChartGroup->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  ServerMainLayout->addWidget(ServerChartGroup);
+
+  ServerChartLayout = new QVBoxLayout();
+  ServerChartGroup->setLayout(ServerChartLayout);
+
+  ServerChartView = new QChartView();
+  ServerChartLayout->addWidget(ServerChartView);
+
+  // Настройка пропорции между объектами на макете
+  ServerMainLayout->setStretch(0, 1);
+  ServerMainLayout->setStretch(1, 3);
+}
 
 void MasterGUI::createDatabaseTab() {
   DatabaseTab = new QWidget();

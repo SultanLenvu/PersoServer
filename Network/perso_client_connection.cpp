@@ -1,11 +1,12 @@
 #include "perso_client_connection.h"
 
-PersoClientConnection::PersoClientConnection(uint32_t id,
-                                             qintptr socketDescriptor) {
+PersoClientConnection::PersoClientConnection(
+    uint32_t id,
+    qintptr socketDescriptor,
+    TransponderReleaseSystem* releaser) {
   setObjectName("PersoClientConnection");
-
-  // Идентификатор клиента
   ID = id;
+  Releaser = releaser;
 
   // Загружаем настройки
   loadSettings();
@@ -39,6 +40,8 @@ void PersoClientConnection::instanceTesting() {
   else
     emit logging("Отдельный поток не выделен. ");
 }
+
+void PersoClientConnection::releaserFinished() {}
 
 void PersoClientConnection::loadSettings() {
   QSettings settings;
@@ -126,7 +129,7 @@ void PersoClientConnection::processingDataBlock(void) {
     processingEchoRequest(&CommandObject);
   } else if (CommandObject.value("CommandName").toString() ==
              "FirmwareRequest") {
-    processingFirmwareRequest(&CommandObject);
+    processingReleaseRequest(&CommandObject);
   } else {
     emit logging(
         "Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
@@ -197,8 +200,7 @@ void PersoClientConnection::processingEchoRequest(QJsonObject* commandJson) {
   CurrentResponse.setObject(responseJson);
 }
 
-void PersoClientConnection::processingFirmwareRequest(
-    QJsonObject* commandJson) {
+void PersoClientConnection::processingReleaseRequest(QJsonObject* commandJson) {
   emit logging("Выполнение команды FirmwareRequest. ");
 
   // Синтаксическая проверка
@@ -226,6 +228,15 @@ void PersoClientConnection::processingFirmwareRequest(
   CurrentResponse.setObject(responseJson);
 }
 
+void PersoClientConnection::processingConfirmReleaseRequest(
+    QJsonObject* commandJson) {}
+
+void PersoClientConnection::processingRereleaseRequest(
+    QJsonObject* commandJson) {}
+
+void PersoClientConnection::processingConfirmRereleaseRequest(
+    QJsonObject* commandJson) {}
+
 void PersoClientConnection::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PostgresController")
     emit logging("Postgres - " + log);
@@ -242,7 +253,7 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
   if (ReceivedDataBlockSize == 0) {
     // Если размер поступивших байт меньше размера поля с размером байт, то
     // блок поступившие данные отбрасываются
-    if (Socket->bytesAvailable() < sizeof(uint32_t)) {
+    if (Socket->bytesAvailable() < static_cast<int64_t>(sizeof(uint32_t))) {
       emit logging(
           "Размер полученных данных слишком мал. Ожидается прием следующих "
           "частей. ");
@@ -292,10 +303,13 @@ void PersoClientConnection::on_SocketDisconnected_slot() {
 
 void PersoClientConnection::on_SocketError_slot(
     QAbstractSocket::SocketError socketError) {
-  emit logging(QString("Ошибка сети: Код: %1. Описание: %2.")
-                   .arg(QString::number(socketError))
-                   .arg(Socket->errorString()));
-  Socket->close();
+  // Если клиент отключился не самостоятельно
+  if (socketError != 1) {
+    emit logging(QString("Ошибка сети: Код: %1. Описание: %2.")
+                     .arg(QString::number(socketError))
+                     .arg(Socket->errorString()));
+    Socket->close();
+  }
 }
 
 void PersoClientConnection::on_ExpirationTimerTimeout_slot() {

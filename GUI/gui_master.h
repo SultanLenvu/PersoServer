@@ -15,7 +15,26 @@ class MasterGUI : public GUI {
  public:
   QTabWidget* Tabs;
 
-  /* Общий интерфейс базы данных */
+  /* Интерфейс сервера */
+  //============================================================
+  QWidget* ServerTab;
+  QHBoxLayout* ServerMainLayout;
+
+  // Панель упралвения БД
+  QGroupBox* ServerControlPanelGroup;
+  QVBoxLayout* ServerControlPanelLayout;
+
+  QPushButton* ServerStartPushButton;
+  QPushButton* ServerStopPushButton;
+  QSpacerItem* ServerControlPanelVS;
+
+  // Отображение записей в БД
+  QGroupBox* ServerChartGroup;
+  QVBoxLayout* ServerChartLayout;
+  QChartView* ServerChartView;
+  //============================================================
+
+  /* Интерфейс базы данных */
   //============================================================
   QWidget* DatabaseTab;
   QHBoxLayout* DatabaseMainLayout;

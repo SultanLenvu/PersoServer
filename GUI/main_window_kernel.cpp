@@ -11,19 +11,19 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   CurrentGUI = nullptr;
   Manager = nullptr;
   Logger = nullptr;
+  Interactor = nullptr;
+
+  // Создаем систему логгирования
+  setupLogger();
 
   // Создаем графический интерфейс окна начальной конфигурации
-  createInitialInterface();
-  connectInitialInterface();
+  on_OpenInitialGuiRequestAct_slot();
 
   // Cистема взаимодействия с пользователем
   setupInterructionSystem();
 
   // Управляющий модуль
   setupManager();
-
-  // Создаем систему логгирования
-  setupLogSystem();
 
   // Создаем модели для представлений
   createModels();
@@ -38,26 +38,42 @@ ServerManager* MainWindowKernel::manager() {
   return Manager;
 }
 
-void MainWindowKernel::openMasterInterface_slot() {
+void MainWindowKernel::on_OpenMasterGuiPushButton_slot() {
+  // Запрашиваем пароль
+  //  QString key;
+  //  Interactor->getMasterPassword(key);
+
+  //  if (key == MASTER_ACCESS_PASSWORD) {
   createMasterInterface();
+  connectMasterInterface();
+  //  } else {
+  //    Interactor->generateError("Неверный код доступа");
+  //  }
 }
 
-void MainWindowKernel::start_slot() {
-  Logger->clear();
-  Manager->start();
+void MainWindowKernel::on_OpenInitialGuiRequestAct_slot() {
+  createInitialInterface();
+  connectInitialInterface();
 }
 
-void MainWindowKernel::stop_slot() {
+void MainWindowKernel::on_ServerStartPushButton_slot() {
   Logger->clear();
-  Manager->stop();
+  Manager->startServer();
+}
+
+void MainWindowKernel::on_ServerStopPushButton_slot() {
+  Logger->clear();
+  Manager->stopServer();
 }
 
 void MainWindowKernel::on_ConnectDatabasePushButton_slot() {
   Logger->clear();
+  Manager->connectDatabaseManually();
 }
 
 void MainWindowKernel::on_DisconnectDatabasePushButton_slot() {
   Logger->clear();
+  Manager->disconnectDatabaseManually();
 }
 
 void MainWindowKernel::on_ShowDatabaseTablePushButton_slot() {
@@ -506,10 +522,6 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
 }
 
 /*
- * Реализация слотов
- */
-
-/*
  * Приватные методы
  */
 
@@ -768,18 +780,30 @@ void MainWindowKernel::createTopMenu() {
   createTopMenuActions();
 
   ServiceMenu = menuBar()->addMenu("Сервис");
-  ServiceMenu->clear();
+  ServiceMenu->addAction(OpenInitialGuiRequestAct);
 
   HelpMenu = menuBar()->addMenu("Справка");
   HelpMenu->addAction(AboutProgramAct);
 }
 
 void MainWindowKernel::createTopMenuActions() {
+  OpenInitialGuiRequestAct = new QAction("Начальный интерфейс");
+  OpenInitialGuiRequestAct->setStatusTip(
+      "Закрыть текущий интерфейс и создать начальный интерфейс");
+  connect(OpenInitialGuiRequestAct, &QAction::triggered, this,
+          &MainWindowKernel::on_OpenInitialGuiRequestAct_slot);
+
   AboutProgramAct = new QAction("О программе", this);
   AboutProgramAct->setStatusTip("Показать сведения о программе");
 }
 
 void MainWindowKernel::createInitialInterface() {
+  // Удаляем предыдущий интерфейс
+  if (CurrentGUI) {
+    CurrentGUI->hide();
+    delete CurrentGUI;
+  }
+
   // Создаем виджеты
   CurrentGUI = new InitialGUI(this);
   setCentralWidget(CurrentGUI);
@@ -793,24 +817,25 @@ void MainWindowKernel::createInitialInterface() {
 void MainWindowKernel::connectInitialInterface() {
   InitialGUI* gui = dynamic_cast<InitialGUI*>(CurrentGUI);
 
-  connect(gui->OpenMasterPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::openMasterInterface_slot);
+  connect(gui->OpenMasterGuiPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_OpenMasterGuiPushButton_slot);
   connect(gui->StartServerPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::start_slot);
+          &MainWindowKernel::on_ServerStartPushButton_slot);
   connect(gui->StopServerPushButton, &QPushButton::clicked, this,
-          &MainWindowKernel::stop_slot);
+          &MainWindowKernel::on_ServerStopPushButton_slot);
+
+  // Подключаем логгер
+  connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
+  connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
+          &GUI::clearLogDisplay);
 }
 
 void MainWindowKernel::createMasterInterface() {
-  // Запрашиваем пароль
-  //  QString key;
-  //  Interactor->getMasterPassword(key);
-
-  //  if (key == MASTER_ACCESS_PASSWORD) {
   // Удаляем предыдущий интерфейс
-  CurrentGUI->hide();
-  delete CurrentGUI;
-
+  if (CurrentGUI) {
+    CurrentGUI->hide();
+    delete CurrentGUI;
+  }
   // Настраиваем размер главного окна
   setGeometry(DesktopGeometry.width() * 0.1, DesktopGeometry.height() * 0.1,
               DesktopGeometry.width() * 0.8, DesktopGeometry.height() * 0.8);
@@ -822,27 +847,22 @@ void MainWindowKernel::createMasterInterface() {
 
   // Создаем верхнее меню
   createTopMenu();
-
-  // Соединяем графический интерфейс с ядром обработки
-  connectMasterInterface();
-
-  // Создаем систему логгирования
-  setupLogSystem();
-  //  } else {
-  //    Interactor->generateError("Неверный код доступа");
-  //  }
 }
 
 void MainWindowKernel::connectMasterInterface() {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
-  // Меню взаимодействия с базой данных
+  // Сервер
+  connect(gui->ServerStartPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ServerStartPushButton_slot);
+  connect(gui->ServerStopPushButton, &QPushButton::clicked, this,
+          &MainWindowKernel::on_ServerStopPushButton_slot);
+
+  // База данных
   connect(gui->ConnectDatabasePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ConnectDatabasePushButton_slot);
   connect(gui->DisconnectDatabasePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_DisconnectDatabasePushButton_slot);
-
-  // Базы данных
   connect(gui->ShowDatabaseTablePushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ShowDatabaseTablePushButton_slot);
   connect(gui->ClearDatabaseTablePushButton, &QPushButton::clicked, this,
@@ -908,6 +928,11 @@ void MainWindowKernel::connectMasterInterface() {
   connect(gui->ApplySettingsPushButton, &QPushButton::clicked, this,
           &MainWindowKernel::on_ApplySettingsPushButton_slot);
 
+  // Подключаем логгер
+  connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
+  connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
+          &GUI::clearLogDisplay);
+
   // Соединяем модели и представления
   gui->DatabaseRandomModelView->setModel(RandomModel);
   gui->OrderTableView->setModel(OrderModel);
@@ -918,10 +943,12 @@ void MainWindowKernel::connectMasterInterface() {
   // Связываем отображения графиков с логикой их формирования
 }
 void MainWindowKernel::setupInterructionSystem() {
+  delete Interactor;
   Interactor = new UserInteractionSystem(this, this);
 }
 
 void MainWindowKernel::setupManager(void) {
+  delete Manager;
   Manager = new ServerManager(this);
   connect(Manager, &ServerManager::logging, this,
           &MainWindowKernel::proxyLogging);
@@ -937,13 +964,10 @@ void MainWindowKernel::setupManager(void) {
           &UserInteractionSystem::completeProgressDialog);
 }
 
-void MainWindowKernel::setupLogSystem() {
+void MainWindowKernel::setupLogger() {
   delete Logger;
   Logger = new LogSystem(this);
   connect(this, &MainWindowKernel::logging, Logger, &LogSystem::generate);
-  connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
-  connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
-          &GUI::clearLogDisplay);
 }
 
 void MainWindowKernel::createModels() {

@@ -2,7 +2,7 @@
 
 PersoHost::PersoHost(QObject* parent) : QTcpServer(parent) {
   setObjectName("PersoHost");
-  PauseIndicator = false;
+  CurrentState = Idle;
   MaxNumberClientConnections = 0;
 
   // Загружаем настройки
@@ -11,13 +11,8 @@ PersoHost::PersoHost(QObject* parent) : QTcpServer(parent) {
   // Создаем идентификаторы для клиентов
   createClientIdentifiers();
 
-  // Интерфейс для централизованного доступа к базе данных
-  Database = new PostgresController(this, QString("ServerConnection"));
-  connect(Database, &IDatabaseController::logging, this,
-          &PersoHost::proxyLogging);
-
-  // Настраиваем контроллер базы данных
-  Database->applySettings();
+  // Создаем интерфейс для централизованного доступа к базе данных
+  createReleaser();
 }
 
 PersoHost::~PersoHost() {
@@ -28,23 +23,43 @@ void PersoHost::start() {
   // Поднимаем сервер
   if (!listen(QHostAddress::LocalHost, 6666)) {
     emit logging("Не удалось запуститься. ");
+    emit operationFinished(Failed);
     return;
   }
 
   // Если сервер поднялся
   emit logging("Запущен. ");
-  if (thread() == QCoreApplication::instance()->thread())
+  if (thread() == QCoreApplication::instance()->thread()) {
     emit logging("Сервер запущен в главном потоке. ");
-  else
+  } else {
     emit logging("Сервер запущен в отдельном потоке. ");
+  }
 
-  // Подключаемся к базе данных
-  Database->connect();
+  // Запускаем релизер
+  if (!Releaser->start()) {
+    emit logging("Не удалось запустить систему выпуска транспондеров. ");
+    emit operationFinished(ReleaserError);
+
+    // Останавливаем сервер
+    stop();
+    return;
+  }
+
+  // Изменяем состояние
+  CurrentState = Work;
+  emit operationFinished(Completed);
 }
 
 void PersoHost::stop() {
+  // Останавливаем релизер
+  if (!Releaser->stop()) {
+    emit logging("Не удалось остановить систему выпуска транспондеров. ");
+  }
+
   close();
   emit logging("Остановлен. ");
+  CurrentState = Idle;
+  emit operationFinished(Completed);
 }
 
 void PersoHost::incomingConnection(qintptr socketDescriptor) {
@@ -53,7 +68,7 @@ void PersoHost::incomingConnection(qintptr socketDescriptor) {
   // Если свободных идентификаторов нет
   if (FreeClientIds.size() == 0) {
     pauseAccepting();  // Блокируем прием новых подключений
-    PauseIndicator = true;
+    CurrentState = Paused;
 
     emit logging("Достигнут лимит подключений, прием новых приостановлен. ");
     return;
@@ -73,6 +88,15 @@ void PersoHost::loadSettings() {
       settings.value("PersoHost/MaxNumberClientConnection").toInt();
 }
 
+void PersoHost::createReleaser() {
+  Releaser = new TransponderReleaseSystem(this);
+  connect(Releaser, &TransponderReleaseSystem::logging, this,
+          &PersoHost::proxyLogging);
+
+  // Настраиваем контроллер базы данных
+  Releaser->applySettings();
+}
+
 void PersoHost::createClientIdentifiers() {
   FreeClientIds.clear();
   for (int32_t i = 1; i < MaxNumberClientConnections; i++) {
@@ -84,9 +108,8 @@ void PersoHost::applySettings() {
   emit logging("Применение новых настроек. ");
 
   loadSettings();
-  createClientIdentifiers();
 
-  Database->applySettings();
+  Releaser->applySettings();
 }
 
 void PersoHost::createClientInstance(qintptr socketDescriptor) {
@@ -96,7 +119,7 @@ void PersoHost::createClientInstance(qintptr socketDescriptor) {
 
   // Создаем новое клиент-подключение
   PersoClientConnection* newClient =
-      new PersoClientConnection(clientId, socketDescriptor);
+      new PersoClientConnection(clientId, socketDescriptor, Releaser);
 
   connect(newClient, &PersoClientConnection::logging, this,
           &PersoHost::proxyLogging);
@@ -141,8 +164,8 @@ void PersoHost::proxyLogging(const QString& log) {
             .arg(QString::number(
                 dynamic_cast<PersoClientConnection*>(sender())->getId())) +
         log);
-  else if (sender()->objectName() == "PostgresController")
-    emit logging("Postgres - " + log);
+  else if (sender()->objectName() == "TransponderReleaseSystem")
+    emit logging("Releaser - " + log);
   else
     emit logging("Unknown - " + log);
 }
@@ -160,9 +183,9 @@ void PersoHost::on_ClientDisconnected_slot() {
       QString("Клиент %1 удален из реестра. ").arg(QString::number(clientId)));
 
   // Если ранее был достигнут лимит подключений
-  if (PauseIndicator == true) {
+  if (CurrentState == Paused) {
     resumeAccepting();  // Продолжаем прием запросов на подключение
-    PauseIndicator = false;
+    CurrentState = Work;
   }
 }
 

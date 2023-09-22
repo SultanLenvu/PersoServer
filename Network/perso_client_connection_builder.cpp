@@ -12,7 +12,7 @@ PersoClientConnection* PersoClientConnectionBuilder::buildedObject() const {
 
 void PersoClientConnectionBuilder::build(uint32_t id,
                                          qintptr socketDescriptor) {
-  Client = new PersoClientConnection(id, socketDescriptor);
+  //  Client = new PersoClientConnection(id, socketDescriptor);
 
   emit completed();
 }

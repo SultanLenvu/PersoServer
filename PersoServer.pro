@@ -47,10 +47,10 @@ HEADERS += \
     GUI/log_system.h \
     Management/administration_system_builder.h \
     Management/firmware_generation_system.h \
-    Management/perso_client_connection.h \
-    Management/perso_host.h \
-    Network/server_manager.h \
-    Network/transponder_release_system.h \
+    Network/perso_client_connection.h \
+    Network/perso_host.h \
+    Management/server_manager.h \
+    Management/transponder_release_system.h \
     Management/transponder_seed_model.h \
     Miscellaneous/thread_object_builder.h \
     Security/des.h \

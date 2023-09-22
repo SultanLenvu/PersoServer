@@ -25,6 +25,24 @@ void AdministrationSystem::applySettings() {
   Releaser->applySettings();
 }
 
+void AdministrationSystem::connectDatabase() {
+  emit logging("Подключение к базе данных. ");
+  if (!Database->connect()) {
+    processingOperationResult(
+        "Не удалось установить соединение с базой данных. ",
+        DatabaseConnectionError);
+  }
+
+  emit operationFinished(CompletedSuccessfully);
+}
+
+void AdministrationSystem::disconnectDatabase() {
+  emit logging("Отключение от базы данных. ");
+  Database->disconnect();
+
+  emit operationFinished(CompletedSuccessfully);
+}
+
 void AdministrationSystem::createDatabaseController() {
   Database = new PostgresController(this, "AdministratorConnection");
   connect(Database, &IDatabaseController::logging, this,
@@ -900,6 +918,11 @@ bool AdministrationSystem::initOperation() {
 void AdministrationSystem::processingOperationResult(
     const QString& log,
     const ExecutionStatus status) {
+  if (status == DatabaseConnectionError) {
+    emit operationFinished(status);
+    return;
+  }
+
   // Закрываем транзакцию
   if (status == CompletedSuccessfully) {
     if (!Database->closeTransaction()) {

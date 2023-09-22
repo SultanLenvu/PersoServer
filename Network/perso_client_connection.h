@@ -12,6 +12,7 @@
 
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
+#include "Management/transponder_release_system.h"
 
 class PersoClientConnection : public QObject {
   Q_OBJECT
@@ -21,6 +22,7 @@ class PersoClientConnection : public QObject {
   uint32_t ID;
 
   QTcpSocket* Socket;
+  TransponderReleaseSystem* Releaser;
 
   uint32_t ReceivedDataBlockSize;
   QByteArray ReceivedDataBlock;
@@ -33,7 +35,9 @@ class PersoClientConnection : public QObject {
   QTimer* WaitTimer;
 
  public:
-  explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
+  explicit PersoClientConnection(uint32_t id,
+                                 qintptr socketDescriptor,
+                                 TransponderReleaseSystem* releaser);
   ~PersoClientConnection();
 
   uint32_t getId(void);
@@ -41,6 +45,7 @@ class PersoClientConnection : public QObject {
 
  public slots:
   void instanceTesting(void);
+  void releaserFinished(void);
 
  private:
   void loadSettings(void);
@@ -54,7 +59,11 @@ class PersoClientConnection : public QObject {
   void transmitDataBlock(void);
 
   void processingEchoRequest(QJsonObject* commandJson);
-  void processingFirmwareRequest(QJsonObject* commandJson);
+
+  void processingReleaseRequest(QJsonObject* commandJson);
+  void processingConfirmReleaseRequest(QJsonObject* commandJson);
+  void processingRereleaseRequest(QJsonObject* commandJson);
+  void processingConfirmRereleaseRequest(QJsonObject* commandJson);
 
  private slots:
   void proxyLogging(const QString& log);

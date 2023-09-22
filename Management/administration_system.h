@@ -35,6 +35,9 @@ class AdministrationSystem : public QObject {
   void applySettings(void);
 
  public slots:
+  void connectDatabase(void);
+  void disconnectDatabase(void);
+
   void clearDatabaseTable(const QString& tableName);
   void getDatabaseTable(const QString& tableName, DatabaseTableModel* buffer);
   void getCustomResponse(const QString& req, DatabaseTableModel* buffer);

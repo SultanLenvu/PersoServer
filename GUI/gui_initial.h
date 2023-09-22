@@ -13,7 +13,7 @@ class InitialGUI : public GUI {
   QVBoxLayout* InitialMenuLayout;
   QPushButton* StartServerPushButton;
   QPushButton* StopServerPushButton;
-  QPushButton* OpenMasterPushButton;
+  QPushButton* OpenMasterGuiPushButton;
   QSpacerItem* ConnectButtonSpacer;
 
  public:

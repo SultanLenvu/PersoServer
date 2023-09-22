@@ -30,8 +30,8 @@ void InitialGUI::createInitialMenu() {
   InitialMenuLayout->addWidget(StartServerPushButton);
   StopServerPushButton = new QPushButton("Остановить сервер");
   InitialMenuLayout->addWidget(StopServerPushButton);
-  OpenMasterPushButton = new QPushButton("Открыть мастер интерфейс");
-  InitialMenuLayout->addWidget(OpenMasterPushButton);
+  OpenMasterGuiPushButton = new QPushButton("Открыть мастер интерфейс");
+  InitialMenuLayout->addWidget(OpenMasterGuiPushButton);
 
   ConnectButtonSpacer =
       new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);

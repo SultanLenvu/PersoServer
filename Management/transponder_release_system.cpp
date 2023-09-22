@@ -10,6 +10,8 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
 }
 
 bool TransponderReleaseSystem::start() {
+  QMutexLocker locker(&Mutex);
+
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     emit logging("Не удалось установить соединение с базой данных. ");
@@ -20,6 +22,8 @@ bool TransponderReleaseSystem::start() {
 }
 
 bool TransponderReleaseSystem::stop() {
+  QMutexLocker locker(&Mutex);
+
   emit logging("Отключение от базы данных. ");
   if (!Database->disconnect()) {
     emit logging("Не удалось отключить соединение с базой данных. ");
@@ -30,6 +34,8 @@ bool TransponderReleaseSystem::stop() {
 }
 
 void TransponderReleaseSystem::applySettings() {
+  QMutexLocker locker(&Mutex);
+
   emit logging("Применение новых настроек. ");
   loadSettings();
 
@@ -50,6 +56,7 @@ void TransponderReleaseSystem::release(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = TransactionError;
+    emit operationFinished();
     return;
   }
 
@@ -66,6 +73,7 @@ void TransponderReleaseSystem::release(
             .arg(releaseParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -76,6 +84,7 @@ void TransponderReleaseSystem::release(
                      .arg(productionLineRecord.value("id")));
     *status = ProductionLineNotActive;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -88,6 +97,7 @@ void TransponderReleaseSystem::release(
             .arg(releaseParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -99,6 +109,7 @@ void TransponderReleaseSystem::release(
             .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -112,6 +123,7 @@ void TransponderReleaseSystem::release(
             .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -123,15 +135,19 @@ void TransponderReleaseSystem::release(
         "Получена ошибка при получении объединенных данных о транспондере. ");
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = TransactionError;
+    emit operationFinished();
     return;
   }
+
   *status = Success;
+  emit operationFinished();
 }
 
 void TransponderReleaseSystem::confirmRelease(
@@ -144,6 +160,7 @@ void TransponderReleaseSystem::confirmRelease(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = Failed;
+    emit operationFinished();
     return;
   }
 
@@ -157,6 +174,7 @@ void TransponderReleaseSystem::confirmRelease(
     emit logging("Получена ошибка при поиске данных производственной линии. ");
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -164,6 +182,7 @@ void TransponderReleaseSystem::confirmRelease(
   if (productionLineRecord.value("active") == "false") {
     *status = ProductionLineNotActive;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -173,6 +192,7 @@ void TransponderReleaseSystem::confirmRelease(
                      .arg(productionLineRecord.value("transponder_id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -183,6 +203,7 @@ void TransponderReleaseSystem::confirmRelease(
                      .arg(productionLineRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -192,6 +213,7 @@ void TransponderReleaseSystem::confirmRelease(
     return;
   }
   *status = Success;
+  emit operationFinished();
 }
 
 void TransponderReleaseSystem::rerelease(
@@ -207,6 +229,7 @@ void TransponderReleaseSystem::rerelease(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = TransactionError;
+    emit operationFinished();
     return;
   }
 
@@ -224,6 +247,7 @@ void TransponderReleaseSystem::rerelease(
             .arg(rereleaseParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -234,6 +258,7 @@ void TransponderReleaseSystem::rerelease(
             .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -245,6 +270,7 @@ void TransponderReleaseSystem::rerelease(
                      .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -256,6 +282,7 @@ void TransponderReleaseSystem::rerelease(
         "Получена ошибка при получении объединенных данных о транспондере. ");
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -265,6 +292,7 @@ void TransponderReleaseSystem::rerelease(
     return;
   }
   *status = Success;
+  emit operationFinished();
 }
 
 void TransponderReleaseSystem::confirmRerelease(
@@ -277,6 +305,7 @@ void TransponderReleaseSystem::confirmRerelease(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = TransactionError;
+    emit operationFinished();
     return;
   }
 
@@ -292,6 +321,7 @@ void TransponderReleaseSystem::confirmRerelease(
             .arg(confirmParameters->value("login")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -303,6 +333,7 @@ void TransponderReleaseSystem::confirmRerelease(
                      .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -313,6 +344,7 @@ void TransponderReleaseSystem::confirmRerelease(
             .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -328,6 +360,7 @@ void TransponderReleaseSystem::confirmRerelease(
             .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -337,6 +370,7 @@ void TransponderReleaseSystem::confirmRerelease(
     return;
   }
   *status = Success;
+  emit operationFinished();
 }
 
 void TransponderReleaseSystem::search(
@@ -351,6 +385,7 @@ void TransponderReleaseSystem::search(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = TransactionError;
+    emit operationFinished();
     return;
   }
 
@@ -360,6 +395,7 @@ void TransponderReleaseSystem::search(
     emit logging("Получена ошибка при поиске транспондера. ");
     *status = Failed;
     Database->abortTransaction();
+    emit operationFinished();
     return;
   }
 
@@ -369,6 +405,7 @@ void TransponderReleaseSystem::search(
     return;
   }
   *status = Success;
+  emit operationFinished();
 }
 
 void TransponderReleaseSystem::createDatabaseController() {

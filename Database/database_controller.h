@@ -8,7 +8,6 @@
 #include <QVector>
 
 #include "General/definitions.h"
-#include "Management/user_settings.h"
 #include "database_table_model.h"
 
 class IDatabaseController : public QObject {

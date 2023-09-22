@@ -6,8 +6,8 @@
 #include <QMutexLocker>
 #include <QObject>
 
-#include <Database/database_controller.h>
-#include <Database/postgres_controller.h>
+#include "Database/database_controller.h"
+#include "Database/postgres_controller.h"
 
 class TransponderReleaseSystem : public QObject {
   Q_OBJECT
@@ -24,7 +24,6 @@ class TransponderReleaseSystem : public QObject {
 
  private:
   PostgresController* Database;
-
   QMutex Mutex;
 
  public:
@@ -77,6 +76,7 @@ class TransponderReleaseSystem : public QObject {
 
  signals:
   void logging(const QString& log) const;
+  void operationFinished();
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

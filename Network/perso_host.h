@@ -11,21 +11,32 @@
 #include <QThread>
 #include <QTimer>
 
-#include "Database/database_controller.h"
-#include "Database/postgres_controller.h"
+#include "Management/transponder_release_system.h"
 #include "perso_client_connection.h"
 
 class PersoHost : public QTcpServer {
   Q_OBJECT
+ public:
+  enum OperatingState {
+    Idle,
+    Work,
+    Paused,
+  };
+  enum ReturnStatus {
+    Completed,
+    Failed,
+    ReleaserError,
+  };
+
  private:
   int32_t MaxNumberClientConnections;
+  OperatingState CurrentState;
 
   QSet<int32_t> FreeClientIds;
   QMap<int32_t, QThread*> ClientThreads;
   QMap<int32_t, PersoClientConnection*> Clients;
-  bool PauseIndicator;
 
-  IDatabaseController* Database;
+  TransponderReleaseSystem* Releaser;
 
   QMutex Mutex;
 
@@ -44,6 +55,7 @@ class PersoHost : public QTcpServer {
 
  private:
   void loadSettings(void);
+  void createReleaser(void);
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
 
@@ -58,6 +70,7 @@ class PersoHost : public QTcpServer {
  signals:
   void logging(const QString& log);
   void checkNewClientInstance(void);
+  void operationFinished(ReturnStatus status);
 };
 
 #endif  // PERSOSERVER_H
