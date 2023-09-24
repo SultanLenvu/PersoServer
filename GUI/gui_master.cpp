@@ -758,7 +758,7 @@ void MasterGUI::on_SearchTransponderByComboBox_slot(const QString& text) {
   if (text == "UCID") {
     SearchTransponderLineEdit->setMaxLength(UCID_CHAR_LENGTH);
   } else if (text == "PAN") {
-    SearchTransponderLineEdit->setMaxLength(PAYMENT_MEANS_CHAR_LENGTH);
+    SearchTransponderLineEdit->setMaxLength(PAN_CHAR_LENGTH);
   } else if (text == "SN") {
     SearchTransponderLineEdit->setMaxLength(
         TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH);
@@ -769,7 +769,7 @@ void MasterGUI::on_SearchTransponderByComboBox_slot(const QString& text) {
 
 void MasterGUI::on_RereleaseTransponderByComboBox_slot(const QString& text) {
   if (text == "PAN") {
-    RereleaseTransponderLineEdit->setMaxLength(PAYMENT_MEANS_CHAR_LENGTH);
+    RereleaseTransponderLineEdit->setMaxLength(PAN_CHAR_LENGTH);
   } else if (text == "SN") {
     RereleaseTransponderLineEdit->setMaxLength(
         TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH);

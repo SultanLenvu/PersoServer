@@ -696,7 +696,7 @@ bool MainWindowKernel::checkSearchTransponderInput() const {
       return false;
     }
   } else if (choice == "PAN") {
-    if (input.length() != PAYMENT_MEANS_CHAR_LENGTH) {
+    if (input.length() != PAN_CHAR_LENGTH) {
       return false;
     }
 
@@ -735,7 +735,7 @@ bool MainWindowKernel::checkRereleaseTransponderInput() const {
       return false;
     }
   } else if (choice == "PAN") {
-    if (input.length() != PAYMENT_MEANS_CHAR_LENGTH) {
+    if (input.length() != PAN_CHAR_LENGTH) {
       return false;
     }
 

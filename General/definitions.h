@@ -16,18 +16,6 @@
 #define SERVER_MANAGER_OPERATION_MAX_DURATION 60000
 //===============================================================
 
-/* Определения для генератора прошивок */
-//===============================================================
-#define UCID_CHAR_LENGTH 32
-#define TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH 10
-#define PAYMENT_MEANS_CHAR_LENGTH 19
-#define EFC_CONTEXT_MARK_CHAR_LENGTH 12
-#define TRANSPONDER_MODEL_CHAR_LENGTH 7
-#define ACCR_REFERENCE_CHAR_LENGTH 4
-#define COMMON_KEY_CHAR_LENGTH 16
-#define MASTER_KEY_CHAR_LENGTH 32
-//===============================================================
-
 /* Определения для базы данных Postgres */
 //===============================================================
 #define TRANSPONDER_ID_START_SHIFT 500000
@@ -56,8 +44,17 @@
 #define CLIENT_CONNECTION_MAX_DURATION 10000
 //===============================================================
 
-/* Определения, касающиеся ключей безопасности транспондера */
-//========================================================================
+/* Определения для генератора прошивок */
+//===============================================================
+#define UCID_CHAR_LENGTH 32
+#define TRANSPONDER_SERIAL_NUMBER_CHAR_LENGTH 10
+#define PAN_CHAR_LENGTH 19
+#define EFC_CONTEXT_MARK_CHAR_LENGTH 12
+#define TRANSPONDER_MODEL_CHAR_LENGTH 7
+#define ACCR_REFERENCE_CHAR_LENGTH 4
+#define COMMON_KEY_CHAR_LENGTH 16
+#define MASTER_KEY_CHAR_LENGTH 32
+
 #define FIRMWARE_BASE_SIZE 126976
 #define FIRMWARE_DATA_SIZE 4096
 #define FIRMWARE_BASE_START_ADDRESS 0x0801F000
