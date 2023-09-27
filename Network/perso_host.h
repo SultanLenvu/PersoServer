@@ -37,6 +37,7 @@ class PersoHost : public QTcpServer {
   QMap<int32_t, PersoClientConnection*> Clients;
 
   TransponderReleaseSystem* Releaser;
+  QThread* ReleaserThread;
 
   QMutex Mutex;
 
@@ -55,7 +56,7 @@ class PersoHost : public QTcpServer {
 
  private:
   void loadSettings(void);
-  void createReleaser(void);
+  void createReleaserInstance(void);
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
 
@@ -69,8 +70,12 @@ class PersoHost : public QTcpServer {
 
  signals:
   void logging(const QString& log);
+  void applySettings_signal(void);
   void checkNewClientInstance(void);
   void operationFinished(ReturnStatus status);
+
+  bool startReleaser_signal(void);
+  bool stopReleaser_signal(void);
 };
 
 #endif  // PERSOSERVER_H

@@ -29,8 +29,7 @@ SOURCES += \
     GUI/gui.cpp \
     GUI/gui_delegates.cpp \
     GUI/user_interaction_system.cpp \
-    GUI/log_system.cpp \
-    Network/perso_client_connection_builder.cpp
+    GUI/log_system.cpp
 
 HEADERS += \
     Database/database_controller.h \
@@ -53,8 +52,7 @@ HEADERS += \
     Management/transponder_release_system.h \
     Management/transponder_seed_model.h \
     Miscellaneous/thread_object_builder.h \
-    Security/des.h \
-    Network/perso_client_connection_builder.h
+    Security/des.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

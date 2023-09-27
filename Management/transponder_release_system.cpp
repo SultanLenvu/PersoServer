@@ -5,12 +5,13 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
   setObjectName("TransponderReleaseSystem");
 
   loadSettings();
-
-  createDatabaseController();
 }
 
 bool TransponderReleaseSystem::start() {
   QMutexLocker locker(&Mutex);
+
+  // Создаем подключение к БД
+  createDatabaseController();
 
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
@@ -40,6 +41,58 @@ void TransponderReleaseSystem::applySettings() {
   loadSettings();
 
   Database->applySettings();
+}
+
+void TransponderReleaseSystem::authorize(
+    const QMap<QString, QString>* parameters,
+    ReturnStatus* status) {
+  QMutexLocker locker(&Mutex);
+
+  QMap<QString, QString> productionLineRecord;
+
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    *status = TransactionError;
+    emit operationFinished();
+    return;
+  }
+
+  // Получаем данные о производственной линии
+  productionLineRecord.insert("login", parameters->value("Login"));
+  productionLineRecord.insert("password", parameters->value("Password"));
+  productionLineRecord.insert("transponder_id", "");
+  productionLineRecord.insert("active", "");
+  if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
+    emit logging(
+        QString(
+            "Получена ошибка при поиске данных производственной линии '%1'. ")
+            .arg(parameters->value("login")));
+    *status = Failed;
+    Database->abortTransaction();
+    emit operationFinished();
+    return;
+  }
+
+  // Закрываем транзакцию
+  if (!Database->closeTransaction()) {
+    *status = TransactionError;
+    emit operationFinished();
+    return;
+  }
+
+  if (productionLineRecord.isEmpty()) {
+    emit logging(QString("Производственная линия '%1' не найдена. ")
+                     .arg(parameters->value("login")));
+    *status = ProductionLineMissed;
+  } else if (productionLineRecord.value("active") == "false") {
+    emit logging(QString("Производственная линия '%1' не активна. ")
+                     .arg(parameters->value("login")));
+    *status = ProductionLineNotActive;
+  } else {
+    *status = Success;
+  }
+
+  emit operationFinished();
 }
 
 void TransponderReleaseSystem::release(
@@ -409,7 +462,7 @@ void TransponderReleaseSystem::search(
 }
 
 void TransponderReleaseSystem::createDatabaseController() {
-  Database = new PostgresController(this, "ReleaserConnection");
+  Database = new PostgresController(this, "TransponderReleaseSystemConnection");
   connect(Database, &IDatabaseController::logging, this,
           &TransponderReleaseSystem::proxyLogging);
 }

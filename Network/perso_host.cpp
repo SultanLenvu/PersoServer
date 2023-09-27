@@ -11,12 +11,23 @@ PersoHost::PersoHost(QObject* parent) : QTcpServer(parent) {
   // Создаем идентификаторы для клиентов
   createClientIdentifiers();
 
-  // Создаем интерфейс для централизованного доступа к базе данных
-  createReleaser();
+  // Создаем систему выпуска транспондеров
+  createReleaserInstance();
 }
 
 PersoHost::~PersoHost() {
-  emit logging("Уничтожен. ");
+  ReleaserThread->quit();
+  ReleaserThread->wait();
+
+  QMap<int32_t, QThread*>::iterator it1;
+  for (it1 = ClientThreads.begin(); it1 != ClientThreads.end(); it1++) {
+    delete it1.value();
+  }
+
+  QMap<int32_t, PersoClientConnection*>::iterator it2;
+  for (it2 = Clients.begin(); it2 != Clients.end(); it2++) {
+    delete it2.value();
+  }
 }
 
 void PersoHost::start() {
@@ -45,6 +56,9 @@ void PersoHost::start() {
     return;
   }
 
+  // Запускаем систему выпуска транспондеров
+  emit startReleaser_signal();
+
   // Изменяем состояние
   CurrentState = Work;
   emit operationFinished(Completed);
@@ -58,6 +72,10 @@ void PersoHost::stop() {
 
   close();
   emit logging("Остановлен. ");
+
+  // Останавливаем систему выпуска транспондеров
+  emit stopReleaser_signal();
+
   CurrentState = Idle;
   emit operationFinished(Completed);
 }
@@ -88,13 +106,30 @@ void PersoHost::loadSettings() {
       settings.value("PersoHost/MaxNumberClientConnection").toInt();
 }
 
-void PersoHost::createReleaser() {
-  Releaser = new TransponderReleaseSystem(this);
+void PersoHost::createReleaserInstance() {
+  Releaser = new TransponderReleaseSystem(nullptr);
   connect(Releaser, &TransponderReleaseSystem::logging, this,
           &PersoHost::proxyLogging);
+  connect(this, &PersoHost::applySettings_signal, Releaser,
+          &TransponderReleaseSystem::applySettings);
+  connect(this, &PersoHost::applySettings_signal, Releaser,
+          &TransponderReleaseSystem::applySettings);
+  connect(this, &PersoHost::startReleaser_signal, Releaser,
+          &TransponderReleaseSystem::start);
+  connect(this, &PersoHost::stopReleaser_signal, Releaser,
+          &TransponderReleaseSystem::stop);
 
-  // Настраиваем контроллер базы данных
-  Releaser->applySettings();
+  // Создаем отдельный поток для системы выпуска транспондеров
+  QThread* ReleaserThread = new QThread(this);
+  Releaser->moveToThread(ReleaserThread);
+
+  connect(ReleaserThread, &QThread::finished, ReleaserThread,
+          &QThread::deleteLater);
+  connect(ReleaserThread, &QThread::finished, Releaser,
+          &PersoClientConnection::deleteLater);
+
+  // Запускаем поток
+  ReleaserThread->start();
 }
 
 void PersoHost::createClientIdentifiers() {
@@ -109,7 +144,10 @@ void PersoHost::applySettings() {
 
   loadSettings();
 
-  Releaser->applySettings();
+  // Создаем идентификаторы для клиентов
+  createClientIdentifiers();
+
+  emit applySettings_signal();
 }
 
 void PersoHost::createClientInstance(qintptr socketDescriptor) {
@@ -119,7 +157,7 @@ void PersoHost::createClientInstance(qintptr socketDescriptor) {
 
   // Создаем новое клиент-подключение
   PersoClientConnection* newClient =
-      new PersoClientConnection(clientId, socketDescriptor, Releaser);
+      new PersoClientConnection(clientId, socketDescriptor);
 
   connect(newClient, &PersoClientConnection::logging, this,
           &PersoHost::proxyLogging);
@@ -151,6 +189,20 @@ void PersoHost::createClientInstance(qintptr socketDescriptor) {
 
   // Добавляем поток в соответствующий реестр
   ClientThreads.insert(clientId, newClientThread);
+
+  // Соединяем клиента с системой выпуска транспондеров
+  connect(newClient, &PersoClientConnection::authorize_signal, Releaser,
+          &TransponderReleaseSystem::authorize);
+  connect(newClient, &PersoClientConnection::release_signal, Releaser,
+          &TransponderReleaseSystem::release);
+  connect(newClient, &PersoClientConnection::confirmRelease_signal, Releaser,
+          &TransponderReleaseSystem::confirmRelease);
+  connect(newClient, &PersoClientConnection::rerelease_signal, Releaser,
+          &TransponderReleaseSystem::rerelease);
+  connect(newClient, &PersoClientConnection::confirmRerelease_signal, Releaser,
+          &TransponderReleaseSystem::confirmRerelease);
+  connect(newClient, &PersoClientConnection::search_signal, Releaser,
+          &TransponderReleaseSystem::search);
 
   // Запускаем поток
   newClientThread->start();

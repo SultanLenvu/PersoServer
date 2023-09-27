@@ -1,12 +1,9 @@
 #include "perso_client_connection.h"
 
-PersoClientConnection::PersoClientConnection(
-    uint32_t id,
-    qintptr socketDescriptor,
-    TransponderReleaseSystem* releaser) {
+PersoClientConnection::PersoClientConnection(uint32_t id,
+                                             qintptr socketDescriptor) {
   setObjectName("PersoClientConnection");
   ID = id;
-  Releaser = releaser;
 
   // Загружаем настройки
   loadSettings();
@@ -102,48 +99,7 @@ void PersoClientConnection::createWaitTimer() {
   connect(ExpirationTimer, &QTimer::timeout, WaitTimer, &QTimer::stop);
 }
 
-void PersoClientConnection::processingDataBlock(void) {
-  QJsonParseError status;
-  CurrentCommand = QJsonDocument::fromJson(ReceivedDataBlock, &status);
-
-  // Если пришел некорректный JSON
-  if (status.error != QJsonParseError::NoError) {
-    emit logging("Ошибка парсинга JSON команды. Сброс. ");
-    return;
-  } else {
-    emit logging("Обработка полученного блока данных. ");
-  }
-
-  // Выделяем список пар ключ-значение из JSON-файла
-  QJsonObject CommandObject = CurrentCommand.object();
-
-  // Синтаксическая проверка
-  if (CommandObject.value("CommandName") == QJsonValue::Undefined) {
-    emit logging(
-        "Обнаружена синтаксическая ошибка: отсутствует название команды. ");
-    return;
-  }
-
-  // Вызываем соответствующий обработчик команды
-  if (CommandObject.value("CommandName").toString() == "EchoRequest") {
-    processingEchoRequest(&CommandObject);
-  } else if (CommandObject.value("CommandName").toString() ==
-             "FirmwareRequest") {
-    processingReleaseRequest(&CommandObject);
-  } else {
-    emit logging(
-        "Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
-    return;
-  }
-
-  // Создаем блок данных для ответа на команду
-  createDataBlock();
-
-  // Отправляем сформированный блок данных
-  transmitDataBlock();
-}
-
-void PersoClientConnection::createDataBlock() {
+void PersoClientConnection::createTransmittedDataBlock() {
   emit logging("Формирование блока данных для ответа на команду. ");
   emit logging(
       QString("Размер ответа: %1. Содержание ответа: %2. ")
@@ -178,35 +134,106 @@ void PersoClientConnection::transmitDataBlock() {
   }
 }
 
-void PersoClientConnection::processingEchoRequest(QJsonObject* commandJson) {
+void PersoClientConnection::processReceivedDataBlock(void) {
+  QJsonParseError status;
+  CurrentCommand = QJsonDocument::fromJson(ReceivedDataBlock, &status);
+
+  // Если пришел некорректный JSON
+  if (status.error != QJsonParseError::NoError) {
+    emit logging("Ошибка парсинга JSON команды. Сброс. ");
+    return;
+  } else {
+    emit logging("Обработка полученного блока данных. ");
+  }
+
+  // Выделяем список пар ключ-значение из JSON-файла
+  QJsonObject CommandObject = CurrentCommand.object();
+
+  // Синтаксическая проверка
+  if (CommandObject.value("CommandName") == QJsonValue::Undefined) {
+    emit logging(
+        "Обнаружена синтаксическая ошибка: отсутствует название команды. ");
+    return;
+  }
+
+  // Вызываем соответствующий обработчик команды
+  if (CommandObject.value("CommandName").toString() == "Echo") {
+    processEcho(&CommandObject);
+  } else if (CommandObject.value("CommandName").toString() == "Authorization") {
+    processAuthorization(&CommandObject);
+  } else if (CommandObject.value("CommandName").toString() ==
+             "TransponderRelease") {
+    processTransponderRelease(&CommandObject);
+  } else if (CommandObject.value("CommandName").toString() ==
+             "TransponderReleaseConfirm") {
+    processTransponderReleaseConfirm(&CommandObject);
+  } else if (CommandObject.value("CommandName").toString() ==
+             "TransponderRerelease") {
+    processTransponderRerelease(&CommandObject);
+  } else if (CommandObject.value("CommandName").toString() ==
+             "TransponderRereleaseConfirm") {
+    processTransponderRereleaseConfirm(&CommandObject);
+  } else {
+    emit logging(
+        "Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
+    return;
+  }
+}
+
+void PersoClientConnection::processEcho(QJsonObject* commandJson) {
   emit logging("Выполнение команды EchoRequest. ");
 
   // Синтаксическая проверка
-  if (commandJson->value("EchoData") == QJsonValue::Undefined) {
+  if (commandJson->value("Data").isUndefined()) {
     emit logging(
-        "Обнаружена синтаксическая ошибка в команде EchoRequest: отсутствуют "
+        "Обнаружена синтаксическая ошибка в команде Echo: отсутствуют "
         "эхо-данные. ");
     return;
   }
 
+  // Формирование ответа
   QJsonObject responseJson;
-
-  // Заголовок ответа на команду
-  responseJson["CommandName"] = "EchoResponse";
-
-  // Данные
-  responseJson["EchoData"] = commandJson->value("EchoData");
+  responseJson["ResponseName"] = "Echo";
+  responseJson["Data"] = commandJson->value("Data");
 
   CurrentResponse.setObject(responseJson);
 }
 
-void PersoClientConnection::processingReleaseRequest(QJsonObject* commandJson) {
-  emit logging("Выполнение команды FirmwareRequest. ");
+void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
+  emit logging("Выполнение команды Authorization. ");
+  QMap<QString, QString> authorizationParameters;
+  TransponderReleaseSystem::ReturnStatus ret =
+      TransponderReleaseSystem::Unknown;
+
+  // Синтаксическая проверка
+  if (commandJson->value("Login").isUndefined() ||
+      commandJson->value("Password").isUndefined()) {
+    emit logging("Обнаружена синтаксическая ошибка в команде Authorization. ");
+    return;
+  }
+
+  // Логика
+  authorizationParameters.insert("Login",
+                                 commandJson->value("Login").toString());
+  authorizationParameters.insert("Password",
+                                 commandJson->value("Password").toString());
+  emit authorize_signal(&authorizationParameters, &ret);
+
+  // Формирование ответа
+  QJsonObject responseJson;
+  responseJson["ResponseName"] = "Authorization";
+  responseJson["Access"] = commandJson->value("Data");
+}
+
+void PersoClientConnection::processTransponderRelease(
+    QJsonObject* commandJson) {
+  emit logging("Выполнение команды TransponderRelease. ");
 
   // Синтаксическая проверка
   if (commandJson->value("UCID") == QJsonValue::Undefined) {
     emit logging(
-        "Обнаружена синтаксическая ошибка в команде EchoRequest: отсутствуют "
+        "Обнаружена синтаксическая ошибка в команде TransponderRelease: "
+        "отсутствуют "
         "эхо-данные. ");
     return;
   }
@@ -214,7 +241,7 @@ void PersoClientConnection::processingReleaseRequest(QJsonObject* commandJson) {
   QJsonObject responseJson;
 
   // Заголовок ответа на команду
-  responseJson["CommandName"] = "FirmwareResponse";
+  responseJson["CommandName"] = "TransponderRelease";
 
   // Данные
   QFile firmware("firmware.hex");
@@ -228,13 +255,13 @@ void PersoClientConnection::processingReleaseRequest(QJsonObject* commandJson) {
   CurrentResponse.setObject(responseJson);
 }
 
-void PersoClientConnection::processingConfirmReleaseRequest(
+void PersoClientConnection::processTransponderReleaseConfirm(
     QJsonObject* commandJson) {}
 
-void PersoClientConnection::processingRereleaseRequest(
+void PersoClientConnection::processTransponderRerelease(
     QJsonObject* commandJson) {}
 
-void PersoClientConnection::processingConfirmRereleaseRequest(
+void PersoClientConnection::processTransponderRereleaseConfirm(
     QJsonObject* commandJson) {}
 
 void PersoClientConnection::proxyLogging(const QString& log) {
@@ -290,7 +317,13 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
   emit logging("Блок полученных данных: " + ReceivedDataBlock);
 
   // Осуществляем обработку полученных данных
-  processingDataBlock();
+  processReceivedDataBlock();
+
+  // Создаем блок данных для ответа на команду
+  createTransmittedDataBlock();
+
+  // Отправляем сформированный блок данных
+  transmitDataBlock();
 }
 
 void PersoClientConnection::on_SocketDisconnected_slot() {

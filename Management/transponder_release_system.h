@@ -14,12 +14,14 @@ class TransponderReleaseSystem : public QObject {
 
  public:
   enum ReturnStatus {
-    Success,
+    Unknown,
+    Failed,
     TransactionError,
+    ProductionLineMissed,
     ProductionLineNotActive,
     CurrentOrderRunOut,
     CurrentOrderAssembled,
-    Failed
+    Success,
   };
 
  private:
@@ -29,26 +31,28 @@ class TransponderReleaseSystem : public QObject {
  public:
   explicit TransponderReleaseSystem(QObject* parent);
 
+ public slots:
   bool start(void);
   bool stop(void);
   void applySettings();
 
- public slots:
-  void release(const QMap<QString, QString>* releaseParameters,
+  void authorize(const QMap<QString, QString>* parameters,
+                 ReturnStatus* status);
+  void release(const QMap<QString, QString>* parameters,
                QMap<QString, QString>* attributes,
                QMap<QString, QString>* masterKeys,
                ReturnStatus* status);
-  void confirmRelease(const QMap<QString, QString>* confirmParameters,
+  void confirmRelease(const QMap<QString, QString>* parameters,
                       ReturnStatus* status);
 
-  void rerelease(const QMap<QString, QString>* rereleaseParameters,
+  void rerelease(const QMap<QString, QString>* parameters,
                  QMap<QString, QString>* attributes,
                  QMap<QString, QString>* masterKeys,
                  ReturnStatus* status);
-  void confirmRerelease(const QMap<QString, QString>* confirmParameters,
+  void confirmRerelease(const QMap<QString, QString>* parameters,
                         ReturnStatus* status);
 
-  void search(const QMap<QString, QString>* searchParameters,
+  void search(const QMap<QString, QString>* parameters,
               QMap<QString, QString>* attributes,
               QMap<QString, QString>* masterKeys,
               ReturnStatus* status);

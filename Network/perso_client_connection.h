@@ -22,7 +22,6 @@ class PersoClientConnection : public QObject {
   uint32_t ID;
 
   QTcpSocket* Socket;
-  TransponderReleaseSystem* Releaser;
 
   uint32_t ReceivedDataBlockSize;
   QByteArray ReceivedDataBlock;
@@ -35,9 +34,7 @@ class PersoClientConnection : public QObject {
   QTimer* WaitTimer;
 
  public:
-  explicit PersoClientConnection(uint32_t id,
-                                 qintptr socketDescriptor,
-                                 TransponderReleaseSystem* releaser);
+  explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
   ~PersoClientConnection();
 
   uint32_t getId(void);
@@ -53,17 +50,16 @@ class PersoClientConnection : public QObject {
   void createExpirationTimer(void);
   void createWaitTimer(void);
 
-  void processingDataBlock(void);
-
-  void createDataBlock(void);
+  void createTransmittedDataBlock(void);
   void transmitDataBlock(void);
+  void processReceivedDataBlock(void);
 
-  void processingEchoRequest(QJsonObject* commandJson);
-
-  void processingReleaseRequest(QJsonObject* commandJson);
-  void processingConfirmReleaseRequest(QJsonObject* commandJson);
-  void processingRereleaseRequest(QJsonObject* commandJson);
-  void processingConfirmRereleaseRequest(QJsonObject* commandJson);
+  void processEcho(QJsonObject* commandJson);
+  void processAuthorization(QJsonObject* commandJson);
+  void processTransponderRelease(QJsonObject* commandJson);
+  void processTransponderReleaseConfirm(QJsonObject* commandJson);
+  void processTransponderRerelease(QJsonObject* commandJson);
+  void processTransponderRereleaseConfirm(QJsonObject* commandJson);
 
  private slots:
   void proxyLogging(const QString& log);
@@ -76,8 +72,26 @@ class PersoClientConnection : public QObject {
 
  signals:
   void disconnected(void);
-
   void logging(const QString& log);
+
+  void authorize_signal(const QMap<QString, QString>* parameters,
+                        TransponderReleaseSystem::ReturnStatus* status);
+  void release_signal(const QMap<QString, QString>* parameters,
+                      QMap<QString, QString>* attributes,
+                      QMap<QString, QString>* masterKeys,
+                      TransponderReleaseSystem::ReturnStatus* status);
+  void confirmRelease_signal(const QMap<QString, QString>* parameters,
+                             TransponderReleaseSystem::ReturnStatus* status);
+  void rerelease_signal(const QMap<QString, QString>* parameters,
+                        QMap<QString, QString>* attributes,
+                        QMap<QString, QString>* masterKeys,
+                        TransponderReleaseSystem::ReturnStatus* status);
+  void confirmRerelease_signal(const QMap<QString, QString>* parameters,
+                               TransponderReleaseSystem::ReturnStatus* status);
+  void search_signal(const QMap<QString, QString>* parameters,
+                     QMap<QString, QString>* attributes,
+                     QMap<QString, QString>* masterKeys,
+                     TransponderReleaseSystem::ReturnStatus* status);
 };
 
 #endif  // PERSOCLIENTCONNECTION_H
