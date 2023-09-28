@@ -33,7 +33,7 @@ bool PostgresController::connect() {
   return true;
 }
 
-bool PostgresController::disconnect(void) {
+void PostgresController::disconnect(void) {
   // Удаляем соединение
   QSqlDatabase::removeDatabase(ConnectionName);
 

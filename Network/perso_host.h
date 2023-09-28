@@ -1,7 +1,6 @@
 #ifndef PERSOSERVER_H
 #define PERSOSERVER_H
 
-#include <QList>
 #include <QMap>
 #include <QMutex>
 #include <QObject>
@@ -74,8 +73,8 @@ class PersoHost : public QTcpServer {
   void checkNewClientInstance(void);
   void operationFinished(ReturnStatus status);
 
-  bool startReleaser_signal(void);
-  bool stopReleaser_signal(void);
+  void startReleaser_signal(TransponderReleaseSystem::ReturnStatus* status);
+  void stopReleaser_signal(void);
 };
 
 #endif  // PERSOSERVER_H

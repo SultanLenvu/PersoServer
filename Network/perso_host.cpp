@@ -31,6 +31,10 @@ PersoHost::~PersoHost() {
 }
 
 void PersoHost::start() {
+  // Запускаем систему выпуска транспондеров
+  TransponderReleaseSystem::ReturnStatus status;
+  emit startReleaser_signal(&status);
+
   // Поднимаем сервер
   if (!listen(QHostAddress::LocalHost, 6666)) {
     emit logging("Не удалось запуститься. ");
@@ -46,19 +50,6 @@ void PersoHost::start() {
     emit logging("Сервер запущен в отдельном потоке. ");
   }
 
-  // Запускаем релизер
-  if (!Releaser->start()) {
-    emit logging("Не удалось запустить систему выпуска транспондеров. ");
-    emit operationFinished(ReleaserError);
-
-    // Останавливаем сервер
-    stop();
-    return;
-  }
-
-  // Запускаем систему выпуска транспондеров
-  emit startReleaser_signal();
-
   // Изменяем состояние
   CurrentState = Work;
   emit operationFinished(Completed);
@@ -66,10 +57,9 @@ void PersoHost::start() {
 
 void PersoHost::stop() {
   // Останавливаем релизер
-  if (!Releaser->stop()) {
-    emit logging("Не удалось остановить систему выпуска транспондеров. ");
-  }
+  Releaser->stop();
 
+  // Останавливаем сервер
   close();
   emit logging("Остановлен. ");
 
@@ -85,7 +75,7 @@ void PersoHost::incomingConnection(qintptr socketDescriptor) {
 
   // Если свободных идентификаторов нет
   if (FreeClientIds.size() == 0) {
-    pauseAccepting();  // Блокируем прием новых подключений
+    pauseAccepting();  // Приостанавливаем прием новых подключений
     CurrentState = Paused;
 
     emit logging("Достигнут лимит подключений, прием новых приостановлен. ");
@@ -110,8 +100,6 @@ void PersoHost::createReleaserInstance() {
   Releaser = new TransponderReleaseSystem(nullptr);
   connect(Releaser, &TransponderReleaseSystem::logging, this,
           &PersoHost::proxyLogging);
-  connect(this, &PersoHost::applySettings_signal, Releaser,
-          &TransponderReleaseSystem::applySettings);
   connect(this, &PersoHost::applySettings_signal, Releaser,
           &TransponderReleaseSystem::applySettings);
   connect(this, &PersoHost::startReleaser_signal, Releaser,

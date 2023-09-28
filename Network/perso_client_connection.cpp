@@ -18,7 +18,7 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
   createExpirationTimer();
 
   // Создаем таймер для приема блоков данных частями
-  createWaitTimer();
+  createDataBlockWaitTimer();
 }
 
 PersoClientConnection::~PersoClientConnection() {}
@@ -38,7 +38,12 @@ void PersoClientConnection::instanceTesting() {
     emit logging("Отдельный поток не выделен. ");
 }
 
-void PersoClientConnection::releaserFinished() {}
+void PersoClientConnection::releaserFinished() {
+  ReleaserWaitTimer->stop();
+  ReleaserWaiting->quit();
+
+  emit logging("Система выпуска транспондеров завершила выполнение операции. ");
+}
 
 void PersoClientConnection::loadSettings() {
   QSettings settings;
@@ -78,25 +83,41 @@ void PersoClientConnection::createExpirationTimer() {
   ExpirationTimer->start();
 }
 
-void PersoClientConnection::createWaitTimer() {
+void PersoClientConnection::createDataBlockWaitTimer() {
   // Таймер ожидания для приема блоков данных по частям
-  WaitTimer = new QTimer(this);
-  WaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
+  DataBlockWaitTimer = new QTimer(this);
+  DataBlockWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
   // Если время ожидания вышло, то вызываем соответствующий обработчик
-  connect(WaitTimer, &QTimer::timeout, this,
-          &PersoClientConnection::on_WaitTimerTimeout_slot);
+  connect(DataBlockWaitTimer, &QTimer::timeout, this,
+          &PersoClientConnection::on_DataBlockWaitTimerTimeout_slot);
   // Если время ожидания вышло, то останавливаем таймер ожидания
-  connect(WaitTimer, &QTimer::timeout, WaitTimer, &QTimer::stop);
+  connect(DataBlockWaitTimer, &QTimer::timeout, DataBlockWaitTimer,
+          &QTimer::stop);
   // Если пришли данные, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::readyRead, WaitTimer, &QTimer::stop);
+  connect(Socket, &QTcpSocket::readyRead, DataBlockWaitTimer, &QTimer::stop);
   // Если клиент отключился, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::disconnected, WaitTimer, &QTimer::stop);
+  connect(Socket, &QTcpSocket::disconnected, DataBlockWaitTimer, &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер ожидания
   connect(Socket,
           QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
-          WaitTimer, &QTimer::stop);
+          DataBlockWaitTimer, &QTimer::stop);
   // Если время подключения вышло, то таймер ожидания останавливается
-  connect(ExpirationTimer, &QTimer::timeout, WaitTimer, &QTimer::stop);
+  connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
+}
+
+void PersoClientConnection::createReleaserWaitTimer() {
+  ReleaserWaitTimer = new QTimer(this);
+  ReleaserWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
+  ReleaserWaiting = new QEventLoop(this);
+
+  // Если Releaser зависнет, то вызываем соответствующий обработчик
+  connect(ReleaserWaitTimer, &QTimer::timeout, this,
+          &PersoClientConnection::on_ReleaserWaitTimerTimeout_slot);
+  // Если Releaser зависнет, то выходим из цикла ожидания
+  connect(ReleaserWaitTimer, &QTimer::timeout, ReleaserWaiting,
+          &QEventLoop::quit);
+  // Если клиент отключился, то останавливаем таймер ожидания
+  connect(Socket, &QTcpSocket::disconnected, ReleaserWaitTimer, &QTimer::stop);
 }
 
 void PersoClientConnection::createTransmittedDataBlock() {
@@ -219,10 +240,18 @@ void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
                                  commandJson->value("Password").toString());
   emit authorize_signal(&authorizationParameters, &ret);
 
+  // Ожидаем завершения работы
+  ReleaserWaitTimer->start();
+  ReleaserWaiting->exec();
+
   // Формирование ответа
   QJsonObject responseJson;
   responseJson["ResponseName"] = "Authorization";
-  responseJson["Access"] = commandJson->value("Data");
+  if (ret == TransponderReleaseSystem::Success) {
+    responseJson["Access"] = commandJson->value("Allowed");
+  } else {
+    responseJson["Access"] = commandJson->value("Denied");
+  }
 }
 
 void PersoClientConnection::processTransponderRelease(
@@ -285,7 +314,7 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
           "Размер полученных данных слишком мал. Ожидается прием следующих "
           "частей. ");
       // Перезапускаем таймер ожидания для следующих частей
-      WaitTimer->start();
+      DataBlockWaitTimer->start();
       return;
     }
     // Сохраняем размер блока данных
@@ -308,7 +337,7 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
   if (Socket->bytesAvailable() < ReceivedDataBlockSize) {
     emit logging("Блок получен не целиком. Ожидается прием следующих частей. ");
     // Перезапускаем таймер ожидания для следующих частей
-    WaitTimer->start();
+    DataBlockWaitTimer->start();
     return;
   }
 
@@ -327,7 +356,6 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
 }
 
 void PersoClientConnection::on_SocketDisconnected_slot() {
-  ExpirationTimer->stop();
   emit logging("Отключился. ");
 
   //Отправляем сигнал об отключении клиента
@@ -352,8 +380,14 @@ void PersoClientConnection::on_ExpirationTimerTimeout_slot() {
   Socket->close();
 }
 
-void PersoClientConnection::on_WaitTimerTimeout_slot() {
+void PersoClientConnection::on_DataBlockWaitTimerTimeout_slot() {
   emit logging("Время ожидания вышло. Блок данных сбрасывается. ");
   ReceivedDataBlock.clear();
   ReceivedDataBlockSize = 0;
+}
+
+void PersoClientConnection::on_ReleaserWaitTimerTimeout_slot() {
+  emit logging("Система выпуска транспондеров зависла. ");
+  // Закрываем соединение
+  Socket->close();
 }

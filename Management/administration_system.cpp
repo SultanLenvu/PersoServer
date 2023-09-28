@@ -590,7 +590,9 @@ void AdministrationSystem::releaseTransponder(
 
   emit logging("Генерация сида транспондера. ");
 
-  if (!Releaser->start()) {
+  TransponderReleaseSystem::ReturnStatus ret;
+  Releaser->start(&ret);
+  if (ret != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
@@ -605,12 +607,7 @@ void AdministrationSystem::releaseTransponder(
     return;
   }
 
-  if (!Releaser->stop()) {
-    emit logging(
-        "Получена ошибка при остановке системы выпуска транспондеров. ");
-    emit operationFinished(ReleaserError);
-    return;
-  }
+  Releaser->stop();
   model->build(attributes, masterKeys);
 
   emit logging("Генерация прошивки транспондера. ");
@@ -627,7 +624,9 @@ void AdministrationSystem::confirmReleaseTransponder(
     const QMap<QString, QString>* confirmParameters) {
   TransponderReleaseSystem::ReturnStatus status;
 
-  if (!Releaser->start()) {
+  TransponderReleaseSystem::ReturnStatus ret;
+  Releaser->start(&ret);
+  if (ret != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
@@ -640,13 +639,7 @@ void AdministrationSystem::confirmReleaseTransponder(
     return;
   }
 
-  if (!Releaser->stop()) {
-    emit logging(
-        "Получена ошибка при остановке системы выпуска транспондеров. ");
-    emit operationFinished(ReleaserError);
-    return;
-  }
-
+  Releaser->stop();
   emit operationFinished(CompletedSuccessfully);
 }
 
@@ -655,7 +648,9 @@ void AdministrationSystem::rereleaseTransponder(
     TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
-  if (!Releaser->start()) {
+  TransponderReleaseSystem::ReturnStatus ret;
+  Releaser->start(&ret);
+  if (ret != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
@@ -670,13 +665,7 @@ void AdministrationSystem::rereleaseTransponder(
     return;
   }
 
-  if (!Releaser->stop()) {
-    emit logging(
-        "Получена ошибка при остановке системы выпуска транспондеров. ");
-    emit operationFinished(ReleaserError);
-    return;
-  }
-
+  Releaser->stop();
   model->build(attributes, masterKeys);
   emit operationFinished(CompletedSuccessfully);
 }
@@ -685,7 +674,9 @@ void AdministrationSystem::confirmRereleaseTransponder(
     const QMap<QString, QString>* confirmParameters) {
   TransponderReleaseSystem::ReturnStatus status;
 
-  if (!Releaser->start()) {
+  TransponderReleaseSystem::ReturnStatus ret;
+  Releaser->start(&ret);
+  if (ret != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
@@ -698,13 +689,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
     return;
   }
 
-  if (!Releaser->stop()) {
-    emit logging(
-        "Получена ошибка при остановке системы выпуска транспондеров. ");
-    emit operationFinished(ReleaserError);
-    return;
-  }
-
+  Releaser->stop();
   emit operationFinished(CompletedSuccessfully);
 }
 
@@ -713,7 +698,9 @@ void AdministrationSystem::searchTransponder(
     TransponderSeedModel* model) {
   TransponderReleaseSystem::ReturnStatus status;
 
-  if (!Releaser->start()) {
+  TransponderReleaseSystem::ReturnStatus ret;
+  Releaser->start(&ret);
+  if (ret != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при запуске системы выпуска транспондеров. ");
     emit operationFinished(ReleaserError);
     return;
@@ -728,13 +715,7 @@ void AdministrationSystem::searchTransponder(
     return;
   }
 
-  if (!Releaser->stop()) {
-    emit logging(
-        "Получена ошибка при остановке системы выпуска транспондеров. ");
-    emit operationFinished(ReleaserError);
-    return;
-  }
-
+  Releaser->stop();
   model->build(attributes, masterKeys);
   emit operationFinished(CompletedSuccessfully);
 }

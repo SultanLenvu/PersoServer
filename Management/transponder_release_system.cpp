@@ -7,7 +7,7 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
   loadSettings();
 }
 
-bool TransponderReleaseSystem::start() {
+void TransponderReleaseSystem::start(ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
   // Создаем подключение к БД
@@ -16,22 +16,18 @@ bool TransponderReleaseSystem::start() {
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {
     emit logging("Не удалось установить соединение с базой данных. ");
-    return false;
+    *status = DatabaseConnectionError;
+    return;
   }
 
-  return true;
+  *status = Success;
 }
 
-bool TransponderReleaseSystem::stop() {
+void TransponderReleaseSystem::stop(void) {
   QMutexLocker locker(&Mutex);
 
   emit logging("Отключение от базы данных. ");
-  if (!Database->disconnect()) {
-    emit logging("Не удалось отключить соединение с базой данных. ");
-    return false;
-  }
-
-  return true;
+  Database->disconnect();
 }
 
 void TransponderReleaseSystem::applySettings() {
@@ -47,6 +43,11 @@ void TransponderReleaseSystem::authorize(
     const QMap<QString, QString>* parameters,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
+
+  if (sender()->objectName() == "PersoClientConnection") {
+    PersoClientConnection* obj =
+        reinterpret_cast<PersoClientConnection*>(sender());
+  }
 
   QMap<QString, QString> productionLineRecord;
 

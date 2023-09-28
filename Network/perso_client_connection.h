@@ -31,7 +31,10 @@ class PersoClientConnection : public QObject {
   QJsonDocument CurrentResponse;
 
   QTimer* ExpirationTimer;
-  QTimer* WaitTimer;
+  QTimer* DataBlockWaitTimer;
+
+  QTimer* ReleaserWaitTimer;
+  QEventLoop* ReleaserWaiting;
 
  public:
   explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
@@ -48,7 +51,8 @@ class PersoClientConnection : public QObject {
   void loadSettings(void);
   void createSocket(qintptr socketDescriptor);
   void createExpirationTimer(void);
-  void createWaitTimer(void);
+  void createDataBlockWaitTimer(void);
+  void createReleaserWaitTimer(void);
 
   void createTransmittedDataBlock(void);
   void transmitDataBlock(void);
@@ -68,7 +72,8 @@ class PersoClientConnection : public QObject {
   void on_SocketError_slot(QAbstractSocket::SocketError socketError);
 
   void on_ExpirationTimerTimeout_slot(void);
-  void on_WaitTimerTimeout_slot(void);
+  void on_DataBlockWaitTimerTimeout_slot(void);
+  void on_ReleaserWaitTimerTimeout_slot(void);
 
  signals:
   void disconnected(void);

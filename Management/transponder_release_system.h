@@ -9,6 +9,8 @@
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
 
+#include "Network/perso_client_connection.h"
+
 class TransponderReleaseSystem : public QObject {
   Q_OBJECT
 
@@ -16,6 +18,7 @@ class TransponderReleaseSystem : public QObject {
   enum ReturnStatus {
     Unknown,
     Failed,
+    DatabaseConnectionError,
     TransactionError,
     ProductionLineMissed,
     ProductionLineNotActive,
@@ -32,9 +35,9 @@ class TransponderReleaseSystem : public QObject {
   explicit TransponderReleaseSystem(QObject* parent);
 
  public slots:
-  bool start(void);
-  bool stop(void);
-  void applySettings();
+  void start(ReturnStatus* status);
+  void stop(void);
+  void applySettings(void);
 
   void authorize(const QMap<QString, QString>* parameters,
                  ReturnStatus* status);

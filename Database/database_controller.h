@@ -20,7 +20,7 @@ class IDatabaseController : public QObject {
   explicit IDatabaseController(QObject* parent);
 
   virtual bool connect(void) = 0;
-  virtual bool disconnect(void) = 0;
+  virtual void disconnect(void) = 0;
 
   virtual bool openTransaction(void) const = 0;
   virtual bool closeTransaction(void) const = 0;
