@@ -3,7 +3,7 @@
 PersoClientConnection::PersoClientConnection(uint32_t id,
                                              qintptr socketDescriptor) {
   setObjectName("PersoClientConnection");
-  ID = id;
+  Id = id;
 
   // Загружаем настройки
   loadSettings();
@@ -24,7 +24,7 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
 PersoClientConnection::~PersoClientConnection() {}
 
 uint32_t PersoClientConnection::getId() {
-  return ID;
+  return Id;
 }
 
 void PersoClientConnection::applySettings() {
@@ -121,12 +121,12 @@ void PersoClientConnection::createReleaserWaitTimer() {
 }
 
 void PersoClientConnection::createTransmittedDataBlock() {
+  QJsonDocument responseDocument(CurrentResponse);
+
   emit logging("Формирование блока данных для ответа на команду. ");
-  emit logging(
-      QString("Размер ответа: %1. Содержание ответа: %2. ")
-          .arg(QString::number(
-              CurrentResponse.toJson(QJsonDocument::Compact).size()))
-          .arg(QString(CurrentResponse.toJson(QJsonDocument::Compact))));
+  emit logging(QString("Размер ответа: %1. Содержание ответа: %2. ")
+                   .arg(QString::number(responseDocument.toJson().size()))
+                   .arg(QString(responseDocument.toJson())));
 
   // Инициализируем блок данных и сериализатор
   TransmittedDataBlock.clear();
@@ -134,7 +134,7 @@ void PersoClientConnection::createTransmittedDataBlock() {
   serializator.setVersion(QDataStream::Qt_5_12);
 
   // Формируем единый блок данных для отправки
-  serializator << uint32_t(0) << CurrentResponse.toJson(QJsonDocument::Compact);
+  serializator << uint32_t(0) << responseDocument.toJson();
   serializator.device()->seek(0);
   serializator << uint32_t(TransmittedDataBlock.size() - sizeof(uint32_t));
 }
@@ -157,7 +157,8 @@ void PersoClientConnection::transmitDataBlock() {
 
 void PersoClientConnection::processReceivedDataBlock(void) {
   QJsonParseError status;
-  CurrentCommand = QJsonDocument::fromJson(ReceivedDataBlock, &status);
+  QJsonDocument requestDocument =
+      QJsonDocument::fromJson(ReceivedDataBlock, &status);
 
   // Если пришел некорректный JSON
   if (status.error != QJsonParseError::NoError) {
@@ -168,7 +169,7 @@ void PersoClientConnection::processReceivedDataBlock(void) {
   }
 
   // Выделяем список пар ключ-значение из JSON-файла
-  QJsonObject CommandObject = CurrentCommand.object();
+  QJsonObject CommandObject = requestDocument.object();
 
   // Синтаксическая проверка
   if (CommandObject.value("CommandName") == QJsonValue::Undefined) {
@@ -202,7 +203,7 @@ void PersoClientConnection::processReceivedDataBlock(void) {
 }
 
 void PersoClientConnection::processEcho(QJsonObject* commandJson) {
-  emit logging("Выполнение команды EchoRequest. ");
+  emit logging("Выполнение команды Echo. ");
 
   // Синтаксическая проверка
   if (commandJson->value("Data").isUndefined()) {
@@ -213,23 +214,26 @@ void PersoClientConnection::processEcho(QJsonObject* commandJson) {
   }
 
   // Формирование ответа
-  QJsonObject responseJson;
-  responseJson["ResponseName"] = "Echo";
-  responseJson["Data"] = commandJson->value("Data");
-
-  CurrentResponse.setObject(responseJson);
+  CurrentResponse["ResponseName"] = "Echo";
+  CurrentResponse["Data"] = commandJson->value("Data");
 }
 
 void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
   emit logging("Выполнение команды Authorization. ");
   QMap<QString, QString> authorizationParameters;
   TransponderReleaseSystem::ReturnStatus ret =
-      TransponderReleaseSystem::Unknown;
+      TransponderReleaseSystem::Undefined;
+
+  // Заголовок ответа
+  CurrentResponse["ResponseName"] = "Authorization";
 
   // Синтаксическая проверка
   if (commandJson->value("Login").isUndefined() ||
-      commandJson->value("Password").isUndefined()) {
+      commandJson->value("Login").toString().isEmpty() ||
+      commandJson->value("Password").isUndefined() ||
+      commandJson->value("Password").toString().isEmpty()) {
     emit logging("Обнаружена синтаксическая ошибка в команде Authorization. ");
+    CurrentResponse["Access"] = "Denied";
     return;
   }
 
@@ -241,22 +245,26 @@ void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
   emit authorize_signal(&authorizationParameters, &ret);
 
   // Ожидаем завершения работы
-  ReleaserWaitTimer->start();
-  ReleaserWaiting->exec();
+  while (ret == TransponderReleaseSystem::Undefined) {
+    QCoreApplication::processEvents();
+  }
 
-  // Формирование ответа
-  QJsonObject responseJson;
-  responseJson["ResponseName"] = "Authorization";
   if (ret == TransponderReleaseSystem::Success) {
-    responseJson["Access"] = commandJson->value("Allowed");
+    CurrentResponse["Access"] = "Allowed";
   } else {
-    responseJson["Access"] = commandJson->value("Denied");
+    CurrentResponse["Access"] = "Denied";
   }
 }
 
 void PersoClientConnection::processTransponderRelease(
     QJsonObject* commandJson) {
   emit logging("Выполнение команды TransponderRelease. ");
+  QMap<QString, QString> authorizationParameters;
+  TransponderReleaseSystem::ReturnStatus ret =
+      TransponderReleaseSystem::Undefined;
+
+  // Заголовок ответа
+  CurrentResponse["ResponseName"] = "Authorization";
 
   // Синтаксическая проверка
   if (commandJson->value("UCID") == QJsonValue::Undefined) {
@@ -267,21 +275,25 @@ void PersoClientConnection::processTransponderRelease(
     return;
   }
 
-  QJsonObject responseJson;
+  // Логика
+  authorizationParameters.insert("Login",
+                                 commandJson->value("Login").toString());
+  authorizationParameters.insert("Password",
+                                 commandJson->value("Password").toString());
+  emit authorize_signal(&authorizationParameters, &ret);
 
-  // Заголовок ответа на команду
-  responseJson["CommandName"] = "TransponderRelease";
+  // Ожидаем завершения работы
+  while (ret == TransponderReleaseSystem::Undefined) {
+    QCoreApplication::processEvents();
+  }
 
-  // Данные
   QFile firmware("firmware.hex");
   if (firmware.open(QIODevice::ReadOnly)) {
-    responseJson["FirmwareFile"] = QString::fromUtf8(firmware.readAll());
+    CurrentResponse["FirmwareFile"] = QString::fromUtf8(firmware.readAll());
     firmware.close();
   } else {
     emit logging("Не найден файл прошивки. ");
   }
-
-  CurrentResponse.setObject(responseJson);
 }
 
 void PersoClientConnection::processTransponderReleaseConfirm(
@@ -353,6 +365,10 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
 
   // Отправляем сформированный блок данных
   transmitDataBlock();
+
+  // Очистка
+  CurrentCommand = QJsonObject();
+  CurrentResponse = QJsonObject();
 }
 
 void PersoClientConnection::on_SocketDisconnected_slot() {

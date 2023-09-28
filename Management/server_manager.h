@@ -162,12 +162,14 @@ class ServerManager : public QObject {
 
   void releaseTransponder_signal(
       const QMap<QString, QString>* releaseParameters,
-      TransponderSeedModel* seed);
+      QMap<QString, QString>* attributes,
+      QMap<QString, QString>* masterKeys);
   void confirmReleaseTransponder_signal(
       const QMap<QString, QString>* confirmParameters);
   void rereleaseTransponder_signal(
       const QMap<QString, QString>* rereleaseParameters,
-      TransponderSeedModel* seed);
+      QMap<QString, QString>* attributes,
+      QMap<QString, QString>* masterKeys);
   void confirmRereleaseTransponder_signal(
       const QMap<QString, QString>* confirmParameters);
   void searchTransponder_signal(const QMap<QString, QString>* searchParameters,

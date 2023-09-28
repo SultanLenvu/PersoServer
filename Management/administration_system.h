@@ -55,11 +55,13 @@ class AdministrationSystem : public QObject {
   void deleteLastProductionLine(void);
 
   void releaseTransponder(const QMap<QString, QString>* releaseParameters,
-                          TransponderSeedModel* model);
+                          QMap<QString, QString>* attributes,
+                          QMap<QString, QString>* masterKeys);
   void confirmReleaseTransponder(
       const QMap<QString, QString>* confirmParameters);
   void rereleaseTransponder(const QMap<QString, QString>* rereleaseParameters,
-                            TransponderSeedModel* model);
+                            QMap<QString, QString>* attributes,
+                            QMap<QString, QString>* masterKeys);
   void confirmRereleaseTransponder(
       const QMap<QString, QString>* confirmParameters);
   void searchTransponder(const QMap<QString, QString>* searchParameters,

@@ -12,6 +12,7 @@
 
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
+#include "Management/firmware_generation_system.h"
 #include "Management/transponder_release_system.h"
 
 class PersoClientConnection : public QObject {
@@ -19,7 +20,7 @@ class PersoClientConnection : public QObject {
 
  private:
   int32_t MaximumConnectionTime;
-  uint32_t ID;
+  uint32_t Id;
 
   QTcpSocket* Socket;
 
@@ -27,8 +28,8 @@ class PersoClientConnection : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
-  QJsonDocument CurrentCommand;
-  QJsonDocument CurrentResponse;
+  QJsonObject CurrentCommand;
+  QJsonObject CurrentResponse;
 
   QTimer* ExpirationTimer;
   QTimer* DataBlockWaitTimer;
@@ -36,14 +37,16 @@ class PersoClientConnection : public QObject {
   QTimer* ReleaserWaitTimer;
   QEventLoop* ReleaserWaiting;
 
+  FirmwareGenerationSystem* Generator;
+
  public:
   explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
   ~PersoClientConnection();
 
   uint32_t getId(void);
-  void applySettings(void);
 
  public slots:
+  void applySettings(void);
   void instanceTesting(void);
   void releaserFinished(void);
 

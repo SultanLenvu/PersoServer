@@ -466,12 +466,15 @@ void ServerManager::releaseTransponderManually(
   }
 
   emit logging("Выпуск транспондера. ");
-  emit releaseTransponder_signal(releaseParameters, seed);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  emit releaseTransponder_signal(releaseParameters, attributes, masterKeys);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
+  seed->build(attributes, masterKeys);
   endOperationExecution("releaseTransponderManually");
 }
 
@@ -501,12 +504,15 @@ void ServerManager::rereleaseTransponderManually(
   }
 
   emit logging("Перевыпуск транспондера. ");
-  emit rereleaseTransponder_signal(rereleaseParameters, seed);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  emit rereleaseTransponder_signal(rereleaseParameters, attributes, masterKeys);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
+  seed->build(attributes, masterKeys);
   endOperationExecution("rereleaseTransponderManually");
 }
 

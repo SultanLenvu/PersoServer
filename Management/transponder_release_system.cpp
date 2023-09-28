@@ -44,11 +44,6 @@ void TransponderReleaseSystem::authorize(
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
-  if (sender()->objectName() == "PersoClientConnection") {
-    PersoClientConnection* obj =
-        reinterpret_cast<PersoClientConnection*>(sender());
-  }
-
   QMap<QString, QString> productionLineRecord;
 
   // Открываем транзакцию

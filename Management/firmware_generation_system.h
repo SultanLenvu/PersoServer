@@ -70,7 +70,8 @@ class FirmwareGenerationSystem : public QObject {
   explicit FirmwareGenerationSystem(QObject* parent);
   void applySettings(void);
 
-  bool generate(const TransponderSeedModel* seed,
+  bool generate(const QMap<QString, QString>* attributes,
+                const QMap<QString, QString>* masterKeys,
                 QByteArray* assembledFirmware);
 
  private:
@@ -80,9 +81,11 @@ class FirmwareGenerationSystem : public QObject {
   bool assembleFirmware(const QByteArray* firmwareData,
                         QByteArray* assembledFirmware);
 
-  bool generateFirmwareData(const TransponderSeedModel* seed,
+  bool generateFirmwareData(const QMap<QString, QString>* attributes,
+                            const QMap<QString, QString>* masterKeys,
                             QByteArray* firmwareData);
-  void generateCommonKeys(const TransponderSeedModel* seed);
+  void generateCommonKeys(const QMap<QString, QString>* attributes,
+                          const QMap<QString, QString>* masterKeys);
   void generatePaymentMeans(const QString& pan, QString& paymentMeans);
 
  signals:

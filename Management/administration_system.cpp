@@ -585,7 +585,8 @@ void AdministrationSystem::allocateInactiveProductionLines(
 
 void AdministrationSystem::releaseTransponder(
     const QMap<QString, QString>* releaseParameters,
-    TransponderSeedModel* model) {
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys) {
   TransponderReleaseSystem::ReturnStatus status;
 
   emit logging("Генерация сида транспондера. ");
@@ -598,8 +599,6 @@ void AdministrationSystem::releaseTransponder(
     return;
   }
 
-  QMap<QString, QString>* attributes = new QMap<QString, QString>();
-  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
   Releaser->release(releaseParameters, attributes, masterKeys, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при выпуске транспондера. ");
@@ -608,14 +607,14 @@ void AdministrationSystem::releaseTransponder(
   }
 
   Releaser->stop();
-  model->build(attributes, masterKeys);
 
   emit logging("Генерация прошивки транспондера. ");
   emit logging(releaseParameters->value("firmware_ref"));
   // Сделал грязь
   Generator->generate(
-      model, reinterpret_cast<QByteArray*>(
-                 releaseParameters->value("firmware_pointer").toInt()));
+      attributes, masterKeys,
+      reinterpret_cast<QByteArray*>(
+          releaseParameters->value("firmware_pointer").toInt()));
 
   emit operationFinished(CompletedSuccessfully);
 }
@@ -645,7 +644,8 @@ void AdministrationSystem::confirmReleaseTransponder(
 
 void AdministrationSystem::rereleaseTransponder(
     const QMap<QString, QString>* rereleaseParameters,
-    TransponderSeedModel* model) {
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys) {
   TransponderReleaseSystem::ReturnStatus status;
 
   TransponderReleaseSystem::ReturnStatus ret;
@@ -656,8 +656,6 @@ void AdministrationSystem::rereleaseTransponder(
     return;
   }
 
-  QMap<QString, QString>* attributes = new QMap<QString, QString>();
-  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
   Releaser->rerelease(rereleaseParameters, attributes, masterKeys, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при перевыпуске транспондера. ");
@@ -666,7 +664,15 @@ void AdministrationSystem::rereleaseTransponder(
   }
 
   Releaser->stop();
-  model->build(attributes, masterKeys);
+
+  emit logging("Генерация прошивки транспондера. ");
+  emit logging(rereleaseParameters->value("firmware_ref"));
+  // Сделал грязь
+  Generator->generate(
+      attributes, masterKeys,
+      reinterpret_cast<QByteArray*>(
+          rereleaseParameters->value("firmware_pointer").toInt()));
+
   emit operationFinished(CompletedSuccessfully);
 }
 

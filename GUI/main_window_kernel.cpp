@@ -288,6 +288,7 @@ void MainWindowKernel::on_ReleaseTransponderPushButton_slot()
 
   Manager->releaseTransponderManually(&releaseParameters, TransponderSeed);
 
+  // Отображение сгенерированной прошивки
   gui->AssembledFirmwareView->clear();
   gui->AssembledFirmwareView->appendPlainText(firmware.toHex());
 
@@ -322,6 +323,7 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot() {
   QString choice = gui->SearchTransponderByComboBox->currentText();
   QString input = gui->RereleaseTransponderLineEdit->text();
   QString ucid = gui->NewUcidLineEdit->text();
+  QByteArray firmware;
 
   Logger->clear();
 
@@ -340,8 +342,16 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot() {
     rereleaseParameters.insert("personal_account_number", input);
   }
   rereleaseParameters.insert("ucid", ucid);
+  // Сделал грязь
+  rereleaseParameters.insert(
+      "firmware_pointer",
+      QString::number(reinterpret_cast<uint64_t>(&firmware)));
 
   Manager->rereleaseTransponderManually(&rereleaseParameters, TransponderSeed);
+
+  // Отображение сгенерированной прошивки
+  gui->AssembledFirmwareView->clear();
+  gui->AssembledFirmwareView->appendPlainText(firmware.toHex());
 
   CurrentGUI->update();
 }

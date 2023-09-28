@@ -9,14 +9,12 @@
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
 
-#include "Network/perso_client_connection.h"
-
 class TransponderReleaseSystem : public QObject {
   Q_OBJECT
 
  public:
   enum ReturnStatus {
-    Unknown,
+    Undefined,
     Failed,
     DatabaseConnectionError,
     TransactionError,
