@@ -81,18 +81,20 @@ class ServerManager : public QObject {
 
   void releaseTransponderManually(
       const QMap<QString, QString>* releaseParameters,
-      TransponderSeedModel* model);
-  void confirmReleaseTransponderManually(
-      const QMap<QString, QString>* confirmParameters);
+      TransponderSeedModel* seed);
+  void confirmTransponderReleaseManually(
+      const QMap<QString, QString>* confirmParameters,
+      TransponderSeedModel* seed);
   void rereleaseTransponderManually(
       const QMap<QString, QString>* rereleaseParameters,
-      TransponderSeedModel* model);
-  void confirmRereleaseTransponderManually(
-      const QMap<QString, QString>* confirmParameters);
+      TransponderSeedModel* seed);
+  void confirmTransponderRereleaseManually(
+      const QMap<QString, QString>* confirmParameters,
+      TransponderSeedModel* seed);
   void searchTransponderManually(const QMap<QString, QString>* searchParameters,
-                                 TransponderSeedModel* model);
+                                 TransponderSeedModel* seed);
   void refundTransponderManually(const QMap<QString, QString>* refundParameters,
-                                 TransponderSeedModel* model);
+                                 TransponderSeedModel* seed);
 
   void initIssuers(DatabaseTableModel* model);
   void initTransportMasterKeys(DatabaseTableModel* model);
@@ -165,13 +167,15 @@ class ServerManager : public QObject {
       QMap<QString, QString>* attributes,
       QMap<QString, QString>* masterKeys);
   void confirmReleaseTransponder_signal(
-      const QMap<QString, QString>* confirmParameters);
+      const QMap<QString, QString>* confirmParameters,
+      QMap<QString, QString>* transponderInfo);
   void rereleaseTransponder_signal(
       const QMap<QString, QString>* rereleaseParameters,
       QMap<QString, QString>* attributes,
       QMap<QString, QString>* masterKeys);
   void confirmRereleaseTransponder_signal(
-      const QMap<QString, QString>* confirmParameters);
+      const QMap<QString, QString>* confirmParameters,
+      QMap<QString, QString>* transponderInfo);
   void searchTransponder_signal(const QMap<QString, QString>* searchParameters,
                                 TransponderSeedModel* seed);
   void refundTransponder_signal(const QMap<QString, QString>* refundParameters,

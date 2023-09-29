@@ -478,21 +478,25 @@ void ServerManager::releaseTransponderManually(
   endOperationExecution("releaseTransponderManually");
 }
 
-void ServerManager::confirmReleaseTransponderManually(
-    const QMap<QString, QString>* confirmParameters) {
+void ServerManager::confirmTransponderReleaseManually(
+    const QMap<QString, QString>* confirmParameters,
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("confirmReleaseTransponderManually")) {
+  if (!startOperationExecution("confirmTransponderReleaseManually")) {
     return;
   }
 
   emit logging("Подтверждение выпуска транспондера. ");
-  emit confirmReleaseTransponder_signal(confirmParameters);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  emit confirmReleaseTransponder_signal(confirmParameters, attributes);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("confirmReleaseTransponderManually");
+  seed->build(attributes, masterKeys);
+  endOperationExecution("confirmTransponderReleaseManually");
 }
 
 void ServerManager::rereleaseTransponderManually(
@@ -516,21 +520,25 @@ void ServerManager::rereleaseTransponderManually(
   endOperationExecution("rereleaseTransponderManually");
 }
 
-void ServerManager::confirmRereleaseTransponderManually(
-    const QMap<QString, QString>* confirmParameters) {
+void ServerManager::confirmTransponderRereleaseManually(
+    const QMap<QString, QString>* confirmParameters,
+    TransponderSeedModel* seed) {
   // Начинаем выполнение операции
-  if (!startOperationExecution("confirmRereleaseTransponderManually")) {
+  if (!startOperationExecution("confirmTransponderRereleaseManually")) {
     return;
   }
 
   emit logging("Подтверждение перевыпуска транспондера. ");
-  emit confirmRereleaseTransponder_signal(confirmParameters);
+  QMap<QString, QString>* attributes = new QMap<QString, QString>();
+  QMap<QString, QString>* masterKeys = new QMap<QString, QString>();
+  emit confirmRereleaseTransponder_signal(confirmParameters, attributes);
 
   // Запускаем цикл ожидания
   WaitingLoop->exec();
 
   // Завершаем выполнение операции
-  endOperationExecution("confirmRereleaseTransponderManually");
+  seed->build(attributes, masterKeys);
+  endOperationExecution("confirmTransponderRereleaseManually");
 }
 
 void ServerManager::searchTransponderManually(

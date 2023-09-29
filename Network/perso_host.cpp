@@ -16,8 +16,10 @@ PersoHost::PersoHost(QObject* parent) : QTcpServer(parent) {
 }
 
 PersoHost::~PersoHost() {
-  ReleaserThread->quit();
-  ReleaserThread->wait();
+  if (ReleaserThread->isRunning()) {
+    ReleaserThread->quit();
+    ReleaserThread->wait();
+  }
 
   QMap<int32_t, QThread*>::iterator it1;
   for (it1 = ClientThreads.begin(); it1 != ClientThreads.end(); it1++) {
@@ -108,7 +110,7 @@ void PersoHost::createReleaserInstance() {
           &TransponderReleaseSystem::stop);
 
   // Создаем отдельный поток для системы выпуска транспондеров
-  QThread* ReleaserThread = new QThread(this);
+  ReleaserThread = new QThread(this);
   Releaser->moveToThread(ReleaserThread);
 
   connect(ReleaserThread, &QThread::finished, ReleaserThread,

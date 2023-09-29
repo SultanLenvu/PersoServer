@@ -157,14 +157,10 @@ bool FirmwareGenerationSystem::generateFirmwareData(
       ACCR_REFERENCE_FPI, ACCR_REFERENCE_SIZE,
       QByteArray::fromHex(attributes->value("accr_reference").toUtf8()));
 
-  QDate date = QDate::currentDate();
-  QString batteryInsertationDate =
-      QString("%1%2")
-          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
-          .arg(QString::number(date.year() % 100), 2, QChar('0'));
-  firmwareData->replace(BATTERY_INSERTATION_DATE_FPI,
-                        BATTERY_INSERTATION_DATE_SIZE,
-                        QByteArray::fromHex(batteryInsertationDate.toUtf8()));
+  firmwareData->replace(
+      BATTERY_INSERTATION_DATE_FPI, BATTERY_INSERTATION_DATE_SIZE,
+      QByteArray::fromHex(
+          attributes->value("battery_insertation_date").toUtf8()));
 
   // Ключи безопасности
   generateCommonKeys(attributes, masterKeys);

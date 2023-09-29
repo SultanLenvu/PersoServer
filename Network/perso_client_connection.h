@@ -28,6 +28,7 @@ class PersoClientConnection : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
+  QMap<QString, QJsonObject> CommandTemplates;
   QJsonObject CurrentCommand;
   QJsonObject CurrentResponse;
 
@@ -56,6 +57,7 @@ class PersoClientConnection : public QObject {
   void createExpirationTimer(void);
   void createDataBlockWaitTimer(void);
   void createReleaserWaitTimer(void);
+  void createCommandTemplates(void);
 
   void createTransmittedDataBlock(void);
   void transmitDataBlock(void);
@@ -89,12 +91,14 @@ class PersoClientConnection : public QObject {
                       QMap<QString, QString>* masterKeys,
                       TransponderReleaseSystem::ReturnStatus* status);
   void confirmRelease_signal(const QMap<QString, QString>* parameters,
+                             QMap<QString, QString>* transponderInfo,
                              TransponderReleaseSystem::ReturnStatus* status);
   void rerelease_signal(const QMap<QString, QString>* parameters,
                         QMap<QString, QString>* attributes,
                         QMap<QString, QString>* masterKeys,
                         TransponderReleaseSystem::ReturnStatus* status);
   void confirmRerelease_signal(const QMap<QString, QString>* parameters,
+                               QMap<QString, QString>* transponderInfo,
                                TransponderReleaseSystem::ReturnStatus* status);
   void search_signal(const QMap<QString, QString>* parameters,
                      QMap<QString, QString>* attributes,

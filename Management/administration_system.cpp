@@ -609,7 +609,6 @@ void AdministrationSystem::releaseTransponder(
   Releaser->stop();
 
   emit logging("Генерация прошивки транспондера. ");
-  emit logging(releaseParameters->value("firmware_ref"));
   // Сделал грязь
   Generator->generate(
       attributes, masterKeys,
@@ -620,7 +619,8 @@ void AdministrationSystem::releaseTransponder(
 }
 
 void AdministrationSystem::confirmReleaseTransponder(
-    const QMap<QString, QString>* confirmParameters) {
+    const QMap<QString, QString>* confirmParameters,
+    QMap<QString, QString>* transponderInfo) {
   TransponderReleaseSystem::ReturnStatus status;
 
   TransponderReleaseSystem::ReturnStatus ret;
@@ -631,7 +631,7 @@ void AdministrationSystem::confirmReleaseTransponder(
     return;
   }
 
-  Releaser->confirmRelease(confirmParameters, &status);
+  Releaser->confirmRelease(confirmParameters, transponderInfo, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(ReleaserError);
@@ -677,7 +677,8 @@ void AdministrationSystem::rereleaseTransponder(
 }
 
 void AdministrationSystem::confirmRereleaseTransponder(
-    const QMap<QString, QString>* confirmParameters) {
+    const QMap<QString, QString>* confirmParameters,
+    QMap<QString, QString>* transponderInfo) {
   TransponderReleaseSystem::ReturnStatus status;
 
   TransponderReleaseSystem::ReturnStatus ret;
@@ -688,7 +689,7 @@ void AdministrationSystem::confirmRereleaseTransponder(
     return;
   }
 
-  Releaser->confirmRerelease(confirmParameters, &status);
+  Releaser->confirmRerelease(confirmParameters, transponderInfo, &status);
   if (status != TransponderReleaseSystem::Success) {
     emit logging("Получена ошибка при подтверждении транспондера. ");
     emit operationFinished(ReleaserError);

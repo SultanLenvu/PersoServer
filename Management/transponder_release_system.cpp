@@ -176,12 +176,11 @@ void TransponderReleaseSystem::release(
     return;
   }
 
-  // Выгружаем всю информацию о выпускаемом транспондере
+  // Генерируем сид транспондера
   searchPair.first = "id";
   searchPair.second = transponderRecord.value("id");
   if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
-    emit logging(
-        "Получена ошибка при получении объединенных данных о транспондере. ");
+    emit logging("Получена ошибка при генерации сида транспондера. ");
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
@@ -201,6 +200,7 @@ void TransponderReleaseSystem::release(
 
 void TransponderReleaseSystem::confirmRelease(
     const QMap<QString, QString>* confirmParameters,
+    QMap<QString, QString>* transponderInfo,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -239,6 +239,17 @@ void TransponderReleaseSystem::confirmRelease(
   if (!confirmTransponder(productionLineRecord.value("transponder_id"))) {
     emit logging(QString("Получена ошибка при подтвеждении транспондера %1. ")
                      .arg(productionLineRecord.value("transponder_id")));
+    *status = Failed;
+    Database->abortTransaction();
+    emit operationFinished();
+    return;
+  }
+
+  // Собираем информацию о транспондере
+  if (!generateTransponderInfo(productionLineRecord.value("transponder_id"),
+                               transponderInfo)) {
+    emit logging(
+        "Получена ошибка при сборе информации о выпущенном транспондере. ");
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
@@ -323,12 +334,11 @@ void TransponderReleaseSystem::rerelease(
     return;
   }
 
-  // Выгружаем всю информацию о перевыпущенном транспондере
+  // Генерируем сид перевыпущенного транспондера
   searchPair.first = "id";
   searchPair.second = transponderRecord.value("id");
   if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
-    emit logging(
-        "Получена ошибка при получении объединенных данных о транспондере. ");
+    emit logging("Получена ошибка при генерации сида транспондера. ");
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
@@ -346,6 +356,7 @@ void TransponderReleaseSystem::rerelease(
 
 void TransponderReleaseSystem::confirmRerelease(
     const QMap<QString, QString>* confirmParameters,
+    QMap<QString, QString>* transponderInfo,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -391,6 +402,17 @@ void TransponderReleaseSystem::confirmRerelease(
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
+    *status = Failed;
+    Database->abortTransaction();
+    emit operationFinished();
+    return;
+  }
+
+  // Собираем информацию о транспондере
+  if (!generateTransponderInfo(transponderRecord.value("id"),
+                               transponderInfo)) {
+    emit logging(
+        "Получена ошибка при сборе информации о перевыпущенном транспондере. ");
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
@@ -505,6 +527,15 @@ bool TransponderReleaseSystem::generateTransponderSeed(
     return false;
   }
 
+  // Генерируем дату активации батареи
+  QDate date = QDate::currentDate();
+  QString batteryInsertationDate =
+      QString("%1%2")
+          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
+          .arg(QString::number(date.year() % 100), 2, QChar('0'));
+  attributes->insert("battery_insertation_date",
+                     batteryInsertationDate.toUtf8());
+
   // Запрашиваем мастер ключи
   masterKeys->insert("accr_key", "");
   masterKeys->insert("per_key", "");
@@ -528,6 +559,55 @@ bool TransponderReleaseSystem::generateTransponderSeed(
     return false;
   }
   masterKeys->remove("id");
+
+  return true;
+}
+
+bool TransponderReleaseSystem::generateTransponderInfo(
+    const QString& transponderId,
+    QMap<QString, QString>* info) {
+  QStringList tables;
+  QStringList foreignKeys;
+  QString keyTableName;
+
+  // Запрашиваем атрибуты
+  tables.append("transponders");
+  tables.append("boxes");
+  tables.append("pallets");
+  tables.append("orders");
+  tables.append("issuers");
+  foreignKeys.append("box_id");
+  foreignKeys.append("pallet_id");
+  foreignKeys.append("order_id");
+  foreignKeys.append("issuer_id");
+
+  info->insert("manufacturer_id", "");
+  info->insert("equipment_class", "");
+  info->insert("transponder_model", "");
+  info->insert("accr_reference", "");
+  info->insert("ucid", "");
+
+  info->insert("efc_context_mark", "");
+  info->insert("personal_account_number", "");
+
+  info->insert("box_id", "");
+  info->insert("pallet_id", "");
+  info->insert("order_id", "");
+  info->insert("issuer_id", "");
+  info->insert("issuers.name", "");
+  info->insert("transponders.id", transponderId);
+
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, *info)) {
+    return false;
+  }
+
+  // Генерируем дату активации батареи
+  QDate date = QDate::currentDate();
+  QString batteryInsertationDate =
+      QString("%1%2")
+          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
+          .arg(QString::number(date.year() % 100), 2, QChar('0'));
+  info->insert("battery_insertation_date", batteryInsertationDate.toUtf8());
 
   return true;
 }

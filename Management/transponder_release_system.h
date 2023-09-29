@@ -44,6 +44,7 @@ class TransponderReleaseSystem : public QObject {
                QMap<QString, QString>* masterKeys,
                ReturnStatus* status);
   void confirmRelease(const QMap<QString, QString>* parameters,
+                      QMap<QString, QString>* transponderInfo,
                       ReturnStatus* status);
 
   void rerelease(const QMap<QString, QString>* parameters,
@@ -51,6 +52,7 @@ class TransponderReleaseSystem : public QObject {
                  QMap<QString, QString>* masterKeys,
                  ReturnStatus* status);
   void confirmRerelease(const QMap<QString, QString>* parameters,
+                        QMap<QString, QString>* transponderInfo,
                         ReturnStatus* status);
 
   void search(const QMap<QString, QString>* parameters,
@@ -65,6 +67,7 @@ class TransponderReleaseSystem : public QObject {
   bool generateTransponderSeed(const QPair<QString, QString>* searchPair,
                                QMap<QString, QString>* attributes,
                                QMap<QString, QString>* masterKeys);
+  bool generateTransponderInfo(const QString&, QMap<QString, QString>* info);
   bool checkRerelease(const QMap<QString, QString>& transponderRecord,
                       const QMap<QString, QString>& searchData);
 

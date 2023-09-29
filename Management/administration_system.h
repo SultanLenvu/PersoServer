@@ -58,12 +58,14 @@ class AdministrationSystem : public QObject {
                           QMap<QString, QString>* attributes,
                           QMap<QString, QString>* masterKeys);
   void confirmReleaseTransponder(
-      const QMap<QString, QString>* confirmParameters);
+      const QMap<QString, QString>* confirmParameters,
+      QMap<QString, QString>* transponderInfo);
   void rereleaseTransponder(const QMap<QString, QString>* rereleaseParameters,
                             QMap<QString, QString>* attributes,
                             QMap<QString, QString>* masterKeys);
   void confirmRereleaseTransponder(
-      const QMap<QString, QString>* confirmParameters);
+      const QMap<QString, QString>* confirmParameters,
+      QMap<QString, QString>* transponderInfo);
   void searchTransponder(const QMap<QString, QString>* searchParameters,
                          TransponderSeedModel* model);
   void refundTransponder(const QMap<QString, QString>* refundParameters,

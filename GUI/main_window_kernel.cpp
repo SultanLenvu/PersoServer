@@ -312,7 +312,8 @@ void MainWindowKernel::on_ConfirmTransponderPushButton_slot() {
   confirmParameters.insert("login", gui->LoginLineEdit2->text());
   confirmParameters.insert("password", gui->PasswordLineEdit2->text());
 
-  Manager->confirmReleaseTransponderManually(&confirmParameters);
+  Manager->confirmTransponderReleaseManually(&confirmParameters,
+                                             TransponderSeed);
 
   CurrentGUI->update();
 }
@@ -382,7 +383,8 @@ void MainWindowKernel::on_ConfirmRereleaseTransponderPushButton_slot() {
   }
   confirmParameters.insert("ucid", ucid);
 
-  Manager->confirmRereleaseTransponderManually(&confirmParameters);
+  Manager->confirmTransponderRereleaseManually(&confirmParameters,
+                                               TransponderSeed);
 
   CurrentGUI->update();
 }
