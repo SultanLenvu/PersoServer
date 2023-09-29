@@ -233,9 +233,7 @@ void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("login").toString().isEmpty() ||
-      commandJson->value("password").isUndefined() ||
-      commandJson->value("password").toString().isEmpty()) {
+      commandJson->value("password").isUndefined()) {
     emit logging("Обнаружена синтаксическая ошибка в команде Authorization. ");
     CurrentResponse["return_status"] = "SyntaxError";
     return;
@@ -255,6 +253,11 @@ void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
 
   if (ret == TransponderReleaseSystem::Success) {
     CurrentResponse["access"] = "Allowed";
+  } else if (ret == TransponderReleaseSystem::ProductionLineNotActive) {
+    CurrentResponse["access"] = "NotActive";
+  } else if ((ret == TransponderReleaseSystem::Failed) ||
+             (ret == TransponderReleaseSystem::ProductionLineMissed)) {
+    CurrentResponse["access"] = "NotExist";
   } else {
     CurrentResponse["access"] = "Denied";
   }
@@ -273,11 +276,8 @@ void PersoClientConnection::processTransponderRelease(
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("login").toString().isEmpty() ||
       commandJson->value("password").isUndefined() ||
-      commandJson->value("password").toString().isEmpty() ||
-      commandJson->value("ucid").isUndefined() ||
-      commandJson->value("ucid").toString().isEmpty()) {
+      commandJson->value("ucid").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде TransponderRelease.");
     CurrentResponse["return_status"] = "SyntaxError";
@@ -323,9 +323,7 @@ void PersoClientConnection::processTransponderReleaseConfirm(
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("login").toString().isEmpty() ||
-      commandJson->value("password").isUndefined() ||
-      commandJson->value("password").toString().isEmpty()) {
+      commandJson->value("password").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде "
         "TransponderReleaseConfirm.");
@@ -377,13 +375,9 @@ void PersoClientConnection::processTransponderRerelease(
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("login").toString().isEmpty() ||
       commandJson->value("password").isUndefined() ||
-      commandJson->value("password").toString().isEmpty() ||
       commandJson->value("pan").isUndefined() ||
-      commandJson->value("pan").toString().isEmpty() ||
-      commandJson->value("ucid").isUndefined() ||
-      commandJson->value("ucid").toString().isEmpty()) {
+      commandJson->value("ucid").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде TransponderRerelease.");
     CurrentResponse["return_status"] = "SyntaxError";
@@ -431,11 +425,8 @@ void PersoClientConnection::processTransponderRereleaseConfirm(
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("login").toString().isEmpty() ||
       commandJson->value("password").isUndefined() ||
-      commandJson->value("pan").isUndefined() ||
-      commandJson->value("pan").toString().isEmpty() ||
-      commandJson->value("password").toString().isEmpty()) {
+      commandJson->value("pan").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде "
         "TransponderRereleaseConfirm.");

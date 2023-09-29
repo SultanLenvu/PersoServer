@@ -936,7 +936,7 @@ bool AdministrationSystem::addOrder(
   int32_t lastId = 0;
 
   issuerRecord.insert("id", "");
-  issuerRecord.insert("name", orderParameters->value("IssuerName"));
+  issuerRecord.insert("name", orderParameters->value("issuer_name"));
   if (!Database->getRecordByPart("issuers", issuerRecord)) {
     emit logging(QString("Не найден идентифкатор эмитента \"%1\".")
                      .arg(orderParameters->value("IssuerName")));
@@ -960,6 +960,10 @@ bool AdministrationSystem::addOrder(
                      orderParameters->value("transponder_model"));
   orderRecord.insert("accr_reference",
                      orderParameters->value("accr_reference"));
+  orderRecord.insert("equipment_class",
+                     orderParameters->value("equipment_class"));
+  orderRecord.insert("manufacturer_id",
+                     orderParameters->value("manufacturer_id"));
   if (!Database->addRecord("orders", orderRecord)) {
     emit logging("Ошибка при добавлении заказа. ");
     return false;

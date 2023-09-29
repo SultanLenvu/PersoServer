@@ -54,8 +54,8 @@ void TransponderReleaseSystem::authorize(
   }
 
   // Получаем данные о производственной линии
-  productionLineRecord.insert("login", parameters->value("Login"));
-  productionLineRecord.insert("password", parameters->value("Password"));
+  productionLineRecord.insert("login", parameters->value("login"));
+  productionLineRecord.insert("password", parameters->value("password"));
   productionLineRecord.insert("transponder_id", "");
   productionLineRecord.insert("active", "");
   if (!Database->getRecordByPart("production_lines", productionLineRecord)) {

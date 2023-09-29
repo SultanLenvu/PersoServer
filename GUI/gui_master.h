@@ -73,8 +73,8 @@ class MasterGUI : public GUI {
 
   QWidget* OrderPanelSubWidget;
   QHBoxLayout* OrderPanelSubLayout;
-  QLabel* PanFilePathLabel;
-  QLineEdit* PanFilePathLineEdit;
+  QLabel* pan_file_pathLabel;
+  QLineEdit* pan_file_pathLineEdit;
   QPushButton* PanFileExplorePushButton;
   QHBoxLayout* OrderPanelSubLayout1;
   QLabel* IssuerNameComboLabel;
@@ -91,9 +91,15 @@ class MasterGUI : public GUI {
   QHBoxLayout* OrderPanelSublayout5;
   QLabel* TransponderModelLabel;
   QLineEdit* TransponderModelLineEdit;
-  QHBoxLayout* AccrReferenceSublayout6;
+  QHBoxLayout* OrderPanelSubLayout6;
   QLabel* AccrReferenceLabel;
   QLineEdit* AccrReferenceLineEdit;
+  QHBoxLayout* OrderPanelSubLayout7;
+  QLabel* EquipmentClassLabel;
+  QLineEdit* EquipmentClassLineEdit;
+  QHBoxLayout* OrderPanelSubLayout8;
+  QLabel* ManufacturerIdLabel;
+  QLineEdit* ManufacturerIdLineEdit;
   QPushButton* CreateNewOrderPushButton;
   QSpacerItem* OrderControlPanelVS1;
 

@@ -117,22 +117,26 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
   }
 
   QMap<QString, QString> orderParameters;
-
-  orderParameters.insert("IssuerName", gui->IssuerNameComboBox->currentText());
-  orderParameters.insert("TransponderQuantity",
+  orderParameters.insert("issuer_name", gui->IssuerNameComboBox->currentText());
+  orderParameters.insert("transponder_quantity",
                          gui->TransponderQuantityLineEdit->text());
-  orderParameters.insert("BoxCapacity", gui->BoxCapacityLineEdit->text());
-  orderParameters.insert("PalletCapacity", gui->PalletCapacityLineEdit->text());
+  orderParameters.insert("box_capacity", gui->BoxCapacityLineEdit->text());
+  orderParameters.insert("pallet_capacity",
+                         gui->PalletCapacityLineEdit->text());
   orderParameters.insert(
-      "FullPersonalization",
+      "full_personalization",
       gui->FullPersonalizationCheckBox->checkState() == Qt::Checked ? "true"
                                                                     : "false");
   if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
-    orderParameters.insert("PanFilePath", gui->PanFilePathLineEdit->text());
+    orderParameters.insert("pan_file_path", gui->pan_file_pathLineEdit->text());
   }
   orderParameters.insert("transponder_model",
                          gui->TransponderModelLineEdit->text());
   orderParameters.insert("accr_reference", gui->AccrReferenceLineEdit->text());
+  orderParameters.insert("equipment_class",
+                         gui->EquipmentClassLineEdit->text());
+  orderParameters.insert("manufacturer_id",
+                         gui->ManufacturerIdLineEdit->text());
 
   Manager->createNewOrder(&orderParameters, OrderModel);
 
@@ -195,8 +199,8 @@ void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
   }
 
   QMap<QString, QString> productionLineParameters;
-  productionLineParameters.insert("Login", gui->LoginLineEdit1->text());
-  productionLineParameters.insert("Password", gui->PasswordLineEdit1->text());
+  productionLineParameters.insert("login", gui->LoginLineEdit1->text());
+  productionLineParameters.insert("password", gui->PasswordLineEdit1->text());
   Manager->createNewProductionLine(&productionLineParameters,
                                    ProductionLineModel);
 
@@ -607,6 +611,8 @@ bool MainWindowKernel::checkNewOrderInput() const {
   int32_t palletCapacity = gui->PalletCapacityLineEdit->text().toInt();
   QString transponderModel = gui->TransponderModelLineEdit->text();
   QString accrReference = gui->AccrReferenceLineEdit->text();
+  QString equipmnetClass = gui->EquipmentClassLineEdit->text();
+  QString manufacturerId = gui->ManufacturerIdLineEdit->text();
 
   if (transponderQuantity <= 0) {
     return false;
@@ -625,7 +631,7 @@ bool MainWindowKernel::checkNewOrderInput() const {
   }
 
   if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
-    QFileInfo info(gui->PanFilePathLineEdit->text());
+    QFileInfo info(gui->pan_file_pathLineEdit->text());
     if ((!info.exists()) || (!info.isFile()) || (info.suffix() != "csv")) {
       return false;
     }
@@ -638,6 +644,16 @@ bool MainWindowKernel::checkNewOrderInput() const {
 
   if ((accrReference.length() > ACCR_REFERENCE_CHAR_LENGTH) ||
       (accrReference.length() == 0)) {
+    return false;
+  }
+
+  if ((equipmnetClass.length() > EQUIPMENT_CLASS_CHAR_LENGTH) ||
+      (equipmnetClass.length() == 0)) {
+    return false;
+  }
+
+  if ((manufacturerId.length() > MANUFACTURER_ID_CHAR_LENGTH) ||
+      (manufacturerId.length() == 0)) {
     return false;
   }
 

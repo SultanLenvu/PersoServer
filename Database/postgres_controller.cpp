@@ -265,14 +265,18 @@ bool PostgresController::getRecordByPart(const QString& tableName,
 
   requestText.chop(2);
   requestText += QString(" FROM public.%1 WHERE ").arg(tableName);
+  bool flag = false;
   for (QMap<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (it.value().size() > 0) {
+      flag = true;
       requestText += QString("%1 = '%2' AND ").arg(it.key(), it.value());
     }
   }
 
-  requestText.chop(4);
+  if (flag) {
+    requestText.chop(4);
+  }
   requestText += " ORDER BY id ASC LIMIT 1;";
 
   // Выполняем запрос
@@ -437,15 +441,19 @@ bool PostgresController::getMergedRecordByPart(
     requestText += QString("JOIN %1 ON %2.%3 = %1.id ")
                        .arg(tables.at(i + 1), tables.at(i), foreignKeys.at(i));
   }
-  requestText += "WHERE ";
 
+  requestText += "WHERE ";
+  bool flag = false;
   for (QMap<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (it.value().size() > 0) {
+      flag = true;
       requestText += QString("%1 = '%2' AND ").arg(it.key(), it.value());
     }
   }
-  requestText.chop(4);
+  if (flag) {
+    requestText.chop(4);
+  }
   requestText += QString(" ORDER BY %1.id ASC LIMIT 1;").arg(tables.first());
 
   // Выполняем запрос
@@ -529,13 +537,17 @@ bool PostgresController::updateAllRecordsByPart(
   requestText.chop(2);
 
   requestText += " WHERE ";
+  bool flag = false;
   for (QMap<QString, QString>::const_iterator it = conditions.constBegin();
        it != conditions.constEnd(); it++) {
     if (it.value().size() > 0) {
+      flag = true;
       requestText += QString("%1 = '%2' AND ").arg(it.key(), it.value());
     }
   }
-  requestText.chop(4);
+  if (flag) {
+    requestText.chop(4);
+  }
   requestText += ";";
 
   // Выполняем запрос
@@ -620,14 +632,17 @@ bool PostgresController::removeLastRecordByCondition(
       QString(
           "DELETE FROM public.%1 WHERE id = (SELECT id FROM public.%1 WHERE ")
           .arg(tableName);
+  bool flag = false;
   for (QMap<QString, QString>::const_iterator it = condition.constBegin();
        it != condition.constEnd(); it++) {
     if (it.value().size() > 0) {
+      flag = true;
       requestText += QString("%1 = '%2' AND ").arg(it.key(), it.value());
     }
   }
-  requestText.chop(4);
-
+  if (flag) {
+    requestText.chop(4);
+  }
   requestText += "ORDER BY id DESC LIMIT 1);";
 
   // Выполняем запрос

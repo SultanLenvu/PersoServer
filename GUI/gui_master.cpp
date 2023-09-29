@@ -228,12 +228,26 @@ void MasterGUI::createOrderTab() {
   TransponderModelLineEdit = new QLineEdit(" TC1001");
   OrderPanelSublayout5->addWidget(TransponderModelLineEdit);
 
-  AccrReferenceSublayout6 = new QHBoxLayout();
-  OrderControlPanelLayout->addLayout(AccrReferenceSublayout6);
+  OrderPanelSubLayout6 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSubLayout6);
   AccrReferenceLabel = new QLabel("ACCR Reference");
-  AccrReferenceSublayout6->addWidget(AccrReferenceLabel);
+  OrderPanelSubLayout6->addWidget(AccrReferenceLabel);
   AccrReferenceLineEdit = new QLineEdit("1DD1");
-  AccrReferenceSublayout6->addWidget(AccrReferenceLineEdit);
+  OrderPanelSubLayout6->addWidget(AccrReferenceLineEdit);
+
+  OrderPanelSubLayout7 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSubLayout7);
+  EquipmentClassLabel = new QLabel("Класс оборудования");
+  OrderPanelSubLayout7->addWidget(EquipmentClassLabel);
+  EquipmentClassLineEdit = new QLineEdit("F301");
+  OrderPanelSubLayout7->addWidget(EquipmentClassLineEdit);
+
+  OrderPanelSubLayout8 = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSubLayout8);
+  ManufacturerIdLabel = new QLabel("Идентификатор производителя");
+  OrderPanelSubLayout8->addWidget(ManufacturerIdLabel);
+  ManufacturerIdLineEdit = new QLineEdit("F301");
+  OrderPanelSubLayout8->addWidget(ManufacturerIdLineEdit);
 
   CreateNewOrderPushButton = new QPushButton("Создать новый заказ");
   OrderControlPanelLayout->addWidget(CreateNewOrderPushButton);
@@ -730,11 +744,11 @@ void MasterGUI::on_FullPersonalizationCheckBoxChanged_slot() {
     OrderPanelSubLayout = new QHBoxLayout();
     OrderPanelSubWidget->setLayout(OrderPanelSubLayout);
 
-    PanFilePathLabel = new QLabel("PAN-файл");
-    OrderPanelSubLayout->addWidget(PanFilePathLabel);
+    pan_file_pathLabel = new QLabel("PAN-файл");
+    OrderPanelSubLayout->addWidget(pan_file_pathLabel);
 
-    PanFilePathLineEdit = new QLineEdit();
-    OrderPanelSubLayout->addWidget(PanFilePathLineEdit);
+    pan_file_pathLineEdit = new QLineEdit();
+    OrderPanelSubLayout->addWidget(pan_file_pathLineEdit);
 
     PanFileExplorePushButton = new QPushButton("Обзор");
     OrderPanelSubLayout->addWidget(PanFileExplorePushButton);
@@ -750,7 +764,7 @@ void MasterGUI::on_PanFileExplorePushButton_slot() {
   QString filePath =
       QFileDialog::getOpenFileName(nullptr, "Выбрать файл", "./", "*.csv");
   if (!filePath.isEmpty()) {
-    PanFilePathLineEdit->setText(filePath);
+    pan_file_pathLineEdit->setText(filePath);
   }
 }
 
