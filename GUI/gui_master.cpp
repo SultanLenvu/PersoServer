@@ -640,7 +640,7 @@ void MasterGUI::createSettingsTab() {
   PersoServerSettingsLayout->addWidget(ClientConnectionMaxDurationLabel, 3, 0,
                                        1, 1);
   ClientConnectionMaxDurationLineEdit = new QLineEdit(
-      settings.value("PersoHost/ClientConnectionMaxDuration").toString());
+      settings.value("PersoHost/ClientConnection/MaxDuration").toString());
   PersoServerSettingsLayout->addWidget(ClientConnectionMaxDurationLineEdit, 3,
                                        1, 1, 1);
 

@@ -181,17 +181,17 @@ void PersoHost::createClientInstance(qintptr socketDescriptor) {
   ClientThreads.insert(clientId, newClientThread);
 
   // Соединяем клиента с системой выпуска транспондеров
-  connect(newClient, &PersoClientConnection::authorize_signal, Releaser,
+  connect(newClient, &PersoClientConnection::releaserAuthorize_signal, Releaser,
           &TransponderReleaseSystem::authorize);
-  connect(newClient, &PersoClientConnection::release_signal, Releaser,
+  connect(newClient, &PersoClientConnection::releaseRelease_signal, Releaser,
           &TransponderReleaseSystem::release);
-  connect(newClient, &PersoClientConnection::confirmRelease_signal, Releaser,
+  connect(newClient, &PersoClientConnection::releaserConfirmRelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRelease);
-  connect(newClient, &PersoClientConnection::rerelease_signal, Releaser,
+  connect(newClient, &PersoClientConnection::releaserRerelease_signal, Releaser,
           &TransponderReleaseSystem::rerelease);
-  connect(newClient, &PersoClientConnection::confirmRerelease_signal, Releaser,
+  connect(newClient, &PersoClientConnection::releaserConfirmRerelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRerelease);
-  connect(newClient, &PersoClientConnection::search_signal, Releaser,
+  connect(newClient, &PersoClientConnection::releaserSearch_signal, Releaser,
           &TransponderReleaseSystem::search);
 
   // Запускаем поток

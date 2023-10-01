@@ -5,13 +5,13 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
   setObjectName("TransponderReleaseSystem");
 
   loadSettings();
+
+  // Создаем подключение к БД
+  createDatabaseController();
 }
 
 void TransponderReleaseSystem::start(ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
-
-  // Создаем подключение к БД
-  createDatabaseController();
 
   emit logging("Подключение к базе данных. ");
   if (!Database->connect()) {

@@ -19,6 +19,12 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
 
   // Создаем таймер для приема блоков данных частями
   createDataBlockWaitTimer();
+
+  // Создаем генератор прошивок
+  createGenerator();
+
+  // Создаем шаблоны команд
+  createCommandTemplates();
 }
 
 PersoClientConnection::~PersoClientConnection() {}
@@ -120,6 +126,13 @@ void PersoClientConnection::createReleaserWaitTimer() {
   connect(Socket, &QTcpSocket::disconnected, ReleaserWaitTimer, &QTimer::stop);
 }
 
+void PersoClientConnection::createGenerator() {
+  Generator = new FirmwareGenerationSystem(this);
+
+  connect(Generator, &FirmwareGenerationSystem::logging, this,
+          &PersoClientConnection::proxyLogging);
+}
+
 void PersoClientConnection::createCommandTemplates() {}
 
 void PersoClientConnection::createTransmittedDataBlock() {
@@ -127,8 +140,8 @@ void PersoClientConnection::createTransmittedDataBlock() {
 
   emit logging("Формирование блока данных для ответа на команду. ");
   emit logging(QString("Размер ответа: %1. Содержание ответа: %2")
-                   .arg(QString::number(responseDocument.toJson().size()))
-                   .arg(QString(responseDocument.toJson())));
+                   .arg(QString::number(responseDocument.toJson().size()),
+                        QString(responseDocument.toJson())));
 
   // Инициализируем блок данных и сериализатор
   TransmittedDataBlock.clear();
@@ -244,7 +257,7 @@ void PersoClientConnection::processAuthorization(QJsonObject* commandJson) {
                                  commandJson->value("login").toString());
   authorizationParameters.insert("password",
                                  commandJson->value("password").toString());
-  emit authorize_signal(&authorizationParameters, &ret);
+  emit releaserAuthorize_signal(&authorizationParameters, &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
@@ -290,7 +303,7 @@ void PersoClientConnection::processTransponderRelease(
   releaseParameters.insert("login", commandJson->value("login").toString());
   releaseParameters.insert("password",
                            commandJson->value("password").toString());
-  emit release_signal(&releaseParameters, attributes, masterKeys, &ret);
+  emit releaseRelease_signal(&releaseParameters, attributes, masterKeys, &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
@@ -305,9 +318,9 @@ void PersoClientConnection::processTransponderRelease(
   }
 
   emit logging("Генерация прошивки транспондера. ");
-  QByteArray firmware("firmware.hex");
+  QByteArray firmware;
   Generator->generate(attributes, masterKeys, &firmware);
-  CurrentResponse["Firmware"] = QString(firmware);
+  CurrentResponse["firmware"] = QString::fromUtf8(firmware.toBase64());
   CurrentResponse["return_status"] = "NoError";
 }
 
@@ -337,7 +350,7 @@ void PersoClientConnection::processTransponderReleaseConfirm(
   releaseParameters.insert("password",
                            commandJson->value("password").toString());
 
-  emit confirmRelease_signal(&releaseParameters, transponderInfo, &ret);
+  emit releaserConfirmRelease_signal(&releaseParameters, transponderInfo, &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
@@ -392,7 +405,8 @@ void PersoClientConnection::processTransponderRerelease(
                              commandJson->value("password").toString());
   rereleaseParameters.insert("personal_account_number",
                              commandJson->value("pan").toString());
-  emit rerelease_signal(&rereleaseParameters, attributes, masterKeys, &ret);
+  emit releaserRerelease_signal(&rereleaseParameters, attributes, masterKeys,
+                                &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
@@ -407,9 +421,9 @@ void PersoClientConnection::processTransponderRerelease(
   }
 
   emit logging("Генерация прошивки транспондера. ");
-  QByteArray firmware("firmware.hex");
+  QByteArray firmware;
   Generator->generate(attributes, masterKeys, &firmware);
-  CurrentResponse["Firmware"] = QString(firmware);
+  CurrentResponse["firmware"] = QString::fromUtf8(firmware.toBase64());
   CurrentResponse["return_status"] = "NoError";
 }
 
@@ -441,7 +455,8 @@ void PersoClientConnection::processTransponderRereleaseConfirm(
                            commandJson->value("password").toString());
   releaseParameters.insert("personal_account_number",
                            commandJson->value("pan").toString());
-  emit confirmRerelease_signal(&releaseParameters, transponderInfo, &ret);
+  emit releaserConfirmRerelease_signal(&releaseParameters, transponderInfo,
+                                       &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
