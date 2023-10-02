@@ -186,8 +186,17 @@ void MasterGUI::createOrderTab() {
 
   FullPersonalizationCheckBox = new QCheckBox("Полная персонализация");
   OrderControlPanelLayout->addWidget(FullPersonalizationCheckBox);
-  connect(FullPersonalizationCheckBox, &QCheckBox::stateChanged, this,
-          &MasterGUI::on_FullPersonalizationCheckBoxChanged_slot);
+
+  OrderPanelSubLayout = new QHBoxLayout();
+  OrderControlPanelLayout->addLayout(OrderPanelSubLayout);
+  PanFilePathLabel = new QLabel("PAN-файл");
+  OrderPanelSubLayout->addWidget(PanFilePathLabel);
+  PanFilePathLineEdit = new QLineEdit();
+  OrderPanelSubLayout->addWidget(PanFilePathLineEdit);
+  PanFileExplorePushButton = new QPushButton("Обзор");
+  OrderPanelSubLayout->addWidget(PanFileExplorePushButton);
+  connect(PanFileExplorePushButton, &QPushButton::clicked, this,
+          &MasterGUI::on_PanFileExplorePushButton_slot);
 
   OrderPanelSubLayout1 = new QHBoxLayout();
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout1);
@@ -736,35 +745,11 @@ void MasterGUI::createSettingsTab() {
   SettingsMainSubLayout->addItem(SettingsVerticalSpacer1);
 }
 
-void MasterGUI::on_FullPersonalizationCheckBoxChanged_slot() {
-  if (FullPersonalizationCheckBox->checkState() == Qt::Checked) {
-    OrderPanelSubWidget = new QWidget();
-    OrderControlPanelLayout->insertWidget(1, OrderPanelSubWidget);
-
-    OrderPanelSubLayout = new QHBoxLayout();
-    OrderPanelSubWidget->setLayout(OrderPanelSubLayout);
-
-    pan_file_pathLabel = new QLabel("PAN-файл");
-    OrderPanelSubLayout->addWidget(pan_file_pathLabel);
-
-    pan_file_pathLineEdit = new QLineEdit();
-    OrderPanelSubLayout->addWidget(pan_file_pathLineEdit);
-
-    PanFileExplorePushButton = new QPushButton("Обзор");
-    OrderPanelSubLayout->addWidget(PanFileExplorePushButton);
-    connect(PanFileExplorePushButton, &QPushButton::clicked, this,
-            &MasterGUI::on_PanFileExplorePushButton_slot);
-  } else {
-    OrderControlPanelLayout->removeWidget(OrderPanelSubWidget);
-    delete OrderPanelSubWidget;
-  }
-}
-
 void MasterGUI::on_PanFileExplorePushButton_slot() {
   QString filePath =
       QFileDialog::getOpenFileName(nullptr, "Выбрать файл", "./", "*.csv");
   if (!filePath.isEmpty()) {
-    pan_file_pathLineEdit->setText(filePath);
+    PanFilePathLineEdit->setText(filePath);
   }
 }
 

@@ -130,7 +130,7 @@ class ServerManager : public QObject {
   void notifyUserAboutError(const QString& data);
   void operationPerfomingStarted(void);
   void operationStepPerfomed(void);
-  void operationPerformingEnded(void);
+  void operationPerformingFinished(void);
   void waitingEnd(void);
 
   // Общий сигнал для применения настроек

@@ -127,9 +127,7 @@ void MainWindowKernel::on_CreateNewOrderPushButton_slot() {
       "full_personalization",
       gui->FullPersonalizationCheckBox->checkState() == Qt::Checked ? "true"
                                                                     : "false");
-  if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
-    orderParameters.insert("pan_file_path", gui->pan_file_pathLineEdit->text());
-  }
+  orderParameters.insert("pan_file_path", gui->PanFilePathLineEdit->text());
   orderParameters.insert("transponder_model",
                          gui->TransponderModelLineEdit->text());
   orderParameters.insert("accr_reference", gui->AccrReferenceLineEdit->text());
@@ -194,7 +192,8 @@ void MainWindowKernel::on_CreateNewProductionLinePushButton_slot() {
   Logger->clear();
 
   if (!checkNewProductionLineInput()) {
-    Interactor->generateError("Некорректный ввод параметров нового заказа. ");
+    Interactor->generateError(
+        "Некорректный ввод параметров нового производственной линии. ");
     return;
   }
 
@@ -228,7 +227,8 @@ void MainWindowKernel::on_LinkProductionLinePushButton_slot() {
 
   if ((!checkNewProductionLineInput()) ||
       (gui->BoxIdLineEdit->text().toInt() == 0)) {
-    Interactor->generateError("Некорректный ввод параметров нового заказа. ");
+    Interactor->generateError(
+        "Некорректный ввод параметров производственной линии. ");
     return;
   }
 
@@ -613,6 +613,7 @@ bool MainWindowKernel::checkNewOrderInput() const {
   QString accrReference = gui->AccrReferenceLineEdit->text();
   QString equipmnetClass = gui->EquipmentClassLineEdit->text();
   QString manufacturerId = gui->ManufacturerIdLineEdit->text();
+  QString panFilePath = gui->PanFilePathLineEdit->text();
 
   if (transponderQuantity <= 0) {
     return false;
@@ -630,15 +631,33 @@ bool MainWindowKernel::checkNewOrderInput() const {
     return false;
   }
 
-  if (gui->FullPersonalizationCheckBox->checkState() == Qt::Checked) {
-    QFileInfo info(gui->pan_file_pathLineEdit->text());
-    if ((!info.exists()) || (!info.isFile()) || (info.suffix() != "csv")) {
-      return false;
-    }
-  }
-
   if ((transponderModel.length() > TRANSPONDER_MODEL_CHAR_LENGTH) ||
       (transponderModel.length() == 0)) {
+    return false;
+  }
+
+  QFileInfo info(gui->PanFilePathLineEdit->text());
+  if ((!info.exists()) || (!info.isFile()) || (info.suffix() != "csv")) {
+    return false;
+  }
+
+  QFile file(panFilePath);
+  int32_t recordCount = 0;
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    return false;
+  }
+  QTextStream in(&file);
+  while (!in.atEnd()) {
+    QString record = in.readLine();
+    if (record.length() != PAN_CHAR_LENGTH) {
+      file.close();
+      return false;
+    }
+    recordCount++;
+  }
+  file.close();
+
+  if (recordCount != transponderQuantity) {
     return false;
   }
 
@@ -988,7 +1007,7 @@ void MainWindowKernel::setupManager(void) {
           &UserInteractionSystem::generateProgressDialog);
   connect(Manager, &ServerManager::operationStepPerfomed, Interactor,
           &UserInteractionSystem::performeProgressDialogStep);
-  connect(Manager, &ServerManager::operationPerformingEnded, Interactor,
+  connect(Manager, &ServerManager::operationPerformingFinished, Interactor,
           &UserInteractionSystem::completeProgressDialog);
 }
 

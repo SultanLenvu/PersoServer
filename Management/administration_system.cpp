@@ -77,7 +77,7 @@ void AdministrationSystem::getDatabaseTable(const QString& tableName,
 
   if (!Database->getTable(tableName, 10, buffer)) {
     processingOperationResult(
-        "Ошибка при получении данных из таблицы базы данных. ",
+        "Получена ошибка при получении данных из таблицы базы данных. ",
         DatabaseQueryError);
     return;
   }
@@ -94,8 +94,9 @@ void AdministrationSystem::getCustomResponse(const QString& req,
   }
 
   if (!Database->execCustomRequest(req, buffer)) {
-    processingOperationResult("Ошибка при выполнении кастомного запроса. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при выполнении кастомного запроса. ",
+        DatabaseQueryError);
     return;
   }
 
@@ -295,8 +296,9 @@ void AdministrationSystem::createNewProductionLine(
   // Добавляем линию производства
   emit logging("Добавление линии производства. ");
   if (!addProductionLine(productionLineParameters)) {
-    processingOperationResult("Ошибка при добавлении производственной линии. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при добавлении производственной линии. ",
+        DatabaseQueryError);
     return;
   }
 
@@ -745,7 +747,7 @@ void AdministrationSystem::initIssuerTable() {
   // Получаем идентифкатор последнего добавленного заказа
   record.insert("id", "");
   if (!Database->getLastRecord("issuers", record)) {
-    processingOperationResult("Ошибка при поиске последнего заказа. ",
+    processingOperationResult("Получена ошибка при поиске последнего заказа. ",
                               DatabaseQueryError);
     return;
   }
@@ -756,8 +758,9 @@ void AdministrationSystem::initIssuerTable() {
   record.insert("name", "Пауэр Синтез");
   record.insert("efc_context_mark", "000000000001");
   if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при выполнении запроса в базу данных. ",
+        DatabaseQueryError);
     return;
   }
   record.clear();
@@ -766,8 +769,9 @@ void AdministrationSystem::initIssuerTable() {
   record.insert("name", "Автодор");
   record.insert("efc_context_mark", "570002FF0070");
   if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при выполнении запроса в базу данных. ",
+        DatabaseQueryError);
     return;
   }
   record.clear();
@@ -776,8 +780,9 @@ void AdministrationSystem::initIssuerTable() {
   record.insert("name", "Новое качество дорог");
   record.insert("efc_context_mark", "000000000001");
   if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при выполнении запроса в базу данных. ",
+        DatabaseQueryError);
     return;
   }
   record.clear();
@@ -786,8 +791,9 @@ void AdministrationSystem::initIssuerTable() {
   record.insert("name", "Западный скоростной диаметр");
   record.insert("efc_context_mark", "570001FF0070");
   if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при выполнении запроса в базу данных. ",
+        DatabaseQueryError);
     return;
   }
   record.clear();
@@ -796,8 +802,9 @@ void AdministrationSystem::initIssuerTable() {
   record.insert("name", "Объединенные системы сбора платы");
   record.insert("efc_context_mark", "000000000001");
   if (!Database->addRecord("issuers", record)) {
-    processingOperationResult("Ошибка при выполнении запроса в базу данных. ",
-                              DatabaseQueryError);
+    processingOperationResult(
+        "Получена ошибка при выполнении запроса в базу данных. ",
+        DatabaseQueryError);
     return;
   }
   record.clear();
@@ -816,7 +823,7 @@ void AdministrationSystem::initTransportMasterKeysTable() {
 
   transportKeysRecord.insert("id", "");
   if (!Database->getLastRecord("transport_master_keys", transportKeysRecord)) {
-    processingOperationResult("Ошибка при поиске последнего заказа. ",
+    processingOperationResult("Получена ошибка при поиске последнего заказа. ",
                               DatabaseQueryError);
     return;
   }
@@ -838,7 +845,7 @@ void AdministrationSystem::initTransportMasterKeysTable() {
   // Если транспортные ключи для эмитента отсутствуют, то создаем новую запись
   if (!Database->addRecord("transport_master_keys", transportKeysRecord)) {
     processingOperationResult(
-        QString("Ошибка при добавлении транспортных мастер ключей. "),
+        QString("Получена ошибка при добавлении транспортных мастер ключей. "),
         DatabaseQueryError);
     return;
   }
@@ -945,7 +952,7 @@ bool AdministrationSystem::addOrder(
 
   orderRecord.insert("id", "");
   if (!Database->getLastRecord("orders", orderRecord)) {
-    emit logging("Ошибка при поиске последнего заказа. ");
+    emit logging("Получена ошибка при поиске последнего заказа. ");
     return false;
   }
   lastId = orderRecord.value("id").toInt();
@@ -965,7 +972,7 @@ bool AdministrationSystem::addOrder(
   orderRecord.insert("manufacturer_id",
                      orderParameters->value("manufacturer_id"));
   if (!Database->addRecord("orders", orderRecord)) {
-    emit logging("Ошибка при добавлении заказа. ");
+    emit logging("Получена ошибка при добавлении заказа. ");
     return false;
   }
 
@@ -987,7 +994,8 @@ bool AdministrationSystem::addPallets(
   orderRecord.insert("id", "");
   orderRecord.insert("capacity", "0");
   if (!Database->getRecordByPart("orders", orderRecord)) {
-    emit logging("Ошибка при поиске идентификатора незаполненного заказа. ");
+    emit logging(
+        "Получена ошибка при поиске идентификатора незаполненного заказа. ");
     return false;
   }
 
@@ -996,7 +1004,7 @@ bool AdministrationSystem::addPallets(
     // Получаем идентификатор последней палеты
     palletRecord.insert("id", "");
     if (!Database->getLastRecord("pallets", palletRecord)) {
-      emit logging("Ошибка при поиске последней палеты. ");
+      emit logging("Получена ошибка при поиске последней палеты. ");
       return false;
     }
     lastId = palletRecord.value("id").toInt();
@@ -1007,7 +1015,7 @@ bool AdministrationSystem::addPallets(
     palletRecord.insert("order_id", orderRecord.value("id"));
     // Добавляем новую запись
     if (!Database->addRecord("pallets", palletRecord)) {
-      emit logging("Ошибка при добавлении палеты. ");
+      emit logging("Получена ошибка при добавлении палеты. ");
       return false;
     }
   }
@@ -1015,7 +1023,7 @@ bool AdministrationSystem::addPallets(
   // Заполнение заказа
   orderRecord.insert("capacity", QString::number(orderCapacity));
   if (!Database->updateRecordById("orders", orderRecord)) {
-    emit logging(QString("Ошибка при заполнении заказа %1. ")
+    emit logging(QString("Получена ошибка при заполнении заказа %1. ")
                      .arg(orderRecord.value("id")));
     return false;
   }
@@ -1039,7 +1047,8 @@ bool AdministrationSystem::addBoxes(
     palletRecord.insert("id", "");
     palletRecord.insert("capacity", "0");
     if (!Database->getRecordByPart("pallets", palletRecord)) {
-      emit logging("Ошибка при поиске идентификатора незаполненной палеты. ");
+      emit logging(
+          "Получена ошибка при поиске идентификатора незаполненной палеты. ");
       return false;
     }
 
@@ -1048,7 +1057,7 @@ bool AdministrationSystem::addBoxes(
       // Получаем идентификатор последнего добавленного бокса
       boxRecord.insert("id", "");
       if (!Database->getLastRecord("boxes", boxRecord)) {
-        emit logging("Ошибка при поиске последнего бокса. ");
+        emit logging("Получена ошибка при поиске последнего бокса. ");
         return false;
       }
       lastId = boxRecord.value("id").toInt();
@@ -1059,7 +1068,7 @@ bool AdministrationSystem::addBoxes(
       boxRecord.insert("pallet_id", palletRecord.value("id"));
       // Добавляем новую запись
       if (!Database->addRecord("boxes", boxRecord)) {
-        emit logging("Ошибка при добавлении бокса. ");
+        emit logging("Получена ошибка при добавлении бокса. ");
         return false;
       }
     }
@@ -1067,7 +1076,7 @@ bool AdministrationSystem::addBoxes(
     // Заполнение палеты
     palletRecord.insert("capacity", QString::number(palletCapacity));
     if (!Database->updateRecordById("pallets", palletRecord)) {
-      emit logging(QString("Ошибка при заполнении палеты %1. ")
+      emit logging(QString("Получена ошибка при заполнении палеты %1. ")
                        .arg(palletRecord.value("id")));
       return false;
     }
@@ -1086,12 +1095,20 @@ bool AdministrationSystem::addTransponders(
   QMap<QString, QString> transponderRecord;
   int32_t lastId = 0;
 
+  QFile panFile(orderParameters->value("pan_file_path"));
+  if (!panFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    emit logging("Получена ошибка при открытии PAN-файла. ");
+    return false;
+  }
+  QTextStream in(&panFile);
+
   for (uint32_t i = 0; i < boxCount; i++) {
     // Получаем идентификатор незаполненного бокса
     boxRecord.insert("id", "");
     boxRecord.insert("capacity", "0");
     if (!Database->getRecordByPart("boxes", boxRecord)) {
-      emit logging("Ошибка при поиске идентификатора незаполненного бокса. ");
+      emit logging(
+          "Получена ошибка при поиске идентификатора незаполненного бокса. ");
       return false;
     }
 
@@ -1100,21 +1117,20 @@ bool AdministrationSystem::addTransponders(
       // Получаем идентификатор последнего добавленного транспондера
       transponderRecord.insert("id", "");
       if (!Database->getLastRecord("transponders", transponderRecord)) {
-        emit logging("Ошибка при поиске последнего бокса. ");
+        emit logging("Получена ошибка при поиске последнего бокса. ");
         return false;
       }
       lastId = transponderRecord.value("id").toInt();
 
       // Формируем новую запись
       transponderRecord.insert("id", QString::number(lastId + 1));
-      transponderRecord.insert("personal_account_number",
-                               "00000000000000000000");
+      transponderRecord.insert("personal_account_number", in.readLine());
       transponderRecord.insert("release_counter", "0");
       transponderRecord.insert("box_id", boxRecord.value("id"));
 
       // Добавляем новую запись
       if (!Database->addRecord("transponders", transponderRecord)) {
-        emit logging("Ошибка при добавлении транспондера. ");
+        emit logging("Получена ошибка при добавлении транспондера. ");
         return false;
       }
     }
@@ -1122,7 +1138,7 @@ bool AdministrationSystem::addTransponders(
     // Заполнение бокса
     boxRecord.insert("capacity", QString::number(boxCapacity));
     if (!Database->updateRecordById("boxes", boxRecord)) {
-      emit logging(QString("Ошибка при заполнении бокса %1. ")
+      emit logging(QString("Получена ошибка при заполнении бокса %1. ")
                        .arg(boxRecord.value("id")));
       return false;
     }
@@ -1156,7 +1172,8 @@ bool AdministrationSystem::addProductionLine(
   // Получаем идентификатор последней линии производства
   productionLineRecord.insert("id", "");
   if (!Database->getLastRecord("production_lines", productionLineRecord)) {
-    emit logging("Ошибка при поиске последней созданной линии производства. ");
+    emit logging(
+        "Получена ошибка при поиске последней созданной линии производства. ");
     return false;
   }
   lastId = productionLineRecord.value("id").toInt();
@@ -1305,7 +1322,8 @@ bool AdministrationSystem::removeLastProductionLine() const {
   productionLineRecord.insert("id", "");
   if (!Database->getLastRecord("production_lines", productionLineRecord)) {
     emit logging(
-        "Ошибка при поиске последней добавленной производственной линии. ");
+        "Получена ошибка при поиске последней добавленной производственной "
+        "линии. ");
     return false;
   }
 
@@ -1314,7 +1332,7 @@ bool AdministrationSystem::removeLastProductionLine() const {
   boxRecord.insert("production_line_id", productionLineRecord.value("id"));
   if (!Database->getRecordByPart("boxes", boxRecord)) {
     emit logging(
-        "Ошибка при поиске бокса, связанного с последней "
+        "Получена ошибка при поиске бокса, связанного с последней "
         "добавленной линией производства. ");
     return false;
   }

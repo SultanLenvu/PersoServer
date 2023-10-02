@@ -617,6 +617,10 @@ bool TransponderReleaseSystem::generateTransponderInfo(
   // Дополняем серийник до 10 цифр нулями слева
   info->insert("id", QString("%1").arg(info->value("id"), 10, QChar('0')));
 
+  // Вычленяем символ F из PAN
+  QString tempPan = info->value("personal_account_number");
+  info->insert("personal_account_number", tempPan.remove(QChar('F')));
+
   return true;
 }
 

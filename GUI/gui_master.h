@@ -70,11 +70,9 @@ class MasterGUI : public GUI {
   QVBoxLayout* OrderControlPanelLayout;
 
   QCheckBox* FullPersonalizationCheckBox;
-
-  QWidget* OrderPanelSubWidget;
   QHBoxLayout* OrderPanelSubLayout;
-  QLabel* pan_file_pathLabel;
-  QLineEdit* pan_file_pathLineEdit;
+  QLabel* PanFilePathLabel;
+  QLineEdit* PanFilePathLineEdit;
   QPushButton* PanFileExplorePushButton;
   QHBoxLayout* OrderPanelSubLayout1;
   QLabel* IssuerNameComboLabel;
@@ -301,7 +299,6 @@ class MasterGUI : public GUI {
   void createSettingsTab(void);
 
  private slots:
-  void on_FullPersonalizationCheckBoxChanged_slot(void);
   void on_PanFileExplorePushButton_slot(void);
 
   void on_ExploreFirmwareBaseFilePathPushButton_slot(void);

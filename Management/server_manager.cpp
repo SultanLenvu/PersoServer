@@ -736,7 +736,7 @@ void ServerManager::createTimers() {
   connect(ODTimer, &QTimer::timeout, this,
           &ServerManager::on_ODTimerTimeout_slot);
   connect(ODTimer, &QTimer::timeout, ODTimer, &QTimer::stop);
-  connect(this, &ServerManager::operationPerformingEnded, ODTimer,
+  connect(this, &ServerManager::operationPerformingFinished, ODTimer,
           &QTimer::stop);
 
   // Таймер для измерения длительности операции
@@ -750,7 +750,7 @@ void ServerManager::setupODQTimer(uint32_t msecs) {
 
   connect(ODQTimer, &QTimer::timeout, this,
           &ServerManager::on_ODQTimerTimeout_slot);
-  connect(this, &ServerManager::operationPerformingEnded, ODQTimer,
+  connect(this, &ServerManager::operationPerformingFinished, ODQTimer,
           &QTimer::stop);
 }
 
@@ -790,19 +790,19 @@ bool ServerManager::startOperationExecution(const QString& operationName) {
 void ServerManager::endOperationExecution(const QString& operationName) {
   QSettings settings;
 
-  // Измеряем и сохраняем длительность операции
-  uint64_t duration = ODMeter->elapsed();
-  emit logging(
-      QString("Длительность операции: %1.").arg(QString::number(duration)));
-  settings.setValue(QString("ServerManager/Operations/") + operationName +
-                        QString("/Duration"),
-                    QVariant::fromValue(duration));
-
   // Сигнал о завершении текущей операции
-  emit operationPerformingEnded();
+  emit operationPerformingFinished();
 
   // Оповещаем пользователя о результатах
   if (CurrentState == Completed) {
+    // Измеряем и сохраняем длительность операции
+    uint64_t duration = ODMeter->elapsed();
+    emit logging(
+        QString("Длительность операции: %1.").arg(QString::number(duration)));
+    settings.setValue(QString("ServerManager/Operations/") + operationName +
+                          QString("/Duration"),
+                      QVariant::fromValue(duration));
+
     emit notifyUser(NotificarionText);
   } else {
     emit notifyUserAboutError(NotificarionText);
