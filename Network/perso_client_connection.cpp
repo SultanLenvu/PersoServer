@@ -373,6 +373,7 @@ void PersoClientConnection::processTransponderReleaseConfirm(
   CurrentResponse["box_id"] = transponderInfo->value("box_id");
   CurrentResponse["pallet_id"] = transponderInfo->value("pallet_id");
   CurrentResponse["order_id"] = transponderInfo->value("order_id");
+  CurrentResponse["issuer_name"] = transponderInfo->value("name");
   CurrentResponse["return_status"] = "NoError";
 }
 
@@ -479,6 +480,7 @@ void PersoClientConnection::processTransponderRereleaseConfirm(
   CurrentResponse["box_id"] = transponderInfo->value("box_id");
   CurrentResponse["pallet_id"] = transponderInfo->value("pallet_id");
   CurrentResponse["order_id"] = transponderInfo->value("order_id");
+  CurrentResponse["issuer_name"] = transponderInfo->value("name");
   CurrentResponse["return_status"] = "NoError";
 }
 
