@@ -609,6 +609,14 @@ bool TransponderReleaseSystem::generateTransponderInfo(
           .arg(QString::number(date.year() % 100), 2, QChar('0'));
   info->insert("battery_insertation_date", batteryInsertationDate.toUtf8());
 
+  // Преобразуем в десятичный формат
+  info->insert(
+      "manufacturer_id",
+      QString::number(info->value("manufacturer_id").toInt(nullptr, 16)));
+
+  // Дополняем серийник до 10 цифр нулями слева
+  info->insert("id", QString("%1").arg(info->value("id"), 10, QChar('0')));
+
   return true;
 }
 

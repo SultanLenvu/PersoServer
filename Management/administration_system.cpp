@@ -955,7 +955,7 @@ bool AdministrationSystem::addOrder(
   orderRecord.insert("issuer_id", issuerRecord.value("id"));
   orderRecord.insert("capacity", "0");
   orderRecord.insert("full_personalization",
-                     orderParameters->value("FullPersonalization"));
+                     orderParameters->value("full_personalization"));
   orderRecord.insert("transponder_model",
                      orderParameters->value("transponder_model"));
   orderRecord.insert("accr_reference",
@@ -975,9 +975,9 @@ bool AdministrationSystem::addOrder(
 bool AdministrationSystem::addPallets(
     const QMap<QString, QString>* orderParameters) const {
   uint32_t transponderCount =
-      orderParameters->value("TransponderQuantity").toInt();
-  uint32_t palletCapacity = orderParameters->value("PalletCapacity").toInt();
-  uint32_t boxCapacity = orderParameters->value("BoxCapacity").toInt();
+      orderParameters->value("transponder_quantity").toInt();
+  uint32_t palletCapacity = orderParameters->value("pallet_capacity").toInt();
+  uint32_t boxCapacity = orderParameters->value("box_capacity").toInt();
   uint32_t orderCapacity = transponderCount / (palletCapacity * boxCapacity);
   QMap<QString, QString> orderRecord;
   QMap<QString, QString> palletRecord;
@@ -1026,9 +1026,9 @@ bool AdministrationSystem::addPallets(
 bool AdministrationSystem::addBoxes(
     const QMap<QString, QString>* orderParameters) const {
   uint32_t transponderCount =
-      orderParameters->value("TransponderQuantity").toInt();
-  uint32_t palletCapacity = orderParameters->value("PalletCapacity").toInt();
-  uint32_t boxCapacity = orderParameters->value("BoxCapacity").toInt();
+      orderParameters->value("transponder_quantity").toInt();
+  uint32_t palletCapacity = orderParameters->value("pallet_capacity").toInt();
+  uint32_t boxCapacity = orderParameters->value("box_capacity").toInt();
   uint32_t palletCount = transponderCount / (palletCapacity * boxCapacity);
   QMap<QString, QString> palletRecord;
   QMap<QString, QString> boxRecord;
@@ -1079,8 +1079,8 @@ bool AdministrationSystem::addBoxes(
 bool AdministrationSystem::addTransponders(
     const QMap<QString, QString>* orderParameters) const {
   uint32_t transponderCount =
-      orderParameters->value("TransponderQuantity").toInt();
-  uint32_t boxCapacity = orderParameters->value("BoxCapacity").toInt();
+      orderParameters->value("transponder_quantity").toInt();
+  uint32_t boxCapacity = orderParameters->value("box_capacity").toInt();
   uint32_t boxCount = transponderCount / boxCapacity;
   QMap<QString, QString> boxRecord;
   QMap<QString, QString> transponderRecord;
@@ -1108,7 +1108,7 @@ bool AdministrationSystem::addTransponders(
       // Формируем новую запись
       transponderRecord.insert("id", QString::number(lastId + 1));
       transponderRecord.insert("personal_account_number",
-                               "0000000000000000000");
+                               "00000000000000000000");
       transponderRecord.insert("release_counter", "0");
       transponderRecord.insert("box_id", boxRecord.value("id"));
 

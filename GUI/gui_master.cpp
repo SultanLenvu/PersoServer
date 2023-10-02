@@ -230,23 +230,23 @@ void MasterGUI::createOrderTab() {
 
   OrderPanelSubLayout6 = new QHBoxLayout();
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout6);
-  AccrReferenceLabel = new QLabel("ACCR Reference");
+  AccrReferenceLabel = new QLabel("ACCR Reference (HEX)");
   OrderPanelSubLayout6->addWidget(AccrReferenceLabel);
   AccrReferenceLineEdit = new QLineEdit("1DD1");
   OrderPanelSubLayout6->addWidget(AccrReferenceLineEdit);
 
   OrderPanelSubLayout7 = new QHBoxLayout();
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout7);
-  EquipmentClassLabel = new QLabel("Класс оборудования");
+  EquipmentClassLabel = new QLabel("Класс оборудования (HEX)");
   OrderPanelSubLayout7->addWidget(EquipmentClassLabel);
   EquipmentClassLineEdit = new QLineEdit("F301");
   OrderPanelSubLayout7->addWidget(EquipmentClassLineEdit);
 
   OrderPanelSubLayout8 = new QHBoxLayout();
   OrderControlPanelLayout->addLayout(OrderPanelSubLayout8);
-  ManufacturerIdLabel = new QLabel("Идентификатор производителя");
+  ManufacturerIdLabel = new QLabel("Идентификатор производителя (HEX)");
   OrderPanelSubLayout8->addWidget(ManufacturerIdLabel);
-  ManufacturerIdLineEdit = new QLineEdit("F301");
+  ManufacturerIdLineEdit = new QLineEdit("0032");
   OrderPanelSubLayout8->addWidget(ManufacturerIdLineEdit);
 
   CreateNewOrderPushButton = new QPushButton("Создать новый заказ");

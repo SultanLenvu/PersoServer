@@ -209,13 +209,14 @@ void FirmwareGenerationSystem::generateCommonKeys(
   QByteArray compactPan;
 
   for (uint32_t i = 0; i < 4; i++) {
-    compactPan.append(pan.at(i) ^ pan.at(i + 4));
+    compactPan.append((QChar(pan.at(i)).unicode() - '0') ^
+                      (QChar(pan.at(i + 4)).unicode() - '0'));
   }
 
   auInit.append(compactPan);
-  auInit.append(ecm.at(0));
-  auInit.append(ecm.at(1));
-  auInit.append(ecm.at(2));
+  auInit.append((QChar(ecm.at(0)).unicode() - '0'));
+  auInit.append((QChar(ecm.at(1)).unicode() - '0'));
+  auInit.append((QChar(ecm.at(2)).unicode() - '0'));
   auInit.append(static_cast<uint8_t>(0x00));
 
   // Генерируем ключи
