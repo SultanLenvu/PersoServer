@@ -1124,7 +1124,9 @@ bool AdministrationSystem::addTransponders(
 
       // Формируем новую запись
       transponderRecord.insert("id", QString::number(lastId + 1));
-      transponderRecord.insert("personal_account_number", in.readLine());
+      transponderRecord.insert(
+          "personal_account_number",
+          in.readLine().leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F')));
       transponderRecord.insert("release_counter", "0");
       transponderRecord.insert("box_id", boxRecord.value("id"));
 

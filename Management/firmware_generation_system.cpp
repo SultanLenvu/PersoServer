@@ -117,12 +117,8 @@ bool FirmwareGenerationSystem::generateFirmwareData(
       QByteArray::fromHex(attributes->value("efc_context_mark").toUtf8()));
 
   QString paymentMeans;
-  if (attributes->value("full_personalization") == "true") {
-    generatePaymentMeans(attributes->value("personal_account_number"),
-                         paymentMeans);
-  } else {
-    paymentMeans = "0000000000000000000000000000";
-  }
+  generatePaymentMeans(attributes->value("personal_account_number"),
+                       paymentMeans);
   firmwareData->replace(PAYMENT_MEANS_FPI, PAYMENT_MEANS_SIZE,
                         QByteArray::fromHex(paymentMeans.toUtf8()));
 
@@ -204,19 +200,20 @@ void FirmwareGenerationSystem::generateCommonKeys(
   }
 
   QByteArray auInit;
-  QByteArray ecm = attributes->value("efc_context_mark").toUtf8();
-  QByteArray pan = attributes->value("personal_account_number").toUtf8();
+  QByteArray ecm =
+      QByteArray::fromHex(attributes->value("efc_context_mark").toUtf8());
+  QByteArray pan = QByteArray::fromHex(
+      attributes->value("personal_account_number").toUtf8());
   QByteArray compactPan;
 
   for (uint32_t i = 0; i < 4; i++) {
-    compactPan.append((QChar(pan.at(i)).unicode() - '0') ^
-                      (QChar(pan.at(i + 4)).unicode() - '0'));
+    compactPan.append(pan.at(i) ^ pan.at(i + 4));
   }
 
   auInit.append(compactPan);
-  auInit.append((QChar(ecm.at(0)).unicode() - '0'));
-  auInit.append((QChar(ecm.at(1)).unicode() - '0'));
-  auInit.append((QChar(ecm.at(2)).unicode() - '0'));
+  auInit.append(ecm.at(0));
+  auInit.append(ecm.at(1));
+  auInit.append(ecm.at(2));
   auInit.append(static_cast<uint8_t>(0x00));
 
   // Генерируем ключи
@@ -258,5 +255,5 @@ void FirmwareGenerationSystem::generatePaymentMeans(const QString& pan,
     expirationDate = QString::number(dateCompactNumber, 16);
   }
 
-  paymentMeans = pan + "f" + expirationDate + "0000";
+  paymentMeans = pan + expirationDate + "0000";
 }
