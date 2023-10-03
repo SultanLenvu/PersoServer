@@ -20,19 +20,19 @@
 //===============================================================
 #define TRANSPONDER_ID_START_SHIFT 500000
 
-#define POSTGRES_SERVER_DEFAULT_IP "localhost"
+#define POSTGRES_SERVER_DEFAULT_IP "127.0.0.1"
 #define POSTGRES_SERVER_DEFAULT_PORT 5432
 #define POSTGRES_SERVER_DEFAULT_USER_NAME "postgres"
 #define POSTGRES_SERVER_DEFAULT_PASSWORD "1995"
 #define POSTGRES_DATABASE_DEFAULT_NAME "TransponderSeedbase"
 
-#define TIMESTAMP_DEFAULT_VALUE "2000-01-01 T00:00:00.000"
+#define TIMESTAMP_DEFAULT_VALUE "2000-01-01 00:00:00"
 //===============================================================
 
 /* Определения для хоста */
 //===============================================================
 #define PERSO_SERVER_DEFAULT_IP "127.0.0.1"
-#define PERSO_SERVER_DEFAULT_PORT 6000
+#define PERSO_SERVER_DEFAULT_PORT 6666
 #define IP_PORT_MAX_VALUE 65535
 #define IP_PORT_MIN_VALUE 0
 

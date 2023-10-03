@@ -68,10 +68,11 @@ class TransponderReleaseSystem : public QObject {
                                QMap<QString, QString>* attributes,
                                QMap<QString, QString>* masterKeys);
   bool generateTransponderInfo(const QString&, QMap<QString, QString>* info);
-  bool checkRerelease(const QMap<QString, QString>& transponderRecord,
-                      const QMap<QString, QString>& searchData);
+  bool checkConfirmRerelease(const QMap<QString, QString>& transponderRecord,
+                             const QMap<QString, QString>& searchData);
 
-  bool confirmTransponder(const QString& transponderId) const;
+  bool confirmTransponder(const QString& transponderId,
+                          const QString& ucid) const;
   bool confirmBox(const QString& boxId) const;
   bool confirmPallet(const QString& palletId) const;
   bool confirmOrder(const QString& orderId) const;

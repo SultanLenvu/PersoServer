@@ -653,6 +653,17 @@ void MasterGUI::createSettingsTab() {
   PersoServerSettingsLayout->addWidget(ClientConnectionMaxDurationLineEdit, 3,
                                        1, 1, 1);
 
+  ExtenededLoggingEnableLabel = new QLabel("Расширенное логгирование");
+  PersoServerSettingsLayout->addWidget(ExtenededLoggingEnableLabel, 4, 0, 1, 1);
+  ExtenededLoggingEnableCheckBox = new QCheckBox();
+  ExtenededLoggingEnableCheckBox->setCheckState(
+      settings.value("PersoHost/ClientConnection/ExtenededLoggingEnable")
+              .toBool()
+          ? Qt::Checked
+          : Qt::Unchecked);
+  PersoServerSettingsLayout->addWidget(ExtenededLoggingEnableCheckBox, 4, 1, 1,
+                                       1);
+
   // Настройки базы данных
   DatabaseSettingsGroupBox = new QGroupBox(QString("Настройки базы данных"));
   SettingsMainSubLayout->addWidget(DatabaseSettingsGroupBox);

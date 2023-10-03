@@ -333,7 +333,7 @@ void MainWindowKernel::on_RereleaseTransponderPushButton_slot() {
   Logger->clear();
 
   // Проверка пользовательского ввода
-  if (!checkRereleaseTransponderInput()) {
+  if (!checkConfirmRereleaseTransponderInput()) {
     Interactor->generateError(
         "Введены некорректные данные для перевыпуска транспондера. ");
     return;
@@ -371,7 +371,7 @@ void MainWindowKernel::on_ConfirmRereleaseTransponderPushButton_slot() {
   Logger->clear();
 
   // Проверка пользовательского ввода
-  if (!checkRereleaseTransponderInput()) {
+  if (!checkConfirmRereleaseTransponderInput()) {
     Interactor->generateError(
         "Введены некорректные данные для подтверждения перевыпуска "
         "транспондера. ");
@@ -515,6 +515,10 @@ void MainWindowKernel::on_ApplySettingsPushButton_slot() {
                     gui->MaxNumberClientConnectionLineEdit->text().toInt());
   settings.setValue("PersoHost/ClientConnection/MaxDuration",
                     gui->ClientConnectionMaxDurationLineEdit->text().toInt());
+  settings.setValue(
+      "PersoHost/ClientConnection/ExtenededLoggingEnable",
+      gui->ExtenededLoggingEnableCheckBox->checkState() == Qt::Checked ? true
+                                                                       : false);
   settings.setValue("Database/Server/Ip", gui->DatabaseIpLineEdit->text());
   settings.setValue("Database/Server/Port",
                     gui->DatabasePortLineEdit->text().toInt());
@@ -557,9 +561,9 @@ void MainWindowKernel::loadSettings() const {
 bool MainWindowKernel::checkNewSettings() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
 
-  QHostAddress IP = QHostAddress(gui->PersoServerIpLineEdit->text());
+  QHostAddress ip = QHostAddress(gui->PersoServerIpLineEdit->text());
 
-  if (IP.isNull()) {
+  if (ip.isNull()) {
     return false;
   }
 
@@ -577,9 +581,9 @@ bool MainWindowKernel::checkNewSettings() const {
     return false;
   }
 
-  IP = QHostAddress(gui->DatabaseIpLineEdit->text());
+  ip = QHostAddress(gui->DatabaseIpLineEdit->text());
 
-  if (IP.isNull()) {
+  if (ip.isNull()) {
     return false;
   }
 
@@ -759,7 +763,7 @@ bool MainWindowKernel::checkSearchTransponderInput() const {
   return true;
 }
 
-bool MainWindowKernel::checkRereleaseTransponderInput() const {
+bool MainWindowKernel::checkConfirmRereleaseTransponderInput() const {
   MasterGUI* gui = dynamic_cast<MasterGUI*>(CurrentGUI);
   QRegularExpression ucidRegex("[A-Fa-f0-9]+");
   QRegularExpression panRegex("[0-9]+");

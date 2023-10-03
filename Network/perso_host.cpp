@@ -38,18 +38,20 @@ void PersoHost::start() {
   emit startReleaser_signal(&status);
 
   // Поднимаем сервер
-  if (!listen(QHostAddress::LocalHost, 6666)) {
+  emit logging(
+      QString("Попытка запуска на %1:%2.")
+          .arg(CurrentAddress.toString(), QString::number(CurrentPort)));
+  if (!listen(CurrentAddress, CurrentPort)) {
     emit logging("Не удалось запуститься. ");
     emit operationFinished(Failed);
     return;
   }
 
   // Если сервер поднялся
-  emit logging("Запущен. ");
   if (thread() == QCoreApplication::instance()->thread()) {
-    emit logging("Сервер запущен в главном потоке. ");
+    emit logging("Запущен в главном потоке. ");
   } else {
-    emit logging("Сервер запущен в отдельном потоке. ");
+    emit logging("Запущен в отдельном потоке. ");
   }
 
   // Изменяем состояние
@@ -96,6 +98,16 @@ void PersoHost::loadSettings() {
 
   MaxNumberClientConnections =
       settings.value("PersoHost/MaxNumberClientConnection").toInt();
+
+  CurrentAddress = QHostAddress(settings.value("PersoHost/Ip").toString());
+  if (CurrentAddress.isNull()) {
+    CurrentAddress = QHostAddress(PERSO_SERVER_DEFAULT_IP);
+  }
+
+  CurrentPort = settings.value("PersoHost/Port").toInt();
+  if (CurrentPort == 0) {
+    CurrentPort = PERSO_SERVER_DEFAULT_PORT;
+  }
 }
 
 void PersoHost::createReleaserInstance() {

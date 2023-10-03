@@ -104,7 +104,7 @@ class MainWindowKernel : public QMainWindow {
   bool checkNewProductionLineInput(void) const;
   bool checkReleaseTransponderInput(void) const;
   bool checkSearchTransponderInput(void) const;
-  bool checkRereleaseTransponderInput(void) const;
+  bool checkConfirmRereleaseTransponderInput(void) const;
   bool checkLinkIssuerInput(void) const;
 
   void createTopMenu(void);  // Создание верхнего меню

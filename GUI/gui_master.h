@@ -253,6 +253,8 @@ class MasterGUI : public GUI {
   QLineEdit* MaxNumberClientConnectionLineEdit;
   QLabel* ClientConnectionMaxDurationLabel;
   QLineEdit* ClientConnectionMaxDurationLineEdit;
+  QLabel* ExtenededLoggingEnableLabel;
+  QCheckBox* ExtenededLoggingEnableCheckBox;
 
   // Настройки базы данных
   QGroupBox* DatabaseSettingsGroupBox;

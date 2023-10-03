@@ -20,6 +20,8 @@ class PersoClientConnection : public QObject {
 
  private:
   int32_t MaximumConnectionTime;
+  bool ExtendedLoggingEnable;
+
   uint32_t Id;
 
   QTcpSocket* Socket;

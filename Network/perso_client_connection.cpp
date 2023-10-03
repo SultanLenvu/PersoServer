@@ -53,8 +53,13 @@ void PersoClientConnection::releaserFinished() {
 
 void PersoClientConnection::loadSettings() {
   QSettings settings;
+
   MaximumConnectionTime =
       settings.value("PersoHost/ClientConnection/MaxDuration").toInt();
+
+  ExtendedLoggingEnable =
+      settings.value("PersoHost/ClientConnection/ExtenededLoggingEnable")
+          .toBool();
 }
 
 void PersoClientConnection::createSocket(qintptr socketDescriptor) {
@@ -139,9 +144,12 @@ void PersoClientConnection::createTransmittedDataBlock() {
   QJsonDocument responseDocument(CurrentResponse);
 
   emit logging("Формирование блока данных для ответа на команду. ");
-  emit logging(QString("Размер ответа: %1. Содержание ответа: %2")
-                   .arg(QString::number(responseDocument.toJson().size()),
-                        QString(responseDocument.toJson())));
+  emit logging(QString("Размер ответа: %1.")
+                   .arg(QString::number(responseDocument.toJson().size())));
+  if (ExtendedLoggingEnable == true) {
+    emit logging(QString("Содержание ответа: %1")
+                     .arg(QString(responseDocument.toJson())));
+  }
 
   // Инициализируем блок данных и сериализатор
   TransmittedDataBlock.clear();
@@ -289,8 +297,7 @@ void PersoClientConnection::processTransponderRelease(
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("password").isUndefined() ||
-      commandJson->value("ucid").isUndefined()) {
+      commandJson->value("password").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде TransponderRelease.");
     CurrentResponse["return_status"] = "SyntaxError";
@@ -327,7 +334,7 @@ void PersoClientConnection::processTransponderRelease(
 void PersoClientConnection::processTransponderReleaseConfirm(
     QJsonObject* commandJson) {
   emit logging("Выполнение команды TransponderReleaseConfirm. ");
-  QMap<QString, QString> releaseParameters;
+  QMap<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
@@ -336,7 +343,8 @@ void PersoClientConnection::processTransponderReleaseConfirm(
 
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
-      commandJson->value("password").isUndefined()) {
+      commandJson->value("password").isUndefined() ||
+      commandJson->value("ucid").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде "
         "TransponderReleaseConfirm.");
@@ -346,11 +354,11 @@ void PersoClientConnection::processTransponderReleaseConfirm(
 
   // Подтверждение выпуска транспондера
   QMap<QString, QString>* transponderInfo = new QMap<QString, QString>;
-  releaseParameters.insert("login", commandJson->value("login").toString());
-  releaseParameters.insert("password",
+  confirmParameters.insert("login", commandJson->value("login").toString());
+  confirmParameters.insert("password",
                            commandJson->value("password").toString());
-
-  emit releaserConfirmRelease_signal(&releaseParameters, transponderInfo, &ret);
+  confirmParameters.insert("ucid", commandJson->value("ucid").toString());
+  emit releaserConfirmRelease_signal(&confirmParameters, transponderInfo, &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
@@ -390,8 +398,7 @@ void PersoClientConnection::processTransponderRerelease(
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
       commandJson->value("password").isUndefined() ||
-      commandJson->value("pan").isUndefined() ||
-      commandJson->value("ucid").isUndefined()) {
+      commandJson->value("pan").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде TransponderRerelease.");
     CurrentResponse["return_status"] = "SyntaxError";
@@ -405,7 +412,8 @@ void PersoClientConnection::processTransponderRerelease(
   rereleaseParameters.insert("password",
                              commandJson->value("password").toString());
   rereleaseParameters.insert("personal_account_number",
-                             commandJson->value("pan").toString());
+                             commandJson->value("pan").toString().leftJustified(
+                                 FULL_PAN_CHAR_LENGTH, QChar('F')));
   emit releaserRerelease_signal(&rereleaseParameters, attributes, masterKeys,
                                 &ret);
 
@@ -415,7 +423,7 @@ void PersoClientConnection::processTransponderRerelease(
   }
 
   if (ret != TransponderReleaseSystem::Success) {
-    emit logging("Получена ошибка при выпуске транспондера. ");
+    emit logging("Получена ошибка при перевыпуске транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
@@ -431,7 +439,7 @@ void PersoClientConnection::processTransponderRerelease(
 void PersoClientConnection::processTransponderRereleaseConfirm(
     QJsonObject* commandJson) {
   emit logging("Выполнение команды TransponderRereleaseConfirm. ");
-  QMap<QString, QString> releaseParameters;
+  QMap<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
@@ -441,7 +449,8 @@ void PersoClientConnection::processTransponderRereleaseConfirm(
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
       commandJson->value("password").isUndefined() ||
-      commandJson->value("pan").isUndefined()) {
+      commandJson->value("pan").isUndefined() ||
+      commandJson->value("ucid").isUndefined()) {
     emit logging(
         "Обнаружена синтаксическая ошибка в команде "
         "TransponderRereleaseConfirm.");
@@ -451,12 +460,14 @@ void PersoClientConnection::processTransponderRereleaseConfirm(
 
   // Подтверждение перевыпуска транспондера
   QMap<QString, QString>* transponderInfo = new QMap<QString, QString>;
-  releaseParameters.insert("login", commandJson->value("login").toString());
-  releaseParameters.insert("password",
+  confirmParameters.insert("login", commandJson->value("login").toString());
+  confirmParameters.insert("password",
                            commandJson->value("password").toString());
-  releaseParameters.insert("personal_account_number",
-                           commandJson->value("pan").toString());
-  emit releaserConfirmRerelease_signal(&releaseParameters, transponderInfo,
+  confirmParameters.insert("personal_account_number",
+                           commandJson->value("pan").toString().leftJustified(
+                               FULL_PAN_CHAR_LENGTH, QChar('F')));
+  confirmParameters.insert("ucid", commandJson->value("ucid").toString());
+  emit releaserConfirmRerelease_signal(&confirmParameters, transponderInfo,
                                        &ret);
 
   // Ожидаем завершения работы
@@ -465,9 +476,10 @@ void PersoClientConnection::processTransponderRereleaseConfirm(
   }
 
   if (ret != TransponderReleaseSystem::Success) {
-    emit logging("Получена ошибка при подтверждении выпуска транспондера. ");
+    emit logging(
+        "Получена ошибка при подтверждении перевыпуска транспондера. ");
     CurrentResponse["return_status"] =
-        QString("TransponderRereleaseConfirm (%1)").arg(QString::number(ret));
+        QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
   }
 
@@ -534,7 +546,9 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
 
   // Если блок был получен целиком, то осуществляем его дессериализацию
   deserializator >> ReceivedDataBlock;
-  emit logging("Блок полученных данных: " + ReceivedDataBlock);
+  if (ExtendedLoggingEnable == true) {
+    emit logging("Блок полученных данных: " + ReceivedDataBlock);
+  }
 
   // Осуществляем обработку полученных данных
   processReceivedDataBlock();

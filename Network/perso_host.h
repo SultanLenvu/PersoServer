@@ -29,6 +29,8 @@ class PersoHost : public QTcpServer {
 
  private:
   int32_t MaxNumberClientConnections;
+  QHostAddress CurrentAddress;
+  uint32_t CurrentPort;
   OperatingState CurrentState;
 
   QSet<int32_t> FreeClientIds;

@@ -164,7 +164,6 @@ void TransponderReleaseSystem::release(
 
   // Сохраняем полученный UCID и ожидаем подтверждения
   transponderRecord.insert("id", productionLineRecord.value("transponder_id"));
-  transponderRecord.insert("ucid", releaseParameters->value("ucid"));
   transponderRecord.insert("awaiting_confirmation", "true");
   if (!Database->updateRecordById("transponders", transponderRecord)) {
     emit logging(
@@ -236,7 +235,8 @@ void TransponderReleaseSystem::confirmRelease(
   }
 
   // Подтверждаем сборку транспондера
-  if (!confirmTransponder(productionLineRecord.value("transponder_id"))) {
+  if (!confirmTransponder(productionLineRecord.value("transponder_id"),
+                          confirmParameters->value("ucid"))) {
     emit logging(QString("Получена ошибка при подтвеждении транспондера %1. ")
                      .arg(productionLineRecord.value("transponder_id")));
     *status = Failed;
@@ -312,7 +312,7 @@ void TransponderReleaseSystem::rerelease(
   }
 
   // Осуществляем логические проверки
-  if (!checkRerelease(transponderRecord, *rereleaseParameters)) {
+  if (!checkConfirmRerelease(transponderRecord, *rereleaseParameters)) {
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
@@ -398,7 +398,7 @@ void TransponderReleaseSystem::confirmRerelease(
   }
 
   // Осуществляем логические проверки
-  if (!checkRerelease(transponderRecord, *confirmParameters)) {
+  if (!checkConfirmRerelease(transponderRecord, *confirmParameters)) {
     emit logging(
         QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
             .arg(transponderRecord.value("id")));
@@ -624,7 +624,7 @@ bool TransponderReleaseSystem::generateTransponderInfo(
   return true;
 }
 
-bool TransponderReleaseSystem::checkRerelease(
+bool TransponderReleaseSystem::checkConfirmRerelease(
     const QMap<QString, QString>& transponderRecord,
     const QMap<QString, QString>& searchData) {
   QMap<QString, QString> productionLineRecord;
@@ -646,7 +646,8 @@ bool TransponderReleaseSystem::checkRerelease(
   }
 
   // Проверка, что новый UCID отличается от прошлого
-  if (transponderRecord.value("ucid") == searchData.value("ucid")) {
+  if (!searchData.value("ucid").isEmpty() &&
+      transponderRecord.value("ucid") == searchData.value("ucid")) {
     emit logging(QString("Новый UCID идентичен прошлому, повторный выпуск "
                          "транспондера %1 невозможен. ")
                      .arg(transponderRecord.value("id")));
@@ -687,8 +688,8 @@ bool TransponderReleaseSystem::checkRerelease(
   return true;
 }
 
-bool TransponderReleaseSystem::confirmTransponder(
-    const QString& transponderId) const {
+bool TransponderReleaseSystem::confirmTransponder(const QString& transponderId,
+                                                  const QString& ucid) const {
   QMap<QString, QString> transponderRecord;
 
   // Запрашиваем данные транспондера
@@ -718,8 +719,9 @@ bool TransponderReleaseSystem::confirmTransponder(
     return false;
   }
 
-  // Подтверждаем транспондер и увеличиваем счетчик выпусков транспондера
+  // Увеличиваем счетчик выпусков транспондера и сохраняем ucid
   transponderRecord.insert("awaiting_confirmation", "false");
+  transponderRecord.insert("ucid", ucid);
   transponderRecord.insert(
       "release_counter",
       QString::number(transponderRecord.value("release_counter").toInt() + 1));
