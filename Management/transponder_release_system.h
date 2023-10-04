@@ -86,6 +86,9 @@ class TransponderReleaseSystem : public QObject {
  signals:
   void logging(const QString& log) const;
   void operationFinished();
+  void boxAssemblingFinished(const QMap<QString, QString> boxInfo);
+  void palletAssemblingFinished(const QMap<QString, QString> palletInfo);
+  void orderAssemblingFinished(const QMap<QString, QString> orderInfo);
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

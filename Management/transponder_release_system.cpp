@@ -162,13 +162,13 @@ void TransponderReleaseSystem::release(
     return;
   }
 
-  // Сохраняем полученный UCID и ожидаем подтверждения
+  // Ожидаем подтверждения
   transponderRecord.insert("id", productionLineRecord.value("transponder_id"));
   transponderRecord.insert("awaiting_confirmation", "true");
   if (!Database->updateRecordById("transponders", transponderRecord)) {
-    emit logging(
-        QString("Получена ошибка при сохранении UCID транспондера %1. ")
-            .arg(transponderRecord.value("id")));
+    emit logging(QString("Получена ошибка при активации ожидания подтверждения "
+                         "транспондера %1. ")
+                     .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
@@ -311,15 +311,22 @@ void TransponderReleaseSystem::rerelease(
     return;
   }
 
-  // Осуществляем логические проверки
-  if (!checkConfirmRerelease(transponderRecord, *rereleaseParameters)) {
-    emit logging(
-        QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
-            .arg(transponderRecord.value("id")));
+  // Проверка, что транспондер найден
+  if (transponderRecord.isEmpty()) {
+    emit logging(QString("Транспондер не был найден, перевыпуск невозможен. "));
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
-    return;
+  }
+
+  // Проверка, что транспондер уже был выпущен ранее
+  if (transponderRecord.value("release_counter").toInt() <= 0) {
+    emit logging(QString("Транспондер %1 еще не был выпущен ранее"
+                         "перевыпуск невозможен. ")
+                     .arg(transponderRecord.value("id")));
+    *status = Failed;
+    Database->abortTransaction();
+    emit operationFinished();
   }
 
   // Ожидаем подтверждения
@@ -385,23 +392,11 @@ void TransponderReleaseSystem::confirmRerelease(
     return;
   }
 
-  // Проверка, что транспондер ожидает подтверждения
-  if (transponderRecord.value("awaiting_confirmation") !=
-      confirmParameters->value("true")) {
-    emit logging(QString("Транспондер %1 не был перевыпущен, "
-                         "переподтверждение перевыпуска невозможно. ")
-                     .arg(transponderRecord.value("id")));
-    *status = Failed;
-    Database->abortTransaction();
-    emit operationFinished();
-    return;
-  }
-
   // Осуществляем логические проверки
   if (!checkConfirmRerelease(transponderRecord, *confirmParameters)) {
-    emit logging(
-        QString("Получена логическая ошибка при перевыпуске транспондера %1. ")
-            .arg(transponderRecord.value("id")));
+    emit logging(QString("Получена логическая ошибка при подтверждении "
+                         "перевыпуска транспондера %1. ")
+                     .arg(transponderRecord.value("id")));
     *status = Failed;
     Database->abortTransaction();
     emit operationFinished();
@@ -627,61 +622,35 @@ bool TransponderReleaseSystem::generateTransponderInfo(
 bool TransponderReleaseSystem::checkConfirmRerelease(
     const QMap<QString, QString>& transponderRecord,
     const QMap<QString, QString>& searchData) {
-  QMap<QString, QString> productionLineRecord;
-  QMap<QString, QString> boxRecord;
-
   // Проверка, что транспондер найден
   if (transponderRecord.isEmpty()) {
-    emit logging(QString("Транспондер не был найден, перевыпуск невозможен. "));
+    emit logging(QString(
+        "Транспондер не был найден, подтверждение перевыпуска невозможен. "));
     return false;
   }
 
   // Проверка, что транспондер уже был выпущен ранее
   if (transponderRecord.value("release_counter").toInt() <= 0) {
     emit logging(
-        QString(
-            "Транспондер %1 еще не был выпущен, повторный выпуск невозможен. ")
+        QString("Транспондер %1 еще не был выпущен ранее, подтверждение "
+                "перевыпуска невозможно. ")
             .arg(transponderRecord.value("id")));
     return false;
   }
 
-  // Проверка, что новый UCID отличается от прошлого
-  if (!searchData.value("ucid").isEmpty() &&
-      transponderRecord.value("ucid") == searchData.value("ucid")) {
-    emit logging(QString("Новый UCID идентичен прошлому, повторный выпуск "
-                         "транспондера %1 невозможен. ")
+  // Проверка, что транспондер ожидает подтверждения
+  if (transponderRecord.value("awaiting_confirmation") == "true") {
+    emit logging(QString("Транспондер %1 еще не был перевыпущен, подтверждение "
+                         "перевыпуска невозможно. ")
                      .arg(transponderRecord.value("id")));
     return false;
   }
 
-  // Запрашиваем данные о производственной линии
-  productionLineRecord.insert("login", searchData.value("login"));
-  productionLineRecord.insert("password", searchData.value("password"));
-  productionLineRecord.insert("id", "");
-  if (!Database->getRecordByPart("production_lines", productionLineRecord)) {
-    emit logging(
-        QString(
-            "Получена ошибка при поиске данных производственной линии '%1'. ")
-            .arg(productionLineRecord.value("login")));
-    return false;
-  }
-
-  // Запрашиваем данные о боксе
-  boxRecord.insert("id", transponderRecord.value("box_id"));
-  boxRecord.insert("production_line_id", "");
-  if (!Database->getRecordByPart("boxes", boxRecord)) {
-    emit logging(QString("Получена ошибка при поиске данных бокса %1. ")
-                     .arg(transponderRecord.value("box_id")));
-    return false;
-  }
-
-  // Проверка того, что транспондер перевыпускается той же производственной
-  // линией
-  if (boxRecord.value("production_line_id") !=
-      productionLineRecord.value("id")) {
-    emit logging(
-        QString("Перевыпуск транспондера сторонней производственной линией "
-                "невозможен. "));
+  // Проверка, что новый UCID отличается от прошлого
+  if (transponderRecord.value("ucid") == searchData.value("ucid")) {
+    emit logging(QString("Новый UCID идентичен прошлому, повторный выпуск "
+                         "транспондера %1 невозможен. ")
+                     .arg(transponderRecord.value("id")));
     return false;
   }
 
@@ -778,9 +747,8 @@ bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
     boxRecord.insert("assembling_end",
                      QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("boxes", boxRecord)) {
-      emit logging(
-          QString("Получена ошибка при установке даты начала сборки бокса %1. ")
-              .arg(boxId));
+      emit logging(QString("Получена ошибка при завершении сборки бокса %1. ")
+                       .arg(boxId));
       return false;
     }
 
@@ -834,7 +802,7 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
     if (!Database->updateRecordById("pallets", palletRecord)) {
       emit logging(
           QString(
-              "Получена ошибка при установке даты начала сборки паллеты %1. ")
+              "Получена ошибка при установке завершении сборки паллеты %1. ")
               .arg(id));
       return false;
     }
@@ -886,8 +854,7 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
                                              TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("orders", orderRecord)) {
       emit logging(
-          QString("Получена ошибка при установке даты начала сборки бокса %1. ")
-              .arg(id));
+          QString("Получена ошибка при завершении сборки заказа %1. ").arg(id));
       return false;
     }
   }

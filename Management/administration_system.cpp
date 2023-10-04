@@ -1237,6 +1237,8 @@ bool AdministrationSystem::startBoxProcessing(
   if (boxRecord.value("in_process") != "true") {
     boxRecord.insert("in_process", "true");
     boxRecord.insert("production_line_id", productionLineId);
+    boxRecord.insert("assembling_start",
+                     QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("boxes", boxRecord)) {
       emit logging(
           QString("Получена ошибка при связывании производственной линии %1 с "
@@ -1271,6 +1273,9 @@ bool AdministrationSystem::startPalletProcessing(const QString& id) const {
 
   if (palletRecord.value("in_process") != "true") {
     palletRecord.insert("in_process", "true");
+    palletRecord.insert(
+        "assembling_start",
+        QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("pallets", palletRecord)) {
       emit logging("Получена ошибка при запуске сборки палеты. ");
       return false;
