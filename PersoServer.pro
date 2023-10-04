@@ -30,7 +30,7 @@ SOURCES += \
     GUI/gui_delegates.cpp \
     GUI/user_interaction_system.cpp \
     GUI/log_system.cpp \
-    Logging/log_backend.cpp
+    Logging/log_backend.cpp \
     Logging/stdout_log_backend.cpp
 
 HEADERS += \
@@ -54,9 +54,12 @@ HEADERS += \
     Management/transponder_release_system.h \
     Management/transponder_seed_model.h \
     Miscellaneous/thread_object_builder.h \
-    Security/des.h
-    Logging/log_backend.h
+    Security/des.h \
+    Logging/log_backend.h \
     Logging/stdout_log_backend.h
+
+unix: SOURCES += Logging/syslog_log_backend.cpp
+unix: HEADERS += Logging/syslog_log_backend.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
