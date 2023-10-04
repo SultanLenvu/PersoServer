@@ -23,4 +23,5 @@ void SyslogLogBackend::writeLogLine(const QString &str)
   QByteArray data = str.toUtf8();
   syslog(LOG_INFO, data.data());
 }
-void clear() {} /* No-op */
+
+void SyslogLogBackend::clear() {} /* No-op */

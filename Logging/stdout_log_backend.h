@@ -1,3 +1,6 @@
+#ifndef STDOUTLOGBACKEND_H
+#define STDOUTLOGBACKEND_H
+
 #include <QObject>
 #include <QString>
 
@@ -10,3 +13,5 @@ class StdoutLogBackend: public LogBackend {
     virtual void writeLogLine(const QString &str) override;
     virtual void clear() override;
 };
+
+#endif /* STDOUTLOGBACKEND_H */

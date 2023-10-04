@@ -31,7 +31,8 @@ SOURCES += \
     GUI/user_interaction_system.cpp \
     GUI/log_system.cpp \
     Logging/log_backend.cpp \
-    Logging/stdout_log_backend.cpp
+    Logging/stdout_log_backend.cpp \
+    Logging/widget_log_backend.cpp
 
 HEADERS += \
     Database/database_controller.h \
@@ -56,10 +57,13 @@ HEADERS += \
     Miscellaneous/thread_object_builder.h \
     Security/des.h \
     Logging/log_backend.h \
-    Logging/stdout_log_backend.h
+    Logging/stdout_log_backend.h \
+    Logging/widget_log_backend.h
 
-unix: SOURCES += Logging/syslog_log_backend.cpp
-unix: HEADERS += Logging/syslog_log_backend.h
+unix: SOURCES += \
+    Logging/syslog_log_backend.cpp
+unix: HEADERS += \
+    Logging/syslog_log_backend.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -4,9 +4,9 @@
 
 #include "Logging/stdout_log_backend.h"
 
-virtual void writeLogLine(const QString &str)
+void StdoutLogBackend::writeLogLine(const QString &str)
 {
   qInfo() << str << "\n" << Qt::flush;
 }
 
-virtual void clear() {} /* No-op */
+void StdoutLogBackend::clear() {} /* No-op */

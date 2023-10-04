@@ -1,3 +1,6 @@
+#ifndef SYSLOGLOGBACKEND_H
+#define SYSLOGLOGBACKEND_H
+
 #include <QObject>
 #include <QString>
 
@@ -13,3 +16,5 @@ class SyslogLogBackend: public LogBackend {
     virtual void writeLogLine(const QString &str);
     virtual void clear();
 };
+
+#endif /* SYSLOGLOGBACKEND_H */
