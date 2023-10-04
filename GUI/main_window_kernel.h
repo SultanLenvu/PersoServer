@@ -19,6 +19,15 @@
 
 #include "General/definitions.h"
 
+#include "Logging/log_backend.h"
+#include "Logging/stdout_log_backend.h"
+#include "Logging/widget_log_backend.h"
+
+/* It will work on other Unices as well */
+#ifdef __linux__
+#include "Logging/syslog_log_backend.h"
+#endif /* __linux__ */
+
 class MainWindowKernel : public QMainWindow {
   Q_OBJECT
  private:
@@ -34,6 +43,10 @@ class MainWindowKernel : public QMainWindow {
 
   ServerManager* Manager;
   LogSystem* Logger;
+  WidgetLogBackend *WidgetLog;
+#ifdef __linux__
+  SyslogLogBackend *Syslog;
+#endif /* __linux__ */
   UserInteractionSystem* Interactor;
 
   DatabaseTableModel* RandomModel;

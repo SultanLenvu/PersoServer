@@ -1,5 +1,8 @@
 #include "main_window_kernel.h"
 
+#include "Logging/syslog_log_backend.h"
+#include "Logging/widget_log_backend.h"
+
 MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   // Считываем размеры дисплея
   DesktopGeometry = QApplication::desktop()->screenGeometry();
@@ -11,6 +14,10 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   CurrentGUI = nullptr;
   Manager = nullptr;
   Logger = nullptr;
+  WidgetLog = nullptr;
+#ifdef __linux__
+  Syslog = nullptr;
+#endif /* __linux__ */
   Interactor = nullptr;
 
   // Создаем систему логгирования
@@ -32,7 +39,13 @@ MainWindowKernel::MainWindowKernel(QWidget* parent) : QMainWindow(parent) {
   createMatchingTable();
 }
 
-MainWindowKernel::~MainWindowKernel() {}
+MainWindowKernel::~MainWindowKernel()
+{
+#ifdef __linux__
+  delete Syslog;
+#endif /* __linux__ */
+}
+
 
 ServerManager* MainWindowKernel::manager() {
   return Manager;
@@ -876,14 +889,20 @@ void MainWindowKernel::connectInitialInterface() {
           &MainWindowKernel::on_ServerStopPushButton_slot);
 
   // Подключаем логгер
-  connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
-  connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
-          &GUI::clearLogDisplay);
+  if (WidgetLog != nullptr) {
+    Logger->removeBackend(WidgetLog);
+    delete WidgetLog;
+  }
+  WidgetLog = new WidgetLogBackend(this, CurrentGUI);
+  Logger->addBackend(WidgetLog);
 }
 
 void MainWindowKernel::createMasterInterface() {
   // Удаляем предыдущий интерфейс
   if (CurrentGUI) {
+    Logger->removeBackend(WidgetLog);
+    delete WidgetLog;
+    WidgetLog = nullptr;
     CurrentGUI->hide();
     delete CurrentGUI;
   }
@@ -980,9 +999,12 @@ void MainWindowKernel::connectMasterInterface() {
           &MainWindowKernel::on_ApplySettingsPushButton_slot);
 
   // Подключаем логгер
-  connect(Logger, &LogSystem::requestDisplayLog, CurrentGUI, &GUI::displayLog);
-  connect(Logger, &LogSystem::requestClearDisplayLog, CurrentGUI,
-          &GUI::clearLogDisplay);
+  if (WidgetLog != nullptr) {
+    Logger->removeBackend(WidgetLog);
+    delete WidgetLog;
+  }
+  WidgetLog = new WidgetLogBackend(this, CurrentGUI);
+  Logger->addBackend(WidgetLog);
 
   // Соединяем модели и представления
   gui->DatabaseRandomModelView->setModel(RandomModel);
@@ -1018,6 +1040,12 @@ void MainWindowKernel::setupManager(void) {
 void MainWindowKernel::setupLogger() {
   delete Logger;
   Logger = new LogSystem(this);
+#ifdef __linux__
+  if (Syslog == nullptr) {
+    Syslog = new SyslogLogBackend(this);
+  }
+  Logger->addBackend(Syslog);
+#endif /* __linux__ */
   connect(this, &MainWindowKernel::logging, Logger, &LogSystem::generate);
 }
 
