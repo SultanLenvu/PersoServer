@@ -32,7 +32,7 @@ PersoServer::~PersoServer() {
   }
 }
 
-void PersoServer::start() {
+bool PersoServer::start() {
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
   emit startReleaser_signal(&status);
@@ -43,8 +43,7 @@ void PersoServer::start() {
           .arg(ListeningAddress.toString(), QString::number(ListeningPort)));
   if (!listen(ListeningAddress, ListeningPort)) {
     emit logging("Не удалось запуститься. ");
-    emit operationFinished(Failed);
-    return;
+    return false;
   }
 
   // Если сервер поднялся
@@ -56,7 +55,7 @@ void PersoServer::start() {
 
   // Изменяем состояние
   CurrentState = Work;
-  emit operationFinished(Completed);
+  return true;
 }
 
 void PersoServer::stop() {
@@ -71,7 +70,6 @@ void PersoServer::stop() {
   emit stopReleaser_signal();
 
   CurrentState = Idle;
-  emit operationFinished(Completed);
 }
 
 void PersoServer::incomingConnection(qintptr socketDescriptor) {
@@ -114,8 +112,6 @@ void PersoServer::createReleaserInstance() {
   Releaser = new TransponderReleaseSystem(nullptr);
   connect(Releaser, &TransponderReleaseSystem::logging, this,
           &PersoServer::proxyLogging);
-  connect(this, &PersoServer::applySettings_signal, Releaser,
-          &TransponderReleaseSystem::applySettings);
   connect(this, &PersoServer::startReleaser_signal, Releaser,
           &TransponderReleaseSystem::start);
   connect(this, &PersoServer::stopReleaser_signal, Releaser,
@@ -139,17 +135,6 @@ void PersoServer::createClientIdentifiers() {
   for (int32_t i = 1; i < MaxNumberClientConnections; i++) {
     FreeClientIds.insert(i);
   }
-}
-
-void PersoServer::applySettings() {
-  emit logging("Применение новых настроек. ");
-
-  loadSettings();
-
-  // Создаем идентификаторы для клиентов
-  createClientIdentifiers();
-
-  emit applySettings_signal();
 }
 
 void PersoServer::createClientInstance(qintptr socketDescriptor) {

@@ -34,7 +34,7 @@ class PersoServer : public QTcpServer {
  private:
   int32_t MaxNumberClientConnections;
   QHostAddress ListeningAddress;
-  uint32_t CurrentPort;
+  uint32_t ListeningPort;
   OperatingState CurrentState;
 
   QSet<int32_t> FreeClientIds;
@@ -52,8 +52,8 @@ class PersoServer : public QTcpServer {
   ~PersoServer();
 
  public:
-  void start(void);
-  void stop(void);
+  bool start(void);
+  bool stop(void);
 
  protected:
   // Внутренний метод вызываемый при получении нового запроса на подключение
@@ -75,9 +75,7 @@ class PersoServer : public QTcpServer {
 
  signals:
   void logging(const QString& log);
-  void applySettings_signal(void);
   void checkNewClientInstance(void);
-  void operationFinished(ReturnStatus status);
 
   void startReleaser_signal(TransponderReleaseSystem::ReturnStatus* status);
   void stopReleaser_signal(void);
