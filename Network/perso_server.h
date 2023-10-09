@@ -44,16 +44,13 @@ class PersoServer : public QTcpServer {
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;
 
-  LogSystem* Logger;
-  QThread* LoggerThread;
-
  public:
   explicit PersoServer(QObject* parent);
   ~PersoServer();
 
  public:
   bool start(void);
-  bool stop(void);
+  void stop(void);
 
  protected:
   // Внутренний метод вызываемый при получении нового запроса на подключение

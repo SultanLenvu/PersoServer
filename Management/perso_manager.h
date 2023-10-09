@@ -20,6 +20,8 @@ class PersoManager : public QObject
 
  public:
   explicit PersoManager(QObject* parent);
+  ~PersoManager();
+
   void processCommandArguments(const QStringList* args);
 
  private:

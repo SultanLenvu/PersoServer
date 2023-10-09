@@ -4,9 +4,9 @@
 #include <QHostAddress>
 #include <QObject>
 #include <QSettings>
+#include <QTextStream>
 #include <QTime>
 #include <QUdpSocket>
-#include <iostream>
 
 #include "General/definitions.h"
 
@@ -28,9 +28,6 @@ class LogSystem : public QObject {
  public:
   LogSystem(QObject* parent);
   ~LogSystem();
-
- public:
-  void clear(void);
 
  public slots:
   void generate(const QString& log);

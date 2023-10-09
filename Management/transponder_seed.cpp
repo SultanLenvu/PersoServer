@@ -1,4 +1,4 @@
-#include "transponder_seed_model.h"
+#include "transponder_seed.h"
 
 TransponderSeed::TransponderSeed(QObject* parent) : QObject(parent) {
   setObjectName("TransponderSeed");

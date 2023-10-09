@@ -9,7 +9,16 @@ PersoManager::PersoManager(QObject *parent) : QObject(parent)
   createServerInstance();
 }
 
-void PersoManager::processCommandArguments(const QStringList* args) {}
+PersoManager::~PersoManager() {
+  LoggerThread->quit();
+  LoggerThread->wait();
+}
+
+void PersoManager::processCommandArguments(const QStringList* args) {
+  if (args->contains("-s")) {
+    Server->start();
+  }
+}
 
 void PersoManager::loadSettings() {
   std::cout << "Загрузка конфигурации" << std::endl;
@@ -33,7 +42,7 @@ void PersoManager::createServerInstance() {
 }
 
 void PersoManager::createLoggerInstance() {
-  Logger = new LogSystem(this);
+  Logger = new LogSystem(nullptr);
 
   LoggerThread = new QThread(this);
   connect(LoggerThread, &QThread::finished, LoggerThread,
