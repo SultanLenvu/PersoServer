@@ -11,47 +11,29 @@ CONFIG += c++11
 SOURCES += \
     Database/database_controller.cpp \
     Database/database_table_model.cpp \
-    GUI/gui_initial.cpp \
-    GUI/gui_master.cpp \
     Database/postgres_controller.cpp \
-    Management/administration_system.cpp \
-    Management/administration_system_builder.cpp \
-    Management/firmware_generation_system.cpp \
+    Management/perso_manager.cpp \
+    Management/transponder_seed.cpp \
     Network/perso_client_connection.cpp \
-    Network/perso_host.cpp \
-    Management/server_manager.cpp \
     Management/transponder_release_system.cpp \
-    Management/transponder_seed_model.cpp \
-    Miscellaneous/thread_object_builder.cpp \
+    Management/firmware_generation_system.cpp \
+    Management/log_system.cpp \
+    Network/perso_server.cpp \
     Security/des.cpp \
-    main.cpp \
-    GUI/main_window_kernel.cpp \
-    GUI/gui.cpp \
-    GUI/gui_delegates.cpp \
-    GUI/user_interaction_system.cpp \
-    GUI/log_system.cpp
+    main.cpp
 
 HEADERS += \
+    General/definitions.h \
     Database/database_controller.h \
     Database/database_table_model.h \
-    GUI/gui_initial.h \
-    GUI/gui_master.h \
-    GUI/main_window_kernel.h \
-    GUI/gui.h \
-    GUI/gui_delegates.h \
-    GUI/user_interaction_system.h \
-    General/definitions.h \
     Database/postgres_controller.h \
-    Management/administration_system.h \
-    GUI/log_system.h \
-    Management/administration_system_builder.h \
+    Management/log_system.h \
     Management/firmware_generation_system.h \
-    Network/perso_client_connection.h \
-    Network/perso_host.h \
-    Management/server_manager.h \
+    Management/perso_manager.h \
     Management/transponder_release_system.h \
-    Management/transponder_seed_model.h \
-    Miscellaneous/thread_object_builder.h \
+    Management/transponder_seed.h \
+    Network/perso_client_connection.h \
+    Network/perso_server.h \
     Security/des.h
 
 # Default rules for deployment.

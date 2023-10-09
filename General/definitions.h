@@ -11,6 +11,14 @@
 #define TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
 //===============================================================
 
+/* Определения системы логгирования */
+//===============================================================
+#define DEFAULT_LOG_SENDING_IP "127.0.0.1"
+#define DEFAULT_LOG_SENDING_PORT 6665
+#define DEFAULT_LOG_DESTINATION_IP "127.0.0.1"
+#define DEFAULT_LOG_DESTINATION_PORT 6665
+//===============================================================
+
 /* Определения менеджера */
 //===============================================================
 #define SERVER_MANAGER_OPERATION_MAX_DURATION 60000

@@ -11,7 +11,7 @@
 
 #include "General/definitions.h"
 #include "Security/des.h"
-#include "transponder_seed_model.h"
+#include "transponder_seed.h"
 
 /*
 // Физическое представление данных транспондера: данные, не изменяемые

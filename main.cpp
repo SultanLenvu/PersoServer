@@ -1,14 +1,12 @@
-#include "GUI/main_window_kernel.h"
+#include "Network/perso_server.h"
 
 #include <QApplication>
-#include <QTextCodec>
+#include <QStringList>
 
 int main(int argc, char* argv[]) {
-  // Установка кодировки UTF-8 для консоли вывода
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("CP1251"));
+  QCoreApplication app(argc, argv);
+  QStringList cmdArgs = app.arguments();
 
-  QApplication a(argc, argv);
-  MainWindowKernel w;
-  w.show();
-  return a.exec();
+  PersoServer server(nullptr);
+  return app.exec();
 }

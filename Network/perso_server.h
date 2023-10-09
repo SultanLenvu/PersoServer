@@ -1,6 +1,8 @@
 #ifndef PERSOSERVER_H
 #define PERSOSERVER_H
 
+#include <iostream>
+
 #include <QMap>
 #include <QMutex>
 #include <QObject>
@@ -10,10 +12,12 @@
 #include <QThread>
 #include <QTimer>
 
+#include "Management/log_system.h"
 #include "Management/transponder_release_system.h"
+#include "Management/transponder_seed.h"
 #include "perso_client_connection.h"
 
-class PersoHost : public QTcpServer {
+class PersoServer : public QTcpServer {
   Q_OBJECT
  public:
   enum OperatingState {
@@ -29,7 +33,7 @@ class PersoHost : public QTcpServer {
 
  private:
   int32_t MaxNumberClientConnections;
-  QHostAddress CurrentAddress;
+  QHostAddress ListeningAddress;
   uint32_t CurrentPort;
   OperatingState CurrentState;
 
@@ -40,16 +44,16 @@ class PersoHost : public QTcpServer {
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;
 
-  QMutex Mutex;
+  LogSystem* Logger;
+  QThread* LoggerThread;
 
  public:
-  explicit PersoHost(QObject* parent);
-  ~PersoHost();
+  explicit PersoServer(QObject* parent);
+  ~PersoServer();
 
- public slots:
+ public:
   void start(void);
   void stop(void);
-  void applySettings(void);
 
  protected:
   // Внутренний метод вызываемый при получении нового запроса на подключение

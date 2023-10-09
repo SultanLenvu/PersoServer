@@ -1,8 +1,14 @@
 #ifndef LOGSYSTEM_H
 #define LOGSYSTEM_H
 
+#include <QHostAddress>
 #include <QObject>
+#include <QSettings>
 #include <QTime>
+#include <QUdpSocket>
+#include <iostream>
+
+#include "General/definitions.h"
 
 /* Глобальная система логгирования */
 //==================================================================================
@@ -11,7 +17,13 @@ class LogSystem : public QObject {
   Q_OBJECT
 
  private:
-  bool EnableIndicator;
+  bool Enable;
+
+  QHostAddress SendIp;
+  uint32_t SendPort;
+  QHostAddress DestIp;
+  uint32_t DestPort;
+  QUdpSocket* LogSocket;
 
  public:
   LogSystem(QObject* parent);
@@ -19,14 +31,12 @@ class LogSystem : public QObject {
 
  public:
   void clear(void);
-  void setEnable(bool option);
 
  public slots:
   void generate(const QString& log);
 
- signals:
-  void requestDisplayLog(const QString& logData);
-  void requestClearDisplayLog(void);
+ private:
+  void loadSettings(void);
 };
 
 //==================================================================================
