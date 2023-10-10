@@ -1,8 +1,7 @@
-QT += core gui sql charts network
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT += core sql network
 
 CONFIG += c++11
+CONFIG += console
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -14,10 +13,10 @@ SOURCES += \
     Database/postgres_controller.cpp \
     Management/perso_manager.cpp \
     Management/transponder_seed.cpp \
-    Network/perso_client_connection.cpp \
     Management/transponder_release_system.cpp \
     Management/firmware_generation_system.cpp \
     Management/log_system.cpp \
+    Network/perso_client.cpp \
     Network/perso_server.cpp \
     Security/des.cpp \
     main.cpp
@@ -32,7 +31,7 @@ HEADERS += \
     Management/perso_manager.h \
     Management/transponder_release_system.h \
     Management/transponder_seed.h \
-    Network/perso_client_connection.h \
+    Network/perso_client.h \
     Network/perso_server.h \
     Security/des.h
 

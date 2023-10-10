@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QStringList>
 #include <QTextStream>
 

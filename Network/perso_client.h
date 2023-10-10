@@ -1,7 +1,7 @@
-#ifndef PERSOCLIENTCONNECTION_H
-#define PERSOCLIENTCONNECTION_H
+#ifndef PersoClient_H
+#define PersoClient_H
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDataStream>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -15,7 +15,7 @@
 #include "Management/firmware_generation_system.h"
 #include "Management/transponder_release_system.h"
 
-class PersoClientConnection : public QObject {
+class PersoClient : public QObject {
   Q_OBJECT
 
  private:
@@ -43,17 +43,17 @@ class PersoClientConnection : public QObject {
   FirmwareGenerationSystem* Generator;
 
  public:
-  explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
-  ~PersoClientConnection();
+  explicit PersoClient(uint32_t id, qintptr socketDescriptor);
+  ~PersoClient();
 
   uint32_t getId(void);
 
  public slots:
-  void applySettings(void);
   void instanceTesting(void);
   void releaserFinished(void);
 
  private:
+  Q_DISABLE_COPY(PersoClient);
   void loadSettings(void);
   void createSocket(qintptr socketDescriptor);
   void createExpirationTimer(void);
@@ -111,4 +111,4 @@ class PersoClientConnection : public QObject {
                              TransponderReleaseSystem::ReturnStatus* status);
 };
 
-#endif  // PERSOCLIENTCONNECTION_H
+#endif  // PersoClient_H

@@ -24,6 +24,7 @@ class TransponderReleaseSystem : public QObject {
     CurrentOrderAssembled,
     Success,
   };
+  Q_ENUM(ReturnStatus);
 
  private:
   PostgresController* Database;
@@ -35,7 +36,6 @@ class TransponderReleaseSystem : public QObject {
  public slots:
   void start(ReturnStatus* status);
   void stop(void);
-  void applySettings(void);
 
   void authorize(const QMap<QString, QString>* parameters,
                  ReturnStatus* status);
@@ -61,6 +61,7 @@ class TransponderReleaseSystem : public QObject {
               ReturnStatus* status);
 
  private:
+  Q_DISABLE_COPY(TransponderReleaseSystem);
   void createDatabaseController(void);
   void loadSettings(void);
 

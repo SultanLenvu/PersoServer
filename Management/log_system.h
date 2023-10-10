@@ -17,10 +17,10 @@ class LogSystem : public QObject {
   Q_OBJECT
 
  private:
-  bool Enable;
+  bool ConsoleOutputEnable;
+  QTextStream* ConsoleOutput;
 
-  QHostAddress SendIp;
-  uint32_t SendPort;
+  bool UdpOutputEnable;
   QHostAddress DestIp;
   uint32_t DestPort;
   QUdpSocket* LogSocket;
@@ -30,10 +30,14 @@ class LogSystem : public QObject {
   ~LogSystem();
 
  public slots:
-  void generate(const QString& log);
+  void generate(const QString& log) const;
 
  private:
+  Q_DISABLE_COPY(LogSystem);
   void loadSettings(void);
+
+  void writeToUdp(const QString& log) const;
+  void writeToConsole(const QString& log) const;
 };
 
 //==================================================================================

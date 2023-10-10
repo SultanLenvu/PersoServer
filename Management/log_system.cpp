@@ -1,21 +1,23 @@
 #include "log_system.h"
 
 LogSystem::LogSystem(QObject* parent) : QObject(parent) {
+  setObjectName("LogSystem");
+
   LogSocket = new QUdpSocket(this);
+
+  loadSettings();
 }
 
 LogSystem::~LogSystem() {}
 
-void LogSystem::generate(const QString& log) {
+void LogSystem::generate(const QString& log) const {
+  QString udpMsg = "PersoServer - " + log;
+  writeToUdp(udpMsg);
+
   QTime time = QDateTime::currentDateTime().time();
-  QString logMsg = time.toString("hh:mm:ss.zzz - ") + log;
+  QString consoleMsg = time.toString("hh:mm:ss.zzz - ") + log;
 
-  LogSocket->writeDatagram(logMsg.toUtf8(), DestIp, DestPort);
-
-  QTextStream consoleOutput(stdout);
-  consoleOutput << "Test";
-  consoleOutput << logMsg.toUtf8();
-  consoleOutput.flush();
+  writeToConsole(consoleMsg);
 }
 
 /*
@@ -24,40 +26,47 @@ void LogSystem::generate(const QString& log) {
 
 void LogSystem::loadSettings() {
   QSettings settings;
-  QTextStream consoleOutput(stdout);
 
-  DestIp = settings.value("LogSystem/Destination/Ip").toString();
+  if (settings.value("log_system/console_ouput_enable").isValid()) {
+    ConsoleOutputEnable =
+        settings.value("log_system/console_ouput_enable").toBool();
+  } else {
+    ConsoleOutputEnable = true;
+  }
+
+  if (settings.value("log_system/udp_ouput_enable").isValid()) {
+    UdpOutputEnable = settings.value("log_system/udp_ouput_enable").toBool();
+  } else {
+    UdpOutputEnable = true;
+  }
+
+  DestIp = settings.value("log_system/udp_destination_ip").toString();
   if (DestIp.isNull()) {
-    consoleOutput << QString("Invalid LogSystem destination IP. Use default %1")
-                         .arg(DEFAULT_LOG_DESTINATION_IP)
-                         .toUtf8();
+    writeToConsole(QString("Invalid LogSystem destination IP. Use default %1.")
+                       .arg(DEFAULT_LOG_DESTINATION_IP));
     DestIp = DEFAULT_LOG_DESTINATION_IP;
   }
-  DestPort = settings.value("LogSystem/Destination/Port").toUInt();
+  DestPort = settings.value("log_system/udp_destination_port").toUInt();
   if (DestPort == 0) {
-    consoleOutput << QString(
-                         "Invalid LogSystem destination port. Use default %1")
-                         .arg(QString::number(DEFAULT_LOG_DESTINATION_PORT))
-                         .toUtf8();
+    writeToConsole(
+        QString("Invalid LogSystem destination port. Use default %1.")
+            .arg(QString::number(DEFAULT_LOG_DESTINATION_PORT)));
     DestPort = DEFAULT_LOG_DESTINATION_PORT;
   }
 
-  DestIp = settings.value("LogSystem/Sending/Ip").toString();
-  if (DestIp.isNull()) {
-    consoleOutput << QString("Invalid LogSystem destination IP. Use default %1")
-                         .arg(DEFAULT_LOG_SENDING_IP)
-                         .toUtf8();
-    DestIp = DEFAULT_LOG_SENDING_IP;
-  }
-  DestPort = settings.value("LogSystem/Sending/Port").toUInt();
-  if (DestPort == 0) {
-    consoleOutput << QString(
-                         "Invalid LogSystem destination port. Use default %1")
-                         .arg(QString::number(DEFAULT_LOG_SENDING_PORT))
-                         .toUtf8();
-    DestPort = DEFAULT_LOG_SENDING_PORT;
-  }
-  consoleOutput.flush();
+  generate(QString("Вывод логов в консоль включен."));
+  generate(QString("Отправка логов по UDP включена."));
+}
 
-  LogSocket->bind(DestIp, DestPort);
+void LogSystem::writeToConsole(const QString& log) const {
+  if (ConsoleOutputEnable) {
+    QTextStream consoleOutput(stdout);
+    consoleOutput << log << "\n";
+  }
+}
+
+void LogSystem::writeToUdp(const QString& log) const {
+  if (UdpOutputEnable) {
+    LogSocket->writeDatagram(log.toUtf8(), DestIp, DestPort);
+  }
 }

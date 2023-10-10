@@ -58,6 +58,7 @@ class FirmwareGenerationSystem : public QObject {
     UnknowError,
     CompletedSuccessfully
   };
+  Q_ENUM(ExecutionStatus);
 
  private:
   QFile* FirmwareBaseFile;
@@ -68,13 +69,13 @@ class FirmwareGenerationSystem : public QObject {
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
-  void applySettings(void);
 
   bool generate(const QMap<QString, QString>* attributes,
                 const QMap<QString, QString>* masterKeys,
                 QByteArray* assembledFirmware);
 
  private:
+  Q_DISABLE_COPY(FirmwareGenerationSystem);
   void loadSettings(void);
   void createPositionMap(void);
 

@@ -11,11 +11,6 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
   loadSettings();
 }
 
-void FirmwareGenerationSystem::applySettings() {
-  emit logging("Применение новых настроек. ");
-  loadSettings();
-}
-
 bool FirmwareGenerationSystem::generate(
     const QMap<QString, QString>* attributes,
     const QMap<QString, QString>* masterKeys,
@@ -39,9 +34,11 @@ void FirmwareGenerationSystem::loadSettings() {
   QSettings settings;
 
   FirmwareBaseFile->setFileName(
-      settings.value("Firmware/Base/Path").toString());
+      settings.value("firmware_generation_system/firmware_base_path")
+          .toString());
   FirmwareDataFile->setFileName(
-      settings.value("Firmware/Data/Path").toString());
+      settings.value("firmware_generation_system/firmware_data_path")
+          .toString());
 
   // Дополнение файлов
   uint32_t currentSize = 0;

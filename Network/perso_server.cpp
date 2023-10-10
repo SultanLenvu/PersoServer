@@ -26,7 +26,7 @@ PersoServer::~PersoServer() {
     delete it1.value();
   }
 
-  QMap<int32_t, PersoClientConnection*>::iterator it2;
+  QMap<int32_t, PersoClient*>::iterator it2;
   for (it2 = Clients.begin(); it2 != Clients.end(); it2++) {
     delete it2.value();
   }
@@ -45,7 +45,6 @@ bool PersoServer::start() {
     emit logging("Не удалось запуститься. ");
     return false;
   }
-
   // Если сервер поднялся
   if (thread() == QCoreApplication::instance()->thread()) {
     emit logging("Запущен в главном потоке. ");
@@ -76,7 +75,7 @@ void PersoServer::incomingConnection(qintptr socketDescriptor) {
   emit logging("Получен запрос на новое подключение. ");
 
   // Если свободных идентификаторов нет
-  if (FreeClientIds.size() == 0) {
+  if (FreeClientIds.isEmpty()) {
     pauseAccepting();  // Приостанавливаем прием новых подключений
     CurrentState = Paused;
 
@@ -95,17 +94,10 @@ void PersoServer::loadSettings() {
   QSettings settings;
 
   MaxNumberClientConnections =
-      settings.value("Server/MaxNumberClientConnection").toInt();
+      settings.value("perso_server/max_number_client_connection").toInt();
 
-  ListeningAddress = QHostAddress(settings.value("Server/ListenIp").toString());
-  if (ListeningAddress.isNull()) {
-    ListeningAddress = QHostAddress(PERSO_SERVER_DEFAULT_IP);
-  }
-
-  ListeningPort = settings.value("Server/ListenPort").toInt();
-  if (ListeningPort == 0) {
-    ListeningPort = PERSO_SERVER_DEFAULT_PORT;
-  }
+  ListeningAddress = settings.value("perso_server/listen_ip").toString();
+  ListeningPort = settings.value("perso_server/listen_port").toInt();
 }
 
 void PersoServer::createReleaserInstance() {
@@ -124,7 +116,7 @@ void PersoServer::createReleaserInstance() {
   connect(ReleaserThread, &QThread::finished, ReleaserThread,
           &QThread::deleteLater);
   connect(ReleaserThread, &QThread::finished, Releaser,
-          &PersoClientConnection::deleteLater);
+          &PersoClient::deleteLater);
 
   // Запускаем поток
   ReleaserThread->start();
@@ -133,25 +125,22 @@ void PersoServer::createReleaserInstance() {
 void PersoServer::createClientIdentifiers() {
   FreeClientIds.clear();
   for (int32_t i = 1; i < MaxNumberClientConnections; i++) {
-    FreeClientIds.insert(i);
+    FreeClientIds.push(i);
   }
 }
 
 void PersoServer::createClientInstance(qintptr socketDescriptor) {
   // Выделяем свободный идентификатор
-  int32_t clientId = *FreeClientIds.constBegin();
-  FreeClientIds.remove(clientId);
+  int32_t clientId = FreeClientIds.pop();
 
   // Создаем новое клиент-подключение
-  PersoClientConnection* newClient =
-      new PersoClientConnection(clientId, socketDescriptor);
+  PersoClient* newClient = new PersoClient(clientId, socketDescriptor);
 
-  connect(newClient, &PersoClientConnection::logging, this,
-          &PersoServer::proxyLogging);
-  connect(newClient, &PersoClientConnection::disconnected, this,
+  connect(newClient, &PersoClient::logging, this, &PersoServer::proxyLogging);
+  connect(newClient, &PersoClient::disconnected, this,
           &PersoServer::on_ClientDisconnected_slot);
   connect(this, &PersoServer::checkNewClientInstance, newClient,
-          &PersoClientConnection::instanceTesting);
+          &PersoClient::instanceTesting);
 
   // Добавляем клиента в реестр
   Clients.insert(clientId, newClient);
@@ -163,13 +152,13 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   QThread* newClientThread = new QThread(this);
   newClient->moveToThread(newClientThread);
 
-  connect(newClient, &PersoClientConnection::disconnected, newClientThread,
+  connect(newClient, &PersoClient::disconnected, newClientThread,
           &QThread::quit);
   connect(newClientThread, &QThread::finished, newClientThread,
           &QThread::deleteLater);
   connect(newClientThread, &QThread::finished, newClient,
-          &PersoClientConnection::deleteLater);
-  connect(newClient, &PersoClientConnection::destroyed, this,
+          &PersoClient::deleteLater);
+  connect(newClient, &PersoClient::destroyed, this,
           &PersoServer::on_ClientConnectionDeleted_slot);
   connect(newClientThread, &QThread::destroyed, this,
           &PersoServer::on_ClientThreadDeleted_slot);
@@ -178,17 +167,17 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   ClientThreads.insert(clientId, newClientThread);
 
   // Соединяем клиента с системой выпуска транспондеров
-  connect(newClient, &PersoClientConnection::releaserAuthorize_signal, Releaser,
+  connect(newClient, &PersoClient::releaserAuthorize_signal, Releaser,
           &TransponderReleaseSystem::authorize);
-  connect(newClient, &PersoClientConnection::releaseRelease_signal, Releaser,
+  connect(newClient, &PersoClient::releaseRelease_signal, Releaser,
           &TransponderReleaseSystem::release);
-  connect(newClient, &PersoClientConnection::releaserConfirmRelease_signal, Releaser,
+  connect(newClient, &PersoClient::releaserConfirmRelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRelease);
-  connect(newClient, &PersoClientConnection::releaserRerelease_signal, Releaser,
+  connect(newClient, &PersoClient::releaserRerelease_signal, Releaser,
           &TransponderReleaseSystem::rerelease);
-  connect(newClient, &PersoClientConnection::releaserConfirmRerelease_signal, Releaser,
+  connect(newClient, &PersoClient::releaserConfirmRerelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRerelease);
-  connect(newClient, &PersoClientConnection::releaserSearch_signal, Releaser,
+  connect(newClient, &PersoClient::releaserSearch_signal, Releaser,
           &TransponderReleaseSystem::search);
 
   // Запускаем поток
@@ -197,22 +186,21 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 }
 
 void PersoServer::proxyLogging(const QString& log) {
-  if (sender()->objectName() == "PersoClientConnection")
-    emit logging(
-        QString("Client %1 - ")
-            .arg(QString::number(
-                dynamic_cast<PersoClientConnection*>(sender())->getId())) +
-        log);
+  if (sender()->objectName() == "PersoClient")
+    emit logging(QString("Client %1 - ")
+                     .arg(QString::number(
+                         dynamic_cast<PersoClient*>(sender())->getId())) +
+                 log);
   else if (sender()->objectName() == "TransponderReleaseSystem")
-    emit logging("Releaser - " + log);
+    emit logging("TransponderReleaseSystem - " + log);
   else
     emit logging("Unknown - " + log);
 }
 
 void PersoServer::on_ClientDisconnected_slot() {
   // Освобождаем занятый идентификатор
-  uint32_t clientId = dynamic_cast<PersoClientConnection*>(sender())->getId();
-  FreeClientIds.insert(clientId);
+  uint32_t clientId = dynamic_cast<PersoClient*>(sender())->getId();
+  FreeClientIds.push(clientId);
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров
   ClientThreads.remove(clientId);

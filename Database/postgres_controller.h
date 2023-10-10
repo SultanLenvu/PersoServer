@@ -72,6 +72,7 @@ class PostgresController : public IDatabaseController {
       QMap<QString, QString>& condition) const override;
 
  private:
+  Q_DISABLE_COPY(PostgresController);
   void loadSettings(void);
   void createDatabaseConnection(void);
   void convertResponseToBuffer(QSqlQuery& request,

@@ -6,7 +6,7 @@
 #include <QMap>
 #include <QMutex>
 #include <QObject>
-#include <QSet>
+#include <QStack>
 #include <QString>
 #include <QTcpServer>
 #include <QThread>
@@ -15,7 +15,7 @@
 #include "Management/log_system.h"
 #include "Management/transponder_release_system.h"
 #include "Management/transponder_seed.h"
-#include "perso_client_connection.h"
+#include "perso_client.h"
 
 class PersoServer : public QTcpServer {
   Q_OBJECT
@@ -25,11 +25,13 @@ class PersoServer : public QTcpServer {
     Work,
     Paused,
   };
+  Q_ENUM(OperatingState);
   enum ReturnStatus {
     Completed,
     Failed,
     ReleaserError,
   };
+  Q_ENUM(ReturnStatus);
 
  private:
   int32_t MaxNumberClientConnections;
@@ -37,9 +39,9 @@ class PersoServer : public QTcpServer {
   uint32_t ListeningPort;
   OperatingState CurrentState;
 
-  QSet<int32_t> FreeClientIds;
+  QStack<int32_t> FreeClientIds;
   QMap<int32_t, QThread*> ClientThreads;
-  QMap<int32_t, PersoClientConnection*> Clients;
+  QMap<int32_t, PersoClient*> Clients;
 
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;
@@ -57,6 +59,7 @@ class PersoServer : public QTcpServer {
   virtual void incomingConnection(qintptr socketDescriptor) override;
 
  private:
+  Q_DISABLE_COPY(PersoServer);
   void loadSettings(void);
   void createReleaserInstance(void);
   void createClientIdentifiers(void);

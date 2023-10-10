@@ -23,6 +23,7 @@ class TransponderSeed : public QObject {
   const QMap<QString, QString>* masterKeys(void) const;
 
  private:
+  Q_DISABLE_COPY(TransponderSeed);
   void deleteAll(void);
 };
 

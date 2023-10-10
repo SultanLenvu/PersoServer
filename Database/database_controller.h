@@ -14,7 +14,7 @@ class IDatabaseController : public QObject {
   Q_OBJECT
 
  protected:
-  bool LogOption;
+  bool LogEnable;
 
  public:
   explicit IDatabaseController(QObject* parent);
@@ -62,6 +62,9 @@ class IDatabaseController : public QObject {
 
  protected:
   void sendLog(const QString& log) const;
+
+ private:
+  Q_DISABLE_COPY(IDatabaseController);
 
  signals:
   void logging(const QString& log) const;

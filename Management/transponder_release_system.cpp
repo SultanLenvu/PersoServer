@@ -3,7 +3,6 @@
 TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
     : QObject(parent) {
   setObjectName("TransponderReleaseSystem");
-
   loadSettings();
 
   // Создаем подключение к БД
@@ -28,15 +27,6 @@ void TransponderReleaseSystem::stop(void) {
 
   emit logging("Отключение от базы данных. ");
   Database->disconnect();
-}
-
-void TransponderReleaseSystem::applySettings() {
-  QMutexLocker locker(&Mutex);
-
-  emit logging("Применение новых настроек. ");
-  loadSettings();
-
-  Database->applySettings();
 }
 
 void TransponderReleaseSystem::authorize(
@@ -1040,8 +1030,8 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
 }
 
 void TransponderReleaseSystem::proxyLogging(const QString& log) const {
-  if (sender()->objectName() == "IDatabaseController") {
-    emit logging("Database controller - " + log);
+  if (sender()->objectName() == "PostgresController") {
+    emit logging("PostgresController - " + log);
   } else {
     emit logging("Unknown - " + log);
   }
