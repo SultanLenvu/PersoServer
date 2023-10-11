@@ -39,7 +39,8 @@ class IDatabaseController : public QObject {
   virtual bool getRecordById(const QString& tableName,
                              QMap<QString, QString>& record) const = 0;
   virtual bool getRecordByPart(const QString& tableName,
-                               QMap<QString, QString>& record) const = 0;
+                               QMap<QString, QString>& record,
+                               bool order = true) const = 0;
   virtual bool getLastRecord(const QString& tableName,
                              QMap<QString, QString>& record) const = 0;
   virtual bool getMergedRecordById(const QStringList& tables,

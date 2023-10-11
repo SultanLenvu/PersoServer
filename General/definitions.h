@@ -8,7 +8,8 @@
 #define ORGANIZATION_NAME "PowerSyntez"
 
 #define MASTER_ACCESS_PASSWORD "1995"
-#define TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
+#define POSTGRES_TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
+#define BOX_STICKER_DATE_TEMPLATE "dd.MM.yyyy"
 
 #define IP_PORT_MAX_VALUE 65535
 #define IP_PORT_MIN_VALUE 0

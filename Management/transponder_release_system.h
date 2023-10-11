@@ -5,6 +5,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
+#include <QSharedPointer>
 
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
@@ -44,7 +45,7 @@ class TransponderReleaseSystem : public QObject {
                QMap<QString, QString>* masterKeys,
                ReturnStatus* status);
   void confirmRelease(const QMap<QString, QString>* parameters,
-                      QMap<QString, QString>* transponderInfo,
+                      QMap<QString, QString>* transponderData,
                       ReturnStatus* status);
 
   void rerelease(const QMap<QString, QString>* parameters,
@@ -52,7 +53,7 @@ class TransponderReleaseSystem : public QObject {
                  QMap<QString, QString>* masterKeys,
                  ReturnStatus* status);
   void confirmRerelease(const QMap<QString, QString>* parameters,
-                        QMap<QString, QString>* transponderInfo,
+                        QMap<QString, QString>* transponderData,
                         ReturnStatus* status);
 
   void search(const QMap<QString, QString>* parameters,
@@ -65,10 +66,6 @@ class TransponderReleaseSystem : public QObject {
   void createDatabaseController(void);
   void loadSettings(void);
 
-  bool generateTransponderSeed(const QPair<QString, QString>* searchPair,
-                               QMap<QString, QString>* attributes,
-                               QMap<QString, QString>* masterKeys);
-  bool generateTransponderInfo(const QString&, QMap<QString, QString>* info);
   bool checkConfirmRerelease(const QMap<QString, QString>& transponderRecord,
                              const QMap<QString, QString>& searchData);
 
@@ -81,15 +78,26 @@ class TransponderReleaseSystem : public QObject {
   bool searchNextTransponderForAssembling(
       QMap<QString, QString>* productionLineRecord) const;
 
+  bool getTransponderSeed(const QPair<QString, QString>* searchPair,
+                          QMap<QString, QString>* attributes,
+                          QMap<QString, QString>* masterKeys) const;
+  bool getTransponderData(const QString&, QMap<QString, QString>* data) const;
+  bool getBoxData(const QString& id, QMap<QString, QString>* data) const;
+  bool getPalletData(const QString& id, QMap<QString, QString>* data) const;
+  bool getOrderData(const QString& id, QMap<QString, QString>* data) const;
+
  private slots:
   void proxyLogging(const QString& log) const;
 
  signals:
   void logging(const QString& log) const;
   void operationFinished();
-  void boxAssemblingFinished(const QMap<QString, QString> boxInfo);
-  void palletAssemblingFinished(const QMap<QString, QString> palletInfo);
-  void orderAssemblingFinished(const QMap<QString, QString> orderInfo);
+  void boxAssemblingFinished(
+      const QSharedPointer<QMap<QString, QString> > boxInfo) const;
+  void palletAssemblingFinished(
+      const QSharedPointer<QMap<QString, QString> > palletInfo) const;
+  void orderAssemblingFinished(
+      const QSharedPointer<QMap<QString, QString> > orderInfo) const;
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

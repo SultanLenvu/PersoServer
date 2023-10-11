@@ -91,35 +91,6 @@ bool PostgresController::abortTransaction() const {
   }
 }
 
-bool PostgresController::getTable(const QString& tableName,
-                                  uint32_t rowCount,
-                                  DatabaseTableModel* buffer) const {
-  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
-    sendLog("Соединение с Postgres не установлено. ");
-    return false;
-  }
-
-  QString requestText =
-      QString("SELECT * FROM public.%1 ORDER BY id ASC;").arg(tableName);
-
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  if (request.exec(requestText)) {
-    sendLog("Запрос выполнен. ");
-    //    if (!request.is()) {
-    //      sendLog("Ответные данные получены. ");
-    convertResponseToBuffer(request, buffer);
-    //    } else {
-    //      sendLog("Ответные данные не получены. ");
-    //      buffer->clear();
-    //    }
-    return true;
-  } else {  // Обработка ошибки выполнения запроса
-    sendLog(request.lastError().text());
-    sendLog("Отправленный запрос: " + requestText);
-    return false;
-  }
-}
-
 bool PostgresController::execCustomRequest(const QString& req,
                                            DatabaseTableModel* buffer) const {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
@@ -146,16 +117,32 @@ bool PostgresController::execCustomRequest(const QString& req,
   }
 }
 
-void PostgresController::applySettings() {
-  sendLog("Применение новых настроек. ");
-  loadSettings();
+bool PostgresController::getTable(const QString& tableName,
+                                  uint32_t rowCount,
+                                  DatabaseTableModel* buffer) const {
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog("Соединение с Postgres не установлено. ");
+    return false;
+  }
 
-  if (QSqlDatabase::database(ConnectionName).isOpen()) {
-    sendLog("Удаление предыущего подключения к базе данных. ");
-    QSqlDatabase::removeDatabase(ConnectionName);
+  QString requestText =
+      QString("SELECT * FROM public.%1 ORDER BY id ASC;").arg(tableName);
 
-    sendLog("Создание нового подключения к базе данных. ");
-    createDatabaseConnection();
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  if (request.exec(requestText)) {
+    sendLog("Запрос выполнен. ");
+    //    if (!request.is()) {
+    //      sendLog("Ответные данные получены. ");
+    convertResponseToBuffer(request, buffer);
+    //    } else {
+    //      sendLog("Ответные данные не получены. ");
+    //      buffer->clear();
+    //    }
+    return true;
+  } else {  // Обработка ошибки выполнения запроса
+    sendLog(request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
+    return false;
   }
 }
 
@@ -248,7 +235,8 @@ bool PostgresController::getRecordById(const QString& tableName,
 }
 
 bool PostgresController::getRecordByPart(const QString& tableName,
-                                         QMap<QString, QString>& record) const {
+                                         QMap<QString, QString>& record,
+                                         bool order) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -278,7 +266,11 @@ bool PostgresController::getRecordByPart(const QString& tableName,
   if (flag) {
     requestText.chop(4);
   }
-  requestText += " ORDER BY id ASC LIMIT 1;";
+  if (order) {
+    requestText += " ORDER BY id ASC LIMIT 1;";
+  } else {
+    requestText += " ORDER BY id DESC LIMIT 1;";
+  }
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
@@ -655,6 +647,19 @@ bool PostgresController::removeLastRecordByCondition(
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
     return false;
+  }
+}
+
+void PostgresController::applySettings() {
+  sendLog("Применение новых настроек. ");
+  loadSettings();
+
+  if (QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog("Удаление предыущего подключения к базе данных. ");
+    QSqlDatabase::removeDatabase(ConnectionName);
+
+    sendLog("Создание нового подключения к базе данных. ");
+    createDatabaseConnection();
   }
 }
 

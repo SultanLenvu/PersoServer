@@ -95,7 +95,7 @@ class PersoClient : public QObject {
                              TransponderReleaseSystem::ReturnStatus* status);
   void releaserConfirmRelease_signal(
       const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* transponderInfo,
+      QMap<QString, QString>* transponderData,
       TransponderReleaseSystem::ReturnStatus* status);
   void releaserRerelease_signal(const QMap<QString, QString>* parameters,
                                 QMap<QString, QString>* attributes,
@@ -103,7 +103,7 @@ class PersoClient : public QObject {
                                 TransponderReleaseSystem::ReturnStatus* status);
   void releaserConfirmRerelease_signal(
       const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* transponderInfo,
+      QMap<QString, QString>* transponderData,
       TransponderReleaseSystem::ReturnStatus* status);
   void releaserSearch_signal(const QMap<QString, QString>* parameters,
                              QMap<QString, QString>* attributes,

@@ -41,11 +41,12 @@ bool PersoManager::checkSettings() const {
   uint32_t temp = 0;
   QFileInfo info;
 
+  emit logging("Проверка файла конфигурации.");
+
   info.setFile(QString("%1/%2/%3.ini")
                    .arg(QCoreApplication::applicationDirPath(),
                         QCoreApplication::organizationName(),
                         QCoreApplication::applicationName()));
-  emit logging(info.filePath());
   if (!info.isFile()) {
     emit logging("Отсутствует файл конфигурации.");
     return false;
@@ -68,7 +69,7 @@ bool PersoManager::checkSettings() const {
   }
 
   temp = settings.value("perso_server/listen_port").toUInt();
-  if ((temp <= IP_PORT_MIN_VALUE) || (temp <= IP_PORT_MAX_VALUE)) {
+  if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт прослушиваемый сервером. ");
@@ -92,7 +93,7 @@ bool PersoManager::checkSettings() const {
   }
 
   temp = settings.value("log_system/udp_destination_port").toUInt();
-  if ((temp <= IP_PORT_MIN_VALUE) || (temp <= IP_PORT_MAX_VALUE)) {
+  if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт для отправки UDP логов. ");
@@ -107,7 +108,7 @@ bool PersoManager::checkSettings() const {
   }
 
   temp = settings.value("postgres/server_port").toUInt();
-  if ((temp <= IP_PORT_MIN_VALUE) || (temp <= IP_PORT_MAX_VALUE)) {
+  if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт сервера базы данных PostgreSQL. ");
@@ -132,6 +133,7 @@ bool PersoManager::checkSettings() const {
     return false;
   }
 
+  emit logging("Обработка файла конфигурации успешно завершена.");
   return true;
 }
 

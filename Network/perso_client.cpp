@@ -345,12 +345,12 @@ void PersoClient::processTransponderReleaseConfirm(QJsonObject* commandJson) {
   }
 
   // Подтверждение выпуска транспондера
-  QMap<QString, QString>* transponderInfo = new QMap<QString, QString>;
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>;
   confirmParameters.insert("login", commandJson->value("login").toString());
   confirmParameters.insert("password",
                            commandJson->value("password").toString());
   confirmParameters.insert("ucid", commandJson->value("ucid").toString());
-  emit releaserConfirmRelease_signal(&confirmParameters, transponderInfo, &ret);
+  emit releaserConfirmRelease_signal(&confirmParameters, transponderData, &ret);
 
   // Ожидаем завершения работы
   while (ret == TransponderReleaseSystem::Undefined) {
@@ -364,16 +364,14 @@ void PersoClient::processTransponderReleaseConfirm(QJsonObject* commandJson) {
     return;
   }
 
-  CurrentResponse["sn"] = transponderInfo->value("id");
-  CurrentResponse["pan"] = transponderInfo->value("personal_account_number");
-  CurrentResponse["manufacturer_id"] =
-      transponderInfo->value("manufacturer_id");
-  CurrentResponse["battery_insertation_date"] =
-      transponderInfo->value("battery_insertation_date");
-  CurrentResponse["box_id"] = transponderInfo->value("box_id");
-  CurrentResponse["pallet_id"] = transponderInfo->value("pallet_id");
-  CurrentResponse["order_id"] = transponderInfo->value("order_id");
-  CurrentResponse["issuer_name"] = transponderInfo->value("name");
+  CurrentResponse["sn"] = transponderData->value("sn");
+  CurrentResponse["pan"] = transponderData->value("pan");
+  CurrentResponse["box_id"] = transponderData->value("box_id");
+  CurrentResponse["pallet_id"] = transponderData->value("pallet_id");
+  CurrentResponse["order_id"] = transponderData->value("order_id");
+  CurrentResponse["issuer_name"] = transponderData->value("issuer_name");
+  CurrentResponse["transponder_model"] =
+      transponderData->value("transponder_model");
   CurrentResponse["return_status"] = "NoError";
 }
 
@@ -449,7 +447,7 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
   }
 
   // Подтверждение перевыпуска транспондера
-  QMap<QString, QString>* transponderInfo = new QMap<QString, QString>;
+  QMap<QString, QString>* transponderData = new QMap<QString, QString>;
   confirmParameters.insert("login", commandJson->value("login").toString());
   confirmParameters.insert("password",
                            commandJson->value("password").toString());
@@ -457,7 +455,7 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
                            commandJson->value("pan").toString().leftJustified(
                                FULL_PAN_CHAR_LENGTH, QChar('F')));
   confirmParameters.insert("ucid", commandJson->value("ucid").toString());
-  emit releaserConfirmRerelease_signal(&confirmParameters, transponderInfo,
+  emit releaserConfirmRerelease_signal(&confirmParameters, transponderData,
                                        &ret);
 
   // Ожидаем завершения работы
@@ -473,16 +471,14 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
     return;
   }
 
-  CurrentResponse["sn"] = transponderInfo->value("id");
-  CurrentResponse["pan"] = transponderInfo->value("personal_account_number");
-  CurrentResponse["manufacturer_id"] =
-      transponderInfo->value("manufacturer_id");
-  CurrentResponse["battery_insertation_date"] =
-      transponderInfo->value("battery_insertation_date");
-  CurrentResponse["box_id"] = transponderInfo->value("box_id");
-  CurrentResponse["pallet_id"] = transponderInfo->value("pallet_id");
-  CurrentResponse["order_id"] = transponderInfo->value("order_id");
-  CurrentResponse["issuer_name"] = transponderInfo->value("name");
+  CurrentResponse["sn"] = transponderData->value("sn");
+  CurrentResponse["pan"] = transponderData->value("pan");
+  CurrentResponse["box_id"] = transponderData->value("box_id");
+  CurrentResponse["pallet_id"] = transponderData->value("pallet_id");
+  CurrentResponse["order_id"] = transponderData->value("order_id");
+  CurrentResponse["issuer_name"] = transponderData->value("issuer_name");
+  CurrentResponse["transponder_model"] =
+      transponderData->value("transponder_model");
   CurrentResponse["return_status"] = "NoError";
 }
 

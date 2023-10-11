@@ -31,13 +31,11 @@ class PostgresController : public IDatabaseController {
   virtual bool closeTransaction(void) const override;
   virtual bool abortTransaction(void) const override;
 
+  virtual bool execCustomRequest(const QString& req,
+                                 DatabaseTableModel* buffer) const override;
   virtual bool getTable(const QString& tableName,
                         uint32_t rowCount,
                         DatabaseTableModel* buffer) const override;
-  virtual bool execCustomRequest(const QString& req,
-                                 DatabaseTableModel* buffer) const override;
-  virtual void applySettings() override;
-
   virtual bool clearTable(const QString& tableName) const override;
 
   virtual bool addRecord(const QString& tableName,
@@ -46,7 +44,8 @@ class PostgresController : public IDatabaseController {
   virtual bool getRecordById(const QString& tableName,
                              QMap<QString, QString>& record) const override;
   virtual bool getRecordByPart(const QString& tableName,
-                               QMap<QString, QString>& record) const override;
+                               QMap<QString, QString>& record,
+                               bool order = true) const override;
   virtual bool getLastRecord(const QString& tableName,
                              QMap<QString, QString>& record) const override;
 
@@ -70,6 +69,8 @@ class PostgresController : public IDatabaseController {
   virtual bool removeLastRecordByCondition(
       const QString& tableName,
       QMap<QString, QString>& condition) const override;
+
+  virtual void applySettings() override;
 
  private:
   Q_DISABLE_COPY(PostgresController);

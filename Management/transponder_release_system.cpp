@@ -168,7 +168,7 @@ void TransponderReleaseSystem::release(
   // Генерируем сид транспондера
   searchPair.first = "id";
   searchPair.second = transponderRecord.value("id");
-  if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
+  if (!getTransponderSeed(&searchPair, attributes, masterKeys)) {
     emit logging("Получена ошибка при генерации сида транспондера. ");
     *status = Failed;
     Database->abortTransaction();
@@ -189,7 +189,7 @@ void TransponderReleaseSystem::release(
 
 void TransponderReleaseSystem::confirmRelease(
     const QMap<QString, QString>* confirmParameters,
-    QMap<QString, QString>* transponderInfo,
+    QMap<QString, QString>* transponderData,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -236,8 +236,8 @@ void TransponderReleaseSystem::confirmRelease(
   }
 
   // Собираем информацию о транспондере
-  if (!generateTransponderInfo(productionLineRecord.value("transponder_id"),
-                               transponderInfo)) {
+  if (!getTransponderData(productionLineRecord.value("transponder_id"),
+                          transponderData)) {
     emit logging(
         "Получена ошибка при сборе информации о выпущенном транспондере. ");
     *status = Failed;
@@ -334,7 +334,7 @@ void TransponderReleaseSystem::rerelease(
   // Генерируем сид перевыпущенного транспондера
   searchPair.first = "id";
   searchPair.second = transponderRecord.value("id");
-  if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
+  if (!getTransponderSeed(&searchPair, attributes, masterKeys)) {
     emit logging("Получена ошибка при генерации сида транспондера. ");
     *status = Failed;
     Database->abortTransaction();
@@ -353,7 +353,7 @@ void TransponderReleaseSystem::rerelease(
 
 void TransponderReleaseSystem::confirmRerelease(
     const QMap<QString, QString>* confirmParameters,
-    QMap<QString, QString>* transponderInfo,
+    QMap<QString, QString>* transponderData,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -394,8 +394,7 @@ void TransponderReleaseSystem::confirmRerelease(
   }
 
   // Собираем информацию о транспондере
-  if (!generateTransponderInfo(transponderRecord.value("id"),
-                               transponderInfo)) {
+  if (!getTransponderData(transponderRecord.value("id"), transponderData)) {
     emit logging(
         "Получена ошибка при сборе информации о перевыпущенном транспондере. ");
     *status = Failed;
@@ -447,7 +446,7 @@ void TransponderReleaseSystem::search(
 
   searchPair.first = searchParameters->constBegin().key();
   searchPair.second = searchParameters->constBegin().value();
-  if (!generateTransponderSeed(&searchPair, attributes, masterKeys)) {
+  if (!getTransponderSeed(&searchPair, attributes, masterKeys)) {
     emit logging("Получена ошибка при поиске транспондера. ");
     *status = Failed;
     Database->abortTransaction();
@@ -472,142 +471,6 @@ void TransponderReleaseSystem::createDatabaseController() {
 
 void TransponderReleaseSystem::loadSettings() {}
 
-bool TransponderReleaseSystem::generateTransponderSeed(
-    const QPair<QString, QString>* searchPair,
-    QMap<QString, QString>* attributes,
-    QMap<QString, QString>* masterKeys) {
-  QStringList tables;
-  QStringList foreignKeys;
-  QString keyTableName;
-
-  // Запрашиваем атрибуты
-  tables.append("transponders");
-  tables.append("boxes");
-  tables.append("pallets");
-  tables.append("orders");
-  tables.append("issuers");
-  foreignKeys.append("box_id");
-  foreignKeys.append("pallet_id");
-  foreignKeys.append("order_id");
-  foreignKeys.append("issuer_id");
-
-  attributes->insert("manufacturer_id", "");
-  attributes->insert("equipment_class", "");
-  attributes->insert("transponder_model", "");
-  attributes->insert("accr_reference", "");
-  attributes->insert("ucid", "");
-
-  attributes->insert("efc_context_mark", "");
-  attributes->insert("personal_account_number", "");
-
-  attributes->insert("release_counter", "");
-  attributes->insert("awaiting_confirmation", "");
-  attributes->insert("full_personalization", "");
-  attributes->insert("boxes.in_process", "");
-  attributes->insert("transport_master_keys_id", "");
-  attributes->insert("commercial_master_keys_id", "");
-  attributes->insert("transponders." + searchPair->first, searchPair->second);
-
-  if (!Database->getMergedRecordByPart(tables, foreignKeys, *attributes)) {
-    return false;
-  }
-
-  // Генерируем дату активации батареи
-  QDate date = QDate::currentDate();
-  QString batteryInsertationDate =
-      QString("%1%2")
-          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
-          .arg(QString::number(date.year() % 100), 2, QChar('0'));
-  attributes->insert("battery_insertation_date",
-                     batteryInsertationDate.toUtf8());
-
-  // Запрашиваем мастер ключи
-  masterKeys->insert("accr_key", "");
-  masterKeys->insert("per_key", "");
-  masterKeys->insert("au_key1", "");
-  masterKeys->insert("au_key2", "");
-  masterKeys->insert("au_key3", "");
-  masterKeys->insert("au_key4", "");
-  masterKeys->insert("au_key5", "");
-  masterKeys->insert("au_key6", "");
-  masterKeys->insert("au_key7", "");
-  masterKeys->insert("au_key8", "");
-  if (attributes->value("full_personalization") == "false") {
-    keyTableName = "transport_master_keys";
-    masterKeys->insert("id", attributes->value("transport_master_keys_id"));
-  } else {
-    keyTableName = "commercial_master_keys";
-    masterKeys->insert("id", attributes->value("commercial_master_keys_id"));
-  }
-
-  if (!Database->getRecordById(keyTableName, *masterKeys)) {
-    return false;
-  }
-  masterKeys->remove("id");
-
-  return true;
-}
-
-bool TransponderReleaseSystem::generateTransponderInfo(
-    const QString& transponderId,
-    QMap<QString, QString>* info) {
-  QStringList tables;
-  QStringList foreignKeys;
-  QString keyTableName;
-
-  // Запрашиваем атрибуты
-  tables.append("transponders");
-  tables.append("boxes");
-  tables.append("pallets");
-  tables.append("orders");
-  tables.append("issuers");
-  foreignKeys.append("box_id");
-  foreignKeys.append("pallet_id");
-  foreignKeys.append("order_id");
-  foreignKeys.append("issuer_id");
-
-  info->insert("manufacturer_id", "");
-  info->insert("equipment_class", "");
-  info->insert("transponder_model", "");
-  info->insert("accr_reference", "");
-  info->insert("ucid", "");
-
-  info->insert("efc_context_mark", "");
-  info->insert("personal_account_number", "");
-
-  info->insert("box_id", "");
-  info->insert("pallet_id", "");
-  info->insert("order_id", "");
-  info->insert("issuer_id", "");
-  info->insert("issuers.name", "");
-  info->insert("transponders.id", transponderId);
-
-  if (!Database->getMergedRecordByPart(tables, foreignKeys, *info)) {
-    return false;
-  }
-
-  // Генерируем дату активации батареи
-  QDate date = QDate::currentDate();
-  QString batteryInsertationDate =
-      QString("%1%2")
-          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
-          .arg(QString::number(date.year() % 100), 2, QChar('0'));
-  info->insert("battery_insertation_date", batteryInsertationDate.toUtf8());
-
-  // Преобразуем в десятичный формат
-  info->insert(
-      "manufacturer_id",
-      QString::number(info->value("manufacturer_id").toInt(nullptr, 16)));
-
-  // Дополняем серийник до 10 цифр нулями слева
-  info->insert("id", QString("%1").arg(info->value("id"), 10, QChar('0')));
-
-  // Вычленяем символ F из PAN
-  QString tempPan = info->value("personal_account_number");
-  info->insert("personal_account_number", tempPan.remove(QChar('F')));
-
-  return true;
-}
 
 bool TransponderReleaseSystem::checkConfirmRerelease(
     const QMap<QString, QString>& transponderRecord,
@@ -706,7 +569,7 @@ bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
   // Получаем данные о боксе
   boxRecord.insert("id", boxId);
   boxRecord.insert("assembled_units", "");
-  boxRecord.insert("capacity", "");
+  boxRecord.insert("quantity", "");
   boxRecord.insert("assembling_start", "");
   boxRecord.insert("assembling_end", "");
   boxRecord.insert("pallet_id", "");
@@ -730,12 +593,12 @@ bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
 
   // Если бокс целиком собран
   if (boxRecord.value("assembled_units").toInt() ==
-      boxRecord.value("capacity").toInt()) {
+      boxRecord.value("quantity").toInt()) {
     // Завершаем процесса сборки бокса
     boxRecord.insert("ready_indicator", "true");
     boxRecord.insert("in_process", "false");
-    boxRecord.insert("assembling_end",
-                     QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
+    boxRecord.insert("assembling_end", QDateTime::currentDateTime().toString(
+                                           POSTGRES_TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("boxes", boxRecord)) {
       emit logging(QString("Получена ошибка при завершении сборки бокса %1. ")
                        .arg(boxId));
@@ -759,7 +622,7 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
   // Получаем данные о паллете
   palletRecord.insert("id", id);
   palletRecord.insert("assembled_units", "");
-  palletRecord.insert("capacity", "");
+  palletRecord.insert("quantity", "");
   palletRecord.insert("assembling_start", "");
   palletRecord.insert("assembling_end", "");
   palletRecord.insert("order_id", "");
@@ -783,12 +646,12 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
 
   // Если паллета целиком собрана
   if (palletRecord.value("assembled_units").toInt() ==
-      palletRecord.value("capacity").toInt()) {
+      palletRecord.value("quantity").toInt()) {
     // Установка даты окончания и завершение процесса сборки паллеты
     palletRecord.insert("ready_indicator", "true");
     palletRecord.insert("in_process", "false");
     palletRecord.insert("assembling_end", QDateTime::currentDateTime().toString(
-                                              TIMESTAMP_TEMPLATE));
+                                              POSTGRES_TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("pallets", palletRecord)) {
       emit logging(
           QString(
@@ -814,7 +677,7 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
   // Получаем данные о заказе
   orderRecord.insert("id", id);
   orderRecord.insert("assembled_units", "");
-  orderRecord.insert("capacity", "");
+  orderRecord.insert("quantity", "");
   orderRecord.insert("assembling_start", "");
   orderRecord.insert("assembling_end", "");
   if (!Database->getRecordById("orders", orderRecord)) {
@@ -836,12 +699,12 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
   }
 
   if (orderRecord.value("assembled_units").toInt() ==
-      orderRecord.value("capacity").toInt()) {
+      orderRecord.value("quantity").toInt()) {
     // Установка даты окончания и завершение процесса сборки заказа
     orderRecord.insert("ready_indicator", "true");
     orderRecord.insert("in_process", "false");
     orderRecord.insert("assembling_end", QDateTime::currentDateTime().toString(
-                                             TIMESTAMP_TEMPLATE));
+                                             POSTGRES_TIMESTAMP_TEMPLATE));
     if (!Database->updateRecordById("orders", orderRecord)) {
       emit logging(
           QString("Получена ошибка при завершении сборки заказа %1. ").arg(id));
@@ -899,6 +762,16 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
 
   // Если свободный транспондер в текущем боксе не найден
   if (transponderRecord.isEmpty()) {
+    // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
+    QSharedPointer<QMap<QString, QString> > boxData(
+        new QMap<QString, QString>());
+    if (!getBoxData(boxRecord.value("id"), boxData.get())) {
+      emit logging(QString("Получена ошибка при получении данных бокса %1. ")
+                       .arg(boxRecord.value("id")));
+      return false;
+    }
+    emit boxAssemblingFinished(boxData);
+
     // Ищем свободный бокс в текущей паллете
     boxRecord.insert("id", "");
     boxRecord.insert("ready_indicator", "false");
@@ -916,7 +789,7 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
       boxRecord.insert("in_process", "true");
       boxRecord.insert(
           "assembling_start",
-          QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
+          QDateTime::currentDateTime().toString(POSTGRES_TIMESTAMP_TEMPLATE));
       boxRecord.insert("production_line_id", productionLineRecord->value("id"));
       if (!Database->updateRecordById("boxes", boxRecord)) {
         emit logging(
@@ -937,6 +810,18 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
         return false;
       }
     } else {  // Если свободных боксов в текущей паллете не найдено
+      // Собираем данные о паллете и отправляем сигнал о завершении сборки
+      // паллеты
+      QSharedPointer<QMap<QString, QString> > palletData(
+          new QMap<QString, QString>());
+      if (!getPalletData(palletRecord.value("id"), palletData.get())) {
+        emit logging(
+            QString("Получена ошибка при получении данных паллеты %1. ")
+                .arg(palletRecord.value("id")));
+        return false;
+      }
+      emit boxAssemblingFinished(boxData);
+
       // Ищем свободную паллету в текущем заказе
       palletRecord.insert("id", "");
       palletRecord.insert("ready_indicator", "false");
@@ -955,7 +840,7 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
         palletRecord.insert("in_process", "true");
         palletRecord.insert(
             "assembling_start",
-            QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
+            QDateTime::currentDateTime().toString(POSTGRES_TIMESTAMP_TEMPLATE));
         if (!Database->updateRecordById("pallets", palletRecord)) {
           emit logging(
               QString(
@@ -981,7 +866,7 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
         boxRecord.insert("in_process", "true");
         boxRecord.insert(
             "assembling_start",
-            QDateTime::currentDateTime().toString(TIMESTAMP_TEMPLATE));
+            QDateTime::currentDateTime().toString(POSTGRES_TIMESTAMP_TEMPLATE));
         boxRecord.insert("production_line_id",
                          productionLineRecord->value("id"));
         if (!Database->updateRecordById("boxes", boxRecord)) {
@@ -1028,6 +913,290 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
 
   return true;
 }
+
+bool TransponderReleaseSystem::getTransponderSeed(
+    const QPair<QString, QString>* searchPair,
+    QMap<QString, QString>* attributes,
+    QMap<QString, QString>* masterKeys) const {
+  QStringList tables;
+  QStringList foreignKeys;
+  QString keyTableName;
+
+  // Запрашиваем атрибуты
+  tables.append("transponders");
+  tables.append("boxes");
+  tables.append("pallets");
+  tables.append("orders");
+  tables.append("issuers");
+  foreignKeys.append("box_id");
+  foreignKeys.append("pallet_id");
+  foreignKeys.append("order_id");
+  foreignKeys.append("issuer_id");
+
+  attributes->insert("manufacturer_id", "");
+  attributes->insert("equipment_class", "");
+  attributes->insert("transponder_model", "");
+  attributes->insert("accr_reference", "");
+  attributes->insert("ucid", "");
+
+  attributes->insert("efc_context_mark", "");
+  attributes->insert("personal_account_number", "");
+
+  attributes->insert("release_counter", "");
+  attributes->insert("awaiting_confirmation", "");
+  attributes->insert("full_personalization", "");
+  attributes->insert("boxes.in_process", "");
+  attributes->insert("transport_master_keys_id", "");
+  attributes->insert("commercial_master_keys_id", "");
+  attributes->insert("transponders." + searchPair->first, searchPair->second);
+
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, *attributes)) {
+    return false;
+  }
+
+  // Генерируем дату активации батареи
+  QDate date = QDate::currentDate();
+  QString batteryInsertationDate =
+      QString("%1%2")
+          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
+          .arg(QString::number(date.year() % 100), 2, QChar('0'));
+  attributes->insert("battery_insertation_date",
+                     batteryInsertationDate.toUtf8());
+
+  // Запрашиваем мастер ключи
+  masterKeys->insert("accr_key", "");
+  masterKeys->insert("per_key", "");
+  masterKeys->insert("au_key1", "");
+  masterKeys->insert("au_key2", "");
+  masterKeys->insert("au_key3", "");
+  masterKeys->insert("au_key4", "");
+  masterKeys->insert("au_key5", "");
+  masterKeys->insert("au_key6", "");
+  masterKeys->insert("au_key7", "");
+  masterKeys->insert("au_key8", "");
+  if (attributes->value("full_personalization") == "false") {
+    keyTableName = "transport_master_keys";
+    masterKeys->insert("id", attributes->value("transport_master_keys_id"));
+  } else {
+    keyTableName = "commercial_master_keys";
+    masterKeys->insert("id", attributes->value("commercial_master_keys_id"));
+  }
+
+  if (!Database->getRecordById(keyTableName, *masterKeys)) {
+    return false;
+  }
+  masterKeys->remove("id");
+
+  return true;
+}
+
+bool TransponderReleaseSystem::getTransponderData(
+    const QString& transponderId,
+    QMap<QString, QString>* data) const {
+  QMap<QString, QString> mergedRecord;
+  QStringList tables;
+  QStringList foreignKeys;
+
+  // Запрашиваем атрибуты
+  tables.append("transponders");
+  tables.append("boxes");
+  tables.append("pallets");
+  tables.append("orders");
+  tables.append("issuers");
+  foreignKeys.append("box_id");
+  foreignKeys.append("pallet_id");
+  foreignKeys.append("order_id");
+  foreignKeys.append("issuer_id");
+
+  mergedRecord.insert("manufacturer_id", "");
+  mergedRecord.insert("equipment_class", "");
+  mergedRecord.insert("transponder_model", "");
+  mergedRecord.insert("accr_reference", "");
+  mergedRecord.insert("ucid", "");
+
+  mergedRecord.insert("efc_context_mark", "");
+  mergedRecord.insert("personal_account_number", "");
+
+  mergedRecord.insert("box_id", "");
+  mergedRecord.insert("pallet_id", "");
+  mergedRecord.insert("order_id", "");
+  mergedRecord.insert("issuer_id", "");
+  mergedRecord.insert("issuers.name", "");
+  mergedRecord.insert("transponders.id", transponderId);
+
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, mergedRecord)) {
+    return false;
+  }
+
+  // Данные переносимые без изменений
+  data->insert("box_id", mergedRecord.value("box_id"));
+  data->insert("pallet_id", mergedRecord.value("pallet_id"));
+  data->insert("order_id", mergedRecord.value("order_id"));
+  data->insert("transponder_model", mergedRecord.value("transponder_model"));
+
+  // Преобразуем в десятичный формат
+  QString manufacturerId =
+      QString::number(mergedRecord.value("manufacturer_id").toInt(nullptr, 16));
+
+  // Дата сборки
+  QDate date = QDate::currentDate();
+  QString batteryInsertationDate =
+      QString("%1%2")
+          .arg(QString::number(date.weekNumber()), 2, QChar('0'))
+          .arg(QString::number(date.year() % 100), 2, QChar('0'));
+
+  // Дополняем серийник до 10 цифр нулями слева
+  QString extendedTransponderId =
+      QString("%1").arg(mergedRecord.value("id"), 10, QChar('0'));
+
+  // Конструируем серийный номер транспондера
+  data->insert("sn", QString("%1 %2 %3")
+                         .arg(manufacturerId, batteryInsertationDate,
+                              extendedTransponderId));
+
+  // Вычленяем символ F из personal_account_number
+  QString tempPan = mergedRecord.value("personal_account_number");
+  data->insert("pan", tempPan.remove(QChar('F')));
+
+  // Название компании-заказчика
+  data->insert("issuer_name", mergedRecord.value("name"));
+
+  return true;
+}
+
+bool TransponderReleaseSystem::getBoxData(const QString& id,
+                                          QMap<QString, QString>* data) const {
+  QMap<QString, QString> boxRecord;
+  QMap<QString, QString> transponderRecord;
+  QMap<QString, QString> transponderData;
+
+  boxRecord.insert("id", id);
+  boxRecord.insert("quantity", "");
+  if (!Database->getRecordById("boxes", boxRecord)) {
+    emit logging(QString("Получена ошибка при поиске бокса с id %1. ").arg(id));
+    return false;
+  }
+
+  // Сохраняем данные бокса
+  data->insert("box_id", id);
+  data->insert("quantity", boxRecord.value("quantity"));
+
+  // Ищем первый транспондер в боксе
+  transponderRecord.insert("id", "");
+  transponderRecord.insert("box_id", id);
+  if (!Database->getRecordByPart("transponders", transponderRecord, true)) {
+    emit logging(
+        QString("Получена ошибка при поиске первого транспондера в боксе %1. ")
+            .arg(id));
+    return false;
+  }
+
+  // Запрашиваем данные транспондера
+  if (!getTransponderData(transponderRecord.value("id"), &transponderData)) {
+    emit logging(
+        QString("Получена ошибка при получении данных транспондера %1. ")
+            .arg(transponderRecord.value("id")));
+    return false;
+  }
+
+  // Сохраняем серийник первого транспондера в боксе
+  data->insert("first_transponder_sn", transponderData.value("sn"));
+  transponderData.clear();
+  transponderRecord.clear();
+
+  // Ищем последний транспондер в боксе
+  transponderRecord.insert("id", "");
+  transponderRecord.insert("box_id", id);
+  if (!Database->getRecordByPart("transponders", transponderRecord, false)) {
+    emit logging(
+        QString("Получена ошибка при поиске первого транспондера в боксе %1. ")
+            .arg(id));
+    return false;
+  }
+
+  // Запрашиваем данные транспондера
+  if (!getTransponderData(transponderRecord.value("id"), &transponderData)) {
+    emit logging(
+        QString("Получена ошибка при получении данных транспондера %1. ")
+            .arg(transponderRecord.value("id")));
+    return false;
+  }
+
+  // Сохраняем серийник последнего транспондера в боксе
+  data->insert("last_transponder_sn", transponderData.value("sn"));
+
+  // Сохраняем модель транспондера
+  data->insert("transponder_model", transponderData.value("transponder_model"));
+
+  // Добавляем полную дату сборки
+  data->insert("assembling_date",
+               QDate::currentDate().toString(BOX_STICKER_DATE_TEMPLATE));
+
+  return true;
+}
+
+bool TransponderReleaseSystem::getPalletData(
+    const QString& id,
+    QMap<QString, QString>* data) const {
+  QMap<QString, QString> boxRecord;
+  QMap<QString, QString> palletRecord;
+  QMap<QString, QString> orderRecord;
+
+  palletRecord.insert("id", id);
+  palletRecord.insert("quantity", "");
+  palletRecord.insert("order_id", "");
+  if (!Database->getRecordById("pallets", palletRecord)) {
+    emit logging(
+        QString("Получена ошибка при поиске паллеты с id %1. ").arg(id));
+    return false;
+  }
+
+  orderRecord.insert("id", palletRecord.value("pallet_id"));
+  orderRecord.insert("transponder_model", "");
+  if (!Database->getRecordById("orders", orderRecord)) {
+    emit logging(
+        QString("Получена ошибка при поиске паллеты с id %1. ").arg(id));
+    return false;
+  }
+
+  // Сохраняем данные паллеты
+  data->insert("id", id);
+  data->insert("quantity", palletRecord.value("quantity"));
+  data->insert("transponder_model", orderRecord.value("transponder_model"));
+
+  // Ищем первый бокс в паллете
+  boxRecord.insert("id", "");
+  boxRecord.insert("pallet_id", id);
+  if (!Database->getRecordByPart("boxes", boxRecord, true)) {
+    emit logging(
+        QString("Получена ошибка при поиске первого транспондера в боксе %1. ")
+            .arg(id));
+    return false;
+  }
+
+  // Сохраняем идентификатор первого бокса
+  data->insert("first_box_id", boxRecord.value("id"));
+  boxRecord.clear();
+
+  // Ищем последний бокс в паллете
+  boxRecord.insert("id", "");
+  boxRecord.insert("pallet_id", id);
+  if (!Database->getRecordByPart("boxes", boxRecord, true)) {
+    emit logging(
+        QString("Получена ошибка при поиске первого транспондера в боксе %1. ")
+            .arg(id));
+    return false;
+  }
+
+  // Сохраняем идентификатор последнего бокса
+  data->insert("last_box_id", boxRecord.value("id"));
+
+  return true;
+}
+
+bool TransponderReleaseSystem::getOrderData(
+    const QString& id,
+    QMap<QString, QString>* data) const {}
 
 void TransponderReleaseSystem::proxyLogging(const QString& log) const {
   if (sender()->objectName() == "PostgresController") {
