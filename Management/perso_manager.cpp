@@ -100,14 +100,15 @@ bool PersoManager::checkSettings() const {
     return false;
   }
 
-  if (QHostAddress(settings.value("postgres/server_ip").toString()).isNull()) {
+  if (QHostAddress(settings.value("postgres_controller/server_ip").toString())
+          .isNull()) {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес сервера базы данных PostgreSQL. ");
     return false;
   }
 
-  temp = settings.value("postgres/server_port").toUInt();
+  temp = settings.value("postgres_controller/server_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: некорректный "
@@ -161,12 +162,17 @@ void PersoManager::generateDefaultSettings() const {
                     DEFAULT_LOG_DESTINATION_PORT);
 
   // Postgres
-  settings.setValue("postgres/server_ip", POSTGRES_DEFAULT_SERVER_IP);
-  settings.setValue("postgres/server_port", POSTGRES_DEFAULT_SERVER_PORT);
-  settings.setValue("postgres/database_name", POSTGRES_DEFAULT_DATABASE_NAME);
-  settings.setValue("postgres/user_name", POSTGRES_DEFAULT_USER_NAME);
-  settings.setValue("postgres/user_password", POSTGRES_DEFAULT_USER_PASSWORD);
-  settings.setValue("postgres/log_enable", true);
+  settings.setValue("postgres_controller_controller/server_ip",
+                    POSTGRES_DEFAULT_SERVER_IP);
+  settings.setValue("postgres_controller_controller/server_port",
+                    POSTGRES_DEFAULT_SERVER_PORT);
+  settings.setValue("postgres_controller_controller/database_name",
+                    POSTGRES_DEFAULT_DATABASE_NAME);
+  settings.setValue("postgres_controller_controller/user_name",
+                    POSTGRES_DEFAULT_USER_NAME);
+  settings.setValue("postgres_controller_controller/user_password",
+                    POSTGRES_DEFAULT_USER_PASSWORD);
+  settings.setValue("postgres_controller_controller/log_enable", true);
 
   // FirmwareGenerationSystem
   settings.setValue("firmware_generation_system/firmware_base_path",
