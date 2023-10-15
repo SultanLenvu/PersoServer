@@ -28,7 +28,7 @@ PersoClient::PersoClient(uint32_t id, qintptr socketDescriptor) {
 
 PersoClient::~PersoClient() {}
 
-uint32_t PersoClient::getId() {
+uint32_t PersoClient::getId() const {
   return Id;
 }
 
@@ -52,8 +52,8 @@ void PersoClient::loadSettings() {
   MaximumConnectionTime =
       settings.value("perso_client/connection_max_duration").toInt();
 
-  ExtendedLoggingEnable =
-      settings.value("perso_client/extended_logging_enable").toBool();
+  ExtendedLogEnable =
+      settings.value("perso_client/extended_log_enable").toBool();
 }
 
 void PersoClient::createSocket(qintptr socketDescriptor) {
@@ -140,7 +140,7 @@ void PersoClient::createTransmittedDataBlock() {
   emit logging("Формирование блока данных для ответа на команду. ");
   emit logging(QString("Размер ответа: %1.")
                    .arg(QString::number(responseDocument.toJson().size())));
-  if (ExtendedLoggingEnable == true) {
+  if (ExtendedLogEnable == true) {
     emit logging(QString("Содержание ответа: %1")
                      .arg(QString(responseDocument.toJson())));
   }
@@ -532,7 +532,7 @@ void PersoClient::on_SocketReadyRead_slot() {
 
   // Если блок был получен целиком, то осуществляем его дессериализацию
   deserializator >> ReceivedDataBlock;
-  if (ExtendedLoggingEnable == true) {
+  if (ExtendedLogEnable == true) {
     emit logging("Блок полученных данных: " + ReceivedDataBlock);
   }
 

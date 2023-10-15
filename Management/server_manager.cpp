@@ -1,19 +1,18 @@
-#include "perso_manager.h"
+#include "server_manager.h"
 
-PersoManager::PersoManager(QObject *parent) : QObject(parent)
-{
-  setObjectName("PersoManager");
+ServerManager::ServerManager(QObject* parent) : QObject(parent) {
+  setObjectName("ServerManager");
   loadSettings();
 
   createLoggerInstance();
 }
 
-PersoManager::~PersoManager() {
+ServerManager::~ServerManager() {
   LoggerThread->quit();
   LoggerThread->wait();
 }
 
-void PersoManager::processCommandArguments(const QStringList* args) {
+void ServerManager::processCommandArguments(const QStringList* args) {
   if (args->contains("-generate_default_config")) {
     generateDefaultSettings();
   }
@@ -26,7 +25,7 @@ void PersoManager::processCommandArguments(const QStringList* args) {
   }
 }
 
-void PersoManager::loadSettings() const {
+void ServerManager::loadSettings() const {
   QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
   QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
   QCoreApplication::setApplicationName(PROGRAM_NAME);
@@ -36,7 +35,7 @@ void PersoManager::loadSettings() const {
                      QCoreApplication::applicationDirPath());
 }
 
-bool PersoManager::checkSettings() const {
+bool ServerManager::checkSettings() const {
   QSettings settings;
   uint32_t temp = 0;
   QFileInfo info;
@@ -138,7 +137,7 @@ bool PersoManager::checkSettings() const {
   return true;
 }
 
-void PersoManager::generateDefaultSettings() const {
+void ServerManager::generateDefaultSettings() const {
   QSettings settings;
 
   // PersoServer
@@ -181,14 +180,14 @@ void PersoManager::generateDefaultSettings() const {
                     DEFAULT_FIRMWARE_DATA_PATH);
 }
 
-void PersoManager::createServerInstance() {
+void ServerManager::createServerInstance() {
   Server = new PersoServer(this);
   connect(Server, &PersoServer::logging, Logger, &LogSystem::generate);
 }
 
-void PersoManager::createLoggerInstance() {
+void ServerManager::createLoggerInstance() {
   Logger = new LogSystem(nullptr);
-  connect(this, &PersoManager::logging, Logger, &LogSystem::generate);
+  connect(this, &ServerManager::logging, Logger, &LogSystem::generate);
 
   LoggerThread = new QThread(this);
   connect(LoggerThread, &QThread::finished, LoggerThread,

@@ -187,14 +187,14 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
 void PersoServer::proxyLogging(const QString& log) {
   if (sender()->objectName() == "PersoClient")
-    emit logging(QString("Client %1 - ")
-                     .arg(QString::number(
-                         dynamic_cast<PersoClient*>(sender())->getId())) +
-                 log);
+    emit logging(
+        QString("Client %1 - %2")
+            .arg(QString::number(dynamic_cast<PersoClient*>(sender())->getId()),
+                 log));
   else if (sender()->objectName() == "TransponderReleaseSystem")
-    emit logging("TransponderReleaseSystem - " + log);
+    emit logging(QString("TransponderReleaseSystem - %1").arg(log));
   else
-    emit logging("Unknown - " + log);
+    emit logging(QString("Unknown - %1").arg(log));
 }
 
 void PersoServer::on_ClientDisconnected_slot() {

@@ -11,7 +11,7 @@ SOURCES += \
     Database/database_controller.cpp \
     Database/database_table_model.cpp \
     Database/postgres_controller.cpp \
-    Management/perso_manager.cpp \
+    Management/server_manager.cpp \
     Management/transponder_seed.cpp \
     Management/transponder_release_system.cpp \
     Management/firmware_generation_system.cpp \
@@ -28,7 +28,7 @@ HEADERS += \
     Database/postgres_controller.h \
     Management/log_system.h \
     Management/firmware_generation_system.h \
-    Management/perso_manager.h \
+    Management/server_manager.h \
     Management/transponder_release_system.h \
     Management/transponder_seed.h \
     Network/perso_client.h \

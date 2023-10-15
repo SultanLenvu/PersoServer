@@ -1050,9 +1050,9 @@ bool TransponderReleaseSystem::getTransponderData(
       QString("%1").arg(mergedRecord.value("id"), 10, QChar('0'));
 
   // Конструируем серийный номер транспондера
-  data->insert("sn", QString("%1 %2 %3")
-                         .arg(manufacturerId, batteryInsertationDate,
-                              extendedTransponderId));
+  data->insert("sn",
+               QString("%1%2%3").arg(manufacturerId, batteryInsertationDate,
+                                     extendedTransponderId));
 
   // Вычленяем символ F из personal_account_number
   QString tempPan = mergedRecord.value("personal_account_number");

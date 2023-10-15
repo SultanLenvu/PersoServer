@@ -20,7 +20,7 @@ class PersoClient : public QObject {
 
  private:
   int32_t MaximumConnectionTime;
-  bool ExtendedLoggingEnable;
+  bool ExtendedLogEnable;
 
   uint32_t Id;
 
@@ -46,7 +46,7 @@ class PersoClient : public QObject {
   explicit PersoClient(uint32_t id, qintptr socketDescriptor);
   ~PersoClient();
 
-  uint32_t getId(void);
+  uint32_t getId(void) const;
 
  public slots:
   void instanceTesting(void);
