@@ -7,8 +7,8 @@
 #include <QTextCodec>
 #include <QThread>
 
+#include "Log/log_system.h"
 #include "Network/perso_server.h"
-#include "log_system.h"
 
 class ServerManager : public QObject {
   Q_OBJECT

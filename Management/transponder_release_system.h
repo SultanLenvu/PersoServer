@@ -9,6 +9,7 @@
 
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
+#include "Log/log_system.h"
 
 class TransponderReleaseSystem : public QObject {
   Q_OBJECT
@@ -28,6 +29,7 @@ class TransponderReleaseSystem : public QObject {
   Q_ENUM(ReturnStatus);
 
  private:
+  bool LogEnable;
   PostgresController* Database;
   QMutex Mutex;
 
@@ -65,6 +67,7 @@ class TransponderReleaseSystem : public QObject {
   Q_DISABLE_COPY(TransponderReleaseSystem);
   void createDatabaseController(void);
   void loadSettings(void);
+  void sendLog(const QString& log) const;
 
   bool checkConfirmRerelease(const QMap<QString, QString>& transponderRecord,
                              const QMap<QString, QString>& searchData);
@@ -85,9 +88,6 @@ class TransponderReleaseSystem : public QObject {
   bool getBoxData(const QString& id, QMap<QString, QString>* data) const;
   bool getPalletData(const QString& id, QMap<QString, QString>* data) const;
   bool getOrderData(const QString& id, QMap<QString, QString>* data) const;
-
- private slots:
-  void proxyLogging(const QString& log) const;
 
  signals:
   void logging(const QString& log) const;

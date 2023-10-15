@@ -75,6 +75,7 @@ class PostgresController : public IDatabaseController {
  private:
   Q_DISABLE_COPY(PostgresController);
   void loadSettings(void);
+  void sendLog(const QString& log) const;
   void createDatabaseConnection(void);
   void convertResponseToBuffer(QSqlQuery& request,
                                DatabaseTableModel* buffer) const;

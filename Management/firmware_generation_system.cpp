@@ -18,12 +18,12 @@ bool FirmwareGenerationSystem::generate(
   QByteArray firmwareData;
 
   if (!generateFirmwareData(attributes, masterKeys, &firmwareData)) {
-    emit logging("Получена ошибка при генерации данных прошивки. ");
+    sendLog("Получена ошибка при генерации данных прошивки. ");
     return false;
   }
 
   if (!assembleFirmware(&firmwareData, assembledFirmware)) {
-    emit logging("Получена ошибка при сборке прошивки из базы и данных. ");
+    sendLog("Получена ошибка при сборке прошивки из базы и данных. ");
     return false;
   }
 
@@ -32,6 +32,8 @@ bool FirmwareGenerationSystem::generate(
 
 void FirmwareGenerationSystem::loadSettings() {
   QSettings settings;
+
+  LogEnable = settings.value("log_system/global_enable").toBool();
 
   FirmwareBaseFile->setFileName(
       settings.value("firmware_generation_system/firmware_base_path")
@@ -56,7 +58,7 @@ void FirmwareGenerationSystem::loadSettings() {
     }
     FirmwareBaseFile->close();
   } else {
-    emit logging("Не удалось открыть базовый файл прошивки на запись.");
+    sendLog("Не удалось открыть базовый файл прошивки на запись.");
     return;
   }
 
@@ -72,15 +74,21 @@ void FirmwareGenerationSystem::loadSettings() {
     }
     FirmwareDataFile->close();
   } else {
-    emit logging("Не удалось открыть базовый файл прошивки на запись.");
+    sendLog("Не удалось открыть базовый файл прошивки на запись.");
     return;
+  }
+}
+
+void FirmwareGenerationSystem::sendLog(const QString& log) const {
+  if (LogEnable) {
+    emit logging("FirmwareGenerationSystem - " + log);
   }
 }
 
 bool FirmwareGenerationSystem::assembleFirmware(const QByteArray* firmwareData,
                                                 QByteArray* assembledFirmware) {
   if (!FirmwareBaseFile->open(QIODevice::ReadOnly)) {
-    emit logging("Не удалось открыть файл прошивки на чтение.");
+    sendLog("Не удалось открыть файл прошивки на чтение.");
     return false;
   }
 
@@ -101,7 +109,7 @@ bool FirmwareGenerationSystem::generateFirmwareData(
     const QMap<QString, QString>* masterKeys,
     QByteArray* firmwareData) {
   if (!FirmwareDataFile->open(QIODevice::ReadOnly)) {
-    emit logging("Не удалось открыть файл прошивки на чтение.");
+    sendLog("Не удалось открыть файл прошивки на чтение.");
     return false;
   }
 

@@ -12,7 +12,7 @@
 #include <QThread>
 #include <QTimer>
 
-#include "Management/log_system.h"
+#include "Log/log_system.h"
 #include "Management/transponder_release_system.h"
 #include "Management/transponder_seed.h"
 #include "perso_client.h"
@@ -34,6 +34,8 @@ class PersoServer : public QTcpServer {
   Q_ENUM(ReturnStatus);
 
  private:
+  bool LogEnable;
+
   int32_t MaxNumberClientConnections;
   QHostAddress ListeningAddress;
   uint32_t ListeningPort;
@@ -61,20 +63,19 @@ class PersoServer : public QTcpServer {
  private:
   Q_DISABLE_COPY(PersoServer);
   void loadSettings(void);
+  void sendLog(const QString& log) const;
   void createReleaserInstance(void);
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
 
  private slots:
-  void proxyLogging(const QString& log);
-
   void on_ClientDisconnected_slot(void);
 
   void on_ClientThreadDeleted_slot(void);
   void on_ClientConnectionDeleted_slot(void);
 
  signals:
-  void logging(const QString& log);
+  void logging(const QString& log) const;
   void checkNewClientInstance(void);
 
   void startReleaser_signal(TransponderReleaseSystem::ReturnStatus* status);

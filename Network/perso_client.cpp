@@ -34,26 +34,32 @@ uint32_t PersoClient::getId() const {
 
 void PersoClient::instanceTesting() {
   if (thread() != QCoreApplication::instance()->thread())
-    emit logging("Отдельный поток выделен. ");
+    sendLog("Отдельный поток выделен. ");
   else
-    emit logging("Отдельный поток не выделен. ");
+    sendLog("Отдельный поток не выделен. ");
 }
 
 void PersoClient::releaserFinished() {
   ReleaserWaitTimer->stop();
   ReleaserWaiting->quit();
 
-  emit logging("Система выпуска транспондеров завершила выполнение операции. ");
+  sendLog("Система выпуска транспондеров завершила выполнение операции. ");
 }
 
 void PersoClient::loadSettings() {
   QSettings settings;
 
+  LogEnable = settings.value("log_system/global_enable").toBool();
+  ExtendedLogEnable = settings.value("log_system/extended_enable").toBool();
+
   MaximumConnectionTime =
       settings.value("perso_client/connection_max_duration").toInt();
+}
 
-  ExtendedLogEnable =
-      settings.value("perso_client/extended_log_enable").toBool();
+void PersoClient::sendLog(const QString& log) const {
+  if (LogEnable) {
+    emit logging("PersoClient - " + log);
+  }
 }
 
 void PersoClient::createSocket(qintptr socketDescriptor) {
@@ -128,8 +134,8 @@ void PersoClient::createReleaserWaitTimer() {
 void PersoClient::createGenerator() {
   Generator = new FirmwareGenerationSystem(this);
 
-  connect(Generator, &FirmwareGenerationSystem::logging, this,
-          &PersoClient::proxyLogging);
+  connect(Generator, &FirmwareGenerationSystem::logging, LogSystem::instance(),
+          &LogSystem::generate);
 }
 
 void PersoClient::createCommandTemplates() {}
@@ -137,12 +143,12 @@ void PersoClient::createCommandTemplates() {}
 void PersoClient::createTransmittedDataBlock() {
   QJsonDocument responseDocument(CurrentResponse);
 
-  emit logging("Формирование блока данных для ответа на команду. ");
-  emit logging(QString("Размер ответа: %1.")
-                   .arg(QString::number(responseDocument.toJson().size())));
+  sendLog("Формирование блока данных для ответа на команду. ");
+  sendLog(QString("Размер ответа: %1.")
+              .arg(QString::number(responseDocument.toJson().size())));
   if (ExtendedLogEnable == true) {
-    emit logging(QString("Содержание ответа: %1")
-                     .arg(QString(responseDocument.toJson())));
+    sendLog(QString("Содержание ответа: %1")
+                .arg(QString(responseDocument.toJson())));
   }
 
   // Инициализируем блок данных и сериализатор
@@ -179,10 +185,10 @@ void PersoClient::processReceivedDataBlock(void) {
 
   // Если пришел некорректный JSON
   if (status.error != QJsonParseError::NoError) {
-    emit logging("Ошибка парсинга JSON команды. Сброс. ");
+    sendLog("Ошибка парсинга JSON команды. Сброс. ");
     return;
   } else {
-    emit logging("Обработка полученного блока данных. ");
+    sendLog("Обработка полученного блока данных. ");
   }
 
   // Выделяем список пар ключ-значение из JSON-файла
@@ -190,8 +196,7 @@ void PersoClient::processReceivedDataBlock(void) {
 
   // Синтаксическая проверка
   if (CommandObject.value("command_name") == QJsonValue::Undefined) {
-    emit logging(
-        "Обнаружена синтаксическая ошибка: отсутствует название команды. ");
+    sendLog("Обнаружена синтаксическая ошибка: отсутствует название команды. ");
     return;
   }
 
@@ -214,18 +219,17 @@ void PersoClient::processReceivedDataBlock(void) {
              "TransponderRereleaseConfirm") {
     processTransponderRereleaseConfirm(&CommandObject);
   } else {
-    emit logging(
-        "Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
+    sendLog("Обнаружена синтаксическая ошибка: получена неизвестная команда. ");
     return;
   }
 }
 
 void PersoClient::processEcho(QJsonObject* commandJson) {
-  emit logging("Выполнение команды Echo. ");
+  sendLog("Выполнение команды Echo. ");
 
   // Синтаксическая проверка
   if (commandJson->value("data").isUndefined()) {
-    emit logging(
+    sendLog(
         "Обнаружена синтаксическая ошибка в команде Echo: отсутствуют "
         "эхо-данные. ");
     return;
@@ -238,7 +242,7 @@ void PersoClient::processEcho(QJsonObject* commandJson) {
 }
 
 void PersoClient::processAuthorization(QJsonObject* commandJson) {
-  emit logging("Выполнение команды Authorization. ");
+  sendLog("Выполнение команды Authorization. ");
   QMap<QString, QString> authorizationParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
@@ -249,7 +253,7 @@ void PersoClient::processAuthorization(QJsonObject* commandJson) {
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
       commandJson->value("password").isUndefined()) {
-    emit logging("Обнаружена синтаксическая ошибка в команде Authorization. ");
+    sendLog("Обнаружена синтаксическая ошибка в команде Authorization. ");
     CurrentResponse["return_status"] = "SyntaxError";
     return;
   }
@@ -280,7 +284,7 @@ void PersoClient::processAuthorization(QJsonObject* commandJson) {
 }
 
 void PersoClient::processTransponderRelease(QJsonObject* commandJson) {
-  emit logging("Выполнение команды TransponderRelease. ");
+  sendLog("Выполнение команды TransponderRelease. ");
   QMap<QString, QString> releaseParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
@@ -291,8 +295,7 @@ void PersoClient::processTransponderRelease(QJsonObject* commandJson) {
   // Синтаксическая проверка
   if (commandJson->value("login").isUndefined() ||
       commandJson->value("password").isUndefined()) {
-    emit logging(
-        "Обнаружена синтаксическая ошибка в команде TransponderRelease.");
+    sendLog("Обнаружена синтаксическая ошибка в команде TransponderRelease.");
     CurrentResponse["return_status"] = "SyntaxError";
     return;
   }
@@ -311,13 +314,13 @@ void PersoClient::processTransponderRelease(QJsonObject* commandJson) {
   }
 
   if (ret != TransponderReleaseSystem::Success) {
-    emit logging("Получена ошибка при выпуске транспондера. ");
+    sendLog("Получена ошибка при выпуске транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
   }
 
-  emit logging("Генерация прошивки транспондера. ");
+  sendLog("Генерация прошивки транспондера. ");
   QByteArray firmware;
   Generator->generate(attributes, masterKeys, &firmware);
   CurrentResponse["firmware"] = QString::fromUtf8(firmware.toBase64());
@@ -325,7 +328,7 @@ void PersoClient::processTransponderRelease(QJsonObject* commandJson) {
 }
 
 void PersoClient::processTransponderReleaseConfirm(QJsonObject* commandJson) {
-  emit logging("Выполнение команды TransponderReleaseConfirm. ");
+  sendLog("Выполнение команды TransponderReleaseConfirm. ");
   QMap<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
@@ -337,7 +340,7 @@ void PersoClient::processTransponderReleaseConfirm(QJsonObject* commandJson) {
   if (commandJson->value("login").isUndefined() ||
       commandJson->value("password").isUndefined() ||
       commandJson->value("ucid").isUndefined()) {
-    emit logging(
+    sendLog(
         "Обнаружена синтаксическая ошибка в команде "
         "TransponderReleaseConfirm.");
     CurrentResponse["return_status"] = "SyntaxError";
@@ -358,7 +361,7 @@ void PersoClient::processTransponderReleaseConfirm(QJsonObject* commandJson) {
   }
 
   if (ret != TransponderReleaseSystem::Success) {
-    emit logging("Получена ошибка при подтверждении выпуска транспондера. ");
+    sendLog("Получена ошибка при подтверждении выпуска транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
@@ -376,7 +379,7 @@ void PersoClient::processTransponderReleaseConfirm(QJsonObject* commandJson) {
 }
 
 void PersoClient::processTransponderRerelease(QJsonObject* commandJson) {
-  emit logging("Выполнение команды TransponderRerelease. ");
+  sendLog("Выполнение команды TransponderRerelease. ");
   QMap<QString, QString> rereleaseParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
@@ -388,8 +391,7 @@ void PersoClient::processTransponderRerelease(QJsonObject* commandJson) {
   if (commandJson->value("login").isUndefined() ||
       commandJson->value("password").isUndefined() ||
       commandJson->value("pan").isUndefined()) {
-    emit logging(
-        "Обнаружена синтаксическая ошибка в команде TransponderRerelease.");
+    sendLog("Обнаружена синтаксическая ошибка в команде TransponderRerelease.");
     CurrentResponse["return_status"] = "SyntaxError";
     return;
   }
@@ -412,13 +414,13 @@ void PersoClient::processTransponderRerelease(QJsonObject* commandJson) {
   }
 
   if (ret != TransponderReleaseSystem::Success) {
-    emit logging("Получена ошибка при перевыпуске транспондера. ");
+    sendLog("Получена ошибка при перевыпуске транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
   }
 
-  emit logging("Генерация прошивки транспондера. ");
+  sendLog("Генерация прошивки транспондера. ");
   QByteArray firmware;
   Generator->generate(attributes, masterKeys, &firmware);
   CurrentResponse["firmware"] = QString::fromUtf8(firmware.toBase64());
@@ -426,7 +428,7 @@ void PersoClient::processTransponderRerelease(QJsonObject* commandJson) {
 }
 
 void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
-  emit logging("Выполнение команды TransponderRereleaseConfirm. ");
+  sendLog("Выполнение команды TransponderRereleaseConfirm. ");
   QMap<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
@@ -439,7 +441,7 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
       commandJson->value("password").isUndefined() ||
       commandJson->value("pan").isUndefined() ||
       commandJson->value("ucid").isUndefined()) {
-    emit logging(
+    sendLog(
         "Обнаружена синтаксическая ошибка в команде "
         "TransponderRereleaseConfirm.");
     CurrentResponse["return_status"] = "SyntaxError";
@@ -464,8 +466,7 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
   }
 
   if (ret != TransponderReleaseSystem::Success) {
-    emit logging(
-        "Получена ошибка при подтверждении перевыпуска транспондера. ");
+    sendLog("Получена ошибка при подтверждении перевыпуска транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
@@ -482,13 +483,6 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
   CurrentResponse["return_status"] = "NoError";
 }
 
-void PersoClient::proxyLogging(const QString& log) {
-  if (sender()->objectName() == "PostgresController")
-    emit logging("Postgres - " + log);
-  else
-    emit logging("Unknown - " + log);
-}
-
 void PersoClient::on_SocketReadyRead_slot() {
   QDataStream deserializator(Socket);  // Дессериализатор
   deserializator.setVersion(
@@ -499,7 +493,7 @@ void PersoClient::on_SocketReadyRead_slot() {
     // Если размер поступивших байт меньше размера поля с размером байт, то
     // блок поступившие данные отбрасываются
     if (Socket->bytesAvailable() < static_cast<int64_t>(sizeof(uint32_t))) {
-      emit logging(
+      sendLog(
           "Размер полученных данных слишком мал. Ожидается прием следующих "
           "частей. ");
       // Перезапускаем таймер ожидания для следующих частей
@@ -509,22 +503,22 @@ void PersoClient::on_SocketReadyRead_slot() {
     // Сохраняем размер блока данных
     deserializator >> ReceivedDataBlockSize;
 
-    emit logging(QString("Размер принимаемого блока данных: %1.")
-                     .arg(QString::number(ReceivedDataBlockSize)));
+    sendLog(QString("Размер принимаемого блока данных: %1.")
+                .arg(QString::number(ReceivedDataBlockSize)));
 
     // Если размер блока данных слишком большой, то весь блок отбрасывается
     if (ReceivedDataBlockSize > DATA_BLOCK_MAX_SIZE) {
-      emit logging("Размер блока данных слишком большой. Сброс. ");
+      sendLog("Размер блока данных слишком большой. Сброс. ");
       ReceivedDataBlockSize = 0;
     }
   }
 
-  emit logging(QString("Размер принятых данных: %1. ")
-                   .arg(QString::number(Socket->bytesAvailable())));
+  sendLog(QString("Размер принятых данных: %1. ")
+              .arg(QString::number(Socket->bytesAvailable())));
 
   // Дожидаемся пока весь блок данных придет целиком
   if (Socket->bytesAvailable() < ReceivedDataBlockSize) {
-    emit logging("Блок получен не целиком. Ожидается прием следующих частей. ");
+    sendLog("Блок получен не целиком. Ожидается прием следующих частей. ");
     // Перезапускаем таймер ожидания для следующих частей
     DataBlockWaitTimer->start();
     return;
@@ -533,7 +527,7 @@ void PersoClient::on_SocketReadyRead_slot() {
   // Если блок был получен целиком, то осуществляем его дессериализацию
   deserializator >> ReceivedDataBlock;
   if (ExtendedLogEnable == true) {
-    emit logging("Блок полученных данных: " + ReceivedDataBlock);
+    sendLog("Блок полученных данных: " + ReceivedDataBlock);
   }
 
   // Осуществляем обработку полученных данных
@@ -551,7 +545,7 @@ void PersoClient::on_SocketReadyRead_slot() {
 }
 
 void PersoClient::on_SocketDisconnected_slot() {
-  emit logging("Отключился. ");
+  sendLog("Отключился. ");
 
   //Отправляем сигнал об отключении клиента
   emit disconnected();
@@ -561,28 +555,28 @@ void PersoClient::on_SocketError_slot(
     QAbstractSocket::SocketError socketError) {
   // Если клиент отключился не самостоятельно
   if (socketError != 1) {
-    emit logging(QString("Ошибка сети: Код: %1. Описание: %2.")
-                     .arg(QString::number(socketError))
-                     .arg(Socket->errorString()));
+    sendLog(QString("Ошибка сети: Код: %1. Описание: %2.")
+                .arg(QString::number(socketError))
+                .arg(Socket->errorString()));
     Socket->close();
   }
 }
 
 void PersoClient::on_ExpirationTimerTimeout_slot() {
-  emit logging("Экспирация времени подключения. ");
+  sendLog("Экспирация времени подключения. ");
 
   // Закрываем соединение
   Socket->close();
 }
 
 void PersoClient::on_DataBlockWaitTimerTimeout_slot() {
-  emit logging("Время ожидания вышло. Блок данных сбрасывается. ");
+  sendLog("Время ожидания вышло. Блок данных сбрасывается. ");
   ReceivedDataBlock.clear();
   ReceivedDataBlockSize = 0;
 }
 
 void PersoClient::on_ReleaserWaitTimerTimeout_slot() {
-  emit logging("Система выпуска транспондеров зависла. ");
+  sendLog("Система выпуска транспондеров зависла. ");
   // Закрываем соединение
   Socket->close();
 }

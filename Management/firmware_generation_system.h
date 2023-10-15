@@ -61,6 +61,8 @@ class FirmwareGenerationSystem : public QObject {
   Q_ENUM(ExecutionStatus);
 
  private:
+  bool LogEnable;
+
   QFile* FirmwareBaseFile;
   QFile* FirmwareDataFile;
 
@@ -77,6 +79,7 @@ class FirmwareGenerationSystem : public QObject {
  private:
   Q_DISABLE_COPY(FirmwareGenerationSystem);
   void loadSettings(void);
+  void sendLog(const QString& log) const;
   void createPositionMap(void);
 
   bool assembleFirmware(const QByteArray* firmwareData,

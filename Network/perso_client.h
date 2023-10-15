@@ -19,8 +19,9 @@ class PersoClient : public QObject {
   Q_OBJECT
 
  private:
-  int32_t MaximumConnectionTime;
+  bool LogEnable;
   bool ExtendedLogEnable;
+  int32_t MaximumConnectionTime;
 
   uint32_t Id;
 
@@ -55,6 +56,7 @@ class PersoClient : public QObject {
  private:
   Q_DISABLE_COPY(PersoClient);
   void loadSettings(void);
+  void sendLog(const QString& log) const;
   void createSocket(qintptr socketDescriptor);
   void createExpirationTimer(void);
   void createDataBlockWaitTimer(void);
@@ -74,7 +76,6 @@ class PersoClient : public QObject {
   void processTransponderRereleaseConfirm(QJsonObject* commandJson);
 
  private slots:
-  void proxyLogging(const QString& log);
   void on_SocketReadyRead_slot(void);
   void on_SocketDisconnected_slot(void);
   void on_SocketError_slot(QAbstractSocket::SocketError socketError);
@@ -84,8 +85,8 @@ class PersoClient : public QObject {
   void on_ReleaserWaitTimerTimeout_slot(void);
 
  signals:
+  void logging(const QString& log) const;
   void disconnected(void);
-  void logging(const QString& log);
 
   void releaserAuthorize_signal(const QMap<QString, QString>* parameters,
                                 TransponderReleaseSystem::ReturnStatus* status);

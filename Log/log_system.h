@@ -2,13 +2,18 @@
 #define LOGSYSTEM_H
 
 #include <QHostAddress>
+#include <QList>
+#include <QMutex>
 #include <QObject>
 #include <QSettings>
-#include <QTextStream>
+#include <QThread>
 #include <QTime>
 #include <QUdpSocket>
 
-#include "General/definitions.h"
+#include "Log/console_log_backend.h"
+#include "Log/file_log_backend.h"
+#include "Log/log_backend.h"
+#include "Log/udp_log_backend.h"
 
 /* Глобальная система логгирования */
 //==================================================================================
@@ -17,27 +22,25 @@ class LogSystem : public QObject {
   Q_OBJECT
 
  private:
-  bool ConsoleOutputEnable;
-  QTextStream* ConsoleOutput;
-
-  bool UdpOutputEnable;
-  QHostAddress DestIp;
-  uint32_t DestPort;
-  QUdpSocket* LogSocket;
+  QList<LogBackend*> Backends;
+  UdpLogBackend* WidgetLogger;
+  FileLogBackend* FileLogger;
+  ConsolerLogBackend* ConsoleLogger;
 
  public:
-  LogSystem(QObject* parent);
   ~LogSystem();
+  static LogSystem* instance(void);
 
  public slots:
+  void clear(void) const;
   void generate(const QString& log) const;
 
- private:
-  Q_DISABLE_COPY(LogSystem);
-  void loadSettings(void);
+  void applySettings(void);
 
-  void writeToUdp(const QString& log) const;
-  void writeToConsole(const QString& log) const;
+ private:
+  LogSystem(QObject* parent);
+  Q_DISABLE_COPY(LogSystem)
+  void loadSettings(void);
 };
 
 //==================================================================================

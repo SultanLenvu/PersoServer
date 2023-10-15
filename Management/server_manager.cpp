@@ -83,6 +83,13 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
+  if (settings.value("log_system/log_file_max_number").toUInt() == 0) {
+    emit logging(
+        "Получена ошибка при обработке файла конфигурации: некорректное "
+        "максимальное количество лог-файлов. ");
+    return false;
+  }
+
   if (QHostAddress(settings.value("log_system/udp_destination_ip").toString())
           .isNull()) {
     emit logging(
@@ -150,11 +157,14 @@ void ServerManager::generateDefaultSettings() const {
   // PersoClient
   settings.setValue("perso_client/connection_max_duration",
                     CLIENT_CONNECTION_MAX_DURATION);
-  settings.setValue("perso_client/extended_logging_enable", true);
 
   // LogSystem
-  settings.setValue("log_system/console_ouput_enable", true);
-  settings.setValue("log_system/udp_ouput_enable", true);
+  settings.setValue("log_system/global_enable", true);
+  settings.setValue("log_system/extended_enable", true);
+  settings.setValue("log_system/console_log_enable", true);
+  settings.setValue("log_system/file_log_enable", true);
+  settings.setValue("log_system/log_file_max_number", 10);
+  settings.setValue("log_system/udp_log_enable", true);
   settings.setValue("log_system/udp_destination_ip",
                     DEFAULT_LOG_DESTINATION_IP);
   settings.setValue("log_system/udp_destination_port",
@@ -171,7 +181,6 @@ void ServerManager::generateDefaultSettings() const {
                     POSTGRES_DEFAULT_USER_NAME);
   settings.setValue("postgres_controller_controller/user_password",
                     POSTGRES_DEFAULT_USER_PASSWORD);
-  settings.setValue("postgres_controller_controller/log_enable", true);
 
   // FirmwareGenerationSystem
   settings.setValue("firmware_generation_system/firmware_base_path",
@@ -186,13 +195,12 @@ void ServerManager::createServerInstance() {
 }
 
 void ServerManager::createLoggerInstance() {
-  Logger = new LogSystem(nullptr);
+  Logger = LogSystem::instance();
   connect(this, &ServerManager::logging, Logger, &LogSystem::generate);
 
   LoggerThread = new QThread(this);
   connect(LoggerThread, &QThread::finished, LoggerThread,
           &QThread::deleteLater);
-  connect(LoggerThread, &QThread::finished, Logger, &LogSystem::deleteLater);
 
   Logger->moveToThread(LoggerThread);
   LoggerThread->start();
