@@ -1,15 +1,4 @@
-#include <QDateTime>
-#include <QDir>
-#include <QList>
-#include <QObject>
-#include <QString>
-#include <QStringList>
-
 #include "log_system.h"
-
-#include "Log/log_backend.h"
-#include "Log/udp_log_backend.h"
-#include "Log/udp_log_backend.h"
 
 LogSystem::LogSystem(QObject* parent) : QObject(parent) {
   setObjectName("LogSystem");
@@ -46,11 +35,6 @@ void LogSystem::generate(const QString& log) const {
        it != Backends.end(); it++) {
     (*it)->writeLogLine(LogData);
   }
-}
-
-void LogSystem::applySettings() {
-  generate("LogSystem - Применение новых настроек. ");
-  loadSettings();
 }
 
 /*

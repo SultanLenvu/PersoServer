@@ -1,20 +1,20 @@
 #ifndef PERSOSERVER_H
 #define PERSOSERVER_H
 
-#include <iostream>
-
 #include <QMap>
-#include <QMutex>
 #include <QObject>
+#include <QSet>
 #include <QStack>
 #include <QString>
 #include <QTcpServer>
 #include <QThread>
-#include <QTimer>
+#include <QtPrintSupport/QPrinterInfo>
 
 #include "Log/log_system.h"
 #include "Management/transponder_release_system.h"
 #include "Management/transponder_seed.h"
+#include "StickerPrinter/isticker_printer.h"
+#include "StickerPrinter/te310_printer.h"
 #include "perso_client.h"
 
 class PersoServer : public QTcpServer {
@@ -24,6 +24,7 @@ class PersoServer : public QTcpServer {
     Idle,
     Work,
     Paused,
+    Panic,
   };
   Q_ENUM(OperatingState);
   enum ReturnStatus {
@@ -42,17 +43,23 @@ class PersoServer : public QTcpServer {
   OperatingState CurrentState;
 
   QStack<int32_t> FreeClientIds;
-  QMap<int32_t, QThread*> ClientThreads;
-  QMap<int32_t, PersoClient*> Clients;
+  QSet<QThread*> ClientThreads;
+  QSet<PersoClient*> Clients;
 
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;
+
+  QString PrinterForBoxSticker;
+  QString PrinterForPalletSticker;
+  IStickerPrinter* BoxStickerPrinter;
+  IStickerPrinter* PalletStickerPrinter;
 
  public:
   explicit PersoServer(QObject* parent);
   ~PersoServer();
 
  public:
+  bool checkConfiguration(void);
   bool start(void);
   void stop(void);
 
@@ -64,15 +71,17 @@ class PersoServer : public QTcpServer {
   Q_DISABLE_COPY(PersoServer);
   void loadSettings(void);
   void sendLog(const QString& log) const;
+  void criticalErrorProcessing(const QString& log);
+
   void createReleaserInstance(void);
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
+  void createStickerPrinters(void);
 
  private slots:
   void on_ClientDisconnected_slot(void);
 
   void on_ClientThreadDeleted_slot(void);
-  void on_ClientConnectionDeleted_slot(void);
 
  signals:
   void logging(const QString& log) const;

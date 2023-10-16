@@ -13,6 +13,9 @@ PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {
 
   // Создаем систему выпуска транспондеров
   createReleaserInstance();
+
+  // Создаем принтеры
+  createStickerPrinters();
 }
 
 PersoServer::~PersoServer() {
@@ -21,15 +24,15 @@ PersoServer::~PersoServer() {
     ReleaserThread->wait();
   }
 
-  QMap<int32_t, QThread*>::iterator it1;
-  for (it1 = ClientThreads.begin(); it1 != ClientThreads.end(); it1++) {
-    delete it1.value();
+  for (QSet<QThread*>::iterator it = ClientThreads.begin();
+       it != ClientThreads.end(); it++) {
+    (*it)->exit();
+    (*it)->wait();
   }
+}
 
-  QMap<int32_t, PersoClient*>::iterator it2;
-  for (it2 = Clients.begin(); it2 != Clients.end(); it2++) {
-    delete it2.value();
-  }
+bool PersoServer::checkConfiguration() {
+  sendLog("Проверка конфигурации. ");
 }
 
 bool PersoServer::start() {
@@ -74,6 +77,13 @@ void PersoServer::stop() {
 void PersoServer::incomingConnection(qintptr socketDescriptor) {
   sendLog("Получен запрос на новое подключение. ");
 
+  if (CurrentState == Panic) {
+    sendLog(
+        "В процессе функционирования получена критическая ошибка. Обработка "
+        "новых клиентских подключений невозможна.");
+    return;
+  }
+
   // Если свободных идентификаторов нет
   if (FreeClientIds.isEmpty()) {
     pauseAccepting();  // Приостанавливаем прием новых подключений
@@ -100,12 +110,22 @@ void PersoServer::loadSettings() {
 
   ListeningAddress = settings.value("perso_server/listen_ip").toString();
   ListeningPort = settings.value("perso_server/listen_port").toInt();
+
+  PrinterForBoxSticker =
+      settings.value("perso_server/printer_for_box_sticker").toString();
+  PrinterForPalletSticker =
+      settings.value("perso_server/printer_for_pallet_sticker").toString();
 }
 
 void PersoServer::sendLog(const QString& log) const {
   if (LogEnable) {
     emit logging("PersoServer - " + log);
   }
+}
+
+void PersoServer::criticalErrorProcessing(const QString& log) {
+  sendLog(log);
+  CurrentState = Panic;
 }
 
 void PersoServer::createReleaserInstance() {
@@ -150,10 +170,10 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
           &PersoClient::instanceTesting);
 
   // Добавляем клиента в реестр
-  Clients.insert(clientId, newClient);
+  Clients.insert(newClient);
   sendLog(QString("Новый клиент создан и зарегистрирован в реестре с "
                   "идентификатором %1. ")
-              .arg(QString::number(Clients.last()->getId())));
+              .arg(QString::number(newClient->getId())));
 
   // Создаем отдельный поток для клиента
   QThread* newClientThread = new QThread(this);
@@ -171,7 +191,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
           &PersoServer::on_ClientThreadDeleted_slot);
 
   // Добавляем поток в соответствующий реестр
-  ClientThreads.insert(clientId, newClientThread);
+  ClientThreads.insert(newClientThread);
 
   // Соединяем клиента с системой выпуска транспондеров
   connect(newClient, &PersoClient::releaserAuthorize_signal, Releaser,
@@ -192,14 +212,43 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   sendLog("Клиентский поток запущен. ");
 }
 
+void PersoServer::createStickerPrinters() {
+  BoxStickerPrinter = new TE310Printer(this, PrinterForBoxSticker);
+  connect(Releaser, &TransponderReleaseSystem::boxAssemblingFinished,
+          BoxStickerPrinter, &IStickerPrinter::printBoxSticker);
+  connect(BoxStickerPrinter, &IStickerPrinter::logging, LogSystem::instance(),
+          &LogSystem::generate);
+
+  PalletStickerPrinter = new TE310Printer(this, PrinterForPalletSticker);
+  connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished,
+          PalletStickerPrinter, &IStickerPrinter::printPalletSticker);
+  connect(PalletStickerPrinter, &IStickerPrinter::logging,
+          LogSystem::instance(), &LogSystem::generate);
+}
+
 void PersoServer::on_ClientDisconnected_slot() {
+  PersoClient* disconnectedClient = dynamic_cast<PersoClient*>(sender());
+  if (!disconnectedClient) {
+    criticalErrorProcessing(
+        "Получена критическая ошибка: не удалось получить доступ к данным "
+        "отключившегося клиента. ");
+  }
   // Освобождаем занятый идентификатор
-  uint32_t clientId = dynamic_cast<PersoClient*>(sender())->getId();
+  uint32_t clientId = disconnectedClient->getId();
   FreeClientIds.push(clientId);
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров
-  ClientThreads.remove(clientId);
-  Clients.remove(clientId);
+  disconnectedClient->thread()->quit();
+  if (!disconnectedClient->thread()->wait()) {
+    criticalErrorProcessing(
+        "Получена критическая ошибка: не удалось остановить поток "
+        "отключившегося клиента. ");
+  } else {
+    sendLog(QString("Поток клиента %1 остановлен. ")
+                .arg(QString::number(clientId)));
+  }
+  ClientThreads.remove(disconnectedClient->thread());
+  Clients.remove(disconnectedClient);
 
   sendLog(
       QString("Клиент %1 удален из реестра. ").arg(QString::number(clientId)));

@@ -31,7 +31,7 @@ class FileLogBackend : public LogBackend {
  private:
   Q_DISABLE_COPY(FileLogBackend);
   void loadSettings(void);
-  void initialize(void);
+  void initialize();
   void removeOldestLogFiles(void);
 
  signals:

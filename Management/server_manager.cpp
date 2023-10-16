@@ -75,6 +75,24 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
+  if (settings.value("perso_server/printer_for_box_sticker")
+          .toString()
+          .isEmpty()) {
+    emit logging(
+        "Получена ошибка при обработке файла конфигурации: не указано имя "
+        "принтера для печати стикеров на боксы. ");
+    return false;
+  }
+
+  if (settings.value("perso_server/printer_for_pallet_sticker")
+          .toString()
+          .isEmpty()) {
+    emit logging(
+        "Получена ошибка при обработке файла конфигурации: не указано имя "
+        "принтера для печати стикеров на паллеты. ");
+    return false;
+  }
+
   if (settings.value("perso_client/connection_max_duration").toUInt() == 0) {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: некорректное "
@@ -153,6 +171,10 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("perso_server/listen_ip", PERSO_SERVER_DEFAULT_LISTEN_IP);
   settings.setValue("perso_server/listen_port",
                     PERSO_SERVER_DEFAULT_LISTEN_PORT);
+  settings.setValue("perso_server/printer_for_box_sticker",
+                    PRINTER_FOR_BOX_DEFAULT_NAME);
+  settings.setValue("perso_server/printer_for_pallet_sticker",
+                    PRINTER_FOR_PALLET_DEFAULT_NAME);
 
   // PersoClient
   settings.setValue("perso_client/connection_max_duration",
@@ -163,12 +185,13 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("log_system/extended_enable", true);
   settings.setValue("log_system/console_log_enable", true);
   settings.setValue("log_system/file_log_enable", true);
-  settings.setValue("log_system/log_file_max_number", 10);
+  settings.setValue("log_system/log_file_max_number",
+                    LOG_FILE_DEFAULT_MAX_NUMBER);
   settings.setValue("log_system/udp_log_enable", true);
   settings.setValue("log_system/udp_destination_ip",
-                    DEFAULT_LOG_DESTINATION_IP);
+                    UDP_LOG_DESTINATION_DEFAULT_IP);
   settings.setValue("log_system/udp_destination_port",
-                    DEFAULT_LOG_DESTINATION_PORT);
+                    UDP_LOG_DESTINATION_DEFAULT_PORT);
 
   // Postgres
   settings.setValue("postgres_controller_controller/server_ip",

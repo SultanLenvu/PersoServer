@@ -23,7 +23,7 @@ class LogSystem : public QObject {
 
  private:
   QList<LogBackend*> Backends;
-  UdpLogBackend* WidgetLogger;
+  UdpLogBackend* UdpLogger;
   FileLogBackend* FileLogger;
   ConsolerLogBackend* ConsoleLogger;
 
@@ -34,8 +34,6 @@ class LogSystem : public QObject {
  public slots:
   void clear(void) const;
   void generate(const QString& log) const;
-
-  void applySettings(void);
 
  private:
   LogSystem(QObject* parent);

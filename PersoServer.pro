@@ -23,6 +23,8 @@ SOURCES += \
     Network/perso_client.cpp \
     Network/perso_server.cpp \
     Security/des.cpp \
+    StickerPrinter/isticker_printer.cpp \
+    StickerPrinter/te310_printer.cpp \
     main.cpp
 
 HEADERS += \
@@ -40,8 +42,10 @@ HEADERS += \
     Management/transponder_seed.h \
     Network/perso_client.h \
     Network/perso_server.h \
-    Security/des.h
-    General/definitions.h \
+    Security/des.h \
+    StickerPrinter/isticker_printer.h \
+    StickerPrinter/te310_printer.h \
+    General/definitions.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

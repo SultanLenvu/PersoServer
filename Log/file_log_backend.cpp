@@ -1,14 +1,8 @@
-#include <QObject>
-#include <QString>
-#include <QTextStream>
-
 #include "file_log_backend.h"
-#include "log_backend.h"
 
 FileLogBackend::FileLogBackend(QObject* parent) : LogBackend(parent) {
   setObjectName("FileLogBackend");
   loadSettings();
-
   initialize();
 }
 
@@ -26,7 +20,8 @@ void FileLogBackend::clear() { /* No-op */
 void FileLogBackend::loadSettings() {
   QSettings settings;
 
-  LogEnable = settings.value("log_system/log_file_enable").toBool();
+  CurrentLogDir = QCoreApplication::applicationDirPath() + "/logs";
+  LogEnable = settings.value("log_system/file_log_enable").toBool();
   LogFileMaxNumber = settings.value("log_system/log_file_max_number").toInt();
 }
 
@@ -38,9 +33,12 @@ void FileLogBackend::initialize() {
     return;
   }
 
-  CurrentLogDir = QCoreApplication::applicationDirPath() + "/logs/log " +
-                  QDateTime::currentDateTime().toString("dd.MM.yyyy hh.mm.ss");
-  CurrentLogFile.setFileName(CurrentLogDir);
+  if (CurrentLogFile.isOpen()) {
+    CurrentLogFile.close();
+  }
+  CurrentLogFile.setFileName(
+      CurrentLogDir + "/log " +
+      QDateTime::currentDateTime().toString("dd.MM.yyyy hh.mm.ss"));
   if (!CurrentLogFile.open(QIODevice::WriteOnly)) {
     LogEnable = false;
     QTextStream(stdout) << "Не удалось открыть файл для логгирования. ";

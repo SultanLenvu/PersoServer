@@ -26,7 +26,9 @@ PersoClient::PersoClient(uint32_t id, qintptr socketDescriptor) {
   createCommandTemplates();
 }
 
-PersoClient::~PersoClient() {}
+PersoClient::~PersoClient() {
+  sendLog(QString("Клиент %1 удален. ").arg(QString::number(Id)));
+}
 
 uint32_t PersoClient::getId() const {
   return Id;

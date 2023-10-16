@@ -17,8 +17,10 @@
 
 /* Определения системы логгирования */
 //===============================================================
-#define DEFAULT_LOG_DESTINATION_IP "127.0.0.1"
-#define DEFAULT_LOG_DESTINATION_PORT 6665
+#define LOG_FILE_DEFAULT_MAX_NUMBER 10
+
+#define UDP_LOG_DESTINATION_DEFAULT_IP "127.0.0.1"
+#define UDP_LOG_DESTINATION_DEFAULT_PORT 6665
 //===============================================================
 
 /* Определения для базы данных Postgres */
@@ -135,6 +137,12 @@
 #define TRANSPONDER_LOG_SIZE 50
 
 #define COMMON_KEY_SIZE 8
+//========================================================================
+
+/* Определения для генератора прошивок */
+//===============================================================
+#define TE310PRINTER_DEFAULT_BOX_NAME "TSC TE310 Box"
+#define TE310PRINTER_DEFAULT_PALLET_NAME "TSC TE310 Pallet"
 //========================================================================
 
 #endif // DEFINITIONS_H
