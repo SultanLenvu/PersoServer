@@ -31,7 +31,7 @@ class PersoClient : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
-  QMap<QString, QJsonObject> CommandTemplates;
+  QMap<QString, QSharedPointer<QVector<QString>>> CommandTemplates;
   QJsonObject CurrentCommand;
   QJsonObject CurrentResponse;
 
@@ -57,12 +57,6 @@ class PersoClient : public QObject {
   Q_DISABLE_COPY(PersoClient);
   void loadSettings(void);
   void sendLog(const QString& log) const;
-  void createSocket(qintptr socketDescriptor);
-  void createExpirationTimer(void);
-  void createDataBlockWaitTimer(void);
-  void createReleaserWaitTimer(void);
-  void createGenerator(void);
-  void createCommandTemplates(void);
 
   void createTransmittedDataBlock(void);
   void transmitDataBlock(void);
@@ -74,6 +68,13 @@ class PersoClient : public QObject {
   void processTransponderReleaseConfirm(QJsonObject* commandJson);
   void processTransponderRerelease(QJsonObject* commandJson);
   void processTransponderRereleaseConfirm(QJsonObject* commandJson);
+
+  void createSocket(qintptr socketDescriptor);
+  void createExpirationTimer(void);
+  void createDataBlockWaitTimer(void);
+  void createReleaserWaitTimer(void);
+  void createGenerator(void);
+  void createCommandTemplates(void);
 
  private slots:
   void on_SocketReadyRead_slot(void);
@@ -110,6 +111,13 @@ class PersoClient : public QObject {
                              QMap<QString, QString>* attributes,
                              QMap<QString, QString>* masterKeys,
                              TransponderReleaseSystem::ReturnStatus* status);
+
+  void printBoxSticker_signal(
+      const QSharedPointer<QMap<QString, QString>> data);
+  void printLastBoxSticker_signal(void);
+  void printPalletSticker_signal(
+      const QSharedPointer<QMap<QString, QString>> data);
+  void printLastPalletSticker_signal(void);
 };
 
 #endif  // PersoClient_H

@@ -235,6 +235,16 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   connect(newClient, &PersoClient::releaserSearch_signal, Releaser,
           &TransponderReleaseSystem::search);
 
+  // Подключаем принтер
+  connect(newClient, &PersoClient::printBoxSticker_signal, this,
+          &PersoServer::printBoxSticker_slot);
+  connect(newClient, &PersoClient::printLastBoxSticker_signal, this,
+          &PersoServer::printLastBoxSticker_slot);
+  connect(newClient, &PersoClient::printPalletSticker_signal, this,
+          &PersoServer::printPalletSticker_slot);
+  connect(newClient, &PersoClient::printLastPalletSticker_signal, this,
+          &PersoServer::printLastPalletSticker_slot);
+
   // Запускаем поток
   newClientThread->start();
   sendLog("Клиентский поток запущен. ");
@@ -289,7 +299,7 @@ void PersoServer::on_ClientThreadDeleted_slot() {
 
 void PersoServer::printBoxSticker_slot(
     const QSharedPointer<QMap<QString, QString> > data) {
-  sendLog("Сборка бокса завершена. Запуск печати стикера.");
+  sendLog("Запуск печати стикера для бокса.");
 
   IStickerPrinter::ReturnStatus status =
       BoxStickerPrinter->printBoxSticker(data.get());
@@ -299,12 +309,34 @@ void PersoServer::printBoxSticker_slot(
   }
 }
 
+void PersoServer::printLastBoxSticker_slot() {
+  sendLog("Запуск печати стикера для бокса.");
+
+  IStickerPrinter::ReturnStatus status =
+      BoxStickerPrinter->printLastBoxSticker();
+
+  if (status != IStickerPrinter::Completed) {
+    processCriticalError("Получена ошибка при печати стикера для бокса. ");
+  }
+}
+
 void PersoServer::printPalletSticker_slot(
     const QSharedPointer<QMap<QString, QString> > data) {
-  sendLog("Сборка паллеты завершена. Запуск печати стикера.");
+  sendLog("Запуск печати стикера для паллеты.");
 
   IStickerPrinter::ReturnStatus status =
       BoxStickerPrinter->printPalletSticker(data.get());
+
+  if (status != IStickerPrinter::Completed) {
+    processCriticalError("Получена ошибка при печати стикера для паллеты. ");
+  }
+}
+
+void PersoServer::printLastPalletSticker_slot() {
+  sendLog("Запуск печати стикера для паллеты.");
+
+  IStickerPrinter::ReturnStatus status =
+      BoxStickerPrinter->printLastPalletSticker();
 
   if (status != IStickerPrinter::Completed) {
     processCriticalError("Получена ошибка при печати стикера для паллеты. ");

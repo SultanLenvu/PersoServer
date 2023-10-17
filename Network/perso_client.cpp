@@ -64,84 +64,6 @@ void PersoClient::sendLog(const QString& log) const {
   }
 }
 
-void PersoClient::createSocket(qintptr socketDescriptor) {
-  Socket = new QTcpSocket(this);
-  Socket->setSocketDescriptor(socketDescriptor);
-  connect(Socket, &QTcpSocket::readyRead, this,
-          &PersoClient::on_SocketReadyRead_slot);
-  connect(Socket, &QTcpSocket::disconnected, this,
-          &PersoClient::on_SocketDisconnected_slot);
-  connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error), this,
-          &PersoClient::on_SocketError_slot);
-}
-
-void PersoClient::createExpirationTimer() {
-  // Таймер для отсчета времени экспирации
-  ExpirationTimer = new QTimer(this);
-  ExpirationTimer->setInterval(MaximumConnectionTime);
-  // Если время подключения вышло, то вызываем соответствующий обработчик
-  connect(ExpirationTimer, &QTimer::timeout, this,
-          &PersoClient::on_ExpirationTimerTimeout_slot);
-  // Если время подключения вышло, то останавливаем таймер экспирации
-  connect(ExpirationTimer, &QTimer::timeout, ExpirationTimer, &QTimer::stop);
-  // Если произошла ошибка сети, то останавливаем таймер экспирации
-  connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
-          ExpirationTimer, &QTimer::stop);
-  // Если клиент отключился, то останавливаем таймер экспирации
-  connect(Socket, &QTcpSocket::disconnected, ExpirationTimer, &QTimer::stop);
-
-  // Запускаем таймер экспирации
-  ExpirationTimer->start();
-}
-
-void PersoClient::createDataBlockWaitTimer() {
-  // Таймер ожидания для приема блоков данных по частям
-  DataBlockWaitTimer = new QTimer(this);
-  DataBlockWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
-  // Если время ожидания вышло, то вызываем соответствующий обработчик
-  connect(DataBlockWaitTimer, &QTimer::timeout, this,
-          &PersoClient::on_DataBlockWaitTimerTimeout_slot);
-  // Если время ожидания вышло, то останавливаем таймер ожидания
-  connect(DataBlockWaitTimer, &QTimer::timeout, DataBlockWaitTimer,
-          &QTimer::stop);
-  // Если пришли данные, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::readyRead, DataBlockWaitTimer, &QTimer::stop);
-  // Если клиент отключился, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::disconnected, DataBlockWaitTimer, &QTimer::stop);
-  // Если произошла ошибка сети, то останавливаем таймер ожидания
-  connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
-          DataBlockWaitTimer, &QTimer::stop);
-  // Если время подключения вышло, то таймер ожидания останавливается
-  connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
-}
-
-void PersoClient::createReleaserWaitTimer() {
-  ReleaserWaitTimer = new QTimer(this);
-  ReleaserWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
-  ReleaserWaiting = new QEventLoop(this);
-
-  // Если Releaser зависнет, то вызываем соответствующий обработчик
-  connect(ReleaserWaitTimer, &QTimer::timeout, this,
-          &PersoClient::on_ReleaserWaitTimerTimeout_slot);
-  // Если Releaser зависнет, то выходим из цикла ожидания
-  connect(ReleaserWaitTimer, &QTimer::timeout, ReleaserWaiting,
-          &QEventLoop::quit);
-  // Если клиент отключился, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::disconnected, ReleaserWaitTimer, &QTimer::stop);
-}
-
-void PersoClient::createGenerator() {
-  Generator = new FirmwareGenerationSystem(this);
-
-  connect(Generator, &FirmwareGenerationSystem::logging, LogSystem::instance(),
-          &LogSystem::generate);
-}
-
-void PersoClient::createCommandTemplates() {}
-
 void PersoClient::createTransmittedDataBlock() {
   QJsonDocument responseDocument(CurrentResponse);
 
@@ -483,6 +405,162 @@ void PersoClient::processTransponderRereleaseConfirm(QJsonObject* commandJson) {
   CurrentResponse["transponder_model"] =
       transponderData->value("transponder_model");
   CurrentResponse["return_status"] = "NoError";
+}
+
+void PersoClient::createSocket(qintptr socketDescriptor) {
+  Socket = new QTcpSocket(this);
+  Socket->setSocketDescriptor(socketDescriptor);
+  connect(Socket, &QTcpSocket::readyRead, this,
+          &PersoClient::on_SocketReadyRead_slot);
+  connect(Socket, &QTcpSocket::disconnected, this,
+          &PersoClient::on_SocketDisconnected_slot);
+  connect(Socket,
+          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error), this,
+          &PersoClient::on_SocketError_slot);
+}
+
+void PersoClient::createExpirationTimer() {
+  // Таймер для отсчета времени экспирации
+  ExpirationTimer = new QTimer(this);
+  ExpirationTimer->setInterval(MaximumConnectionTime);
+  // Если время подключения вышло, то вызываем соответствующий обработчик
+  connect(ExpirationTimer, &QTimer::timeout, this,
+          &PersoClient::on_ExpirationTimerTimeout_slot);
+  // Если время подключения вышло, то останавливаем таймер экспирации
+  connect(ExpirationTimer, &QTimer::timeout, ExpirationTimer, &QTimer::stop);
+  // Если произошла ошибка сети, то останавливаем таймер экспирации
+  connect(Socket,
+          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
+          ExpirationTimer, &QTimer::stop);
+  // Если клиент отключился, то останавливаем таймер экспирации
+  connect(Socket, &QTcpSocket::disconnected, ExpirationTimer, &QTimer::stop);
+
+  // Запускаем таймер экспирации
+  ExpirationTimer->start();
+}
+
+void PersoClient::createDataBlockWaitTimer() {
+  // Таймер ожидания для приема блоков данных по частям
+  DataBlockWaitTimer = new QTimer(this);
+  DataBlockWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
+  // Если время ожидания вышло, то вызываем соответствующий обработчик
+  connect(DataBlockWaitTimer, &QTimer::timeout, this,
+          &PersoClient::on_DataBlockWaitTimerTimeout_slot);
+  // Если время ожидания вышло, то останавливаем таймер ожидания
+  connect(DataBlockWaitTimer, &QTimer::timeout, DataBlockWaitTimer,
+          &QTimer::stop);
+  // Если пришли данные, то останавливаем таймер ожидания
+  connect(Socket, &QTcpSocket::readyRead, DataBlockWaitTimer, &QTimer::stop);
+  // Если клиент отключился, то останавливаем таймер ожидания
+  connect(Socket, &QTcpSocket::disconnected, DataBlockWaitTimer, &QTimer::stop);
+  // Если произошла ошибка сети, то останавливаем таймер ожидания
+  connect(Socket,
+          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
+          DataBlockWaitTimer, &QTimer::stop);
+  // Если время подключения вышло, то таймер ожидания останавливается
+  connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
+}
+
+void PersoClient::createReleaserWaitTimer() {
+  ReleaserWaitTimer = new QTimer(this);
+  ReleaserWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
+  ReleaserWaiting = new QEventLoop(this);
+
+  // Если Releaser зависнет, то вызываем соответствующий обработчик
+  connect(ReleaserWaitTimer, &QTimer::timeout, this,
+          &PersoClient::on_ReleaserWaitTimerTimeout_slot);
+  // Если Releaser зависнет, то выходим из цикла ожидания
+  connect(ReleaserWaitTimer, &QTimer::timeout, ReleaserWaiting,
+          &QEventLoop::quit);
+  // Если клиент отключился, то останавливаем таймер ожидания
+  connect(Socket, &QTcpSocket::disconnected, ReleaserWaitTimer, &QTimer::stop);
+}
+
+void PersoClient::createGenerator() {
+  Generator = new FirmwareGenerationSystem(this);
+
+  connect(Generator, &FirmwareGenerationSystem::logging, LogSystem::instance(),
+          &LogSystem::generate);
+}
+
+void PersoClient::createCommandTemplates() {
+  QSharedPointer<QVector<QString>> echoSyntax(new QVector<QString>());
+  echoSyntax->append("command_name");
+  echoSyntax->append("data");
+  CommandTemplates.insert("echo", echoSyntax);
+
+  QSharedPointer<QVector<QString>> authorizationSyntax(new QVector<QString>());
+  authorizationSyntax->append("command_name");
+  authorizationSyntax->append("login");
+  authorizationSyntax->append("password");
+  CommandTemplates.insert("authorization", authorizationSyntax);
+
+  QSharedPointer<QVector<QString>> transponderReleaseSyntax(
+      new QVector<QString>());
+  transponderReleaseSyntax->append("command_name");
+  transponderReleaseSyntax->append("login");
+  transponderReleaseSyntax->append("password");
+  CommandTemplates.insert("transponder_release", transponderReleaseSyntax);
+
+  QSharedPointer<QVector<QString>> transponderReleaseConfirmSyntax(
+      new QVector<QString>());
+  transponderReleaseConfirmSyntax->append("command_name");
+  transponderReleaseConfirmSyntax->append("login");
+  transponderReleaseConfirmSyntax->append("password");
+  transponderReleaseConfirmSyntax->append("ucid");
+  CommandTemplates.insert("transponder_release_confirm",
+                          transponderReleaseConfirmSyntax);
+
+  QSharedPointer<QVector<QString>> transponderRereleaseSyntax(
+      new QVector<QString>());
+  transponderRereleaseSyntax->append("command_name");
+  transponderRereleaseSyntax->append("login");
+  transponderRereleaseSyntax->append("password");
+  transponderRereleaseSyntax->append("pan");
+  CommandTemplates.insert("transponder_rerelease",
+                          transponderReleaseConfirmSyntax);
+
+  QSharedPointer<QVector<QString>> transponderRereleaseConfirmSyntax(
+      new QVector<QString>());
+  transponderRereleaseConfirmSyntax->append("command_name");
+  transponderRereleaseConfirmSyntax->append("login");
+  transponderRereleaseConfirmSyntax->append("password");
+  transponderRereleaseConfirmSyntax->append("pan");
+  transponderRereleaseConfirmSyntax->append("ucid");
+  CommandTemplates.insert("transponder_rerelease_confirm",
+                          transponderReleaseConfirmSyntax);
+
+  QSharedPointer<QVector<QString>> printBoxStickerSyntax(
+      new QVector<QString>());
+  printBoxStickerSyntax->append("command_name");
+  printBoxStickerSyntax->append("id");
+  printBoxStickerSyntax->append("quantity");
+  printBoxStickerSyntax->append("first_transponder_sn");
+  printBoxStickerSyntax->append("last_transponder_sn");
+  printBoxStickerSyntax->append("transponder_model");
+  CommandTemplates.insert("print_box_sticker", printBoxStickerSyntax);
+
+  QSharedPointer<QVector<QString>> printLastBoxStickerSyntax(
+      new QVector<QString>());
+  printLastBoxStickerSyntax->append("command_name");
+  CommandTemplates.insert("print_box_sticker", printLastBoxStickerSyntax);
+
+  QSharedPointer<QVector<QString>> printPalletStickerSyntax(
+      new QVector<QString>());
+  printPalletStickerSyntax->append("command_name");
+  printPalletStickerSyntax->append("id");
+  printPalletStickerSyntax->append("quantity");
+  printPalletStickerSyntax->append("first_box_id");
+  printPalletStickerSyntax->append("last_box_id");
+  printPalletStickerSyntax->append("transponder_model");
+  printPalletStickerSyntax->append("assembly_date");
+  CommandTemplates.insert("print_last_box_sticker", printPalletStickerSyntax);
+
+  QSharedPointer<QVector<QString>> printLastPalletStickerSyntax(
+      new QVector<QString>());
+  printLastPalletStickerSyntax->append("command_name");
+  CommandTemplates.insert("print_last_pallet_sticker",
+                          printLastPalletStickerSyntax);
 }
 
 void PersoClient::on_SocketReadyRead_slot() {

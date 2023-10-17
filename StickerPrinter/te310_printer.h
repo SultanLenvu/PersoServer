@@ -25,6 +25,8 @@ class TE310Printer : public IStickerPrinter {
   QLibrary* TscLib;
 
   QMap<QString, QString> LastTransponderSticker;
+  QMap<QString, QString> LastBoxSticker;
+  QMap<QString, QString> LastPalletSticker;
 
   // Библиотечные функции
   TscAbout about;
@@ -36,13 +38,18 @@ class TE310Printer : public IStickerPrinter {
   explicit TE310Printer(QObject* parent, const QString& name);
 
   virtual bool checkConfiguration(void) override;
+
   virtual ReturnStatus printTransponderSticker(
       const QMap<QString, QString>* parameters) override;
   virtual ReturnStatus printLastTransponderSticker(void) override;
+
   virtual ReturnStatus printBoxSticker(
       const QMap<QString, QString>* parameters) override;
+  virtual ReturnStatus printLastBoxSticker(void) override;
+
   virtual ReturnStatus printPalletSticker(
       const QMap<QString, QString>* parameters) override;
+  virtual ReturnStatus printLastPalletSticker(void) override;
 
   virtual ReturnStatus exec(const QStringList* commandScript) override;
 

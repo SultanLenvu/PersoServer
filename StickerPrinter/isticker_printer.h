@@ -33,13 +33,18 @@ class IStickerPrinter : public QObject {
   virtual ~IStickerPrinter();
 
   virtual bool checkConfiguration(void) = 0;
+
   virtual ReturnStatus printTransponderSticker(
       const QMap<QString, QString>* parameters) = 0;
   virtual ReturnStatus printLastTransponderSticker(void) = 0;
+
   virtual ReturnStatus printBoxSticker(
       const QMap<QString, QString>* parameters) = 0;
+  virtual ReturnStatus printLastBoxSticker(void) = 0;
+
   virtual ReturnStatus printPalletSticker(
       const QMap<QString, QString>* parameters) = 0;
+  virtual ReturnStatus printLastPalletSticker(void) = 0;
 
   virtual ReturnStatus exec(const QStringList* commandScript) = 0;
 

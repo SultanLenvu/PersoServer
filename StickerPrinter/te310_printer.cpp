@@ -106,6 +106,10 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
+
+  // Сохраняем данные о стикере
+  LastBoxSticker = *parameters;
+
   sendLog(QString("Печать стикера для бокса %1.").arg(parameters->value("id")));
 
   openPort(Name.toUtf8().data());
@@ -154,6 +158,10 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
   return Completed;
 }
 
+IStickerPrinter::ReturnStatus TE310Printer::printLastBoxSticker() {
+  return printBoxSticker(&LastBoxSticker);
+}
+
 IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
     const QMap<QString, QString>* parameters) {
   if (LibError) {
@@ -175,12 +183,14 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
+
+  // Сохраняем данные о стикере
+  LastPalletSticker = *parameters;
+
   sendLog(
       QString("Печать стикера для паллеты %1.").arg(parameters->value("id")));
 
-  // Debug
-  sendLog(QString("openPort = %1")
-              .arg(QString::number(openPort(Name.toUtf8().data()))));
+  openPort(Name.toUtf8().data());
 
   sendCommand("SIZE 100 mm,100 mm");
   sendCommand("GAP 2 mm,2 mm");
@@ -233,6 +243,10 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
   return Completed;
 }
 
+IStickerPrinter::ReturnStatus TE310Printer::printLastPalletSticker() {
+  return printPalletSticker(&LastPalletSticker);
+}
+
 IStickerPrinter::ReturnStatus TE310Printer::exec(
     const QStringList* commandScript) {
   if (LibError) {
@@ -246,11 +260,9 @@ IStickerPrinter::ReturnStatus TE310Printer::exec(
   }
 
   openPort(Name.toUtf8().data());
-
   for (int32_t i = 0; i < commandScript->size(); i++) {
     sendCommand(commandScript->at(i).toUtf8().data());
   }
-
   closePort();
 
   return Completed;
