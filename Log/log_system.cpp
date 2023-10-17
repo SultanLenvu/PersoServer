@@ -4,8 +4,8 @@ LogSystem::LogSystem(QObject* parent) : QObject(parent) {
   setObjectName("LogSystem");
   loadSettings();
 
-  WidgetLogger = new UdpLogBackend(this);
-  Backends << WidgetLogger;
+  UdpLogger = new UdpLogBackend(this);
+  Backends << UdpLogger;
 
   FileLogger = new FileLogBackend(this);
   Backends << FileLogger;

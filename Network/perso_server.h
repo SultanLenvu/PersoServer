@@ -1,6 +1,8 @@
 #ifndef PERSOSERVER_H
 #define PERSOSERVER_H
 
+#include <algorithm>
+
 #include <QMap>
 #include <QObject>
 #include <QSet>
@@ -59,7 +61,6 @@ class PersoServer : public QTcpServer {
   ~PersoServer();
 
  public:
-  bool checkConfiguration(void);
   bool start(void);
   void stop(void);
 
@@ -71,7 +72,9 @@ class PersoServer : public QTcpServer {
   Q_DISABLE_COPY(PersoServer);
   void loadSettings(void);
   void sendLog(const QString& log) const;
-  void criticalErrorProcessing(const QString& log);
+
+  void processCriticalError(const QString& log);
+  bool checkConfiguration(void);
 
   void createReleaserInstance(void);
   void createClientIdentifiers(void);
@@ -80,8 +83,11 @@ class PersoServer : public QTcpServer {
 
  private slots:
   void on_ClientDisconnected_slot(void);
-
   void on_ClientThreadDeleted_slot(void);
+
+  void printBoxSticker_slot(const QSharedPointer<QMap<QString, QString> > data);
+  void printPalletSticker_slot(
+      const QSharedPointer<QMap<QString, QString> > data);
 
  signals:
   void logging(const QString& log) const;

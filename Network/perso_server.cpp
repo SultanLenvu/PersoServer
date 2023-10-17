@@ -31,11 +31,13 @@ PersoServer::~PersoServer() {
   }
 }
 
-bool PersoServer::checkConfiguration() {
-  sendLog("Проверка конфигурации. ");
-}
-
 bool PersoServer::start() {
+  sendLog("Проверка конфигурации");
+  if (!checkConfiguration()) {
+    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+    return false;
+  }
+
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
   emit startReleaser_signal(&status);
@@ -123,9 +125,31 @@ void PersoServer::sendLog(const QString& log) const {
   }
 }
 
-void PersoServer::criticalErrorProcessing(const QString& log) {
-  sendLog(log);
+void PersoServer::processCriticalError(const QString& log) {
+  QString msg("Паника. Получена критическая ошибка. ");
+  sendLog(msg + log);
   CurrentState = Panic;
+}
+
+bool PersoServer::checkConfiguration() {
+  sendLog("Проверка конфигурации. ");
+
+  if (!BoxStickerPrinter->checkConfiguration()) {
+    sendLog(
+        "Проверка конфигурации принтера для печати стикеров на боксы "
+        "провалена. ");
+    return false;
+  }
+
+  if (!PalletStickerPrinter->checkConfiguration()) {
+    sendLog(
+        "Проверка конфигурации принтера для печати стикеров на паллеты "
+        "провалена. ");
+    return false;
+  }
+
+  sendLog("Проверка конфигурации прошла успешно. ");
+  return true;
 }
 
 void PersoServer::createReleaserInstance() {
@@ -134,6 +158,12 @@ void PersoServer::createReleaserInstance() {
           &TransponderReleaseSystem::start);
   connect(this, &PersoServer::stopReleaser_signal, Releaser,
           &TransponderReleaseSystem::stop);
+  connect(Releaser, &TransponderReleaseSystem::logging, LogSystem::instance(),
+          &LogSystem::generate);
+  connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
+          &PersoServer::printBoxSticker_slot);
+  connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
+          &PersoServer::printPalletSticker_slot);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   ReleaserThread = new QThread(this);
@@ -185,8 +215,6 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
           &QThread::deleteLater);
   connect(newClientThread, &QThread::finished, newClient,
           &PersoClient::deleteLater);
-  connect(newClient, &PersoClient::destroyed, this,
-          &PersoServer::on_ClientConnectionDeleted_slot);
   connect(newClientThread, &QThread::destroyed, this,
           &PersoServer::on_ClientThreadDeleted_slot);
 
@@ -214,14 +242,10 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
 void PersoServer::createStickerPrinters() {
   BoxStickerPrinter = new TE310Printer(this, PrinterForBoxSticker);
-  connect(Releaser, &TransponderReleaseSystem::boxAssemblingFinished,
-          BoxStickerPrinter, &IStickerPrinter::printBoxSticker);
   connect(BoxStickerPrinter, &IStickerPrinter::logging, LogSystem::instance(),
           &LogSystem::generate);
 
   PalletStickerPrinter = new TE310Printer(this, PrinterForPalletSticker);
-  connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished,
-          PalletStickerPrinter, &IStickerPrinter::printPalletSticker);
   connect(PalletStickerPrinter, &IStickerPrinter::logging,
           LogSystem::instance(), &LogSystem::generate);
 }
@@ -229,9 +253,9 @@ void PersoServer::createStickerPrinters() {
 void PersoServer::on_ClientDisconnected_slot() {
   PersoClient* disconnectedClient = dynamic_cast<PersoClient*>(sender());
   if (!disconnectedClient) {
-    criticalErrorProcessing(
-        "Получена критическая ошибка: не удалось получить доступ к данным "
-        "отключившегося клиента. ");
+    processCriticalError(
+        "Не удалось получить доступ к данным отключившегося клиента. ");
+    return;
   }
   // Освобождаем занятый идентификатор
   uint32_t clientId = disconnectedClient->getId();
@@ -240,9 +264,8 @@ void PersoServer::on_ClientDisconnected_slot() {
   // Удаляем отключившегося клиента и его поток из соответствующих реестров
   disconnectedClient->thread()->quit();
   if (!disconnectedClient->thread()->wait()) {
-    criticalErrorProcessing(
-        "Получена критическая ошибка: не удалось остановить поток "
-        "отключившегося клиента. ");
+    processCriticalError(
+        "Не удалось остановить поток отключившегося клиента. ");
   } else {
     sendLog(QString("Поток клиента %1 остановлен. ")
                 .arg(QString::number(clientId)));
@@ -264,6 +287,26 @@ void PersoServer::on_ClientThreadDeleted_slot() {
   sendLog(QString("Клиентский поток удален. "));
 }
 
-void PersoServer::on_ClientConnectionDeleted_slot() {
-  sendLog(QString("Клиентское соединение удалено. "));
+void PersoServer::printBoxSticker_slot(
+    const QSharedPointer<QMap<QString, QString> > data) {
+  sendLog("Сборка бокса завершена. Запуск печати стикера.");
+
+  IStickerPrinter::ReturnStatus status =
+      BoxStickerPrinter->printBoxSticker(data.get());
+
+  if (status != IStickerPrinter::Completed) {
+    processCriticalError("Получена ошибка при печати стикера для бокса. ");
+  }
+}
+
+void PersoServer::printPalletSticker_slot(
+    const QSharedPointer<QMap<QString, QString> > data) {
+  sendLog("Сборка паллеты завершена. Запуск печати стикера.");
+
+  IStickerPrinter::ReturnStatus status =
+      BoxStickerPrinter->printPalletSticker(data.get());
+
+  if (status != IStickerPrinter::Completed) {
+    processCriticalError("Получена ошибка при печати стикера для паллеты. ");
+  }
 }

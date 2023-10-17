@@ -18,7 +18,7 @@ class IStickerPrinter : public QObject {
 
   enum ReturnStatus {
     ParameterError,
-    LibraryMissing,
+    LibraryMissed,
     ConnectionError,
     Failed,
     Completed,
@@ -32,6 +32,7 @@ class IStickerPrinter : public QObject {
   IStickerPrinter(QObject* parent, StickerPrinterType type);
   virtual ~IStickerPrinter();
 
+  virtual bool checkConfiguration(void) = 0;
   virtual ReturnStatus printTransponderSticker(
       const QMap<QString, QString>* parameters) = 0;
   virtual ReturnStatus printLastTransponderSticker(void) = 0;

@@ -5,6 +5,7 @@ ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   loadSettings();
 
   createLoggerInstance();
+  createServerInstance();
 }
 
 ServerManager::~ServerManager() {
@@ -20,7 +21,6 @@ void ServerManager::processCommandArguments(const QStringList* args) {
     if (!checkSettings()) {
       return;
     }
-    createServerInstance();
     Server->start();
   }
 }
@@ -40,7 +40,7 @@ bool ServerManager::checkSettings() const {
   uint32_t temp = 0;
   QFileInfo info;
 
-  emit logging("Проверка файла конфигурации.");
+  emit logging("Проверка файла настроек.");
 
   info.setFile(QString("%1/%2/%3.ini")
                    .arg(QCoreApplication::applicationDirPath(),
@@ -158,7 +158,15 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  emit logging("Обработка файла конфигурации успешно завершена.");
+  info.setFile(settings.value("te310_printer/library_path").toString());
+  if (!info.isFile()) {
+    emit logging(
+        "Получена ошибка при обработке файла конфигурации: некорректный "
+        "путь к библиотеке принтера TSC TE310. ");
+    return false;
+  }
+
+  emit logging("Обработка файла настроек успешно завершена.");
   return true;
 }
 
@@ -194,15 +202,15 @@ void ServerManager::generateDefaultSettings() const {
                     UDP_LOG_DESTINATION_DEFAULT_PORT);
 
   // Postgres
-  settings.setValue("postgres_controller_controller/server_ip",
+  settings.setValue("postgres_controller/server_ip",
                     POSTGRES_DEFAULT_SERVER_IP);
-  settings.setValue("postgres_controller_controller/server_port",
+  settings.setValue("postgres_controller/server_port",
                     POSTGRES_DEFAULT_SERVER_PORT);
-  settings.setValue("postgres_controller_controller/database_name",
+  settings.setValue("postgres_controller/database_name",
                     POSTGRES_DEFAULT_DATABASE_NAME);
-  settings.setValue("postgres_controller_controller/user_name",
+  settings.setValue("postgres_controller/user_name",
                     POSTGRES_DEFAULT_USER_NAME);
-  settings.setValue("postgres_controller_controller/user_password",
+  settings.setValue("postgres_controller/user_password",
                     POSTGRES_DEFAULT_USER_PASSWORD);
 
   // FirmwareGenerationSystem
@@ -210,6 +218,10 @@ void ServerManager::generateDefaultSettings() const {
                     DEFAULT_FIRMWARE_BASE_PATH);
   settings.setValue("firmware_generation_system/firmware_data_path",
                     DEFAULT_FIRMWARE_DATA_PATH);
+
+  // TE310Printer
+  settings.setValue("te310_printer/library_path",
+                    TSC_TE310_LIBRARY_DEFAULT_PATH);
 }
 
 void ServerManager::createServerInstance() {

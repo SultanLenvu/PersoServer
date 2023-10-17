@@ -139,10 +139,13 @@
 #define COMMON_KEY_SIZE 8
 //========================================================================
 
-/* Определения для генератора прошивок */
-//===============================================================
-#define TE310PRINTER_DEFAULT_BOX_NAME "TSC TE310 Box"
-#define TE310PRINTER_DEFAULT_PALLET_NAME "TSC TE310 Pallet"
+/* Определения для принтера */
+//========================================================================
+#define PRINTER_FOR_BOX_DEFAULT_NAME "TSC TE310 Box"
+#define PRINTER_FOR_PALLET_DEFAULT_NAME "TSC TE310 Pallet"
+
+#define TSC_TE310_LIBRARY_DEFAULT_PATH \
+  "C:/Workspace/Development/PersoServer/PrinterLib/x64/TSCLIB.dll"
 //========================================================================
 
 #endif // DEFINITIONS_H

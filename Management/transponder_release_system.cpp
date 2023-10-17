@@ -12,7 +12,7 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
 void TransponderReleaseSystem::start(ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
-  sendLog("Подключение к базе данных. ");
+  sendLog("Запуск. ");
   if (!Database->connect()) {
     sendLog("Не удалось установить соединение с базой данных. ");
     *status = DatabaseConnectionError;
@@ -25,7 +25,7 @@ void TransponderReleaseSystem::start(ReturnStatus* status) {
 void TransponderReleaseSystem::stop(void) {
   QMutexLocker locker(&Mutex);
 
-  sendLog("Отключение от базы данных. ");
+  sendLog("Остановка. ");
   Database->disconnect();
 }
 
@@ -464,7 +464,11 @@ void TransponderReleaseSystem::createDatabaseController() {
           &LogSystem::generate);
 }
 
-void TransponderReleaseSystem::loadSettings() {}
+void TransponderReleaseSystem::loadSettings() {
+  QSettings settings;
+
+  LogEnable = settings.value("log_system/global_enable").toBool();
+}
 
 void TransponderReleaseSystem::sendLog(const QString& log) const {
   if (LogEnable) {

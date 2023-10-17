@@ -10,20 +10,60 @@ TE310Printer::TE310Printer(QObject* parent, const QString& name)
   loadTscLib();
 }
 
+bool TE310Printer::checkConfiguration() {
+  sendLog("Проверка конфигурации. ");
+
+  if (!loadTscLib()) {
+    sendLog("Не удалось загрузить библиотеку.");
+    return false;
+  }
+
+  QList<QString> printers = QPrinterInfo::availablePrinterNames();
+  if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
+        return p == Name;
+      }) == printers.end()) {
+    sendLog("Не найден драйвер операционной системы. ");
+    return false;
+  }
+  if (QPrinterInfo::printerInfo(Name).state() == QPrinter::Error) {
+    sendLog("Не доступен. ");
+    return false;
+  }
+
+  if (openPort(Name.toUtf8().constData()) == 0) {
+    sendLog("Не доступен.");
+    return false;
+  }
+  closePort();
+
+  sendLog("Проверка конфигурации успешно завершена. ");
+  return true;
+}
+
 IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
     const QMap<QString, QString>* parameters) {
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
+  if (!checkConfiguration()) {
+    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
+    return ConnectionError;
+  }
+
   // Проврека параметров
-  if (parameters->value("issuer_name").isEmpty() ||
+  if (parameters == nullptr || parameters->value("issuer_name").isEmpty() ||
       parameters->value("sn").isEmpty() || parameters->value("pan").isEmpty()) {
-    emit logging(QString("Получены некорректные параметры. Сброс."));
+    sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
-  emit logging(QString("Печать стикера транспондера для %1.")
-                   .arg(parameters->value("issuer_name")));
+  sendLog(QString("Печать стикера транспондера для %1.")
+              .arg(parameters->value("issuer_name")));
 
   if (!TscLib->isLoaded()) {
-    emit logging("Библиотека не загружена. Сброс. ");
-    return LibraryMissing;
+    sendLog("Библиотека не загружена. Сброс. ");
+    return LibraryMissed;
   }
 
   // Сохраняем данные стикера
@@ -35,7 +75,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
              "Магистраль северной столицы") {
     printZsdSticker(parameters);
   } else {
-    emit logging("Получено неизвестное название компании-эмитента. Сброс.");
+    sendLog("Получено неизвестное название компании-эмитента. Сброс.");
     return ParameterError;
   }
 
@@ -43,26 +83,30 @@ IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printLastTransponderSticker() {
-  if (LastTransponderSticker.isEmpty()) {
-    emit logging("Данные о последнем распечанном стикере отсутствуют. Сброс. ");
-    return ParameterError;
-  }
-
   return printTransponderSticker(&LastTransponderSticker);
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
     const QMap<QString, QString>* parameters) {
-  if (parameters->value("id").isEmpty() ||
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
+  if (!checkConfiguration()) {
+    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
+    return ConnectionError;
+  }
+
+  if (parameters == nullptr || parameters->value("id").isEmpty() ||
       parameters->value("transponder_model").isEmpty() ||
       parameters->value("quantity").isEmpty() ||
       parameters->value("first_transponder_sn").isEmpty() ||
       parameters->value("last_transponder_sn").isEmpty()) {
-    emit logging(QString("Получены некорректные параметры. Сброс."));
+    sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
-  emit logging(
-      QString("Печать стикера для бокса %1.").arg(parameters->value("id")));
+  sendLog(QString("Печать стикера для бокса %1.").arg(parameters->value("id")));
 
   openPort(Name.toUtf8().data());
   sendCommand("SIZE 100 mm, 50 mm");
@@ -112,21 +156,31 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
 
 IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
     const QMap<QString, QString>* parameters) {
-  if (parameters->value("id").isEmpty() ||
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
+  if (!checkConfiguration()) {
+    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
+    return ConnectionError;
+  }
+
+  if (parameters == nullptr || parameters->value("id").isEmpty() ||
       parameters->value("transponder_model").isEmpty() ||
       parameters->value("quantity").isEmpty() ||
       parameters->value("first_box_id").isEmpty() ||
       parameters->value("last_box_id").isEmpty() ||
       parameters->value("assembly_date").isEmpty()) {
-    emit logging(QString("Получены некорректные параметры. Сброс."));
+    sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
-  emit logging(
+  sendLog(
       QString("Печать стикера для паллеты %1.").arg(parameters->value("id")));
 
-  if (!openPort(Name.toUtf8().data())) {
-    return ConnectionError;
-  }
+  // Debug
+  sendLog(QString("openPort = %1")
+              .arg(QString::number(openPort(Name.toUtf8().data()))));
 
   sendCommand("SIZE 100 mm,100 mm");
   sendCommand("GAP 2 mm,2 mm");
@@ -181,6 +235,16 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
 
 IStickerPrinter::ReturnStatus TE310Printer::exec(
     const QStringList* commandScript) {
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
+  if (!checkConfiguration()) {
+    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
+    return ConnectionError;
+  }
+
   openPort(Name.toUtf8().data());
 
   for (int32_t i = 0; i < commandScript->size(); i++) {
@@ -193,7 +257,7 @@ IStickerPrinter::ReturnStatus TE310Printer::exec(
 }
 
 void TE310Printer::applySetting() {
-  emit logging("Применение новых настроек.");
+  sendLog("Применение новых настроек.");
 
   loadSetting();
   TscLib->setFileName(TscLibPath);
@@ -203,24 +267,36 @@ void TE310Printer::applySetting() {
 void TE310Printer::loadSetting() {
   QSettings settings;
 
-  TscLibPath = settings.value("sticker_printer/library_path").toString();
+  LogEnable = settings.value("log_system/global_enable").toBool();
+  TscLibPath = settings.value("te310_printer/library_path").toString();
 }
 
-void TE310Printer::loadTscLib() {
-  if (TscLib->load()) {
-    emit logging("Библиотека загружена.");
-    about = (TscAbout)TscLib->resolve("about");
-    openPort = (TscOpenPort)TscLib->resolve("openport");
-    sendCommand = (TscSendCommand)TscLib->resolve("sendcommand");
-    closePort = (TscClosePort)TscLib->resolve("closeport");
-  } else {
-    emit logging("Не удалось загрузить библиотеку.");
+void TE310Printer::sendLog(const QString& log) {
+  if (LogEnable) {
+    emit logging("TE310Printer - " + log);
+  }
+}
+
+bool TE310Printer::loadTscLib() {
+  if (!TscLib->load()) {
+    LibError = true;
 
     about = nullptr;
     openPort = nullptr;
     sendCommand = nullptr;
     closePort = nullptr;
+
+    return false;
   }
+
+  LibError = false;
+
+  about = (TscAbout)TscLib->resolve("about");
+  openPort = (TscOpenPort)TscLib->resolve("openport");
+  sendCommand = (TscSendCommand)TscLib->resolve("sendcommand");
+  closePort = (TscClosePort)TscLib->resolve("closeport");
+
+  return true;
 }
 
 void TE310Printer::printNkdSticker(const QMap<QString, QString>* parameters) {

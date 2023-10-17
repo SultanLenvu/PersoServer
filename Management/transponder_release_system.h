@@ -93,11 +93,11 @@ class TransponderReleaseSystem : public QObject {
   void logging(const QString& log) const;
   void operationFinished();
   void boxAssemblingFinished(
-      const QSharedPointer<QMap<QString, QString> > boxInfo) const;
+      const QSharedPointer<QMap<QString, QString> > data) const;
   void palletAssemblingFinished(
-      const QSharedPointer<QMap<QString, QString> > palletInfo) const;
+      const QSharedPointer<QMap<QString, QString> > data) const;
   void orderAssemblingFinished(
-      const QSharedPointer<QMap<QString, QString> > orderInfo) const;
+      const QSharedPointer<QMap<QString, QString> > data) const;
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

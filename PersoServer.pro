@@ -1,4 +1,4 @@
-QT += core sql network
+QT += core sql network printsupport
 
 CONFIG += c++11
 CONFIG += console
