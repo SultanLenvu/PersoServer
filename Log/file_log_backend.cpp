@@ -6,7 +6,9 @@ FileLogBackend::FileLogBackend(QObject* parent) : LogBackend(parent) {
   initialize();
 }
 
-FileLogBackend::~FileLogBackend() {}
+FileLogBackend::~FileLogBackend() {
+  CurrentLogFile.close();
+}
 
 void FileLogBackend::writeLogLine(const QString& str) {
   if (LogEnable) {

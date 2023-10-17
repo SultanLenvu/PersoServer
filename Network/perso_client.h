@@ -31,6 +31,7 @@ class PersoClient : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
+  QMap<QString, void (PersoClient::*)(void) const> CommandHandlers;
   QMap<QString, QSharedPointer<QVector<QString>>> CommandTemplates;
   QJsonObject CurrentCommand;
   QJsonObject CurrentResponse;
@@ -58,22 +59,33 @@ class PersoClient : public QObject {
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
+  // Блоки данных
   void createTransmittedDataBlock(void);
   void transmitDataBlock(void);
   void processReceivedDataBlock(void);
 
-  void processEcho(QJsonObject* commandJson);
-  void processAuthorization(QJsonObject* commandJson);
-  void processTransponderRelease(QJsonObject* commandJson);
-  void processTransponderReleaseConfirm(QJsonObject* commandJson);
-  void processTransponderRerelease(QJsonObject* commandJson);
-  void processTransponderRereleaseConfirm(QJsonObject* commandJson);
+  // Обработчики команд
+  void processSyntaxError(void) const;
+  void processEcho(void) const;
+  void processAuthorization(void) const;
 
+  void processTransponderRelease(void) const;
+  void processTransponderReleaseConfirm(void) const;
+  void processTransponderRerelease(void) const;
+  void processTransponderRereleaseConfirm(void) const;
+
+  void processPrintBoxSticker(void) const;
+  void processPrintLastBoxSticker(void) const;
+  void processPrintPalletSticker(void) const;
+  void processPrintLastPalletSticker(void) const;
+
+  // Фабричные методы
   void createSocket(qintptr socketDescriptor);
   void createExpirationTimer(void);
   void createDataBlockWaitTimer(void);
   void createReleaserWaitTimer(void);
   void createGenerator(void);
+  void createCommandHandlers(void);
   void createCommandTemplates(void);
 
  private slots:
@@ -87,37 +99,41 @@ class PersoClient : public QObject {
 
  signals:
   void logging(const QString& log) const;
-  void disconnected(void);
+  void disconnected(void) const;
 
-  void releaserAuthorize_signal(const QMap<QString, QString>* parameters,
-                                TransponderReleaseSystem::ReturnStatus* status);
-  void releaseRelease_signal(const QMap<QString, QString>* parameters,
-                             QMap<QString, QString>* attributes,
-                             QMap<QString, QString>* masterKeys,
-                             TransponderReleaseSystem::ReturnStatus* status);
+  void releaserAuthorize_signal(
+      const QMap<QString, QString>* parameters,
+      TransponderReleaseSystem::ReturnStatus* status) const;
+  void releaseRelease_signal(
+      const QMap<QString, QString>* parameters,
+      QMap<QString, QString>* attributes,
+      QMap<QString, QString>* masterKeys,
+      TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserConfirmRelease_signal(
       const QMap<QString, QString>* parameters,
       QMap<QString, QString>* transponderData,
-      TransponderReleaseSystem::ReturnStatus* status);
-  void releaserRerelease_signal(const QMap<QString, QString>* parameters,
-                                QMap<QString, QString>* attributes,
-                                QMap<QString, QString>* masterKeys,
-                                TransponderReleaseSystem::ReturnStatus* status);
+      TransponderReleaseSystem::ReturnStatus* status) const;
+  void releaserRerelease_signal(
+      const QMap<QString, QString>* parameters,
+      QMap<QString, QString>* attributes,
+      QMap<QString, QString>* masterKeys,
+      TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserConfirmRerelease_signal(
       const QMap<QString, QString>* parameters,
       QMap<QString, QString>* transponderData,
-      TransponderReleaseSystem::ReturnStatus* status);
-  void releaserSearch_signal(const QMap<QString, QString>* parameters,
-                             QMap<QString, QString>* attributes,
-                             QMap<QString, QString>* masterKeys,
-                             TransponderReleaseSystem::ReturnStatus* status);
+      TransponderReleaseSystem::ReturnStatus* status) const;
+  void releaserSearch_signal(
+      const QMap<QString, QString>* parameters,
+      QMap<QString, QString>* attributes,
+      QMap<QString, QString>* masterKeys,
+      TransponderReleaseSystem::ReturnStatus* status) const;
 
   void printBoxSticker_signal(
-      const QSharedPointer<QMap<QString, QString>> data);
-  void printLastBoxSticker_signal(void);
+      const QSharedPointer<QMap<QString, QString>> data) const;
+  void printLastBoxSticker_signal(void) const;
   void printPalletSticker_signal(
       const QSharedPointer<QMap<QString, QString>> data);
-  void printLastPalletSticker_signal(void);
+  void printLastPalletSticker_signal(void) const;
 };
 
 #endif  // PersoClient_H
