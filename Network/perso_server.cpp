@@ -32,11 +32,11 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  sendLog("Проверка конфигурации");
-  if (!checkConfiguration()) {
-    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-    return false;
-  }
+  //  sendLog("Проверка конфигурации");
+  //  if (!checkConfiguration()) {
+  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+  //    return false;
+  //  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
@@ -298,7 +298,7 @@ void PersoServer::on_ClientThreadDeleted_slot() {
 }
 
 void PersoServer::printBoxSticker_slot(
-    const QSharedPointer<QMap<QString, QString> > data) {
+    const QSharedPointer<QHash<QString, QString> > data) {
   sendLog("Запуск печати стикера для бокса.");
 
   IStickerPrinter::ReturnStatus status =
@@ -321,7 +321,7 @@ void PersoServer::printLastBoxSticker_slot() {
 }
 
 void PersoServer::printPalletSticker_slot(
-    const QSharedPointer<QMap<QString, QString> > data) {
+    const QSharedPointer<QHash<QString, QString> > data) {
   sendLog("Запуск печати стикера для паллеты.");
 
   IStickerPrinter::ReturnStatus status =

@@ -40,27 +40,27 @@ class TransponderReleaseSystem : public QObject {
   void start(ReturnStatus* status);
   void stop(void);
 
-  void authorize(const QMap<QString, QString>* parameters,
+  void authorize(const QHash<QString, QString>* parameters,
                  ReturnStatus* status);
-  void release(const QMap<QString, QString>* parameters,
-               QMap<QString, QString>* attributes,
-               QMap<QString, QString>* masterKeys,
+  void release(const QHash<QString, QString>* parameters,
+               QHash<QString, QString>* attributes,
+               QHash<QString, QString>* masterKeys,
                ReturnStatus* status);
-  void confirmRelease(const QMap<QString, QString>* parameters,
-                      QMap<QString, QString>* transponderData,
+  void confirmRelease(const QHash<QString, QString>* parameters,
+                      QHash<QString, QString>* transponderData,
                       ReturnStatus* status);
 
-  void rerelease(const QMap<QString, QString>* parameters,
-                 QMap<QString, QString>* attributes,
-                 QMap<QString, QString>* masterKeys,
+  void rerelease(const QHash<QString, QString>* parameters,
+                 QHash<QString, QString>* attributes,
+                 QHash<QString, QString>* masterKeys,
                  ReturnStatus* status);
-  void confirmRerelease(const QMap<QString, QString>* parameters,
-                        QMap<QString, QString>* transponderData,
+  void confirmRerelease(const QHash<QString, QString>* parameters,
+                        QHash<QString, QString>* transponderData,
                         ReturnStatus* status);
 
-  void search(const QMap<QString, QString>* parameters,
-              QMap<QString, QString>* attributes,
-              QMap<QString, QString>* masterKeys,
+  void search(const QHash<QString, QString>* parameters,
+              QHash<QString, QString>* attributes,
+              QHash<QString, QString>* masterKeys,
               ReturnStatus* status);
 
  private:
@@ -69,8 +69,8 @@ class TransponderReleaseSystem : public QObject {
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
-  bool checkConfirmRerelease(const QMap<QString, QString>& transponderRecord,
-                             const QMap<QString, QString>& searchData);
+  bool checkConfirmRerelease(const QHash<QString, QString>& transponderRecord,
+                             const QHash<QString, QString>& searchData);
 
   bool confirmTransponder(const QString& transponderId,
                           const QString& ucid) const;
@@ -79,25 +79,25 @@ class TransponderReleaseSystem : public QObject {
   bool confirmOrder(const QString& orderId) const;
 
   bool searchNextTransponderForAssembling(
-      QMap<QString, QString>* productionLineRecord) const;
+      QHash<QString, QString>* productionLineRecord) const;
 
   bool getTransponderSeed(const QPair<QString, QString>* searchPair,
-                          QMap<QString, QString>* attributes,
-                          QMap<QString, QString>* masterKeys) const;
-  bool getTransponderData(const QString&, QMap<QString, QString>* data) const;
-  bool getBoxData(const QString& id, QMap<QString, QString>* data) const;
-  bool getPalletData(const QString& id, QMap<QString, QString>* data) const;
-  bool getOrderData(const QString& id, QMap<QString, QString>* data) const;
+                          QHash<QString, QString>* attributes,
+                          QHash<QString, QString>* masterKeys) const;
+  bool getTransponderData(const QString&, QHash<QString, QString>* data) const;
+  bool getBoxData(const QString& id, QHash<QString, QString>* data) const;
+  bool getPalletData(const QString& id, QHash<QString, QString>* data) const;
+  bool getOrderData(const QString& id, QHash<QString, QString>* data) const;
 
  signals:
   void logging(const QString& log) const;
   void operationFinished();
   void boxAssemblingFinished(
-      const QSharedPointer<QMap<QString, QString> > data) const;
+      const QSharedPointer<QHash<QString, QString> > data) const;
   void palletAssemblingFinished(
-      const QSharedPointer<QMap<QString, QString> > data) const;
+      const QSharedPointer<QHash<QString, QString> > data) const;
   void orderAssemblingFinished(
-      const QSharedPointer<QMap<QString, QString> > data) const;
+      const QSharedPointer<QHash<QString, QString> > data) const;
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

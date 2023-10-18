@@ -67,13 +67,13 @@ class FirmwareGenerationSystem : public QObject {
   QFile* FirmwareDataFile;
 
   QByteArray GeneratedFirmware;
-  QMap<QString, QByteArray> CommonKeys;
+  QHash<QString, QByteArray> CommonKeys;
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
 
-  bool generate(const QMap<QString, QString>* attributes,
-                const QMap<QString, QString>* masterKeys,
+  bool generate(const QHash<QString, QString>* attributes,
+                const QHash<QString, QString>* masterKeys,
                 QByteArray* assembledFirmware);
 
  private:
@@ -85,11 +85,11 @@ class FirmwareGenerationSystem : public QObject {
   bool assembleFirmware(const QByteArray* firmwareData,
                         QByteArray* assembledFirmware);
 
-  bool generateFirmwareData(const QMap<QString, QString>* attributes,
-                            const QMap<QString, QString>* masterKeys,
+  bool generateFirmwareData(const QHash<QString, QString>* attributes,
+                            const QHash<QString, QString>* masterKeys,
                             QByteArray* firmwareData);
-  void generateCommonKeys(const QMap<QString, QString>* attributes,
-                          const QMap<QString, QString>* masterKeys);
+  void generateCommonKeys(const QHash<QString, QString>* attributes,
+                          const QHash<QString, QString>* masterKeys);
   void generatePaymentMeans(const QString& pan, QString& paymentMeans);
 
  signals:

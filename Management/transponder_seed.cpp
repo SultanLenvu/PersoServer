@@ -10,8 +10,8 @@ TransponderSeed::~TransponderSeed() {
   deleteAll();
 }
 
-void TransponderSeed::build(const QMap<QString, QString>* attributes,
-                            const QMap<QString, QString>* masterKeys) {
+void TransponderSeed::build(const QHash<QString, QString>* attributes,
+                            const QHash<QString, QString>* masterKeys) {
   // Проверка на существование
   if ((!attributes) || (!masterKeys)) {
     return;
@@ -37,11 +37,11 @@ bool TransponderSeed::isEmpty() {
   return false;
 }
 
-const QMap<QString, QString>* TransponderSeed::attributes() const {
+const QHash<QString, QString>* TransponderSeed::attributes() const {
   return Attributes;
 }
 
-const QMap<QString, QString>* TransponderSeed::masterKeys() const {
+const QHash<QString, QString>* TransponderSeed::masterKeys() const {
   return MasterKeys;
 }
 

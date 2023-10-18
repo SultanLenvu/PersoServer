@@ -12,8 +12,8 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
 }
 
 bool FirmwareGenerationSystem::generate(
-    const QMap<QString, QString>* attributes,
-    const QMap<QString, QString>* masterKeys,
+    const QHash<QString, QString>* attributes,
+    const QHash<QString, QString>* masterKeys,
     QByteArray* assembledFirmware) {
   QByteArray firmwareData;
 
@@ -105,8 +105,8 @@ bool FirmwareGenerationSystem::assembleFirmware(const QByteArray* firmwareData,
 }
 
 bool FirmwareGenerationSystem::generateFirmwareData(
-    const QMap<QString, QString>* attributes,
-    const QMap<QString, QString>* masterKeys,
+    const QHash<QString, QString>* attributes,
+    const QHash<QString, QString>* masterKeys,
     QByteArray* firmwareData) {
   if (!FirmwareDataFile->open(QIODevice::ReadOnly)) {
     sendLog("Не удалось открыть файл прошивки на чтение.");
@@ -195,8 +195,8 @@ bool FirmwareGenerationSystem::generateFirmwareData(
 }
 
 void FirmwareGenerationSystem::generateCommonKeys(
-    const QMap<QString, QString>* attributes,
-    const QMap<QString, QString>* masterKeys) {
+    const QHash<QString, QString>* attributes,
+    const QHash<QString, QString>* masterKeys) {
   // Создаем инициализаторы
   QByteArray accrInit;
   QByteArray accrReference = attributes->value("accr_reference").toUtf8();
@@ -224,7 +224,7 @@ void FirmwareGenerationSystem::generateCommonKeys(
   // Генерируем ключи
   uint8_t* init;
   QByteArray masterKeyValue;
-  for (QMap<QString, QString>::const_iterator it = masterKeys->begin();
+  for (QHash<QString, QString>::const_iterator it = masterKeys->begin();
        it != masterKeys->end(); it++) {
     uint8_t* result = new uint8_t[COMMON_KEY_SIZE];
 

@@ -6,6 +6,7 @@ ServerManager::ServerManager(QObject* parent) : QObject(parent) {
 
   createLoggerInstance();
   createServerInstance();
+  registerMetaType();
 }
 
 ServerManager::~ServerManager() {
@@ -39,6 +40,8 @@ bool ServerManager::checkSettings() const {
   QSettings settings;
   uint32_t temp = 0;
   QFileInfo info;
+
+  QStringList allKeys = settings.allKeys();
 
   emit logging("Проверка файла настроек.");
 
@@ -239,4 +242,13 @@ void ServerManager::createLoggerInstance() {
 
   Logger->moveToThread(LoggerThread);
   LoggerThread->start();
+}
+
+void ServerManager::registerMetaType() {
+  qRegisterMetaType<QSharedPointer<QMap<QString, QString>>>(
+      "QSharedPointer<QMap<QString, QString> >");
+  qRegisterMetaType<QSharedPointer<QMap<QString, QString>>>(
+      "QSharedPointer<QHash<QString, QString> >");
+  qRegisterMetaType<QSharedPointer<QStringList>>("QSharedPointer<QStringList>");
+  qRegisterMetaType<QSharedPointer<QFile>>("QSharedPointer<QFile>");
 }

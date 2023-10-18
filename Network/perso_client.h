@@ -3,6 +3,7 @@
 
 #include <QCoreApplication>
 #include <QDataStream>
+#include <QHash>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QObject>
@@ -31,8 +32,8 @@ class PersoClient : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
-  QMap<QString, void (PersoClient::*)(void) const> CommandHandlers;
-  QMap<QString, QSharedPointer<QVector<QString>>> CommandTemplates;
+  QHash<QString, void (PersoClient::*)(void)> CommandHandlers;
+  QHash<QString, QSharedPointer<QVector<QString>>> CommandTemplates;
   QJsonObject CurrentCommand;
   QJsonObject CurrentResponse;
 
@@ -65,19 +66,19 @@ class PersoClient : public QObject {
   void processReceivedDataBlock(void);
 
   // Обработчики команд
-  void processSyntaxError(void) const;
-  void processEcho(void) const;
-  void processAuthorization(void) const;
+  void processSyntaxError(void);
+  void processEcho(void);
+  void processAuthorization(void);
 
-  void processTransponderRelease(void) const;
-  void processTransponderReleaseConfirm(void) const;
-  void processTransponderRerelease(void) const;
-  void processTransponderRereleaseConfirm(void) const;
+  void processTransponderRelease(void);
+  void processTransponderReleaseConfirm(void);
+  void processTransponderRerelease(void);
+  void processTransponderRereleaseConfirm(void);
 
-  void processPrintBoxSticker(void) const;
-  void processPrintLastBoxSticker(void) const;
-  void processPrintPalletSticker(void) const;
-  void processPrintLastPalletSticker(void) const;
+  void processPrintBoxSticker(void);
+  void processPrintLastBoxSticker(void);
+  void processPrintPalletSticker(void);
+  void processPrintLastPalletSticker(void);
 
   // Фабричные методы
   void createSocket(qintptr socketDescriptor);
@@ -102,37 +103,37 @@ class PersoClient : public QObject {
   void disconnected(void) const;
 
   void releaserAuthorize_signal(
-      const QMap<QString, QString>* parameters,
+      const QHash<QString, QString>* parameters,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaseRelease_signal(
-      const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* attributes,
-      QMap<QString, QString>* masterKeys,
+      const QHash<QString, QString>* parameters,
+      QHash<QString, QString>* attributes,
+      QHash<QString, QString>* masterKeys,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserConfirmRelease_signal(
-      const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* transponderData,
+      const QHash<QString, QString>* parameters,
+      QHash<QString, QString>* transponderData,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserRerelease_signal(
-      const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* attributes,
-      QMap<QString, QString>* masterKeys,
+      const QHash<QString, QString>* parameters,
+      QHash<QString, QString>* attributes,
+      QHash<QString, QString>* masterKeys,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserConfirmRerelease_signal(
-      const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* transponderData,
+      const QHash<QString, QString>* parameters,
+      QHash<QString, QString>* transponderData,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserSearch_signal(
-      const QMap<QString, QString>* parameters,
-      QMap<QString, QString>* attributes,
-      QMap<QString, QString>* masterKeys,
+      const QHash<QString, QString>* parameters,
+      QHash<QString, QString>* attributes,
+      QHash<QString, QString>* masterKeys,
       TransponderReleaseSystem::ReturnStatus* status) const;
 
   void printBoxSticker_signal(
-      const QSharedPointer<QMap<QString, QString>> data) const;
+      const QSharedPointer<QHash<QString, QString>> data) const;
   void printLastBoxSticker_signal(void) const;
   void printPalletSticker_signal(
-      const QSharedPointer<QMap<QString, QString>> data);
+      const QSharedPointer<QHash<QString, QString>> data);
   void printLastPalletSticker_signal(void) const;
 };
 

@@ -34,30 +34,30 @@ class IDatabaseController : public QObject {
   virtual bool clearTable(const QString& tableName) const = 0;
 
   virtual bool addRecord(const QString& tableName,
-                         QMap<QString, QString>& record) const = 0;
+                         QHash<QString, QString>& record) const = 0;
 
   virtual bool getRecordById(const QString& tableName,
-                             QMap<QString, QString>& record) const = 0;
+                             QHash<QString, QString>& record) const = 0;
   virtual bool getRecordByPart(const QString& tableName,
-                               QMap<QString, QString>& record,
+                               QHash<QString, QString>& record,
                                bool order = true) const = 0;
   virtual bool getLastRecord(const QString& tableName,
-                             QMap<QString, QString>& record) const = 0;
+                             QHash<QString, QString>& record) const = 0;
   virtual bool getMergedRecordById(const QStringList& tables,
                                    const QStringList& foreignKeys,
-                                   QMap<QString, QString>& record) const = 0;
+                                   QHash<QString, QString>& record) const = 0;
   virtual bool getMergedRecordByPart(const QStringList& tables,
                                      const QStringList& foreignKeys,
-                                     QMap<QString, QString>& record) const = 0;
+                                     QHash<QString, QString>& record) const = 0;
 
   virtual bool updateRecordById(const QString& tableName,
-                                QMap<QString, QString>& record) const = 0;
+                                QHash<QString, QString>& record) const = 0;
   virtual bool removeRecordById(const QString& tableName,
                                 const uint32_t id) const = 0;
   virtual bool removeLastRecordById(const QString& tableName) const = 0;
   virtual bool removeLastRecordByCondition(
       const QString& tableName,
-      QMap<QString, QString>& condition) const = 0;
+      QHash<QString, QString>& condition) const = 0;
 
   virtual void applySettings() = 0;
 

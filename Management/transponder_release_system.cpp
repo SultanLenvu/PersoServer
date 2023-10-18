@@ -30,11 +30,11 @@ void TransponderReleaseSystem::stop(void) {
 }
 
 void TransponderReleaseSystem::authorize(
-    const QMap<QString, QString>* parameters,
+    const QHash<QString, QString>* parameters,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
-  QMap<QString, QString> productionLineRecord;
+  QHash<QString, QString> productionLineRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -82,15 +82,15 @@ void TransponderReleaseSystem::authorize(
 }
 
 void TransponderReleaseSystem::release(
-    const QMap<QString, QString>* releaseParameters,
-    QMap<QString, QString>* attributes,
-    QMap<QString, QString>* masterKeys,
+    const QHash<QString, QString>* releaseParameters,
+    QHash<QString, QString>* attributes,
+    QHash<QString, QString>* masterKeys,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
   QPair<QString, QString> searchPair;
-  QMap<QString, QString> productionLineRecord;
-  QMap<QString, QString> transponderRecord;
+  QHash<QString, QString> productionLineRecord;
+  QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -187,12 +187,12 @@ void TransponderReleaseSystem::release(
 }
 
 void TransponderReleaseSystem::confirmRelease(
-    const QMap<QString, QString>* confirmParameters,
-    QMap<QString, QString>* transponderData,
+    const QHash<QString, QString>* confirmParameters,
+    QHash<QString, QString>* transponderData,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
-  QMap<QString, QString> productionLineRecord;
+  QHash<QString, QString> productionLineRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -265,14 +265,14 @@ void TransponderReleaseSystem::confirmRelease(
 }
 
 void TransponderReleaseSystem::rerelease(
-    const QMap<QString, QString>* rereleaseParameters,
-    QMap<QString, QString>* attributes,
-    QMap<QString, QString>* masterKeys,
+    const QHash<QString, QString>* rereleaseParameters,
+    QHash<QString, QString>* attributes,
+    QHash<QString, QString>* masterKeys,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
   QPair<QString, QString> searchPair;
-  QMap<QString, QString> transponderRecord;
+  QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -349,12 +349,12 @@ void TransponderReleaseSystem::rerelease(
 }
 
 void TransponderReleaseSystem::confirmRerelease(
-    const QMap<QString, QString>* confirmParameters,
-    QMap<QString, QString>* transponderData,
+    const QHash<QString, QString>* confirmParameters,
+    QHash<QString, QString>* transponderData,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
-  QMap<QString, QString> transponderRecord;
+  QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -424,9 +424,9 @@ void TransponderReleaseSystem::confirmRerelease(
 }
 
 void TransponderReleaseSystem::search(
-    const QMap<QString, QString>* searchParameters,
-    QMap<QString, QString>* attributes,
-    QMap<QString, QString>* masterKeys,
+    const QHash<QString, QString>* searchParameters,
+    QHash<QString, QString>* attributes,
+    QHash<QString, QString>* masterKeys,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
@@ -477,8 +477,8 @@ void TransponderReleaseSystem::sendLog(const QString& log) const {
 }
 
 bool TransponderReleaseSystem::checkConfirmRerelease(
-    const QMap<QString, QString>& transponderRecord,
-    const QMap<QString, QString>& searchData) {
+    const QHash<QString, QString>& transponderRecord,
+    const QHash<QString, QString>& searchData) {
   // Проверка, что транспондер найден
   if (transponderRecord.isEmpty()) {
     sendLog(QString(
@@ -515,7 +515,7 @@ bool TransponderReleaseSystem::checkConfirmRerelease(
 
 bool TransponderReleaseSystem::confirmTransponder(const QString& transponderId,
                                                   const QString& ucid) const {
-  QMap<QString, QString> transponderRecord;
+  QHash<QString, QString> transponderRecord;
 
   // Запрашиваем данные транспондера
   transponderRecord.insert("id", transponderId);
@@ -567,7 +567,7 @@ bool TransponderReleaseSystem::confirmTransponder(const QString& transponderId,
 }
 
 bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
-  QMap<QString, QString> boxRecord;
+  QHash<QString, QString> boxRecord;
 
   // Получаем данные о боксе
   boxRecord.insert("id", boxId);
@@ -619,7 +619,7 @@ bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
 }
 
 bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
-  QMap<QString, QString> palletRecord;
+  QHash<QString, QString> palletRecord;
 
   // Получаем данные о паллете
   palletRecord.insert("id", id);
@@ -673,7 +673,7 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
 }
 
 bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
-  QMap<QString, QString> orderRecord;
+  QHash<QString, QString> orderRecord;
 
   // Получаем данные о заказе
   orderRecord.insert("id", id);
@@ -716,10 +716,10 @@ bool TransponderReleaseSystem::confirmOrder(const QString& id) const {
 }
 
 bool TransponderReleaseSystem::searchNextTransponderForAssembling(
-    QMap<QString, QString>* productionLineRecord) const {
-  QMap<QString, QString> transponderRecord;
-  QMap<QString, QString> boxRecord;
-  QMap<QString, QString> palletRecord;
+    QHash<QString, QString>* productionLineRecord) const {
+  QHash<QString, QString> transponderRecord;
+  QHash<QString, QString> boxRecord;
+  QHash<QString, QString> palletRecord;
   bool freeTranspondersRunOut = false;
 
   // Получаем данные о текущем транспондере
@@ -763,8 +763,8 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
   // Если свободный транспондер в текущем боксе не найден
   if (transponderRecord.isEmpty()) {
     // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
-    QSharedPointer<QMap<QString, QString> > boxData(
-        new QMap<QString, QString>());
+    QSharedPointer<QHash<QString, QString> > boxData(
+        new QHash<QString, QString>());
     if (!getBoxData(boxRecord.value("id"), boxData.get())) {
       sendLog(QString("Получена ошибка при получении данных бокса %1. ")
                   .arg(boxRecord.value("id")));
@@ -812,8 +812,8 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
     } else {  // Если свободных боксов в текущей паллете не найдено
       // Собираем данные о паллете и отправляем сигнал о завершении сборки
       // паллеты
-      QSharedPointer<QMap<QString, QString> > palletData(
-          new QMap<QString, QString>());
+      QSharedPointer<QHash<QString, QString> > palletData(
+          new QHash<QString, QString>());
       if (!getPalletData(palletRecord.value("id"), palletData.get())) {
         sendLog(QString("Получена ошибка при получении данных паллеты %1. ")
                     .arg(palletRecord.value("id")));
@@ -915,8 +915,8 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
 
 bool TransponderReleaseSystem::getTransponderSeed(
     const QPair<QString, QString>* searchPair,
-    QMap<QString, QString>* attributes,
-    QMap<QString, QString>* masterKeys) const {
+    QHash<QString, QString>* attributes,
+    QHash<QString, QString>* masterKeys) const {
   QStringList tables;
   QStringList foreignKeys;
   QString keyTableName;
@@ -991,8 +991,8 @@ bool TransponderReleaseSystem::getTransponderSeed(
 
 bool TransponderReleaseSystem::getTransponderData(
     const QString& id,
-    QMap<QString, QString>* data) const {
-  QMap<QString, QString> mergedRecord;
+    QHash<QString, QString>* data) const {
+  QHash<QString, QString> mergedRecord;
   QStringList tables;
   QStringList foreignKeys;
 
@@ -1031,7 +1031,10 @@ bool TransponderReleaseSystem::getTransponderData(
   data->insert("box_id", mergedRecord.value("box_id"));
   data->insert("pallet_id", mergedRecord.value("pallet_id"));
   data->insert("order_id", mergedRecord.value("order_id"));
-  data->insert("transponder_model", mergedRecord.value("transponder_model"));
+
+  // Удаляем пробелы из названия модели
+  QString tempModel = mergedRecord.value("transponder_model");
+  data->insert("transponder_model", tempModel.remove(" "));
 
   // Преобразуем в десятичный формат
   QString manufacturerId =
@@ -1064,10 +1067,10 @@ bool TransponderReleaseSystem::getTransponderData(
 }
 
 bool TransponderReleaseSystem::getBoxData(const QString& id,
-                                          QMap<QString, QString>* data) const {
-  QMap<QString, QString> boxRecord;
-  QMap<QString, QString> transponderRecord;
-  QMap<QString, QString> transponderData;
+                                          QHash<QString, QString>* data) const {
+  QHash<QString, QString> boxRecord;
+  QHash<QString, QString> transponderRecord;
+  QHash<QString, QString> transponderData;
 
   boxRecord.insert("id", id);
   boxRecord.insert("assembled_units", "");
@@ -1137,10 +1140,10 @@ bool TransponderReleaseSystem::getBoxData(const QString& id,
 
 bool TransponderReleaseSystem::getPalletData(
     const QString& id,
-    QMap<QString, QString>* data) const {
-  QMap<QString, QString> boxRecord;
-  QMap<QString, QString> palletRecord;
-  QMap<QString, QString> orderRecord;
+    QHash<QString, QString>* data) const {
+  QHash<QString, QString> boxRecord;
+  QHash<QString, QString> palletRecord;
+  QHash<QString, QString> orderRecord;
 
   palletRecord.insert("id", id);
   palletRecord.insert("assembled_units", "");
@@ -1205,4 +1208,4 @@ bool TransponderReleaseSystem::getPalletData(
 
 bool TransponderReleaseSystem::getOrderData(
     const QString& id,
-    QMap<QString, QString>* data) const {}
+    QHash<QString, QString>* data) const {}

@@ -34,6 +34,8 @@ class ServerManager : public QObject {
   void createServerInstance(void);
   void createLoggerInstance(void);
 
+  void registerMetaType(void);
+
  signals:
   void logging(const QString& log) const;
 };

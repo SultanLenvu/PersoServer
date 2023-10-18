@@ -163,7 +163,7 @@ bool PostgresController::clearTable(const QString& tableName) const {
 }
 
 bool PostgresController::addRecord(const QString& tableName,
-                                   QMap<QString, QString>& record) const {
+                                   QHash<QString, QString>& record) const {
   // Проверка подключения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -174,13 +174,13 @@ bool PostgresController::addRecord(const QString& tableName,
 
   // Создаем запрос
   QString requestText = QString("INSERT INTO public.%1 (").arg(tableName);
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     requestText += QString("%1, ").arg(it.key());
   }
   requestText.chop(2);
   requestText += ") VALUES (";
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (it.value() != "NULL") {
       requestText += QString("'%1', ").arg(it.value());
@@ -204,10 +204,10 @@ bool PostgresController::addRecord(const QString& tableName,
 }
 
 bool PostgresController::getRecordById(const QString& tableName,
-                                       QMap<QString, QString>& record) const {
+                                       QHash<QString, QString>& record) const {
   // Формируем запрос
   QString requestText = QString("SELECT ");
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     requestText += QString("%1, ").arg(it.key());
   }
@@ -235,7 +235,7 @@ bool PostgresController::getRecordById(const QString& tableName,
 }
 
 bool PostgresController::getRecordByPart(const QString& tableName,
-                                         QMap<QString, QString>& record,
+                                         QHash<QString, QString>& record,
                                          bool order) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
@@ -247,7 +247,7 @@ bool PostgresController::getRecordByPart(const QString& tableName,
 
   // Создаем запрос
   QString requestText = QString("SELECT ");
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     requestText += QString("%1, ").arg(it.key());
   }
@@ -255,7 +255,7 @@ bool PostgresController::getRecordByPart(const QString& tableName,
   requestText.chop(2);
   requestText += QString(" FROM public.%1 WHERE ").arg(tableName);
   bool flag = false;
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (it.value().size() > 0) {
       flag = true;
@@ -292,7 +292,7 @@ bool PostgresController::getRecordByPart(const QString& tableName,
 }
 
 bool PostgresController::getLastRecord(const QString& tableName,
-                                       QMap<QString, QString>& record) const {
+                                       QHash<QString, QString>& record) const {
   int32_t rowCount = 0;
 
   // Проверка соединения
@@ -305,7 +305,7 @@ bool PostgresController::getLastRecord(const QString& tableName,
 
   // Формируем запрос
   QString requestText = QString("SELECT ");
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     requestText += QString("%1, ").arg(it.key());
   }
@@ -364,7 +364,7 @@ bool PostgresController::getLastRecord(const QString& tableName,
 bool PostgresController::getMergedRecordById(
     const QStringList& tables,
     const QStringList& foreignKeys,
-    QMap<QString, QString>& record) const {
+    QHash<QString, QString>& record) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -375,7 +375,7 @@ bool PostgresController::getMergedRecordById(
 
   // Создаем запрос
   QString requestText = QString("SELECT ");
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     requestText += QString("%1, ").arg(it.key());
   }
@@ -412,7 +412,7 @@ bool PostgresController::getMergedRecordById(
 bool PostgresController::getMergedRecordByPart(
     const QStringList& tables,
     const QStringList& foreignKeys,
-    QMap<QString, QString>& record) const {
+    QHash<QString, QString>& record) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -423,7 +423,7 @@ bool PostgresController::getMergedRecordByPart(
 
   // Создаем запрос
   QString requestText = QString("SELECT ");
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     requestText += QString("%1, ").arg(it.key());
   }
@@ -437,7 +437,7 @@ bool PostgresController::getMergedRecordByPart(
 
   requestText += "WHERE ";
   bool flag = false;
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (it.value().size() > 0) {
       flag = true;
@@ -470,7 +470,7 @@ bool PostgresController::getMergedRecordByPart(
 
 bool PostgresController::updateRecordById(
     const QString& tableName,
-    QMap<QString, QString>& record) const {
+    QHash<QString, QString>& record) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -481,7 +481,7 @@ bool PostgresController::updateRecordById(
 
   // Создаем запрос
   QString requestText = QString("UPDATE public.%1 SET ").arg(tableName);
-  for (QMap<QString, QString>::const_iterator it = record.constBegin();
+  for (QHash<QString, QString>::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (it.value() != "NULL") {
       requestText += QString("%1 = '%2', ").arg(it.key(), it.value());
@@ -507,8 +507,8 @@ bool PostgresController::updateRecordById(
 
 bool PostgresController::updateAllRecordsByPart(
     const QString& tableName,
-    QMap<QString, QString>& conditions,
-    QMap<QString, QString>& newValues) const {
+    QHash<QString, QString>& conditions,
+    QHash<QString, QString>& newValues) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -519,7 +519,7 @@ bool PostgresController::updateAllRecordsByPart(
 
   // Создаем запрос
   QString requestText = QString("UPDATE public.%1 SET ").arg(tableName);
-  for (QMap<QString, QString>::const_iterator it = newValues.constBegin();
+  for (QHash<QString, QString>::const_iterator it = newValues.constBegin();
        it != newValues.constEnd(); it++) {
     if (it.value() != "NULL") {
       requestText += QString("%1 = '%2', ").arg(it.key(), it.value());
@@ -531,7 +531,7 @@ bool PostgresController::updateAllRecordsByPart(
 
   requestText += " WHERE ";
   bool flag = false;
-  for (QMap<QString, QString>::const_iterator it = conditions.constBegin();
+  for (QHash<QString, QString>::const_iterator it = conditions.constBegin();
        it != conditions.constEnd(); it++) {
     if (it.value().size() > 0) {
       flag = true;
@@ -611,7 +611,7 @@ bool PostgresController::removeLastRecordById(const QString& tableName) const {
 
 bool PostgresController::removeLastRecordByCondition(
     const QString& tableName,
-    QMap<QString, QString>& condition) const {
+    QHash<QString, QString>& condition) const {
   // Проверка соединения
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog(
@@ -626,7 +626,7 @@ bool PostgresController::removeLastRecordByCondition(
           "DELETE FROM public.%1 WHERE id = (SELECT id FROM public.%1 WHERE ")
           .arg(tableName);
   bool flag = false;
-  for (QMap<QString, QString>::const_iterator it = condition.constBegin();
+  for (QHash<QString, QString>::const_iterator it = condition.constBegin();
        it != condition.constEnd(); it++) {
     if (it.value().size() > 0) {
       flag = true;
@@ -727,7 +727,7 @@ void PostgresController::convertResponseToBuffer(
 
 void PostgresController::convertResponseToMap(
     QSqlQuery& request,
-    QMap<QString, QString>& record) const {
+    QHash<QString, QString>& record) const {
   record.clear();
   for (int32_t i = 0; i < request.record().count(); i++) {
     record.insert(request.record().fieldName(i), request.value(i).toString());

@@ -2,7 +2,7 @@
 #define POSTGRESCONTROLLER_H
 
 #include <QHostAddress>
-#include <QMap>
+#include <QHash>
 #include <QtSql>
 
 #include "database_controller.h"
@@ -39,36 +39,36 @@ class PostgresController : public IDatabaseController {
   virtual bool clearTable(const QString& tableName) const override;
 
   virtual bool addRecord(const QString& tableName,
-                         QMap<QString, QString>& record) const override;
+                         QHash<QString, QString>& record) const override;
 
   virtual bool getRecordById(const QString& tableName,
-                             QMap<QString, QString>& record) const override;
+                             QHash<QString, QString>& record) const override;
   virtual bool getRecordByPart(const QString& tableName,
-                               QMap<QString, QString>& record,
+                               QHash<QString, QString>& record,
                                bool order = true) const override;
   virtual bool getLastRecord(const QString& tableName,
-                             QMap<QString, QString>& record) const override;
+                             QHash<QString, QString>& record) const override;
 
   virtual bool getMergedRecordById(
       const QStringList& tables,
       const QStringList& foreignKeys,
-      QMap<QString, QString>& record) const override;
+      QHash<QString, QString>& record) const override;
   virtual bool getMergedRecordByPart(
       const QStringList& tables,
       const QStringList& foreignKeys,
-      QMap<QString, QString>& record) const override;
+      QHash<QString, QString>& record) const override;
 
   virtual bool updateRecordById(const QString& tableName,
-                            QMap<QString, QString>& record) const override;
+                            QHash<QString, QString>& record) const override;
   bool updateAllRecordsByPart(const QString& tableName,
-                              QMap<QString, QString>& conditions,
-                              QMap<QString, QString>& newValues) const;
+                              QHash<QString, QString>& conditions,
+                              QHash<QString, QString>& newValues) const;
   virtual bool removeRecordById(const QString& tableName,
                                 const uint32_t id) const override;
   virtual bool removeLastRecordById(const QString& tableName) const override;
   virtual bool removeLastRecordByCondition(
       const QString& tableName,
-      QMap<QString, QString>& condition) const override;
+      QHash<QString, QString>& condition) const override;
 
   virtual void applySettings() override;
 
@@ -80,7 +80,7 @@ class PostgresController : public IDatabaseController {
   void convertResponseToBuffer(QSqlQuery& request,
                                DatabaseTableModel* buffer) const;
   void convertResponseToMap(QSqlQuery& request,
-                            QMap<QString, QString>& record) const;
+                            QHash<QString, QString>& record) const;
 };
 
 #endif  // POSTGRESCONTROLLER_H

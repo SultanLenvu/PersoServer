@@ -24,6 +24,7 @@ PersoClient::PersoClient(uint32_t id, qintptr socketDescriptor) {
 
   // Создаем шаблоны команд
   createCommandTemplates();
+  createCommandHandlers();
 }
 
 PersoClient::~PersoClient() {
@@ -132,50 +133,40 @@ void PersoClient::processReceivedDataBlock(void) {
   }
 
   // Заголовок ответа на команду
+  sendLog(QString("Получена команда: %1. ")
+              .arg(CurrentCommand.value("command_name").toString()));
   CurrentResponse["response_name"] =
       CurrentCommand.value("command_name").toString();
 
-  // Синтаксическая проверка
-  if (std::find_if(
-          CurrentCommand.begin(), CurrentCommand.end(),
-          [this](const QPair<QString, QJsonValue>& pair) {
-            static QVector<QString>::iterator it =
-                CommandTemplates
-                    .value(CurrentCommand.value("command_name").toString())
-                    ->begin();
-            // Проверка на существование
-            if (pair.first.isEmpty()) {
-              return true;
-            }
-
-            // Проверка на соответствие
-            if (pair.second != *it) {
-              return true;
-            }
-            it++;
-            return false;
-          }) != CurrentCommand.end()) {
-    processSyntaxError();
-    createTransmittedDataBlock();
-    transmitDataBlock();
-    return;
-  }
+  // Синтаксическая проверка команды
+  //  QVector<QString>* currentTemplate =
+  //      CommandTemplates.value(CurrentCommand.value("command_name").toString())
+  //          .get();
+  //  QVector<QString>::iterator it;
+  //  for (it = currentTemplate->begin(); it != currentTemplate->end(); it++) {
+  //    if (CurrentCommand.contains(*it)) {
+  //      break;
+  //    }
+  //  }
+  //  //  Получена синтаксическая ошибка
+  //  if (it != currentTemplate->end()) {
+  //    processSyntaxError();
+  //    return;
+  //  }
 
   // Вызов обработчика
   (this->*CommandHandlers.value(
               CurrentCommand.value("command_name").toString()))();
-  createTransmittedDataBlock();
-  transmitDataBlock();
 }
 
-void PersoClient::processSyntaxError() const {
+void PersoClient::processSyntaxError() {
   sendLog(QString("Получена синтаксическая ошибка в команде '%1'. ")
               .arg(CurrentCommand.value("command_name").toString()));
 
   CurrentResponse["return_status"] = "sytax_error";
 }
 
-void PersoClient::processEcho() const {
+void PersoClient::processEcho() {
   sendLog("Выполнение команды Echo. ");
 
   // Формирование ответа
@@ -183,9 +174,9 @@ void PersoClient::processEcho() const {
   CurrentResponse["return_status"] = "no_error";
 }
 
-void PersoClient::processAuthorization() const {
-  sendLog("Выполнение команды Authorization. ");
-  QMap<QString, QString> authorizationParameters;
+void PersoClient::processAuthorization() {
+  sendLog("Выполнение команды authorization. ");
+  QHash<QString, QString> authorizationParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
@@ -214,15 +205,15 @@ void PersoClient::processAuthorization() const {
   CurrentResponse["return_status"] = "no_error";
 }
 
-void PersoClient::processTransponderRelease() const {
-  sendLog("Выполнение команды TransponderRelease. ");
-  QMap<QString, QString> releaseParameters;
+void PersoClient::processTransponderRelease() {
+  sendLog("Выполнение команды transponder_release. ");
+  QHash<QString, QString> releaseParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
   // Выпуск транспондера
-  QMap<QString, QString>* attributes = new QMap<QString, QString>;
-  QMap<QString, QString>* masterKeys = new QMap<QString, QString>;
+  QHash<QString, QString>* attributes = new QHash<QString, QString>;
+  QHash<QString, QString>* masterKeys = new QHash<QString, QString>;
   releaseParameters.insert("login", CurrentCommand.value("login").toString());
   releaseParameters.insert("password",
                            CurrentCommand.value("password").toString());
@@ -247,14 +238,14 @@ void PersoClient::processTransponderRelease() const {
   CurrentResponse["return_status"] = "no_error";
 }
 
-void PersoClient::processTransponderReleaseConfirm() const {
-  sendLog("Выполнение команды TransponderReleaseConfirm. ");
-  QMap<QString, QString> confirmParameters;
+void PersoClient::processTransponderReleaseConfirm() {
+  sendLog("Выполнение команды transponder_release_confirm. ");
+  QHash<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
   // Подтверждение выпуска транспондера
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>;
+  QHash<QString, QString>* transponderData = new QHash<QString, QString>;
   confirmParameters.insert("login", CurrentCommand.value("login").toString());
   confirmParameters.insert("password",
                            CurrentCommand.value("password").toString());
@@ -284,15 +275,15 @@ void PersoClient::processTransponderReleaseConfirm() const {
   CurrentResponse["return_status"] = "no_error";
 }
 
-void PersoClient::processTransponderRerelease() const {
-  sendLog("Выполнение команды TransponderRerelease. ");
-  QMap<QString, QString> rereleaseParameters;
+void PersoClient::processTransponderRerelease() {
+  sendLog("Выполнение команды transponder_rerelease. ");
+  QHash<QString, QString> rereleaseParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
   // Перевыпуск транспондера
-  QMap<QString, QString>* attributes = new QMap<QString, QString>;
-  QMap<QString, QString>* masterKeys = new QMap<QString, QString>;
+  QHash<QString, QString>* attributes = new QHash<QString, QString>;
+  QHash<QString, QString>* masterKeys = new QHash<QString, QString>;
   rereleaseParameters.insert("login", CurrentCommand.value("login").toString());
   rereleaseParameters.insert("password",
                              CurrentCommand.value("password").toString());
@@ -322,14 +313,14 @@ void PersoClient::processTransponderRerelease() const {
   CurrentResponse["return_status"] = "no_error";
 }
 
-void PersoClient::processTransponderRereleaseConfirm() const {
-  sendLog("Выполнение команды TransponderRereleaseConfirm. ");
-  QMap<QString, QString> confirmParameters;
+void PersoClient::processTransponderRereleaseConfirm() {
+  sendLog("Выполнение команды transponder_rerelease_confirm. ");
+  QHash<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret =
       TransponderReleaseSystem::Undefined;
 
   // Подтверждение перевыпуска транспондера
-  QMap<QString, QString>* transponderData = new QMap<QString, QString>;
+  QHash<QString, QString>* transponderData = new QHash<QString, QString>;
   confirmParameters.insert("login", CurrentCommand.value("login").toString());
   confirmParameters.insert("password",
                            CurrentCommand.value("password").toString());
@@ -363,13 +354,61 @@ void PersoClient::processTransponderRereleaseConfirm() const {
   CurrentResponse["return_status"] = "no_error";
 }
 
-void PersoClient::processPrintBoxSticker() const {}
+void PersoClient::processPrintBoxSticker() {
+  sendLog("Выполнение команды print_box_sticker. ");
 
-void PersoClient::processPrintLastBoxSticker() const {}
+  // Печать стикера для бокса
+  QSharedPointer<QHash<QString, QString>> data(new QHash<QString, QString>());
+  data->insert("id", CurrentCommand.value("id").toString());
+  data->insert("quantity", CurrentCommand.value("quantity").toString());
+  data->insert("first_transponder_sn",
+               CurrentCommand.value("first_transponder_sn").toString());
+  data->insert("last_transponder_sn",
+               CurrentCommand.value("last_transponder_sn").toString());
+  data->insert("transponder_model",
+               CurrentCommand.value("transponder_model").toString());
 
-void PersoClient::processPrintPalletSticker() const {}
+  emit printBoxSticker_signal(data);
 
-void PersoClient::processPrintLastPalletSticker() const {}
+  CurrentResponse["return_status"] = "no_error";
+}
+
+void PersoClient::processPrintLastBoxSticker() {
+  sendLog("Выполнение команды print_last_box_sticker. ");
+
+  // Печать последнего стикера для бокса
+  emit printLastBoxSticker_signal();
+
+  CurrentResponse["return_status"] = "no_error";
+}
+
+void PersoClient::processPrintPalletSticker() {
+  sendLog("Выполнение команды print_pallet_sticker. ");
+
+  // Печать стикера для паллеты
+  QSharedPointer<QHash<QString, QString>> data(new QHash<QString, QString>());
+  data->insert("id", CurrentCommand.value("id").toString());
+  data->insert("quantity", CurrentCommand.value("quantity").toString());
+  data->insert("first_box_id", CurrentCommand.value("first_box_id").toString());
+  data->insert("last_box_id", CurrentCommand.value("last_box_id").toString());
+  data->insert("transponder_model",
+               CurrentCommand.value("transponder_model").toString());
+  data->insert("assembly_date",
+               CurrentCommand.value("assembly_date").toString());
+
+  emit printPalletSticker_signal(data);
+
+  CurrentResponse["return_status"] = "no_error";
+}
+
+void PersoClient::processPrintLastPalletSticker() {
+  sendLog("Выполнение команды print_last_box_sticker. ");
+
+  // Печать последнего стикера для паллеты
+  emit printLastPalletSticker_signal();
+
+  CurrentResponse["return_status"] = "no_error";
+}
 
 void PersoClient::createSocket(qintptr socketDescriptor) {
   Socket = new QTcpSocket(this);

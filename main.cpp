@@ -1,8 +1,4 @@
-#include <iostream>
-
 #include <QCoreApplication>
-#include <QStringList>
-#include <QTextStream>
 
 #include "Management/server_manager.h"
 

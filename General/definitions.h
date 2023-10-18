@@ -8,7 +8,6 @@
 #define ORGANIZATION_NAME "PowerSyntez"
 
 #define MASTER_ACCESS_PASSWORD "1995"
-#define POSTGRES_TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
 #define BOX_STICKER_DATE_TEMPLATE "dd.MM.yyyy"
 
 #define IP_PORT_MAX_VALUE 65535
@@ -25,6 +24,7 @@
 
 /* Определения для базы данных Postgres */
 //===============================================================
+
 #define TRANSPONDER_ID_START_SHIFT 500000
 
 #define POSTGRES_DEFAULT_SERVER_IP "127.0.0.1"
@@ -34,6 +34,7 @@
 #define POSTGRES_DEFAULT_USER_PASSWORD "1995"
 
 #define TIMESTAMP_DEFAULT_VALUE "2000-01-01 00:00:00"
+#define POSTGRES_TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
 //===============================================================
 
 /* Определения для сервера */

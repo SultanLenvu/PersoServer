@@ -41,7 +41,7 @@ bool TE310Printer::checkConfiguration() {
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
-    const QMap<QString, QString>* parameters) {
+    const QHash<QString, QString>* parameters) {
   if (LibError) {
     sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
     return LibraryMissed;
@@ -87,7 +87,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printLastTransponderSticker() {
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
-    const QMap<QString, QString>* parameters) {
+    const QHash<QString, QString>* parameters) {
   if (LibError) {
     sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
     return LibraryMissed;
@@ -163,7 +163,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printLastBoxSticker() {
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
-    const QMap<QString, QString>* parameters) {
+    const QHash<QString, QString>* parameters) {
   if (LibError) {
     sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
     return LibraryMissed;
@@ -311,7 +311,7 @@ bool TE310Printer::loadTscLib() {
   return true;
 }
 
-void TE310Printer::printNkdSticker(const QMap<QString, QString>* parameters) {
+void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
   openPort(Name.toUtf8().data());
   sendCommand("SIZE 27 mm, 27 mm");
   sendCommand("GAP 2 mm,2 mm");
@@ -340,7 +340,7 @@ void TE310Printer::printNkdSticker(const QMap<QString, QString>* parameters) {
   closePort();
 }
 
-void TE310Printer::printZsdSticker(const QMap<QString, QString>* parameters) {
+void TE310Printer::printZsdSticker(const QHash<QString, QString>* parameters) {
   openPort(Name.toUtf8().data());
   sendCommand("SIZE 30 mm, 20 mm");
   sendCommand("GAP 2 mm, 1 mm");
