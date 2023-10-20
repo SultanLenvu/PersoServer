@@ -402,7 +402,7 @@ void PersoClient::processPrintPalletSticker() {
 }
 
 void PersoClient::processPrintLastPalletSticker() {
-  sendLog("Выполнение команды print_last_box_sticker. ");
+  sendLog("Выполнение команды print_last_pallet_sticker. ");
 
   // Печать последнего стикера для паллеты
   emit printLastPalletSticker_signal();

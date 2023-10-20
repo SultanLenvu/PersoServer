@@ -323,17 +323,12 @@ void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
                   .toUtf8()
                   .data());
   sendCommand(QString("QRCODE "
-                      "60,60,H,10,A,0,X204,J1,M2,\"%1\n\r%2%3%4\"")
-                  .arg(parameters->value("pan"),
-                       parameters->value("manufacturer_id"),
-                       parameters->value("battery_insertation_date"),
-                       parameters->value("sn"))
+                      "60,60,H,10,A,0,X204,J1,M2,\"%1\n\r%2\"")
+                  .arg(parameters->value("pan"), parameters->value("sn"))
                   .toUtf8()
                   .data());
-  sendCommand(QString("TEXT 162,276,\"D.FNT\",0,1,1,2,\"SN: %1 %2 %3\"")
-                  .arg(parameters->value("manufacturer_id"),
-                       parameters->value("battery_insertation_date"),
-                       parameters->value("sn"))
+  sendCommand(QString("TEXT 162,276,\"D.FNT\",0,1,1,2,\"SN: %1\"")
+                  .arg(parameters->value("sn"))
                   .toUtf8()
                   .data());
   sendCommand("PRINT 1");
@@ -346,10 +341,8 @@ void TE310Printer::printZsdSticker(const QHash<QString, QString>* parameters) {
   sendCommand("GAP 2 mm, 1 mm");
   sendCommand("DIRECTION 1");
   sendCommand("CLS");
-  sendCommand(QString("TEXT 180,12,\"D.FNT\",0,1,1,2,\"SN: %1 %2 %3\"")
-                  .arg(parameters->value("manufacturer_id"),
-                       parameters->value("battery_insertation_date"),
-                       parameters->value("sn"))
+  sendCommand(QString("TEXT 180,12,\"D.FNT\",0,1,1,2,\"SN: %1\"")
+                  .arg(parameters->value("sn"))
                   .toUtf8()
                   .data());
   sendCommand(QString("BARCODE 18,36,\"128\",144,2,0,2,2,\"%1\"")

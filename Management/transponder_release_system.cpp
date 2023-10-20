@@ -629,6 +629,16 @@ bool TransponderReleaseSystem::confirmBox(const QString& boxId) const {
       return false;
     }
 
+    // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
+    QSharedPointer<QHash<QString, QString> > boxData(
+        new QHash<QString, QString>());
+    if (!getBoxData(boxRecord.value("id"), boxData.get())) {
+      sendLog(QString("Получена ошибка при получении данных бокса %1. ")
+                  .arg(boxRecord.value("id")));
+      return false;
+    }
+    emit boxAssemblingFinished(boxData);
+
     // Подтверждаем сборку в палете
     if (!confirmPallet(boxRecord.value("pallet_id"))) {
       sendLog(QString("Получена ошибка при подтверждении паллеты %1. ")
@@ -682,6 +692,17 @@ bool TransponderReleaseSystem::confirmPallet(const QString& id) const {
               .arg(id));
       return false;
     }
+
+    // Собираем данные о паллете и отправляем сигнал о завершении сборки
+    // паллеты
+    QSharedPointer<QHash<QString, QString> > palletData(
+        new QHash<QString, QString>());
+    if (!getPalletData(palletRecord.value("id"), palletData.get())) {
+      sendLog(QString("Получена ошибка при получении данных паллеты %1. ")
+                  .arg(palletRecord.value("id")));
+      return false;
+    }
+    emit palletAssemblingFinished(palletData);
 
     // Подтверждаем сборку в заказе
     if (!confirmOrder(palletRecord.value("order_id"))) {
@@ -784,16 +805,6 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
 
   // Если свободный транспондер в текущем боксе не найден
   if (transponderRecord.isEmpty()) {
-    // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
-    QSharedPointer<QHash<QString, QString> > boxData(
-        new QHash<QString, QString>());
-    if (!getBoxData(boxRecord.value("id"), boxData.get())) {
-      sendLog(QString("Получена ошибка при получении данных бокса %1. ")
-                  .arg(boxRecord.value("id")));
-      return false;
-    }
-    emit boxAssemblingFinished(boxData);
-
     // Ищем свободный бокс в текущей паллете
     boxRecord.insert("id", "");
     boxRecord.insert("ready_indicator", "false");
@@ -832,17 +843,6 @@ bool TransponderReleaseSystem::searchNextTransponderForAssembling(
         return false;
       }
     } else {  // Если свободных боксов в текущей паллете не найдено
-      // Собираем данные о паллете и отправляем сигнал о завершении сборки
-      // паллеты
-      QSharedPointer<QHash<QString, QString> > palletData(
-          new QHash<QString, QString>());
-      if (!getPalletData(palletRecord.value("id"), palletData.get())) {
-        sendLog(QString("Получена ошибка при получении данных паллеты %1. ")
-                    .arg(palletRecord.value("id")));
-        return false;
-      }
-      emit palletAssemblingFinished(palletData);
-
       // Ищем свободную паллету в текущем заказе
       palletRecord.insert("id", "");
       palletRecord.insert("ready_indicator", "false");
@@ -1103,7 +1103,7 @@ bool TransponderReleaseSystem::getBoxData(const QString& id,
 
   // Сохраняем данные бокса
   data->insert("id", id);
-  data->insert("assembled_units", boxRecord.value("assembled_units"));
+  data->insert("quantity", boxRecord.value("assembled_units"));
 
   // Ищем первый транспондер в боксе
   transponderRecord.insert("id", "");
@@ -1233,7 +1233,5 @@ void TransponderReleaseSystem::on_CheckTimerTemeout() {
     sendLog("Потеряно соединение с базой данных.");
     CheckTimer->stop();
     emit failed(DatabaseConnectionError);
-  } else {
-    sendLog("Соединение с базой данных стабильно.");
   }
 }

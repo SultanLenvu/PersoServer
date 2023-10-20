@@ -27,7 +27,7 @@ PersoServer::~PersoServer() {
     ReleaserThread->wait();
   }
 
-  for (QSet<QThread*>::iterator it = ClientThreads.begin();
+  for (QHash<int32_t, QThread*>::iterator it = ClientThreads.begin();
        it != ClientThreads.end(); it++) {
     (*it)->exit();
     (*it)->wait();
@@ -173,7 +173,7 @@ void PersoServer::createReleaserInstance() {
           &TransponderReleaseSystem::stop, Qt::BlockingQueuedConnection);
   connect(Releaser, &TransponderReleaseSystem::logging, LogSystem::instance(),
           &LogSystem::generate);
-  connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
+  connect(Releaser, &TransponderReleaseSystem::boxAssemblingFinished, this,
           &PersoServer::printBoxSticker_slot);
   connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
           &PersoServer::printPalletSticker_slot);
@@ -217,7 +217,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
           &PersoClient::instanceTesting);
 
   // Добавляем клиента в реестр
-  Clients.insert(newClient);
+  Clients.insert(clientId, newClient);
   sendLog(QString("Новый клиент создан и зарегистрирован в реестре с "
                   "идентификатором %1. ")
               .arg(QString::number(newClient->getId())));
@@ -236,7 +236,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
           &PersoServer::on_ClientThreadDeleted_slot);
 
   // Добавляем поток в соответствующий реестр
-  ClientThreads.insert(newClientThread);
+  ClientThreads.insert(clientId, newClientThread);
 
   // Соединяем клиента с системой выпуска транспондеров
   connect(newClient, &PersoClient::releaserAuthorize_signal, Releaser,
@@ -304,8 +304,8 @@ void PersoServer::on_ClientDisconnected_slot() {
     sendLog(QString("Поток клиента %1 остановлен. ")
                 .arg(QString::number(clientId)));
   }
-  ClientThreads.remove(disconnectedClient->thread());
-  Clients.remove(disconnectedClient);
+  ClientThreads.remove(clientId);
+  Clients.remove(clientId);
 
   sendLog(
       QString("Клиент %1 удален из реестра. ").arg(QString::number(clientId)));
@@ -349,7 +349,7 @@ void PersoServer::printPalletSticker_slot(
   sendLog("Запуск печати стикера для паллеты.");
 
   IStickerPrinter::ReturnStatus status =
-      BoxStickerPrinter->printPalletSticker(data.get());
+      PalletStickerPrinter->printPalletSticker(data.get());
 
   if (status != IStickerPrinter::Completed) {
     processCriticalError("Получена ошибка при печати стикера для паллеты. ");
@@ -360,7 +360,7 @@ void PersoServer::printLastPalletSticker_slot() {
   sendLog("Запуск печати стикера для паллеты.");
 
   IStickerPrinter::ReturnStatus status =
-      BoxStickerPrinter->printLastPalletSticker();
+      PalletStickerPrinter->printLastPalletSticker();
 
   if (status != IStickerPrinter::Completed) {
     processCriticalError("Получена ошибка при печати стикера для паллеты. ");
@@ -375,5 +375,5 @@ void PersoServer::on_RestartTimerTimeout_slot() {
 
 void PersoServer::on_ReleaserFailed_slot(
     TransponderReleaseSystem::ReturnStatus status) {
-  processCriticalError("Ошибка в системе выпуска транспондеров.");
+  processCriticalError("Система выпуска транспондеров неисправна.");
 }

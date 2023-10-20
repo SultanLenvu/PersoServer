@@ -264,9 +264,9 @@ void ServerManager::createLoggerInstance() {
 }
 
 void ServerManager::registerMetaType() {
-  qRegisterMetaType<QSharedPointer<QMap<QString, QString>>>(
-      "QSharedPointer<QMap<QString, QString> >");
-  qRegisterMetaType<QSharedPointer<QMap<QString, QString>>>(
+  qRegisterMetaType<QSharedPointer<QHash<QString, QString>>>(
+      "QSharedPointer<QHash<QString, QString> >");
+  qRegisterMetaType<QSharedPointer<QHash<QString, QString>>>(
       "QSharedPointer<QHash<QString, QString> >");
   qRegisterMetaType<QSharedPointer<QStringList>>("QSharedPointer<QStringList>");
   qRegisterMetaType<QSharedPointer<QFile>>("QSharedPointer<QFile>");

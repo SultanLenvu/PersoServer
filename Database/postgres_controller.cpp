@@ -226,7 +226,7 @@ bool PostgresController::getRecordById(const QString& tableName,
     sendLog(QString("Запрос выполнен. "));
     if (request.next()) {
       sendLog("Ответные данные получены. ");
-      convertResponseToMap(request, record);
+      convertResponseToHash(request, record);
     } else {
       record.clear();
       sendLog("Ответные данные не получены. ");
@@ -283,7 +283,7 @@ bool PostgresController::getRecordByPart(const QString& tableName,
     sendLog("Запрос выполнен. ");
     if (request.next()) {
       sendLog("Ответные данные получены. ");
-      convertResponseToMap(request, record);
+      convertResponseToHash(request, record);
     } else {
       record.clear();
       sendLog("Ответные данные не получены. ");
@@ -324,7 +324,7 @@ bool PostgresController::getLastRecord(const QString& tableName,
     sendLog("Запрос выполнен. ");
     if (request.next()) {
       sendLog("Ответные данные получены. ");
-      convertResponseToMap(request, record);
+      convertResponseToHash(request, record);
     } else {
       record.clear();
       sendLog("Ответные данные не получены. ");
@@ -401,7 +401,7 @@ bool PostgresController::getMergedRecordById(
     sendLog("Запрос выполнен. ");
     if (request.next()) {
       sendLog("Ответные данные получены. ");
-      convertResponseToMap(request, record);
+      convertResponseToHash(request, record);
     } else {
       record.clear();
       sendLog("Ответные данные не получены. ");
@@ -460,7 +460,7 @@ bool PostgresController::getMergedRecordByPart(
     sendLog("Запрос выполнен. ");
     if (request.next()) {
       sendLog("Ответные данные получены. ");
-      convertResponseToMap(request, record);
+      convertResponseToHash(request, record);
     } else {
       record.clear();
       sendLog("Ответные данные не получены. ");
@@ -734,7 +734,7 @@ void PostgresController::convertResponseToBuffer(
   buffer->build(headers, data);
 }
 
-void PostgresController::convertResponseToMap(
+void PostgresController::convertResponseToHash(
     QSqlQuery& request,
     QHash<QString, QString>& record) const {
   record.clear();

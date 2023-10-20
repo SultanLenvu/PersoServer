@@ -47,8 +47,8 @@ class PersoServer : public QTcpServer {
   OperatingState CurrentState;
 
   QStack<int32_t> FreeClientIds;
-  QSet<QThread*> ClientThreads;
-  QSet<PersoClient*> Clients;
+  QHash<int32_t, QThread*> ClientThreads;
+  QHash<int32_t, PersoClient*> Clients;
 
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;

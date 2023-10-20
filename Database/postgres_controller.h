@@ -80,8 +80,8 @@ class PostgresController : public IDatabaseController {
   void createDatabaseConnection(void);
   void convertResponseToBuffer(QSqlQuery& request,
                                DatabaseTableModel* buffer) const;
-  void convertResponseToMap(QSqlQuery& request,
-                            QHash<QString, QString>& record) const;
+  void convertResponseToHash(QSqlQuery& request,
+                             QHash<QString, QString>& record) const;
 };
 
 #endif  // POSTGRESCONTROLLER_H
