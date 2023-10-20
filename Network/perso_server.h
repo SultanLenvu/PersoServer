@@ -10,6 +10,7 @@
 #include <QString>
 #include <QTcpServer>
 #include <QThread>
+#include <QTimer>
 #include <QtPrintSupport/QPrinterInfo>
 
 #include "Log/log_system.h"
@@ -40,6 +41,7 @@ class PersoServer : public QTcpServer {
   bool LogEnable;
 
   int32_t MaxNumberClientConnections;
+  int32_t RestartPeriod;
   QHostAddress ListeningAddress;
   uint32_t ListeningPort;
   OperatingState CurrentState;
@@ -55,6 +57,8 @@ class PersoServer : public QTcpServer {
   QString PrinterForPalletSticker;
   IStickerPrinter* BoxStickerPrinter;
   IStickerPrinter* PalletStickerPrinter;
+
+  QTimer* RestartTimer;
 
  public:
   explicit PersoServer(QObject* parent);
@@ -80,6 +84,7 @@ class PersoServer : public QTcpServer {
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
   void createStickerPrinters(void);
+  void createRestartTimer(void);
 
  private slots:
   void on_ClientDisconnected_slot(void);
@@ -90,6 +95,9 @@ class PersoServer : public QTcpServer {
   void printPalletSticker_slot(
       const QSharedPointer<QHash<QString, QString> > data);
   void printLastPalletSticker_slot(void);
+
+  void on_RestartTimerTimeout_slot(void);
+  void on_ReleaserFailed_slot(TransponderReleaseSystem::ReturnStatus status);
 
  signals:
   void logging(const QString& log) const;

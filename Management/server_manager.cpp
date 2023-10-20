@@ -62,6 +62,13 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
+  if (settings.value("perso_server/restart_period").toUInt() == 0) {
+    emit logging(
+        "Получена ошибка при обработке файла конфигурации: некорректное "
+        "зачение периода для попытки перезапуска сервера. ");
+    return false;
+  }
+
   if (QHostAddress(settings.value("perso_server/listen_ip").toString())
           .isNull()) {
     emit logging(
@@ -93,6 +100,13 @@ bool ServerManager::checkSettings() const {
     emit logging(
         "Получена ошибка при обработке файла конфигурации: не указано имя "
         "принтера для печати стикеров на паллеты. ");
+    return false;
+  }
+
+  if (settings.value("transponder_release_system/check_period").toUInt() == 0) {
+    emit logging(
+        "Получена ошибка при обработке файла конфигурации: некорректное "
+        "зачение периода проверки системы выпуска транспондеров. ");
     return false;
   }
 
@@ -177,6 +191,7 @@ void ServerManager::generateDefaultSettings() const {
   QSettings settings;
 
   // PersoServer
+  settings.setValue("perso_server/restart_period", RESTART_DEFAULT_PERIOD);
   settings.setValue("perso_server/max_number_client_connection",
                     CLIENT_MAX_COUNT);
   settings.setValue("perso_server/listen_ip", PERSO_SERVER_DEFAULT_LISTEN_IP);
@@ -216,6 +231,10 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("postgres_controller/user_password",
                     POSTGRES_DEFAULT_USER_PASSWORD);
 
+  // TransponderReleaseSystem
+  settings.setValue("transponder_release_system/check_period",
+                    TRS_DEFAULT_CHECK_PERIOD);
+
   // FirmwareGenerationSystem
   settings.setValue("firmware_generation_system/firmware_base_path",
                     DEFAULT_FIRMWARE_BASE_PATH);
@@ -251,4 +270,6 @@ void ServerManager::registerMetaType() {
       "QSharedPointer<QHash<QString, QString> >");
   qRegisterMetaType<QSharedPointer<QStringList>>("QSharedPointer<QStringList>");
   qRegisterMetaType<QSharedPointer<QFile>>("QSharedPointer<QFile>");
+  qRegisterMetaType<TransponderReleaseSystem::ReturnStatus>(
+      "TransponderReleaseSystem::ReturnStatus");
 }

@@ -21,6 +21,7 @@ class IDatabaseController : public QObject {
 
   virtual bool connect(void) = 0;
   virtual void disconnect(void) = 0;
+  virtual bool isConnected(void) = 0;
 
   virtual bool openTransaction(void) const = 0;
   virtual bool closeTransaction(void) const = 0;
@@ -66,6 +67,7 @@ class IDatabaseController : public QObject {
 
  signals:
   void logging(const QString& log) const;
+  void disconnected(void);
 };
 
 #endif  // DATABASECONTROLLER_H

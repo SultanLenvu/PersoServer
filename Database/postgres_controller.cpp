@@ -45,6 +45,11 @@ void PostgresController::disconnect(void) {
   }
 }
 
+bool PostgresController::isConnected() {
+  bool ok = QSqlDatabase::database(ConnectionName).open();
+  return ok;
+}
+
 bool PostgresController::openTransaction() const {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     sendLog("Соединение с Postgres не установлено. ");
@@ -683,6 +688,10 @@ void PostgresController::sendLog(const QString& log) const {
 }
 
 void PostgresController::createDatabaseConnection() {
+  if (QSqlDatabase::database(ConnectionName).isOpen()) {
+    // Удаляем соединение
+    QSqlDatabase::removeDatabase(ConnectionName);
+  }
   QSqlDatabase postgres = QSqlDatabase::addDatabase("QPSQL", ConnectionName);
 
   postgres.setHostName(HostAddress.toString());

@@ -5,6 +5,16 @@ TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
   setObjectName("TransponderReleaseSystem");
   loadSettings();
 
+  qRegisterMetaType<TransponderReleaseSystem::ReturnStatus>(
+      "TransponderReleaseSystem::ReturnStatus");
+}
+
+TransponderReleaseSystem::~TransponderReleaseSystem() {}
+
+void TransponderReleaseSystem::on_InstanceThreadStarted_slot() {
+  // Создаем таймер проверки
+  createCheckTimer();
+
   // Создаем подключение к БД
   createDatabaseController();
 }
@@ -19,13 +29,15 @@ void TransponderReleaseSystem::start(ReturnStatus* status) {
     return;
   }
 
-  *status = Success;
+  CheckTimer->start();
+  *status = Completed;
 }
 
 void TransponderReleaseSystem::stop(void) {
   QMutexLocker locker(&Mutex);
 
   sendLog("Остановка. ");
+  CheckTimer->stop();
   Database->disconnect();
 }
 
@@ -75,7 +87,7 @@ void TransponderReleaseSystem::authorize(
                 .arg(parameters->value("login")));
     *status = ProductionLineNotActive;
   } else {
-    *status = Success;
+    *status = Completed;
   }
 
   emit operationFinished();
@@ -182,7 +194,7 @@ void TransponderReleaseSystem::release(
     return;
   }
 
-  *status = Success;
+  *status = Completed;
   emit operationFinished();
 }
 
@@ -260,7 +272,7 @@ void TransponderReleaseSystem::confirmRelease(
     *status = Failed;
     return;
   }
-  *status = Success;
+  *status = Completed;
   emit operationFinished();
 }
 
@@ -344,7 +356,7 @@ void TransponderReleaseSystem::rerelease(
     *status = TransactionError;
     return;
   }
-  *status = Success;
+  *status = Completed;
   emit operationFinished();
 }
 
@@ -419,7 +431,7 @@ void TransponderReleaseSystem::confirmRerelease(
     *status = TransactionError;
     return;
   }
-  *status = Success;
+  *status = Completed;
   emit operationFinished();
 }
 
@@ -454,7 +466,7 @@ void TransponderReleaseSystem::search(
     *status = TransactionError;
     return;
   }
-  *status = Success;
+  *status = Completed;
   emit operationFinished();
 }
 
@@ -468,12 +480,22 @@ void TransponderReleaseSystem::loadSettings() {
   QSettings settings;
 
   LogEnable = settings.value("log_system/global_enable").toBool();
+  CheckPeriod =
+      settings.value("transponder_release_system/check_period").toUInt();
 }
 
 void TransponderReleaseSystem::sendLog(const QString& log) const {
   if (LogEnable) {
     emit logging("TransponderReleaseSystem - " + log);
   }
+}
+
+void TransponderReleaseSystem::createCheckTimer() {
+  CheckTimer = new QTimer(this);
+  CheckTimer->setInterval(CheckPeriod * 1000);
+
+  connect(CheckTimer, &QTimer::timeout, this,
+          &TransponderReleaseSystem::on_CheckTimerTemeout);
 }
 
 bool TransponderReleaseSystem::checkConfirmRerelease(
@@ -1131,10 +1153,6 @@ bool TransponderReleaseSystem::getBoxData(const QString& id,
   QString modelTemp = transponderData.value("transponder_model");
   data->insert("transponder_model", modelTemp.remove(' '));
 
-  // Добавляем полную дату сборки
-  data->insert("assembling_date",
-               QDate::currentDate().toString(BOX_STICKER_DATE_TEMPLATE));
-
   return true;
 }
 
@@ -1209,3 +1227,13 @@ bool TransponderReleaseSystem::getPalletData(
 bool TransponderReleaseSystem::getOrderData(
     const QString& id,
     QHash<QString, QString>* data) const {}
+
+void TransponderReleaseSystem::on_CheckTimerTemeout() {
+  if (!Database->isConnected()) {
+    sendLog("Потеряно соединение с базой данных.");
+    CheckTimer->stop();
+    emit failed(DatabaseConnectionError);
+  } else {
+    sendLog("Соединение с базой данных стабильно.");
+  }
+}

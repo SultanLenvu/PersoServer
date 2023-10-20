@@ -16,6 +16,9 @@ PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {
 
   // Создаем принтеры
   createStickerPrinters();
+
+  // Создаем таймер перезапуска
+  createRestartTimer();
 }
 
 PersoServer::~PersoServer() {
@@ -32,15 +35,23 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  //  sendLog("Проверка конфигурации");
-  //  if (!checkConfiguration()) {
-  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-  //    return false;
-  //  }
+  sendLog("Проверка конфигурации");
+  if (!checkConfiguration()) {
+    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+    RestartTimer->start();
+    return false;
+  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
   emit startReleaser_signal(&status);
+  if (status != TransponderReleaseSystem::Completed) {
+    sendLog(
+        "Не удалось запустить систему выпуска транспондеров. Запуск сервера "
+        "невозможен.");
+    RestartTimer->start();
+    return false;
+  }
 
   // Поднимаем сервер
   sendLog(
@@ -48,6 +59,7 @@ bool PersoServer::start() {
           .arg(ListeningAddress.toString(), QString::number(ListeningPort)));
   if (!listen(ListeningAddress, ListeningPort)) {
     sendLog("Не удалось запуститься. ");
+    RestartTimer->start();
     return false;
   }
   // Если сервер поднялся
@@ -107,6 +119,7 @@ void PersoServer::loadSettings() {
 
   LogEnable = settings.value("log_system/global_enable").toBool();
 
+  RestartPeriod = settings.value("perso_server/restart_period").toInt();
   MaxNumberClientConnections =
       settings.value("perso_server/max_number_client_connection").toInt();
 
@@ -155,15 +168,17 @@ bool PersoServer::checkConfiguration() {
 void PersoServer::createReleaserInstance() {
   Releaser = new TransponderReleaseSystem(nullptr);
   connect(this, &PersoServer::startReleaser_signal, Releaser,
-          &TransponderReleaseSystem::start);
+          &TransponderReleaseSystem::start, Qt::BlockingQueuedConnection);
   connect(this, &PersoServer::stopReleaser_signal, Releaser,
-          &TransponderReleaseSystem::stop);
+          &TransponderReleaseSystem::stop, Qt::BlockingQueuedConnection);
   connect(Releaser, &TransponderReleaseSystem::logging, LogSystem::instance(),
           &LogSystem::generate);
   connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
           &PersoServer::printBoxSticker_slot);
   connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
           &PersoServer::printPalletSticker_slot);
+  connect(Releaser, &TransponderReleaseSystem::failed, this,
+          &PersoServer::on_ReleaserFailed_slot);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   ReleaserThread = new QThread(this);
@@ -173,6 +188,8 @@ void PersoServer::createReleaserInstance() {
           &QThread::deleteLater);
   connect(ReleaserThread, &QThread::finished, Releaser,
           &PersoClient::deleteLater);
+  connect(ReleaserThread, &QThread::started, Releaser,
+          &TransponderReleaseSystem::on_InstanceThreadStarted_slot);
 
   // Запускаем поток
   ReleaserThread->start();
@@ -260,6 +277,13 @@ void PersoServer::createStickerPrinters() {
           LogSystem::instance(), &LogSystem::generate);
 }
 
+void PersoServer::createRestartTimer() {
+  RestartTimer = new QTimer(this);
+  RestartTimer->setInterval(RestartPeriod * 1000);
+  connect(RestartTimer, &QTimer::timeout, this,
+          &PersoServer::on_RestartTimerTimeout_slot);
+}
+
 void PersoServer::on_ClientDisconnected_slot() {
   PersoClient* disconnectedClient = dynamic_cast<PersoClient*>(sender());
   if (!disconnectedClient) {
@@ -341,4 +365,15 @@ void PersoServer::printLastPalletSticker_slot() {
   if (status != IStickerPrinter::Completed) {
     processCriticalError("Получена ошибка при печати стикера для паллеты. ");
   }
+}
+
+void PersoServer::on_RestartTimerTimeout_slot() {
+  if (start()) {
+    RestartTimer->stop();
+  }
+}
+
+void PersoServer::on_ReleaserFailed_slot(
+    TransponderReleaseSystem::ReturnStatus status) {
+  processCriticalError("Ошибка в системе выпуска транспондеров.");
 }

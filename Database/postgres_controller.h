@@ -26,6 +26,7 @@ class PostgresController : public IDatabaseController {
   // IDatabaseController interface
   virtual bool connect(void) override;
   virtual void disconnect(void) override;
+  virtual bool isConnected(void) override;
 
   virtual bool openTransaction(void) const override;
   virtual bool closeTransaction(void) const override;

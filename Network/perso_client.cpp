@@ -192,7 +192,7 @@ void PersoClient::processAuthorization() {
     QCoreApplication::processEvents();
   }
 
-  if (ret == TransponderReleaseSystem::Success) {
+  if (ret == TransponderReleaseSystem::Completed) {
     CurrentResponse["access"] = "allowed";
   } else if (ret == TransponderReleaseSystem::ProductionLineNotActive) {
     CurrentResponse["access"] = "not_active";
@@ -224,7 +224,7 @@ void PersoClient::processTransponderRelease() {
     QCoreApplication::processEvents();
   }
 
-  if (ret != TransponderReleaseSystem::Success) {
+  if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при выпуске транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
@@ -257,7 +257,7 @@ void PersoClient::processTransponderReleaseConfirm() {
     QCoreApplication::processEvents();
   }
 
-  if (ret != TransponderReleaseSystem::Success) {
+  if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при подтверждении выпуска транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
@@ -299,7 +299,7 @@ void PersoClient::processTransponderRerelease() {
     QCoreApplication::processEvents();
   }
 
-  if (ret != TransponderReleaseSystem::Success) {
+  if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при перевыпуске транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
@@ -336,7 +336,7 @@ void PersoClient::processTransponderRereleaseConfirm() {
     QCoreApplication::processEvents();
   }
 
-  if (ret != TransponderReleaseSystem::Success) {
+  if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при подтверждении перевыпуска транспондера. ");
     CurrentResponse["return_status"] =
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));

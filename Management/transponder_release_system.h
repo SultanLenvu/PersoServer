@@ -6,6 +6,7 @@
 #include <QMutexLocker>
 #include <QObject>
 #include <QSharedPointer>
+#include <QTimer>
 
 #include "Database/database_controller.h"
 #include "Database/postgres_controller.h"
@@ -24,19 +25,26 @@ class TransponderReleaseSystem : public QObject {
     ProductionLineNotActive,
     CurrentOrderRunOut,
     CurrentOrderAssembled,
-    Success,
+    Completed,
   };
   Q_ENUM(ReturnStatus);
 
  private:
   bool LogEnable;
+  uint32_t CheckPeriod;
+
   PostgresController* Database;
   QMutex Mutex;
 
+  QTimer* CheckTimer;
+
  public:
   explicit TransponderReleaseSystem(QObject* parent);
+  ~TransponderReleaseSystem();
 
  public slots:
+  void on_InstanceThreadStarted_slot(void);
+
   void start(ReturnStatus* status);
   void stop(void);
 
@@ -68,6 +76,7 @@ class TransponderReleaseSystem : public QObject {
   void createDatabaseController(void);
   void loadSettings(void);
   void sendLog(const QString& log) const;
+  void createCheckTimer(void);
 
   bool checkConfirmRerelease(const QHash<QString, QString>& transponderRecord,
                              const QHash<QString, QString>& searchData);
@@ -89,9 +98,15 @@ class TransponderReleaseSystem : public QObject {
   bool getPalletData(const QString& id, QHash<QString, QString>* data) const;
   bool getOrderData(const QString& id, QHash<QString, QString>* data) const;
 
+ private slots:
+  void on_CheckTimerTemeout(void);
+
  signals:
   void logging(const QString& log) const;
+
   void operationFinished();
+  void failed(TransponderReleaseSystem::ReturnStatus status);
+
   void boxAssemblingFinished(
       const QSharedPointer<QHash<QString, QString> > data) const;
   void palletAssemblingFinished(
