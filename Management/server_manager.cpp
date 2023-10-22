@@ -1,11 +1,10 @@
+#include <cstdlib>
+
 #include "server_manager.h"
 
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   setObjectName("ServerManager");
   loadSettings();
-
-  createLoggerInstance();
-  createServerInstance();
   registerMetaType();
 }
 
@@ -17,12 +16,7 @@ ServerManager::~ServerManager() {
 void ServerManager::processCommandArguments(const QStringList* args) {
   if (args->contains("-generate_default_config")) {
     generateDefaultSettings();
-  }
-  if (args->contains("-s")) {
-    if (!checkSettings()) {
-      return;
-    }
-    Server->start();
+    exit(0);
   }
 }
 
@@ -32,8 +26,6 @@ void ServerManager::loadSettings() const {
   QCoreApplication::setApplicationName(PROGRAM_NAME);
 
   QSettings::setDefaultFormat(QSettings::IniFormat);
-  QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
-                     QCoreApplication::applicationDirPath());
 }
 
 bool ServerManager::checkSettings() const {
@@ -43,27 +35,24 @@ bool ServerManager::checkSettings() const {
 
   QStringList allKeys = settings.allKeys();
 
-  emit logging("Проверка файла настроек.");
+  qDebug("Проверка файла настроек.");
 
-  info.setFile(QString("%1/%2/%3.ini")
-                   .arg(QCoreApplication::applicationDirPath(),
-                        QCoreApplication::organizationName(),
-                        QCoreApplication::applicationName()));
+  info.setFile(settings.fileName());
   if (!info.isFile()) {
-    emit logging("Отсутствует файл конфигурации.");
+    qCritical("Отсутствует файл конфигурации.");
     return false;
   }
 
   if (settings.value("perso_server/max_number_client_connection").toUInt() ==
       0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "максимальное количество одновременных клиентских подключений. ");
     return false;
   }
 
   if (settings.value("perso_server/restart_period").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "зачение периода для попытки перезапуска сервера. ");
     return false;
@@ -71,7 +60,7 @@ bool ServerManager::checkSettings() const {
 
   if (QHostAddress(settings.value("perso_server/listen_ip").toString())
           .isNull()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес прослушиваемый сервером. ");
     return false;
@@ -79,7 +68,7 @@ bool ServerManager::checkSettings() const {
 
   temp = settings.value("perso_server/listen_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт прослушиваемый сервером. ");
     return false;
@@ -88,7 +77,7 @@ bool ServerManager::checkSettings() const {
   if (settings.value("perso_server/printer_for_box_sticker")
           .toString()
           .isEmpty()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: не указано имя "
         "принтера для печати стикеров на боксы. ");
     return false;
@@ -97,21 +86,21 @@ bool ServerManager::checkSettings() const {
   if (settings.value("perso_server/printer_for_pallet_sticker")
           .toString()
           .isEmpty()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: не указано имя "
         "принтера для печати стикеров на паллеты. ");
     return false;
   }
 
   if (settings.value("transponder_release_system/check_period").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "зачение периода проверки системы выпуска транспондеров. ");
     return false;
   }
 
   if (settings.value("perso_client/connection_max_duration").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "значение максимальной длительности клиентского "
         "подключения. ");
@@ -119,7 +108,7 @@ bool ServerManager::checkSettings() const {
   }
 
   if (settings.value("log_system/log_file_max_number").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "максимальное количество лог-файлов. ");
     return false;
@@ -127,7 +116,7 @@ bool ServerManager::checkSettings() const {
 
   if (QHostAddress(settings.value("log_system/udp_destination_ip").toString())
           .isNull()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес для отправки UDP логов. ");
     return false;
@@ -135,7 +124,7 @@ bool ServerManager::checkSettings() const {
 
   temp = settings.value("log_system/udp_destination_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт для отправки UDP логов. ");
     return false;
@@ -143,7 +132,7 @@ bool ServerManager::checkSettings() const {
 
   if (QHostAddress(settings.value("postgres_controller/server_ip").toString())
           .isNull()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес сервера базы данных PostgreSQL. ");
     return false;
@@ -151,7 +140,7 @@ bool ServerManager::checkSettings() const {
 
   temp = settings.value("postgres_controller/server_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт сервера базы данных PostgreSQL. ");
     return false;
@@ -160,7 +149,7 @@ bool ServerManager::checkSettings() const {
   info.setFile(settings.value("firmware_generation_system/firmware_base_path")
                    .toString());
   if (!info.isFile()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "путь к базовому файлу прошивки транспондера. ");
     return false;
@@ -169,7 +158,7 @@ bool ServerManager::checkSettings() const {
   info.setFile(settings.value("firmware_generation_system/firmware_data_path")
                    .toString());
   if (!info.isFile()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "путь к шаблонному файлу данных транспондера. ");
     return false;
@@ -177,13 +166,12 @@ bool ServerManager::checkSettings() const {
 
   info.setFile(settings.value("te310_printer/library_path").toString());
   if (!info.isFile()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "путь к библиотеке принтера TSC TE310. ");
     return false;
   }
 
-  emit logging("Обработка файла настроек успешно завершена.");
   return true;
 }
 
@@ -244,6 +232,12 @@ void ServerManager::generateDefaultSettings() const {
   // TE310Printer
   settings.setValue("te310_printer/library_path",
                     TSC_TE310_LIBRARY_DEFAULT_PATH);
+}
+
+void ServerManager::start() {
+  createLoggerInstance();
+  createServerInstance();
+  Server->start();
 }
 
 void ServerManager::createServerInstance() {

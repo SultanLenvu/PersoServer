@@ -24,11 +24,12 @@ class ServerManager : public QObject {
   ~ServerManager();
 
   void processCommandArguments(const QStringList* args);
+  bool checkSettings(void) const;
+  void start();
 
  private:
   Q_DISABLE_COPY(ServerManager);
   void loadSettings(void) const;
-  bool checkSettings(void) const;
   void generateDefaultSettings(void) const;
 
   void createServerInstance(void);
