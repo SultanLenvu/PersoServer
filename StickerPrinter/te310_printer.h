@@ -2,6 +2,7 @@
 #define TE310PRINTER_H
 
 #include <QHostInfo>
+#include <QHostAddress>
 
 #include "General/definitions.h"
 #include "isticker_printer.h"

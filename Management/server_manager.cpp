@@ -73,7 +73,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (settings.value("perso_server/printer_for_box_sticker")
+  if (settings.value("perso_server/box_sticker_printer")
           .toString()
           .isEmpty()) {
     qCritical(
@@ -82,7 +82,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (settings.value("perso_server/printer_for_pallet_sticker")
+  if (settings.value("perso_server/pallet_sticker_printer")
           .toString()
           .isEmpty()) {
     qCritical(
@@ -184,9 +184,9 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("perso_server/listen_ip", PERSO_SERVER_DEFAULT_LISTEN_IP);
   settings.setValue("perso_server/listen_port",
                     PERSO_SERVER_DEFAULT_LISTEN_PORT);
-  settings.setValue("perso_server/printer_for_box_sticker",
+  settings.setValue("perso_server/box_sticker_printer",
                     PRINTER_FOR_BOX_DEFAULT_NAME);
-  settings.setValue("perso_server/printer_for_pallet_sticker",
+  settings.setValue("perso_server/pallet_sticker_printer",
                     PRINTER_FOR_PALLET_DEFAULT_NAME);
 
   // PersoClientConnection
