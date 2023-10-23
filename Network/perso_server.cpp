@@ -310,7 +310,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
 void PersoServer::createStickerPrinters() {
 #ifdef __linux__
-  if (BoxStickerIP.isNull())
+  if (!BoxStickerIP.isNull())
     BoxStickerPrinter = new TE310Printer(this, BoxStickerIP, BoxStickerPort);
   else
     BoxStickerPrinter = new TE310Printer(this, PrinterForBoxSticker);
@@ -321,7 +321,7 @@ void PersoServer::createStickerPrinters() {
           &LogSystem::generate);
 
 #ifdef __linux__
-  if (PalletStickerIP.isNull())
+  if (!PalletStickerIP.isNull())
     PalletStickerPrinter = new TE310Printer(this, PalletStickerIP,
         PalletStickerPort);
   else
