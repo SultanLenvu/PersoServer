@@ -77,7 +77,7 @@ bool ServerManager::checkSettings() const {
   if (!settings.contains("perso_server/box_sticker_printer")) {
     if (!settings.contains("perso_server/box_sticker_printer_ip")
         || !settings.contains("perso_server/box_sticker_printer_port")) {
-      emit logging("Получена ошибка при обработке файла конфигурации: "
+      qCritical("Получена ошибка при обработке файла конфигурации: "
           "Не указаны имя или IP-адрес принтера стикеров на боксы");
       return false;
     }
@@ -87,26 +87,26 @@ bool ServerManager::checkSettings() const {
         "perso_server/box_sticker_printer_port").toInt();
 
     if (boxIP.isNull() || boxPort <= 0 || boxPort > 65535) {
-      emit logging("Получена ошибка при обработке файла конфигурации: "
+      qCritical("Получена ошибка при обработке файла конфигурации: "
           "неверный IP-адрес или порт принтера стикеров на боксы");
       return false;
     }
   }
 
-  if (!settings.contains("perso_server/printer_for_pallet_sticker")) {
-    if (!settings.contains("perso_server/printer_for_pallet_sticker_ip")
-        || !settings.contains("perso_server/printer_for_pallet_sticker_port")) {
-      emit logging("Получена ошибка при обработке файла конфигурации: "
+  if (!settings.contains("perso_server/pallet_sticker_printer")) {
+    if (!settings.contains("perso_server/pallet_sticker_printer_ip")
+        || !settings.contains("perso_server/pallet_sticker_printer_port")) {
+      qCritical("Получена ошибка при обработке файла конфигурации: "
           "Не указаны имя или IP-адрес принтера стикеров на паллеты.");
       return false;
     }
     QHostAddress palletIP(settings.value(
-          "perso_server/printer_for_pallet_sticker_ip").toString());
+          "perso_server/pallet_sticker_printer_ip").toString());
     int palletPort = settings.value(
-        "perso_server/printer_for_pallet_sticker_port").toInt();
+        "perso_server/pallet_sticker_printer_port").toInt();
 
     if (palletIP.isNull() || palletPort <= 0 || palletPort > 6553500) {
-      emit logging("Получена ошибка при обработке файла конфигурации: "
+      qCritical("Получена ошибка при обработке файла конфигурации: "
           "неверный IP-адрес или порт принтера стикеров на паллеты.");
       return false;
     }
