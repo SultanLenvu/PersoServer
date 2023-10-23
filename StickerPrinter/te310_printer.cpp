@@ -14,7 +14,7 @@ TE310Printer::TE310Printer(QObject* parent, const QString& name)
 #ifdef __linux__
 TE310Printer::TE310Printer(QObject* parent, const QHostAddress& ip, int port)
     : IStickerPrinter(parent, TE310) {
-  setObjectName(name);
+  setObjectName("TE310");
   IPAddress = ip;
   Port = port;
   loadSetting();
