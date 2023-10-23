@@ -35,6 +35,7 @@ bool ServerManager::checkSettings() const {
 
   QStringList allKeys = settings.allKeys();
 
+  /* Logger is not here yet, so we have to use stdout and stderr */
   qDebug("Проверка файла настроек.");
 
   info.setFile(settings.fileName());
