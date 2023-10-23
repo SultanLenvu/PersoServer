@@ -33,6 +33,7 @@ bool ServerManager::checkSettings() const {
   uint32_t temp = 0;
   QFileInfo info(settings.fileName());
 
+  /* Logger is not here yet, so we have to use stdout and stderr */
   qDebug("Проверка файла настроек.");
 
   info.setFile(settings.fileName());
