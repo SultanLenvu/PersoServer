@@ -2,8 +2,7 @@
 
 TE310Printer::TE310Printer(QObject* parent, const QString& name)
     : IStickerPrinter(parent, TE310) {
-  setObjectName("TE310Printer");
-  Name = name;
+  setObjectName(name);
   loadSetting();
 
   TscLib = new QLibrary(TscLibPath, this);
@@ -20,17 +19,17 @@ bool TE310Printer::checkConfiguration() {
 
   QList<QString> printers = QPrinterInfo::availablePrinterNames();
   if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
-        return p == Name;
+        return p == objectName();
       }) == printers.end()) {
     sendLog("Не найден драйвер операционной системы. ");
     return false;
   }
-  if (QPrinterInfo::printerInfo(Name).state() == QPrinter::Error) {
+  if (QPrinterInfo::printerInfo(objectName()).state() == QPrinter::Error) {
     sendLog("Не доступен. ");
     return false;
   }
 
-  if (openPort(Name.toUtf8().constData()) == 0) {
+  if (openPort(objectName().toUtf8().constData()) == 0) {
     sendLog("Не доступен.");
     return false;
   }
@@ -112,7 +111,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
 
   sendLog(QString("Печать стикера для бокса %1.").arg(parameters->value("id")));
 
-  openPort(Name.toUtf8().data());
+  openPort(objectName().toUtf8().data());
   sendCommand("SIZE 100 mm, 50 mm");
   sendCommand("GAP 2 mm,2 mm");
   sendCommand("REFERENCE 0,0");
@@ -190,7 +189,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
   sendLog(
       QString("Печать стикера для паллеты %1.").arg(parameters->value("id")));
 
-  openPort(Name.toUtf8().data());
+  openPort(objectName().toUtf8().data());
 
   sendCommand("SIZE 100 mm,100 mm");
   sendCommand("GAP 2 mm,2 mm");
@@ -259,7 +258,7 @@ IStickerPrinter::ReturnStatus TE310Printer::exec(
     return ConnectionError;
   }
 
-  openPort(Name.toUtf8().data());
+  openPort(objectName().toUtf8().data());
   for (int32_t i = 0; i < commandScript->size(); i++) {
     sendCommand(commandScript->at(i).toUtf8().data());
   }
@@ -272,8 +271,7 @@ void TE310Printer::applySetting() {
   sendLog("Применение новых настроек.");
 
   loadSetting();
-  TscLib->setFileName(TscLibPath);
-  loadTscLib();
+  checkConfiguration();
 }
 
 void TE310Printer::loadSetting() {
@@ -312,7 +310,7 @@ bool TE310Printer::loadTscLib() {
 }
 
 void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
-  openPort(Name.toUtf8().data());
+  openPort(objectName().toUtf8().data());
   sendCommand("SIZE 27 mm, 27 mm");
   sendCommand("GAP 2 mm,2 mm");
   sendCommand("REFERENCE 0,0");
@@ -336,7 +334,7 @@ void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
 }
 
 void TE310Printer::printZsdSticker(const QHash<QString, QString>* parameters) {
-  openPort(Name.toUtf8().data());
+  openPort(objectName().toUtf8().data());
   sendCommand("SIZE 30 mm, 20 mm");
   sendCommand("GAP 2 mm, 1 mm");
   sendCommand("DIRECTION 1");

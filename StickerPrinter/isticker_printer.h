@@ -1,8 +1,8 @@
 #ifndef ISTICKERPRINTER_H
 #define ISTICKERPRINTER_H
 
-#include <QLibrary>
 #include <QHash>
+#include <QLibrary>
 #include <QObject>
 #include <QSettings>
 #include <QtPrintSupport/QPrinterInfo>
@@ -27,6 +27,7 @@ class IStickerPrinter : public QObject {
 
  protected:
   StickerPrinterType Type;
+  bool LogEnable;
 
  public:
   IStickerPrinter(QObject* parent, StickerPrinterType type);
@@ -49,6 +50,9 @@ class IStickerPrinter : public QObject {
   virtual ReturnStatus exec(const QStringList* commandScript) = 0;
 
   virtual void applySetting(void) = 0;
+
+ protected:
+  void sendLog(const QString& log);
 
  private:
   Q_DISABLE_COPY(IStickerPrinter);

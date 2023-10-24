@@ -40,9 +40,6 @@ class PersoClient : public QObject {
   QTimer* ExpirationTimer;
   QTimer* DataBlockWaitTimer;
 
-  QTimer* ReleaserWaitTimer;
-  QEventLoop* ReleaserWaiting;
-
   FirmwareGenerationSystem* Generator;
 
  public:
@@ -84,7 +81,6 @@ class PersoClient : public QObject {
   void createSocket(qintptr socketDescriptor);
   void createExpirationTimer(void);
   void createDataBlockWaitTimer(void);
-  void createReleaserWaitTimer(void);
   void createGenerator(void);
   void createCommandHandlers(void);
   void createCommandTemplates(void);
@@ -96,7 +92,6 @@ class PersoClient : public QObject {
 
   void on_ExpirationTimerTimeout_slot(void);
   void on_DataBlockWaitTimerTimeout_slot(void);
-  void on_ReleaserWaitTimerTimeout_slot(void);
 
  signals:
   void logging(const QString& log) const;
@@ -107,26 +102,21 @@ class PersoClient : public QObject {
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaseRelease_signal(
       const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* attributes,
-      QHash<QString, QString>* masterKeys,
+      QHash<QString, QString>* transponderSeed,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserConfirmRelease_signal(
       const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* transponderData,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserRerelease_signal(
       const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* attributes,
-      QHash<QString, QString>* masterKeys,
+      QHash<QString, QString>* transponderSeed,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserConfirmRerelease_signal(
       const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* transponderData,
       TransponderReleaseSystem::ReturnStatus* status) const;
   void releaserSearch_signal(
       const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* attributes,
-      QHash<QString, QString>* masterKeys,
+      QHash<QString, QString>* transponderSeed,
       TransponderReleaseSystem::ReturnStatus* status) const;
 
   void printBoxSticker_signal(

@@ -49,27 +49,20 @@ class TransponderReleaseSystem : public QObject {
   void stop(void);
 
   void authorize(const QHash<QString, QString>* parameters,
-                 ReturnStatus* status);
+                 TransponderReleaseSystem::ReturnStatus* status);
   void release(const QHash<QString, QString>* parameters,
-               QHash<QString, QString>* attributes,
-               QHash<QString, QString>* masterKeys,
-               ReturnStatus* status);
+               QHash<QString, QString>* transponderSeed,
+               TransponderReleaseSystem::ReturnStatus* status);
   void confirmRelease(const QHash<QString, QString>* parameters,
-                      QHash<QString, QString>* transponderData,
-                      ReturnStatus* status);
-
+                      TransponderReleaseSystem::ReturnStatus* status);
   void rerelease(const QHash<QString, QString>* parameters,
-                 QHash<QString, QString>* attributes,
-                 QHash<QString, QString>* masterKeys,
-                 ReturnStatus* status);
+                 QHash<QString, QString>* transponderSeed,
+                 TransponderReleaseSystem::ReturnStatus* status);
   void confirmRerelease(const QHash<QString, QString>* parameters,
-                        QHash<QString, QString>* transponderData,
-                        ReturnStatus* status);
-
-  void search(const QHash<QString, QString>* parameters,
-              QHash<QString, QString>* attributes,
-              QHash<QString, QString>* masterKeys,
-              ReturnStatus* status);
+                        TransponderReleaseSystem::ReturnStatus* status);
+  void search_signal(const QHash<QString, QString>* parameters,
+                     QHash<QString, QString>* transponderSeed,
+                     TransponderReleaseSystem::ReturnStatus* status);
 
  private:
   Q_DISABLE_COPY(TransponderReleaseSystem);

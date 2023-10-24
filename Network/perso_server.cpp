@@ -127,9 +127,9 @@ void PersoServer::loadSettings() {
   ListeningPort = settings.value("perso_server/listen_port").toInt();
 
   PrinterForBoxSticker =
-      settings.value("perso_server/printer_for_box_sticker").toString();
+      settings.value("perso_server/box_sticker_printer").toString();
   PrinterForPalletSticker =
-      settings.value("perso_server/printer_for_pallet_sticker").toString();
+      settings.value("perso_server/pallet_sticker_printer").toString();
 }
 
 void PersoServer::sendLog(const QString& log) const {
@@ -240,17 +240,19 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
   // Соединяем клиента с системой выпуска транспондеров
   connect(newClient, &PersoClient::releaserAuthorize_signal, Releaser,
-          &TransponderReleaseSystem::authorize);
+          &TransponderReleaseSystem::authorize, Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::releaseRelease_signal, Releaser,
-          &TransponderReleaseSystem::release);
+          &TransponderReleaseSystem::release, Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::releaserConfirmRelease_signal, Releaser,
-          &TransponderReleaseSystem::confirmRelease);
+          &TransponderReleaseSystem::confirmRelease,
+          Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::releaserRerelease_signal, Releaser,
-          &TransponderReleaseSystem::rerelease);
+          &TransponderReleaseSystem::rerelease, Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::releaserConfirmRerelease_signal, Releaser,
-          &TransponderReleaseSystem::confirmRerelease);
+          &TransponderReleaseSystem::confirmRerelease,
+          Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::releaserSearch_signal, Releaser,
-          &TransponderReleaseSystem::search);
+          &TransponderReleaseSystem::search, Qt::BlockingQueuedConnection);
 
   // Подключаем принтер
   connect(newClient, &PersoClient::printBoxSticker_signal, this,

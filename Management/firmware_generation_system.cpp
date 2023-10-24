@@ -12,12 +12,11 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
 }
 
 bool FirmwareGenerationSystem::generate(
-    const QHash<QString, QString>* attributes,
-    const QHash<QString, QString>* masterKeys,
+    const QHash<QString, QString> transpoderSeed,
     QByteArray* assembledFirmware) {
   QByteArray firmwareData;
 
-  if (!generateFirmwareData(attributes, masterKeys, &firmwareData)) {
+  if (!generateFirmwareData(transpoderSeed, &firmwareData)) {
     sendLog("Получена ошибка при генерации данных прошивки. ");
     return false;
   }
@@ -105,8 +104,7 @@ bool FirmwareGenerationSystem::assembleFirmware(const QByteArray* firmwareData,
 }
 
 bool FirmwareGenerationSystem::generateFirmwareData(
-    const QHash<QString, QString>* attributes,
-    const QHash<QString, QString>* masterKeys,
+    const QHash<QString, QString>* transponderSeed,
     QByteArray* firmwareData) {
   if (!FirmwareDataFile->open(QIODevice::ReadOnly)) {
     sendLog("Не удалось открыть файл прошивки на чтение.");
@@ -119,24 +117,24 @@ bool FirmwareGenerationSystem::generateFirmwareData(
   // EFC атрибуты
   firmwareData->replace(
       EFC_CONTEXT_MARK_FPI, EFC_CONTEXT_MARK_SIZE,
-      QByteArray::fromHex(attributes->value("efc_context_mark").toUtf8()));
+      QByteArray::fromHex(transponderSeed->value("efc_context_mark").toUtf8()));
 
   QString paymentMeans;
-  generatePaymentMeans(attributes->value("personal_account_number"),
+  generatePaymentMeans(transponderSeed->value("personal_account_number"),
                        paymentMeans);
   firmwareData->replace(PAYMENT_MEANS_FPI, PAYMENT_MEANS_SIZE,
                         QByteArray::fromHex(paymentMeans.toUtf8()));
 
-  QString equipmnetObuId =
-      QString("%1").arg(QString::number(attributes->value("id").toInt(), 16),
-                        EQUIPMENT_OBU_ID_SIZE * 2, QChar('0'));
+  QString equipmnetObuId = QString("%1").arg(
+      QString::number(transponderSeed->value("id").toInt(), 16),
+      EQUIPMENT_OBU_ID_SIZE * 2, QChar('0'));
   firmwareData->replace(EQUIPMENT_OBU_ID_FPI, EQUIPMENT_OBU_ID_SIZE,
                         QByteArray::fromHex(equipmnetObuId.toUtf8()));
 
   // Атрибуты производителя
   firmwareData->replace(
       MANUFACTURER_ID_FPI, MANUFACTURER_ID_SIZE,
-      QByteArray::fromHex(attributes->value("manufacturer_id").toUtf8()));
+      QByteArray::fromHex(transponderSeed->value("manufacturer_id").toUtf8()));
 
   firmwareData->replace(MANUFACTURING_SERIAL_NO_FPI,
                         MANUFACTURING_SERIAL_NO_SIZE,
@@ -144,11 +142,11 @@ bool FirmwareGenerationSystem::generateFirmwareData(
 
   firmwareData->replace(
       EQUIPMENT_CLASS_FPI, EQUIPMENT_CLASS_SIZE,
-      QByteArray::fromHex(attributes->value("equipment_class").toUtf8()));
+      QByteArray::fromHex(transponderSeed->value("equipment_class").toUtf8()));
 
   QByteArray transponderPartNo =
       QString("%1")
-          .arg(attributes->value("transponder_model"))
+          .arg(transponderSeed->value("transponder_model"))
           .toUtf8()
           .leftJustified(TRANSPONDER_PART_NO_SIZE, '\x00');
   firmwareData->replace(TRANSPONDER_PART_NO_FPI, TRANSPONDER_PART_NO_SIZE,
@@ -156,15 +154,15 @@ bool FirmwareGenerationSystem::generateFirmwareData(
 
   firmwareData->replace(
       ACCR_REFERENCE_FPI, ACCR_REFERENCE_SIZE,
-      QByteArray::fromHex(attributes->value("accr_reference").toUtf8()));
+      QByteArray::fromHex(transponderSeed->value("accr_reference").toUtf8()));
 
   firmwareData->replace(
       BATTERY_INSERTATION_DATE_FPI, BATTERY_INSERTATION_DATE_SIZE,
       QByteArray::fromHex(
-          attributes->value("battery_insertation_date").toUtf8()));
+          transponderSeed->value("battery_insertation_date").toUtf8()));
 
   // Ключи безопасности
-  generateCommonKeys(attributes, masterKeys);
+  generateCommonKeys(transponderSeed);
   firmwareData->replace(AUKEY1_FPI, COMMON_KEY_SIZE,
                         CommonKeys.value("au_key1"));
   firmwareData->replace(AUKEY2_FPI, COMMON_KEY_SIZE,
@@ -195,20 +193,19 @@ bool FirmwareGenerationSystem::generateFirmwareData(
 }
 
 void FirmwareGenerationSystem::generateCommonKeys(
-    const QHash<QString, QString>* attributes,
-    const QHash<QString, QString>* masterKeys) {
+    const QHash<QString, QString>* transpoderSeed) {
   // Создаем инициализаторы
   QByteArray accrInit;
-  QByteArray accrReference = attributes->value("accr_reference").toUtf8();
+  QByteArray accrReference = transpoderSeed->value("accr_reference").toUtf8();
   for (uint32_t i = 0; i < 4; i++) {
     accrInit.append(QByteArray::fromHex(accrReference));
   }
 
   QByteArray auInit;
   QByteArray ecm =
-      QByteArray::fromHex(attributes->value("efc_context_mark").toUtf8());
+      QByteArray::fromHex(transpoderSeed->value("efc_context_mark").toUtf8());
   QByteArray pan = QByteArray::fromHex(
-      attributes->value("personal_account_number").toUtf8());
+      transpoderSeed->value("personal_account_number").toUtf8());
   QByteArray compactPan;
 
   for (uint32_t i = 0; i < 4; i++) {
@@ -224,8 +221,8 @@ void FirmwareGenerationSystem::generateCommonKeys(
   // Генерируем ключи
   uint8_t* init;
   QByteArray masterKeyValue;
-  for (QHash<QString, QString>::const_iterator it = masterKeys->begin();
-       it != masterKeys->end(); it++) {
+  for (QHash<QString, QString>::const_iterator it = transpoderSeed->begin();
+       it != transpoderSeed->end(); it++) {
     uint8_t* result = new uint8_t[COMMON_KEY_SIZE];
 
     if ((it.key() == "accr_key") || (it.key() == "per_key")) {

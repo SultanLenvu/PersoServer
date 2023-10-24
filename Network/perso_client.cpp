@@ -42,13 +42,6 @@ void PersoClient::instanceTesting() {
     sendLog("Отдельный поток не выделен. ");
 }
 
-void PersoClient::releaserFinished() {
-  ReleaserWaitTimer->stop();
-  ReleaserWaiting->quit();
-
-  sendLog("Система выпуска транспондеров завершила выполнение операции. ");
-}
-
 void PersoClient::loadSettings() {
   QSettings settings;
 
@@ -212,17 +205,11 @@ void PersoClient::processTransponderRelease() {
       TransponderReleaseSystem::Undefined;
 
   // Выпуск транспондера
-  QHash<QString, QString>* attributes = new QHash<QString, QString>;
-  QHash<QString, QString>* masterKeys = new QHash<QString, QString>;
+  QHash<QString, QString> transponderSeed;
   releaseParameters.insert("login", CurrentCommand.value("login").toString());
   releaseParameters.insert("password",
                            CurrentCommand.value("password").toString());
-  emit releaseRelease_signal(&releaseParameters, attributes, masterKeys, &ret);
-
-  // Ожидаем завершения работы
-  while (ret == TransponderReleaseSystem::Undefined) {
-    QCoreApplication::processEvents();
-  }
+  emit release_signal(&releaseParameters, &transponderSeed, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при выпуске транспондера. ");
@@ -233,8 +220,17 @@ void PersoClient::processTransponderRelease() {
 
   sendLog("Генерация прошивки транспондера. ");
   QByteArray firmware;
-  Generator->generate(attributes, masterKeys, &firmware);
+  Generator->generate(&transponderSeed, &firmware);
   CurrentResponse["firmware"] = QString::fromUtf8(firmware.toBase64());
+  CurrentResponse["sn"] = transponderSeed.value("sn");
+  CurrentResponse["pan"] = transponderSeed.value("pan");
+  CurrentResponse["box_id"] = transponderSeed.value("box_id");
+  CurrentResponse["pallet_id"] = transponderSeed.value("pallet_id");
+  CurrentResponse["order_id"] = transponderSeed.value("order_id");
+  CurrentResponse["issuer_name"] = transponderSeed.value("issuer_name");
+  CurrentResponse["transponder_model"] =
+      transponderSeed.value("transponder_model");
+  CurrentResponse["return_status"] = "no_error";
   CurrentResponse["return_status"] = "no_error";
 }
 
@@ -245,17 +241,11 @@ void PersoClient::processTransponderReleaseConfirm() {
       TransponderReleaseSystem::Undefined;
 
   // Подтверждение выпуска транспондера
-  QHash<QString, QString>* transponderData = new QHash<QString, QString>;
   confirmParameters.insert("login", CurrentCommand.value("login").toString());
   confirmParameters.insert("password",
                            CurrentCommand.value("password").toString());
   confirmParameters.insert("ucid", CurrentCommand.value("ucid").toString());
-  emit releaserConfirmRelease_signal(&confirmParameters, transponderData, &ret);
-
-  // Ожидаем завершения работы
-  while (ret == TransponderReleaseSystem::Undefined) {
-    QCoreApplication::processEvents();
-  }
+  emit confirmRelease_signal(&confirmParameters, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при подтверждении выпуска транспондера. ");
@@ -263,16 +253,6 @@ void PersoClient::processTransponderReleaseConfirm() {
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
   }
-
-  CurrentResponse["sn"] = transponderData->value("sn");
-  CurrentResponse["pan"] = transponderData->value("pan");
-  CurrentResponse["box_id"] = transponderData->value("box_id");
-  CurrentResponse["pallet_id"] = transponderData->value("pallet_id");
-  CurrentResponse["order_id"] = transponderData->value("order_id");
-  CurrentResponse["issuer_name"] = transponderData->value("issuer_name");
-  CurrentResponse["transponder_model"] =
-      transponderData->value("transponder_model");
-  CurrentResponse["return_status"] = "no_error";
 }
 
 void PersoClient::processTransponderRerelease() {
@@ -282,8 +262,7 @@ void PersoClient::processTransponderRerelease() {
       TransponderReleaseSystem::Undefined;
 
   // Перевыпуск транспондера
-  QHash<QString, QString>* attributes = new QHash<QString, QString>;
-  QHash<QString, QString>* masterKeys = new QHash<QString, QString>;
+  QHash<QString, QString> transponderSeed;
   rereleaseParameters.insert("login", CurrentCommand.value("login").toString());
   rereleaseParameters.insert("password",
                              CurrentCommand.value("password").toString());
@@ -291,13 +270,7 @@ void PersoClient::processTransponderRerelease() {
       "personal_account_number",
       CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
                                                            QChar('F')));
-  emit releaserRerelease_signal(&rereleaseParameters, attributes, masterKeys,
-                                &ret);
-
-  // Ожидаем завершения работы
-  while (ret == TransponderReleaseSystem::Undefined) {
-    QCoreApplication::processEvents();
-  }
+  emit release_signal(&rereleaseParameters, &transponderSeed, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при перевыпуске транспондера. ");
@@ -308,8 +281,17 @@ void PersoClient::processTransponderRerelease() {
 
   sendLog("Генерация прошивки транспондера. ");
   QByteArray firmware;
-  Generator->generate(attributes, masterKeys, &firmware);
+  Generator->generate(&transponderSeed, &firmware);
   CurrentResponse["firmware"] = QString::fromUtf8(firmware.toBase64());
+  CurrentResponse["sn"] = transponderSeed.value("sn");
+  CurrentResponse["pan"] = transponderSeed.value("pan");
+  CurrentResponse["box_id"] = transponderSeed.value("box_id");
+  CurrentResponse["pallet_id"] = transponderSeed.value("pallet_id");
+  CurrentResponse["order_id"] = transponderSeed.value("order_id");
+  CurrentResponse["issuer_name"] = transponderSeed.value("issuer_name");
+  CurrentResponse["transponder_model"] =
+      transponderSeed.value("transponder_model");
+  CurrentResponse["return_status"] = "no_error";
   CurrentResponse["return_status"] = "no_error";
 }
 
@@ -320,7 +302,6 @@ void PersoClient::processTransponderRereleaseConfirm() {
       TransponderReleaseSystem::Undefined;
 
   // Подтверждение перевыпуска транспондера
-  QHash<QString, QString>* transponderData = new QHash<QString, QString>;
   confirmParameters.insert("login", CurrentCommand.value("login").toString());
   confirmParameters.insert("password",
                            CurrentCommand.value("password").toString());
@@ -328,13 +309,7 @@ void PersoClient::processTransponderRereleaseConfirm() {
                            CurrentCommand.value("pan").toString().leftJustified(
                                FULL_PAN_CHAR_LENGTH, QChar('F')));
   confirmParameters.insert("ucid", CurrentCommand.value("ucid").toString());
-  emit releaserConfirmRerelease_signal(&confirmParameters, transponderData,
-                                       &ret);
-
-  // Ожидаем завершения работы
-  while (ret == TransponderReleaseSystem::Undefined) {
-    QCoreApplication::processEvents();
-  }
+  emit confirmRerelease_signal(&confirmParameters, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при подтверждении перевыпуска транспондера. ");
@@ -343,14 +318,6 @@ void PersoClient::processTransponderRereleaseConfirm() {
     return;
   }
 
-  CurrentResponse["sn"] = transponderData->value("sn");
-  CurrentResponse["pan"] = transponderData->value("pan");
-  CurrentResponse["box_id"] = transponderData->value("box_id");
-  CurrentResponse["pallet_id"] = transponderData->value("pallet_id");
-  CurrentResponse["order_id"] = transponderData->value("order_id");
-  CurrentResponse["issuer_name"] = transponderData->value("issuer_name");
-  CurrentResponse["transponder_model"] =
-      transponderData->value("transponder_model");
   CurrentResponse["return_status"] = "no_error";
 }
 
@@ -464,21 +431,6 @@ void PersoClient::createDataBlockWaitTimer() {
   connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
 }
 
-void PersoClient::createReleaserWaitTimer() {
-  ReleaserWaitTimer = new QTimer(this);
-  ReleaserWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
-  ReleaserWaiting = new QEventLoop(this);
-
-  // Если Releaser зависнет, то вызываем соответствующий обработчик
-  connect(ReleaserWaitTimer, &QTimer::timeout, this,
-          &PersoClient::on_ReleaserWaitTimerTimeout_slot);
-  // Если Releaser зависнет, то выходим из цикла ожидания
-  connect(ReleaserWaitTimer, &QTimer::timeout, ReleaserWaiting,
-          &QEventLoop::quit);
-  // Если клиент отключился, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::disconnected, ReleaserWaitTimer, &QTimer::stop);
-}
-
 void PersoClient::createGenerator() {
   Generator = new FirmwareGenerationSystem(this);
 
@@ -550,26 +502,17 @@ void PersoClient::createCommandTemplates() {
 
   QSharedPointer<QVector<QString>> printBoxStickerSyntax(
       new QVector<QString>());
-  printBoxStickerSyntax->append("id");
-  printBoxStickerSyntax->append("quantity");
-  printBoxStickerSyntax->append("first_transponder_sn");
-  printBoxStickerSyntax->append("last_transponder_sn");
-  printBoxStickerSyntax->append("transponder_model");
+  printBoxStickerSyntax->append("pan");
   CommandTemplates.insert("print_box_sticker", printBoxStickerSyntax);
 
   QSharedPointer<QVector<QString>> printLastBoxStickerSyntax(
       new QVector<QString>());
-  CommandTemplates.insert("print_box_sticker", printLastBoxStickerSyntax);
+  CommandTemplates.insert("print_last_box_sticker", printLastBoxStickerSyntax);
 
   QSharedPointer<QVector<QString>> printPalletStickerSyntax(
       new QVector<QString>());
-  printPalletStickerSyntax->append("id");
-  printPalletStickerSyntax->append("quantity");
-  printPalletStickerSyntax->append("first_box_id");
-  printPalletStickerSyntax->append("last_box_id");
-  printPalletStickerSyntax->append("transponder_model");
-  printPalletStickerSyntax->append("assembly_date");
-  CommandTemplates.insert("print_last_box_sticker", printPalletStickerSyntax);
+  printPalletStickerSyntax->append("pan");
+  CommandTemplates.insert("print_pallet_sticker", printPalletStickerSyntax);
 
   QSharedPointer<QVector<QString>> printLastPalletStickerSyntax(
       new QVector<QString>());
@@ -650,8 +593,7 @@ void PersoClient::on_SocketError_slot(
   // Если клиент отключился не самостоятельно
   if (socketError != 1) {
     sendLog(QString("Ошибка сети: %1. %2.")
-                .arg(QString::number(socketError))
-                .arg(Socket->errorString()));
+                .arg(QString::number(socketError), Socket->errorString()));
     Socket->close();
   }
 }
@@ -667,10 +609,4 @@ void PersoClient::on_DataBlockWaitTimerTimeout_slot() {
   sendLog("Время ожидания вышло. Блок данных сбрасывается. ");
   ReceivedDataBlock.clear();
   ReceivedDataBlockSize = 0;
-}
-
-void PersoClient::on_ReleaserWaitTimerTimeout_slot() {
-  sendLog("Система выпуска транспондеров зависла. ");
-  // Закрываем соединение
-  Socket->close();
 }
