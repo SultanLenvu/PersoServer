@@ -11,12 +11,11 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
   loadSettings();
 }
 
-bool FirmwareGenerationSystem::generate(
-    const QHash<QString, QString> transpoderSeed,
-    QByteArray* assembledFirmware) {
+bool FirmwareGenerationSystem::generate(const QHash<QString, QString>* seed,
+                                        QByteArray* assembledFirmware) {
   QByteArray firmwareData;
 
-  if (!generateFirmwareData(transpoderSeed, &firmwareData)) {
+  if (!generateFirmwareData(seed, &firmwareData)) {
     sendLog("Получена ошибка при генерации данных прошивки. ");
     return false;
   }

@@ -35,12 +35,12 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  sendLog("Проверка конфигурации");
-  if (!checkConfiguration()) {
-    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-    RestartTimer->start();
-    return false;
-  }
+  //  sendLog("Проверка конфигурации");
+  //  if (!checkConfiguration()) {
+  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+  //    RestartTimer->start();
+  //    return false;
+  //  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
@@ -141,7 +141,7 @@ void PersoServer::sendLog(const QString& log) const {
 void PersoServer::processCriticalError(const QString& log) {
   QString msg("Паника. Получена критическая ошибка. ");
   sendLog(msg + log);
-  CurrentState = Panic;
+  //  CurrentState = Panic;
 }
 
 bool PersoServer::checkConfiguration() {
@@ -239,20 +239,23 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   ClientThreads.insert(clientId, newClientThread);
 
   // Соединяем клиента с системой выпуска транспондеров
-  connect(newClient, &PersoClient::releaserAuthorize_signal, Releaser,
+  connect(newClient, &PersoClient::authorize_signal, Releaser,
           &TransponderReleaseSystem::authorize, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::releaseRelease_signal, Releaser,
+  connect(newClient, &PersoClient::release_signal, Releaser,
           &TransponderReleaseSystem::release, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::releaserConfirmRelease_signal, Releaser,
+  connect(newClient, &PersoClient::confirmRelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRelease,
           Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::releaserRerelease_signal, Releaser,
+  connect(newClient, &PersoClient::rerelease_signal, Releaser,
           &TransponderReleaseSystem::rerelease, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::releaserConfirmRerelease_signal, Releaser,
+  connect(newClient, &PersoClient::confirmRerelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRerelease,
           Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::releaserSearch_signal, Releaser,
+  connect(newClient, &PersoClient::search_signal, Releaser,
           &TransponderReleaseSystem::search, Qt::BlockingQueuedConnection);
+  connect(newClient, &PersoClient::productionLineRollback_signal, Releaser,
+          &TransponderReleaseSystem::rollbackProductionLine,
+          Qt::BlockingQueuedConnection);
 
   // Подключаем принтер
   connect(newClient, &PersoClient::printBoxSticker_signal, this,
@@ -324,7 +327,7 @@ void PersoServer::on_ClientThreadDeleted_slot() {
 }
 
 void PersoServer::printBoxSticker_slot(
-    const QSharedPointer<QHash<QString, QString> > data) {
+    const QSharedPointer<QHash<QString, QString>> data) {
   sendLog("Запуск печати стикера для бокса.");
 
   IStickerPrinter::ReturnStatus status =
@@ -347,7 +350,7 @@ void PersoServer::printLastBoxSticker_slot() {
 }
 
 void PersoServer::printPalletSticker_slot(
-    const QSharedPointer<QHash<QString, QString> > data) {
+    const QSharedPointer<QHash<QString, QString>> data) {
   sendLog("Запуск печати стикера для паллеты.");
 
   IStickerPrinter::ReturnStatus status =

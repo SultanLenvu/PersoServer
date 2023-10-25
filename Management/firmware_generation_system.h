@@ -71,7 +71,7 @@ class FirmwareGenerationSystem : public QObject {
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
 
-  bool generate(const QHash<QString, QString>* transpoderSeed,
+  bool generate(const QHash<QString, QString>* seed,
                 QByteArray* assembledFirmware);
 
  private:
@@ -83,7 +83,7 @@ class FirmwareGenerationSystem : public QObject {
   bool assembleFirmware(const QByteArray* firmwareData,
                         QByteArray* assembledFirmware);
 
-  bool generateFirmwareData(const QHash<QString, QString>* transpoderSeed,
+  bool generateFirmwareData(const QHash<QString, QString>* seed,
                             QByteArray* firmwareData);
   void generateCommonKeys(const QHash<QString, QString>* transpoderSeed);
   void generatePaymentMeans(const QString& pan, QString& paymentMeans);

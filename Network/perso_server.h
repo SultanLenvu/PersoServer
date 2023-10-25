@@ -90,10 +90,10 @@ class PersoServer : public QTcpServer {
   void on_ClientDisconnected_slot(void);
   void on_ClientThreadDeleted_slot(void);
 
-  void printBoxSticker_slot(const QSharedPointer<QHash<QString, QString> > data);
+  void printBoxSticker_slot(const QSharedPointer<QHash<QString, QString>> data);
   void printLastBoxSticker_slot(void);
   void printPalletSticker_slot(
-      const QSharedPointer<QHash<QString, QString> > data);
+      const QSharedPointer<QHash<QString, QString>> data);
   void printLastPalletSticker_slot(void);
 
   void on_RestartTimerTimeout_slot(void);

@@ -50,7 +50,6 @@ class PersoClient : public QObject {
 
  public slots:
   void instanceTesting(void);
-  void releaserFinished(void);
 
  private:
   Q_DISABLE_COPY(PersoClient);
@@ -71,6 +70,8 @@ class PersoClient : public QObject {
   void processTransponderReleaseConfirm(void);
   void processTransponderRerelease(void);
   void processTransponderRereleaseConfirm(void);
+
+  void processProductionLineRollback(void);
 
   void processPrintBoxSticker(void);
   void processPrintLastBoxSticker(void);
@@ -97,33 +98,35 @@ class PersoClient : public QObject {
   void logging(const QString& log) const;
   void disconnected(void) const;
 
-  void releaserAuthorize_signal(
+  void authorize_signal(const QHash<QString, QString>* parameters,
+                        TransponderReleaseSystem::ReturnStatus* status) const;
+  void release_signal(const QHash<QString, QString>* parameters,
+                      QHash<QString, QString>* seed,
+                      QHash<QString, QString>* data,
+                      TransponderReleaseSystem::ReturnStatus* status) const;
+  void confirmRelease_signal(
       const QHash<QString, QString>* parameters,
       TransponderReleaseSystem::ReturnStatus* status) const;
-  void releaseRelease_signal(
-      const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* transponderSeed,
-      TransponderReleaseSystem::ReturnStatus* status) const;
-  void releaserConfirmRelease_signal(
-      const QHash<QString, QString>* parameters,
-      TransponderReleaseSystem::ReturnStatus* status) const;
-  void releaserRerelease_signal(
-      const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* transponderSeed,
-      TransponderReleaseSystem::ReturnStatus* status) const;
-  void releaserConfirmRerelease_signal(
+  void rerelease_signal(const QHash<QString, QString>* parameters,
+                        QHash<QString, QString>* seed,
+                        QHash<QString, QString>* data,
+                        TransponderReleaseSystem::ReturnStatus* status) const;
+  void confirmRerelease_signal(
       const QHash<QString, QString>* parameters,
       TransponderReleaseSystem::ReturnStatus* status) const;
-  void releaserSearch_signal(
+  void search_signal(const QHash<QString, QString>* parameters,
+                     QHash<QString, QString>* data,
+                     TransponderReleaseSystem::ReturnStatus* status) const;
+
+  void productionLineRollback_signal(
       const QHash<QString, QString>* parameters,
-      QHash<QString, QString>* transponderSeed,
-      TransponderReleaseSystem::ReturnStatus* status) const;
+      TransponderReleaseSystem::ReturnStatus* status);
 
   void printBoxSticker_signal(
       const QSharedPointer<QHash<QString, QString>> data) const;
   void printLastBoxSticker_signal(void) const;
   void printPalletSticker_signal(
-      const QSharedPointer<QHash<QString, QString>> data);
+      const QSharedPointer<QHash<QString, QString>> data) const;
   void printLastPalletSticker_signal(void) const;
 };
 

@@ -32,8 +32,6 @@ void ServerManager::loadSettings() const {
   QCoreApplication::setApplicationName(PROGRAM_NAME);
 
   QSettings::setDefaultFormat(QSettings::IniFormat);
-  QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
-                     QCoreApplication::applicationDirPath());
 }
 
 bool ServerManager::checkSettings() const {

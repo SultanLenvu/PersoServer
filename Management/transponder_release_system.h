@@ -18,13 +18,18 @@ class TransponderReleaseSystem : public QObject {
  public:
   enum ReturnStatus {
     Undefined,
-    Failed,
+    DatabaseQueryError,
+    DatabaseTransactionError,
     DatabaseConnectionError,
-    TransactionError,
+    TransponderMissed,
+    TransponderNotReleasedEarlier,
+    AwaitingConfirmationError,
+    IdenticalUcidError,
     ProductionLineMissed,
     ProductionLineNotActive,
     CurrentOrderRunOut,
     CurrentOrderAssembled,
+    LogicError,
     Completed,
   };
   Q_ENUM(ReturnStatus);
@@ -32,11 +37,19 @@ class TransponderReleaseSystem : public QObject {
  private:
   bool LogEnable;
   uint32_t CheckPeriod;
+  QTimer* CheckTimer;
 
   PostgresController* Database;
-  QMutex Mutex;
 
-  QTimer* CheckTimer;
+  QHash<QString, QString> CurrentProductionLine;
+  QHash<QString, QString> CurrentTransponder;
+  QHash<QString, QString> CurrentBox;
+  QHash<QString, QString> CurrentPallet;
+  QHash<QString, QString> CurrentOrder;
+  QHash<QString, QString> CurrentIssuer;
+  QHash<QString, QString> CurrentMasterKeys;
+
+  QMutex Mutex;
 
  public:
   explicit TransponderReleaseSystem(QObject* parent);
@@ -51,18 +64,23 @@ class TransponderReleaseSystem : public QObject {
   void authorize(const QHash<QString, QString>* parameters,
                  TransponderReleaseSystem::ReturnStatus* status);
   void release(const QHash<QString, QString>* parameters,
-               QHash<QString, QString>* transponderSeed,
+               QHash<QString, QString>* seed,
+               QHash<QString, QString>* data,
                TransponderReleaseSystem::ReturnStatus* status);
   void confirmRelease(const QHash<QString, QString>* parameters,
                       TransponderReleaseSystem::ReturnStatus* status);
   void rerelease(const QHash<QString, QString>* parameters,
-                 QHash<QString, QString>* transponderSeed,
+                 QHash<QString, QString>* seed,
+                 QHash<QString, QString>* data,
                  TransponderReleaseSystem::ReturnStatus* status);
   void confirmRerelease(const QHash<QString, QString>* parameters,
                         TransponderReleaseSystem::ReturnStatus* status);
-  void search_signal(const QHash<QString, QString>* parameters,
-                     QHash<QString, QString>* transponderSeed,
-                     TransponderReleaseSystem::ReturnStatus* status);
+  void search(const QHash<QString, QString>* parameters,
+              QHash<QString, QString>* data,
+              TransponderReleaseSystem::ReturnStatus* status);
+
+  void rollbackProductionLine(const QHash<QString, QString>* parameters,
+                              TransponderReleaseSystem::ReturnStatus* status);
 
  private:
   Q_DISABLE_COPY(TransponderReleaseSystem);
@@ -71,25 +89,24 @@ class TransponderReleaseSystem : public QObject {
   void sendLog(const QString& log) const;
   void createCheckTimer(void);
 
-  bool checkConfirmRerelease(const QHash<QString, QString>& transponderRecord,
-                             const QHash<QString, QString>& searchData);
+  ReturnStatus getCurrentContext(const QHash<QString, QString>* initData);
 
-  bool confirmTransponder(const QString& transponderId,
-                          const QString& ucid) const;
-  bool confirmBox(const QString& boxId) const;
-  bool confirmPallet(const QString& palletId) const;
-  bool confirmOrder(const QString& orderId) const;
+  bool confirmCurrentTransponder(const QString& ucid);
+  bool confirmCurrentBox(void);
+  bool confirmCurrentPallet(void);
+  bool confirmCurrentOrder(void);
 
-  bool searchNextTransponderForAssembling(
-      QHash<QString, QString>* productionLineRecord) const;
+  bool searchNextTransponderForCurrentProductionLine(void);
+  bool startBoxAssembling(const QString& id);
+  bool startPalletAssembling(const QString& id);
+  bool stopCurrentProductionLine(void);
 
-  bool getTransponderSeed(const QPair<QString, QString>* searchPair,
-                          QHash<QString, QString>* attributes,
-                          QHash<QString, QString>* masterKeys) const;
-  bool getTransponderData(const QString&, QHash<QString, QString>* data) const;
-  bool getBoxData(const QString& id, QHash<QString, QString>* data) const;
-  bool getPalletData(const QString& id, QHash<QString, QString>* data) const;
-  bool getOrderData(const QString& id, QHash<QString, QString>* data) const;
+  void generateFirmwareSeed(QHash<QString, QString>* seed) const;
+  void generateTransponderData(QHash<QString, QString>* data) const;
+  void generateBoxData(QHash<QString, QString>* data) const;
+  void generatePalletData(QHash<QString, QString>* data) const;
+
+  QString generateTransponderSerialNumber(const QString& id) const;
 
  private slots:
   void on_CheckTimerTemeout(void);
