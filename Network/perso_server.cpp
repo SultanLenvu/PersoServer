@@ -35,12 +35,12 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  //  sendLog("Проверка конфигурации");
-  //  if (!checkConfiguration()) {
-  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-  //    RestartTimer->start();
-  //    return false;
-  //  }
+  sendLog("Проверка конфигурации");
+  if (!checkConfiguration()) {
+    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+    RestartTimer->start();
+    return false;
+  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;

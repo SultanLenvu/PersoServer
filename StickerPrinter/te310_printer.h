@@ -18,9 +18,7 @@ class TE310Printer : public IStickerPrinter {
 
  private:
   bool LogEnable;
-  QString Name;
 
-  bool LibError;
   QString TscLibPath;
   QLibrary* TscLib;
 

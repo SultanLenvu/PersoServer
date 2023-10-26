@@ -48,6 +48,7 @@ class TransponderReleaseSystem : public QObject {
   QHash<QString, QString> CurrentOrder;
   QHash<QString, QString> CurrentIssuer;
   QHash<QString, QString> CurrentMasterKeys;
+  QHash<QString, QString> SupportData;
 
   QMutex Mutex;
 
@@ -90,6 +91,7 @@ class TransponderReleaseSystem : public QObject {
   void createCheckTimer(void);
 
   ReturnStatus getCurrentContext(const QHash<QString, QString>* initData);
+  void clearCurrentContext(void);
 
   bool confirmCurrentTransponder(const QString& ucid);
   bool confirmCurrentBox(void);
@@ -99,6 +101,7 @@ class TransponderReleaseSystem : public QObject {
   bool searchNextTransponderForCurrentProductionLine(void);
   bool startBoxAssembling(const QString& id);
   bool startPalletAssembling(const QString& id);
+  bool linkCurrentProductionLine(const QString& id);
   bool stopCurrentProductionLine(void);
 
   void generateFirmwareSeed(QHash<QString, QString>* seed) const;

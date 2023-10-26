@@ -41,11 +41,6 @@ bool TE310Printer::checkConfiguration() {
 
 IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
     const QHash<QString, QString>* parameters) {
-  if (LibError) {
-    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
-    return LibraryMissed;
-  }
-
   if (!checkConfiguration()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
     return ConnectionError;
@@ -87,13 +82,8 @@ IStickerPrinter::ReturnStatus TE310Printer::printLastTransponderSticker() {
 
 IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
     const QHash<QString, QString>* parameters) {
-  if (LibError) {
-    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
-    return LibraryMissed;
-  }
-
   if (!checkConfiguration()) {
-    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
+    sendLog(QString("Ошибка конфигурации. Сброс"));
     return ConnectionError;
   }
 
@@ -163,13 +153,8 @@ IStickerPrinter::ReturnStatus TE310Printer::printLastBoxSticker() {
 
 IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
     const QHash<QString, QString>* parameters) {
-  if (LibError) {
-    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
-    return LibraryMissed;
-  }
-
   if (!checkConfiguration()) {
-    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
+    sendLog(QString("Ошибка конфигурации. Сброс"));
     return ConnectionError;
   }
 
@@ -248,11 +233,6 @@ IStickerPrinter::ReturnStatus TE310Printer::printLastPalletSticker() {
 
 IStickerPrinter::ReturnStatus TE310Printer::exec(
     const QStringList* commandScript) {
-  if (LibError) {
-    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
-    return LibraryMissed;
-  }
-
   if (!checkConfiguration()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
     return ConnectionError;
@@ -289,8 +269,6 @@ void TE310Printer::sendLog(const QString& log) {
 
 bool TE310Printer::loadTscLib() {
   if (!TscLib->load()) {
-    LibError = true;
-
     about = nullptr;
     openPort = nullptr;
     sendCommand = nullptr;
@@ -298,9 +276,6 @@ bool TE310Printer::loadTscLib() {
 
     return false;
   }
-
-  LibError = false;
-
   about = (TscAbout)TscLib->resolve("about");
   openPort = (TscOpenPort)TscLib->resolve("openport");
   sendCommand = (TscSendCommand)TscLib->resolve("sendcommand");

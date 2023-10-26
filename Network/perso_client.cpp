@@ -247,6 +247,8 @@ void PersoClient::processTransponderReleaseConfirm() {
         QString("TransponderReleaseSystemError (%1)").arg(QString::number(ret));
     return;
   }
+
+  CurrentResponse["return_status"] = "no_error";
 }
 
 void PersoClient::processTransponderRerelease() {
@@ -262,7 +264,7 @@ void PersoClient::processTransponderRerelease() {
       "personal_account_number",
       CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
                                                            QChar('F')));
-  emit release_signal(&rereleaseParameters, &seed, &data, &ret);
+  emit rerelease_signal(&rereleaseParameters, &seed, &data, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при перевыпуске транспондера. ");

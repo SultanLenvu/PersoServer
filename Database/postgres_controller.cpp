@@ -739,6 +739,10 @@ void PostgresController::convertResponseToHash(
     QHash<QString, QString>& record) const {
   record.clear();
   for (int32_t i = 0; i < request.record().count(); i++) {
-    record.insert(request.record().fieldName(i), request.value(i).toString());
+    if (request.value(i).toString().isEmpty()) {
+      record.insert(request.record().fieldName(i), "NULL");
+    } else {
+      record.insert(request.record().fieldName(i), request.value(i).toString());
+    }
   }
 }

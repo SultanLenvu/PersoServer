@@ -37,16 +37,9 @@ void ServerManager::loadSettings() const {
 bool ServerManager::checkSettings() const {
   QSettings settings;
   uint32_t temp = 0;
-  QFileInfo info;
-
-  QStringList allKeys = settings.allKeys();
+  QFileInfo info(settings.fileName());
 
   emit logging("Проверка файла настроек.");
-
-  info.setFile(QString("%1/%2/%3.ini")
-                   .arg(QCoreApplication::applicationDirPath(),
-                        QCoreApplication::organizationName(),
-                        QCoreApplication::applicationName()));
   if (!info.isFile()) {
     emit logging("Отсутствует файл конфигурации.");
     return false;

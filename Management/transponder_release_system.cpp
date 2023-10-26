@@ -168,7 +168,7 @@ void TransponderReleaseSystem::confirmRelease(
   }
 
   // Проверка того, что транспондер не был выпущен ранее
-  if (CurrentTransponder.value("release_counter") <= "0") {
+  if (CurrentTransponder.value("release_counter").toInt() >= 1) {
     sendLog(
         QString("Транспондер %1 был выпущен ранее. Подтверждение невозможно. ")
             .arg(CurrentTransponder.value("id")));
@@ -294,7 +294,7 @@ void TransponderReleaseSystem::confirmRerelease(
     return;
   }
 
-  // Проверка, что транспондер уже был выпущен ранее
+  // Проверка, что транспондер не был выпущен ранее
   if (CurrentTransponder.value("release_counter").toInt() <= 0) {
     sendLog(QString("Транспондер %1 еще не был выпущен ранее, подтверждение "
                     "перевыпуска невозможно. ")
@@ -304,7 +304,7 @@ void TransponderReleaseSystem::confirmRerelease(
   }
 
   // Проверка, что транспондер ожидает подтверждения
-  if (CurrentTransponder.value("awaiting_confirmation") == "true") {
+  if (CurrentTransponder.value("awaiting_confirmation") != "true") {
     sendLog(QString("Транспондер %1 еще не был перевыпущен, подтверждение "
                     "перевыпуска невозможно. ")
                 .arg(CurrentTransponder.value("id")));
@@ -442,6 +442,9 @@ TransponderReleaseSystem::getCurrentContext(
   QHash<QString, QString> transponderRecord;
   QHash<QString, QString> boxRecord;
 
+  // Очищаем прошлый контекст
+  clearCurrentContext();
+
   if (!initData->contains("personal_account_number") &&
       !initData->contains("id")) {
     CurrentProductionLine.insert("id", "");
@@ -525,7 +528,7 @@ TransponderReleaseSystem::getCurrentContext(
             .arg(CurrentBox.value("id")));
     return DatabaseQueryError;
   }
-  CurrentBox.insert("first_transponder_id", transponderRecord.value("id"));
+  SupportData.insert("first_transponder_id", transponderRecord.value("id"));
 
   // Ищем последний транспондер в текущем боксе
   transponderRecord.insert("id", "");
@@ -537,7 +540,7 @@ TransponderReleaseSystem::getCurrentContext(
             .arg(CurrentBox.value("id")));
     return DatabaseQueryError;
   }
-  CurrentBox.insert("last_transponder_id", transponderRecord.value("id"));
+  SupportData.insert("last_transponder_id", transponderRecord.value("id"));
 
   CurrentPallet.insert("id", CurrentBox.value("pallet_id"));
   CurrentPallet.insert("quantity", "");
@@ -563,7 +566,7 @@ TransponderReleaseSystem::getCurrentContext(
             .arg(CurrentPallet.value("id")));
     return DatabaseQueryError;
   }
-  CurrentBox.insert("first_box_id", boxRecord.value("id"));
+  SupportData.insert("first_box_id", boxRecord.value("id"));
 
   // Ищем последний бокс в текущей паллете
   boxRecord.insert("id", "");
@@ -574,7 +577,7 @@ TransponderReleaseSystem::getCurrentContext(
             .arg(CurrentPallet.value("id")));
     return DatabaseQueryError;
   }
-  CurrentBox.insert("last_box_id", boxRecord.value("id"));
+  SupportData.insert("last_box_id", boxRecord.value("id"));
 
   CurrentOrder.insert("id", CurrentPallet.value("order_id"));
   CurrentOrder.insert("quantity", "");
@@ -610,7 +613,7 @@ TransponderReleaseSystem::getCurrentContext(
 
   // В зависимости от типа персонализации, берем те или иные мастер ключи
   if (CurrentOrder.value("full_personalization") == "true") {
-    QString masterKeyTableName = "commercial_master_keys";
+    masterKeyTableName = "commercial_master_keys";
   }
   CurrentMasterKeys.insert("id",
                            CurrentIssuer.value(masterKeyTableName + "_id"));
@@ -631,6 +634,16 @@ TransponderReleaseSystem::getCurrentContext(
   }
 
   return Completed;
+}
+
+void TransponderReleaseSystem::clearCurrentContext() {
+  CurrentProductionLine.clear();
+  CurrentTransponder.clear();
+  CurrentBox.clear();
+  CurrentPallet.clear();
+  CurrentOrder.clear();
+  CurrentIssuer.clear();
+  CurrentMasterKeys.clear();
 }
 
 bool TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {
@@ -793,51 +806,54 @@ bool TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
     return false;
   }
 
-  // Если свободный транспондер в текущем боксе не найден
-  if (transponderRecord.isEmpty()) {
-    // Ищем свободный бокс в текущей паллете
-    boxRecord.insert("id", "");
-    boxRecord.insert("ready_indicator", "false");
-    boxRecord.insert("in_process", "false");
-    boxRecord.insert("pallet_id", CurrentPallet.value("id"));
-    if (!Database->getRecordByPart("boxes", boxRecord)) {
-      sendLog(
-          QString("Получена ошибка при поиске свободного бокса в паллете %1. ")
-              .arg(boxRecord.value("pallet_id")));
-      return false;
-    }
-
-    // Если свободный бокс найден
-    if (!boxRecord.isEmpty()) {
-      // Запускаем сборку бокса
-      return startBoxAssembling(boxRecord.value("id"));
-    } else {  // Если свободных боксов в текущей паллете не найдено
-      // Ищем свободную паллету в текущем заказе
-      palletRecord.insert("id", "");
-      palletRecord.insert("ready_indicator", "false");
-      palletRecord.insert("in_process", "false");
-      palletRecord.insert("order_id", CurrentOrder.value("id"));
-      if (!Database->getRecordByPart("pallets", palletRecord)) {
-        sendLog(
-            QString(
-                "Получена ошибка при поиске свободной паллеты в заказе %1. ")
-                .arg(palletRecord.value("order_id")));
-        return false;
-      }
-
-      // Если свободная паллета в текущем заказе найдена
-      if (!palletRecord.isEmpty()) {
-        // Запускаем сборку паллеты
-        return startPalletAssembling(palletRecord.value("id"));
-      } else {  // Если свободной паллеты в текущем заказе не найдено
-        sendLog(QString("В заказе %1 закончились свободные транспондеры. "
-                        "Производственная линия %2 останавливается. ")
-                    .arg(palletRecord.value("order_id"),
-                         CurrentProductionLine.value("id")));
-        stopCurrentProductionLine();
-      }
-    }
+  // Если свободный транспондер в текущем боксе найден
+  if (!transponderRecord.isEmpty()) {
+    // Связываем текущую линию производства с найденным транспондером
+    return linkCurrentProductionLine(transponderRecord.value("id"));
   }
+  // В противном случае ищем свободный бокс в текущей паллете
+  boxRecord.insert("id", "");
+  boxRecord.insert("ready_indicator", "false");
+  boxRecord.insert("in_process", "false");
+  boxRecord.insert("pallet_id", CurrentPallet.value("id"));
+  if (!Database->getRecordByPart("boxes", boxRecord)) {
+    sendLog(
+        QString("Получена ошибка при поиске свободного бокса в паллете %1. ")
+            .arg(boxRecord.value("pallet_id")));
+    return false;
+  }
+
+  // Если свободный бокс найден
+  if (!boxRecord.isEmpty()) {
+    // Запускаем сборку бокса
+    return startBoxAssembling(boxRecord.value("id"));
+  }
+
+  // Если свободных боксов в текущей паллете не найдено
+  // Ищем свободную паллету в текущем заказе
+  palletRecord.insert("id", "");
+  palletRecord.insert("ready_indicator", "false");
+  palletRecord.insert("in_process", "false");
+  palletRecord.insert("order_id", CurrentOrder.value("id"));
+  if (!Database->getRecordByPart("pallets", palletRecord)) {
+    sendLog(
+        QString("Получена ошибка при поиске свободной паллеты в заказе %1. ")
+            .arg(palletRecord.value("order_id")));
+    return false;
+  }
+
+  // Если свободная паллета в текущем заказе найдена
+  if (!palletRecord.isEmpty()) {
+    // Запускаем сборку паллеты
+    return startPalletAssembling(palletRecord.value("id"));
+  }
+
+  // Если свободной паллеты в текущем заказе не найдено
+  sendLog(QString("В заказе %1 закончились свободные транспондеры. "
+                  "Производственная линия %2 останавливается. ")
+              .arg(palletRecord.value("order_id"),
+                   CurrentProductionLine.value("id")));
+  stopCurrentProductionLine();
 
   return true;
 }
@@ -870,15 +886,7 @@ bool TransponderReleaseSystem::startBoxAssembling(const QString& id) {
   }
 
   // Связываем текущую линию производства с найденным транспондером
-  CurrentProductionLine.insert("transponder_id", transponderRecord.value("id"));
-  if (!Database->updateRecordById("production_lines", CurrentProductionLine)) {
-    sendLog(QString("Получена ошибка при связывании линии производства с  "
-                    "транспондером %1. ")
-                .arg(CurrentProductionLine.value("transponder_id")));
-    return false;
-  }
-
-  return true;
+  return linkCurrentProductionLine(transponderRecord.value("id"));
 }
 
 bool TransponderReleaseSystem::startPalletAssembling(const QString& id) {
@@ -910,6 +918,18 @@ bool TransponderReleaseSystem::startPalletAssembling(const QString& id) {
   }
 
   return startBoxAssembling(boxRecord.value("id"));
+}
+
+bool TransponderReleaseSystem::linkCurrentProductionLine(const QString& id) {
+  CurrentProductionLine.insert("transponder_id", id);
+  if (!Database->updateRecordById("production_lines", CurrentProductionLine)) {
+    sendLog(QString("Получена ошибка при связывании линии производства с  "
+                    "транспондером %1. ")
+                .arg(CurrentProductionLine.value("transponder_id")));
+    return false;
+  }
+
+  return true;
 }
 
 bool TransponderReleaseSystem::stopCurrentProductionLine() {
@@ -988,17 +1008,17 @@ void TransponderReleaseSystem::generateBoxData(
   data->insert("id", CurrentBox.value("id"));
 
   // Количество транспондеров в боксе
-  data->insert("assembled_units", CurrentBox.value("assembled_units"));
+  data->insert("quantity", CurrentBox.value("assembled_units"));
 
   // Сохраняем серийник первого транспондера в боксе
   data->insert("first_transponder_sn",
                generateTransponderSerialNumber(
-                   CurrentBox.value("first_transponder_id")));
+                   SupportData.value("first_transponder_id")));
 
   // Сохраняем серийник последнего транспондера в боксе
-  data->insert(
-      "last_transponder_sn",
-      generateTransponderSerialNumber(CurrentBox.value("last_transponder_id")));
+  data->insert("last_transponder_sn",
+               generateTransponderSerialNumber(
+                   SupportData.value("last_transponder_id")));
 
   // Сохраняем модель транспондера
   QString model = CurrentOrder.value("transponder_model");
@@ -1021,10 +1041,10 @@ void TransponderReleaseSystem::generatePalletData(
   data->insert("transponder_model", tempModel.remove(" "));
 
   // Сохраняем идентификатор первого бокса
-  data->insert("first_box_id", CurrentPallet.value("first_box_id"));
+  data->insert("first_box_id", SupportData.value("first_box_id"));
 
   // Сохраняем идентификатор последнего бокса
-  data->insert("last_box_id", CurrentPallet.value("last_box_id"));
+  data->insert("last_box_id", SupportData.value("last_box_id"));
 
   // Общее количество транспондеров в паллете
   uint32_t totalQuantity = CurrentPallet.value("assembled_units").toInt() *
