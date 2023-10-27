@@ -187,7 +187,7 @@ void PersoServer::createReleaserInstance() {
   connect(ReleaserThread, &QThread::finished, ReleaserThread,
           &QThread::deleteLater);
   connect(ReleaserThread, &QThread::finished, Releaser,
-          &PersoClient::deleteLater);
+          &PersoClientConnection::deleteLater);
   connect(ReleaserThread, &QThread::started, Releaser,
           &TransponderReleaseSystem::on_InstanceThreadStarted_slot);
 
@@ -207,14 +207,15 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   int32_t clientId = FreeClientIds.pop();
 
   // Создаем новое клиент-подключение
-  PersoClient* newClient = new PersoClient(clientId, socketDescriptor);
+  PersoClientConnection* newClient =
+      new PersoClientConnection(clientId, socketDescriptor);
 
-  connect(newClient, &PersoClient::logging, LogSystem::instance(),
+  connect(newClient, &PersoClientConnection::logging, LogSystem::instance(),
           &LogSystem::generate);
-  connect(newClient, &PersoClient::disconnected, this,
+  connect(newClient, &PersoClientConnection::disconnected, this,
           &PersoServer::on_ClientDisconnected_slot);
   connect(this, &PersoServer::checkNewClientInstance, newClient,
-          &PersoClient::instanceTesting);
+          &PersoClientConnection::instanceTesting);
 
   // Добавляем клиента в реестр
   Clients.insert(clientId, newClient);
@@ -226,12 +227,12 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   QThread* newClientThread = new QThread(this);
   newClient->moveToThread(newClientThread);
 
-  connect(newClient, &PersoClient::disconnected, newClientThread,
+  connect(newClient, &PersoClientConnection::disconnected, newClientThread,
           &QThread::quit);
   connect(newClientThread, &QThread::finished, newClientThread,
           &QThread::deleteLater);
   connect(newClientThread, &QThread::finished, newClient,
-          &PersoClient::deleteLater);
+          &PersoClientConnection::deleteLater);
   connect(newClientThread, &QThread::destroyed, this,
           &PersoServer::on_ClientThreadDeleted_slot);
 
@@ -239,38 +240,38 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   ClientThreads.insert(clientId, newClientThread);
 
   // Соединяем клиента с системой выпуска транспондеров
-  connect(newClient, &PersoClient::authorize_signal, Releaser,
+  connect(newClient, &PersoClientConnection::authorize_signal, Releaser,
           &TransponderReleaseSystem::authorize, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::release_signal, Releaser,
+  connect(newClient, &PersoClientConnection::release_signal, Releaser,
           &TransponderReleaseSystem::release, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::confirmRelease_signal, Releaser,
+  connect(newClient, &PersoClientConnection::confirmRelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRelease,
           Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::rerelease_signal, Releaser,
+  connect(newClient, &PersoClientConnection::rerelease_signal, Releaser,
           &TransponderReleaseSystem::rerelease, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::confirmRerelease_signal, Releaser,
+  connect(newClient, &PersoClientConnection::confirmRerelease_signal, Releaser,
           &TransponderReleaseSystem::confirmRerelease,
           Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::search_signal, Releaser,
+  connect(newClient, &PersoClientConnection::search_signal, Releaser,
           &TransponderReleaseSystem::search, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::productionLineRollback_signal, Releaser,
-          &TransponderReleaseSystem::rollbackProductionLine,
+  connect(newClient, &PersoClientConnection::productionLineRollback_signal,
+          Releaser, &TransponderReleaseSystem::rollbackProductionLine,
           Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::getBoxData_signal, Releaser,
+  connect(newClient, &PersoClientConnection::getBoxData_signal, Releaser,
           &TransponderReleaseSystem::getBoxData, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::getPalletData_signal, Releaser,
+  connect(newClient, &PersoClientConnection::getPalletData_signal, Releaser,
           &TransponderReleaseSystem::getPalletData,
           Qt::BlockingQueuedConnection);
 
   // Подключаем принтер
-  connect(newClient, &PersoClient::printBoxSticker_signal, this,
+  connect(newClient, &PersoClientConnection::printBoxSticker_signal, this,
           &PersoServer::printBoxSticker_slot, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::printLastBoxSticker_signal, this,
+  connect(newClient, &PersoClientConnection::printLastBoxSticker_signal, this,
           &PersoServer::printLastBoxSticker_slot, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::printPalletSticker_signal, this,
+  connect(newClient, &PersoClientConnection::printPalletSticker_signal, this,
           &PersoServer::printPalletSticker_slot, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClient::printLastPalletSticker_signal, this,
-          &PersoServer::printLastPalletSticker_slot,
+  connect(newClient, &PersoClientConnection::printLastPalletSticker_signal,
+          this, &PersoServer::printLastPalletSticker_slot,
           Qt::BlockingQueuedConnection);
 
   // Запускаем поток
@@ -296,7 +297,8 @@ void PersoServer::createRestartTimer() {
 }
 
 void PersoServer::on_ClientDisconnected_slot() {
-  PersoClient* disconnectedClient = dynamic_cast<PersoClient*>(sender());
+  PersoClientConnection* disconnectedClient =
+      dynamic_cast<PersoClientConnection*>(sender());
   if (!disconnectedClient) {
     processCriticalError(
         "Не удалось получить доступ к данным отключившегося клиента. ");

@@ -1,5 +1,5 @@
-#ifndef PersoClient_H
-#define PersoClient_H
+#ifndef PersoClientConnection_H
+#define PersoClientConnection_H
 
 #include <QCoreApplication>
 #include <QDataStream>
@@ -17,7 +17,7 @@
 #include "Management/transponder_release_system.h"
 #include "StickerPrinter/isticker_printer.h"
 
-class PersoClient : public QObject {
+class PersoClientConnection : public QObject {
   Q_OBJECT
 
  private:
@@ -33,7 +33,7 @@ class PersoClient : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
-  QHash<QString, void (PersoClient::*)(void)> CommandHandlers;
+  QHash<QString, void (PersoClientConnection::*)(void)> CommandHandlers;
   QHash<QString, QSharedPointer<QVector<QString>>> CommandTemplates;
   QJsonObject CurrentCommand;
   QJsonObject CurrentResponse;
@@ -44,8 +44,8 @@ class PersoClient : public QObject {
   FirmwareGenerationSystem* Generator;
 
  public:
-  explicit PersoClient(uint32_t id, qintptr socketDescriptor);
-  ~PersoClient();
+  explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
+  ~PersoClientConnection();
 
   uint32_t getId(void) const;
 
@@ -53,7 +53,7 @@ class PersoClient : public QObject {
   void instanceTesting(void);
 
  private:
-  Q_DISABLE_COPY(PersoClient);
+  Q_DISABLE_COPY(PersoClientConnection);
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
@@ -139,4 +139,4 @@ class PersoClient : public QObject {
       IStickerPrinter::ReturnStatus* status) const;
 };
 
-#endif  // PersoClient_H
+#endif  // PersoClientConnection_H

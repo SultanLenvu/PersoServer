@@ -18,7 +18,7 @@
 #include "Management/transponder_seed.h"
 #include "StickerPrinter/isticker_printer.h"
 #include "StickerPrinter/te310_printer.h"
-#include "perso_client.h"
+#include "perso_client_connection.h"
 
 class PersoServer : public QTcpServer {
   Q_OBJECT
@@ -48,7 +48,7 @@ class PersoServer : public QTcpServer {
 
   QStack<int32_t> FreeClientIds;
   QHash<int32_t, QThread*> ClientThreads;
-  QHash<int32_t, PersoClient*> Clients;
+  QHash<int32_t, PersoClientConnection*> Clients;
 
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;

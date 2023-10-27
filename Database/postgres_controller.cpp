@@ -264,7 +264,22 @@ bool PostgresController::getRecordByPart(const QString& tableName,
        it != record.constEnd(); it++) {
     if (it.value().size() > 0) {
       flag = true;
-      requestText += QString("%1 = '%2' AND ").arg(it.key(), it.value());
+      QString temp = it.value();
+      if ((temp.contains(">")) && !(temp.contains(">="))) {
+        requestText +=
+            QString("%1 > '%2' AND ").arg(it.key(), temp.remove(">"));
+      } else if (temp.contains(">=")) {
+        requestText +=
+            QString("%1 >= '%2' AND ").arg(it.key(), temp.remove(">="));
+      } else if (temp.contains("<") && !(temp.contains("<="))) {
+        requestText +=
+            QString("%1 < '%2' AND ").arg(it.key(), temp.remove("<"));
+      } else if (temp.contains("<=")) {
+        requestText +=
+            QString("%1 <= '%2' AND ").arg(it.key(), temp.remove("<="));
+      } else {
+        requestText += QString("%1 = '%2' AND ").arg(it.key(), temp);
+      }
     }
   }
 
@@ -344,6 +359,10 @@ bool PostgresController::getLastRecord(const QString& tableName,
               QString("Таблица пустая. Возвращаем нулевой идентификатор. "));
           if (tableName == "transponders") {
             record.insert("id", QString::number(TRANSPONDER_ID_START_SHIFT));
+          } else if (tableName == "boxes") {
+            record.insert("id", QString::number(BOX_ID_START_SHIFT));
+          } else if (tableName == "pallets") {
+            record.insert("id", QString::number(PALLET_ID_START_SHIFT));
           } else {
             record.insert("id", "0");
           }
@@ -672,26 +691,16 @@ void PostgresController::loadSettings() {
   // Загружаем настройки
   QSettings settings;
 
-  LogEnable = settings.value("log_system/global_enable").toBool();
-
   HostAddress = settings.value("postgres_controller/server_ip").toString();
   Port = settings.value("postgres_controller/server_port").toInt();
   DatabaseName = settings.value("postgres_controller/database_name").toString();
   UserName = settings.value("postgres_controller/user_name").toString();
   Password = settings.value("postgres_controller/user_password").toString();
-}
-
-void PostgresController::sendLog(const QString& log) const {
-  if (LogEnable) {
-    emit logging("PostgresController - " + log);
-  }
+  LogEnable = settings.value("log_system/extended_enable").toBool() &&
+              settings.value("log_system/global_enable").toBool();
 }
 
 void PostgresController::createDatabaseConnection() {
-  if (QSqlDatabase::database(ConnectionName).isOpen()) {
-    // Удаляем соединение
-    QSqlDatabase::removeDatabase(ConnectionName);
-  }
   QSqlDatabase postgres = QSqlDatabase::addDatabase("QPSQL", ConnectionName);
 
   postgres.setHostName(HostAddress.toString());
@@ -739,10 +748,6 @@ void PostgresController::convertResponseToHash(
     QHash<QString, QString>& record) const {
   record.clear();
   for (int32_t i = 0; i < request.record().count(); i++) {
-    if (request.value(i).toString().isEmpty()) {
-      record.insert(request.record().fieldName(i), "NULL");
-    } else {
-      record.insert(request.record().fieldName(i), request.value(i).toString());
-    }
+    record.insert(request.record().fieldName(i), request.value(i).toString());
   }
 }

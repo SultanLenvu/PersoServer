@@ -1,8 +1,8 @@
 #ifndef POSTGRESCONTROLLER_H
 #define POSTGRESCONTROLLER_H
 
-#include <QHostAddress>
 #include <QHash>
+#include <QHostAddress>
 #include <QtSql>
 
 #include "database_controller.h"
@@ -60,7 +60,7 @@ class PostgresController : public IDatabaseController {
       QHash<QString, QString>& record) const override;
 
   virtual bool updateRecordById(const QString& tableName,
-                            QHash<QString, QString>& record) const override;
+                                QHash<QString, QString>& record) const override;
   bool updateAllRecordsByPart(const QString& tableName,
                               QHash<QString, QString>& conditions,
                               QHash<QString, QString>& newValues) const;
@@ -76,7 +76,6 @@ class PostgresController : public IDatabaseController {
  private:
   Q_DISABLE_COPY(PostgresController);
   void loadSettings(void);
-  void sendLog(const QString& log) const;
   void createDatabaseConnection(void);
   void convertResponseToBuffer(QSqlQuery& request,
                                DatabaseTableModel* buffer) const;

@@ -62,6 +62,9 @@ class IDatabaseController : public QObject {
 
   virtual void applySettings() = 0;
 
+ protected:
+  void sendLog(const QString& log) const;
+
  private:
   Q_DISABLE_COPY(IDatabaseController);
 

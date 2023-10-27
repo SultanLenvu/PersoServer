@@ -20,7 +20,7 @@ SOURCES += \
     Management/transponder_seed.cpp \
     Management/transponder_release_system.cpp \
     Management/firmware_generation_system.cpp \
-    Network/perso_client.cpp \
+    Network/perso_client_connection.cpp \
     Network/perso_server.cpp \
     Security/des.cpp \
     StickerPrinter/isticker_printer.cpp \
@@ -40,7 +40,7 @@ HEADERS += \
     Management/server_manager.h \
     Management/transponder_release_system.h \
     Management/transponder_seed.h \
-    Network/perso_client.h \
+    Network/perso_client_connection.h \
     Network/perso_server.h \
     Security/des.h \
     StickerPrinter/isticker_printer.h \

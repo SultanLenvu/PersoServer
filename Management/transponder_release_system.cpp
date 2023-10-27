@@ -387,6 +387,8 @@ void TransponderReleaseSystem::rollbackProductionLine(
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
 
+  QHash<QString, QString> transponderRecord;
+
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
@@ -398,6 +400,67 @@ void TransponderReleaseSystem::rollbackProductionLine(
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
     Database->abortTransaction();
+    emit operationFinished();
+    return;
+  }
+
+  transponderRecord.insert("id", "");
+  transponderRecord.insert("release_counter", ">0");
+  transponderRecord.insert("box_id", CurrentBox.value("id"));
+  if (!Database->getRecordByPart("transponders", transponderRecord, false)) {
+    sendLog(QString("Получена ошибка при поиске предыдущего транспондера "
+                    "производственной линии в боксе %1. ")
+                .arg(transponderRecord.value("box_id")));
+    Database->abortTransaction();
+    *status = DatabaseQueryError;
+    emit operationFinished();
+    return;
+  }
+
+  if (transponderRecord.isEmpty()) {
+    sendLog(QString("Производственная линия '%1' связана с первым "
+                    "транспондером в боксе. Откат невозможен.")
+                .arg(CurrentProductionLine.value("id")));
+    Database->abortTransaction();
+    *status = ProductionLineRollbackLimitError;
+    emit operationFinished();
+    return;
+  }
+
+  transponderRecord.insert("release_counter", "0");
+  transponderRecord.insert("ucid", "NULL");
+  transponderRecord.insert("awaiting_confirmation", "false");
+  if (!Database->updateRecordById("transponders", transponderRecord)) {
+    sendLog(QString("Получена ошибка при возврате транспондера %1.")
+                .arg(transponderRecord.value("id")));
+    Database->abortTransaction();
+    *status = DatabaseQueryError;
+    emit operationFinished();
+    return;
+  }
+
+  CurrentBox.insert(
+      "assembled_units",
+      QString::number(CurrentBox.value("assembled_units").toInt() - 1));
+  CurrentBox.insert("assembling_end", "NULL");
+  if (!Database->updateRecordById("boxes", CurrentBox)) {
+    sendLog(QString("Получена ошибка при уменьшении количества собранных "
+                    "транспондеров в боксе '%1'. ")
+                .arg(transponderRecord.value("box_id")));
+    Database->abortTransaction();
+    *status = DatabaseQueryError;
+    emit operationFinished();
+    return;
+  }
+
+  CurrentProductionLine.insert("transponder_id", transponderRecord.value("id"));
+  if (!Database->updateRecordById("production_lines", CurrentProductionLine)) {
+    sendLog(QString("Получена ошибка при связывании производственной линии %1 "
+                    "с транспондером %2. ")
+                .arg(CurrentProductionLine.value("id"),
+                     transponderRecord.value("id")));
+    Database->abortTransaction();
+    *status = DatabaseQueryError;
     emit operationFinished();
     return;
   }

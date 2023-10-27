@@ -30,6 +30,7 @@ class TransponderReleaseSystem : public QObject {
     ProductionLineNotActive,
     CurrentOrderRunOut,
     CurrentOrderAssembled,
+    ProductionLineRollbackLimitError,
     LogicError,
     PrintingError,
     Completed,
