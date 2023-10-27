@@ -174,11 +174,11 @@ void PersoServer::createReleaserInstance() {
   connect(Releaser, &TransponderReleaseSystem::logging, LogSystem::instance(),
           &LogSystem::generate);
   connect(Releaser, &TransponderReleaseSystem::boxAssemblingFinished, this,
-          &PersoServer::printBoxSticker_slot);
+          &PersoServer::printBoxSticker_slot, Qt::BlockingQueuedConnection);
   connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
-          &PersoServer::printPalletSticker_slot);
+          &PersoServer::printPalletSticker_slot, Qt::BlockingQueuedConnection);
   connect(Releaser, &TransponderReleaseSystem::failed, this,
-          &PersoServer::on_ReleaserFailed_slot);
+          &PersoServer::on_ReleaserFailed_slot, Qt::BlockingQueuedConnection);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   ReleaserThread = new QThread(this);
@@ -256,16 +256,22 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   connect(newClient, &PersoClient::productionLineRollback_signal, Releaser,
           &TransponderReleaseSystem::rollbackProductionLine,
           Qt::BlockingQueuedConnection);
+  connect(newClient, &PersoClient::getBoxData_signal, Releaser,
+          &TransponderReleaseSystem::getBoxData, Qt::BlockingQueuedConnection);
+  connect(newClient, &PersoClient::getPalletData_signal, Releaser,
+          &TransponderReleaseSystem::getPalletData,
+          Qt::BlockingQueuedConnection);
 
   // Подключаем принтер
   connect(newClient, &PersoClient::printBoxSticker_signal, this,
-          &PersoServer::printBoxSticker_slot);
+          &PersoServer::printBoxSticker_slot, Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::printLastBoxSticker_signal, this,
-          &PersoServer::printLastBoxSticker_slot);
+          &PersoServer::printLastBoxSticker_slot, Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::printPalletSticker_signal, this,
-          &PersoServer::printPalletSticker_slot);
+          &PersoServer::printPalletSticker_slot, Qt::BlockingQueuedConnection);
   connect(newClient, &PersoClient::printLastPalletSticker_signal, this,
-          &PersoServer::printLastPalletSticker_slot);
+          &PersoServer::printLastPalletSticker_slot,
+          Qt::BlockingQueuedConnection);
 
   // Запускаем поток
   newClientThread->start();
@@ -326,50 +332,33 @@ void PersoServer::on_ClientThreadDeleted_slot() {
   sendLog(QString("Клиентский поток удален. "));
 }
 
-void PersoServer::printBoxSticker_slot(
-    const QSharedPointer<QHash<QString, QString>> data) {
+void PersoServer::printBoxSticker_slot(const QHash<QString, QString>* data,
+                                       IStickerPrinter::ReturnStatus* status) {
   sendLog("Запуск печати стикера для бокса.");
 
-  IStickerPrinter::ReturnStatus status =
-      BoxStickerPrinter->printBoxSticker(data.get());
-
-  if (status != IStickerPrinter::Completed) {
-    processCriticalError("Получена ошибка при печати стикера для бокса. ");
-  }
+  *status = BoxStickerPrinter->printBoxSticker(data);
 }
 
-void PersoServer::printLastBoxSticker_slot() {
+void PersoServer::printLastBoxSticker_slot(
+    IStickerPrinter::ReturnStatus* status) {
   sendLog("Запуск печати стикера для бокса.");
 
-  IStickerPrinter::ReturnStatus status =
-      BoxStickerPrinter->printLastBoxSticker();
-
-  if (status != IStickerPrinter::Completed) {
-    processCriticalError("Получена ошибка при печати стикера для бокса. ");
-  }
+  *status = BoxStickerPrinter->printLastBoxSticker();
 }
 
 void PersoServer::printPalletSticker_slot(
-    const QSharedPointer<QHash<QString, QString>> data) {
+    const QHash<QString, QString>* data,
+    IStickerPrinter::ReturnStatus* status) {
   sendLog("Запуск печати стикера для паллеты.");
 
-  IStickerPrinter::ReturnStatus status =
-      PalletStickerPrinter->printPalletSticker(data.get());
-
-  if (status != IStickerPrinter::Completed) {
-    processCriticalError("Получена ошибка при печати стикера для паллеты. ");
-  }
+  *status = PalletStickerPrinter->printPalletSticker(data);
 }
 
-void PersoServer::printLastPalletSticker_slot() {
+void PersoServer::printLastPalletSticker_slot(
+    IStickerPrinter::ReturnStatus* status) {
   sendLog("Запуск печати стикера для паллеты.");
 
-  IStickerPrinter::ReturnStatus status =
-      PalletStickerPrinter->printLastPalletSticker();
-
-  if (status != IStickerPrinter::Completed) {
-    processCriticalError("Получена ошибка при печати стикера для паллеты. ");
-  }
+  *status = PalletStickerPrinter->printLastPalletSticker();
 }
 
 void PersoServer::on_RestartTimerTimeout_slot() {

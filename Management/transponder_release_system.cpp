@@ -209,6 +209,7 @@ void TransponderReleaseSystem::confirmRelease(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseQueryError;
+    emit operationFinished();
     return;
   }
   *status = Completed;
@@ -268,6 +269,7 @@ void TransponderReleaseSystem::rerelease(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
+    emit operationFinished();
     return;
   }
   *status = Completed;
@@ -339,6 +341,7 @@ void TransponderReleaseSystem::confirmRerelease(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
+    emit operationFinished();
     return;
   }
   *status = Completed;
@@ -372,6 +375,7 @@ void TransponderReleaseSystem::search(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
+    emit operationFinished();
     return;
   }
   *status = Completed;
@@ -401,6 +405,71 @@ void TransponderReleaseSystem::rollbackProductionLine(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
+    emit operationFinished();
+    return;
+  }
+  *status = Completed;
+  emit operationFinished();
+}
+
+void TransponderReleaseSystem::getBoxData(
+    const QHash<QString, QString>* parameters,
+    QHash<QString, QString>* data,
+    ReturnStatus* status) {
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    *status = DatabaseTransactionError;
+    emit operationFinished();
+    return;
+  }
+
+  // Получаем текущий контекст
+  *status = getCurrentContext(parameters);
+  if (*status != Completed) {
+    Database->abortTransaction();
+    emit operationFinished();
+    return;
+  }
+
+  // Получаем данные о боксе
+  generateBoxData(data);
+
+  // Закрываем транзакцию
+  if (!Database->closeTransaction()) {
+    *status = DatabaseTransactionError;
+    emit operationFinished();
+    return;
+  }
+  *status = Completed;
+  emit operationFinished();
+}
+
+void TransponderReleaseSystem::getPalletData(
+    const QHash<QString, QString>* parameters,
+    QHash<QString, QString>* data,
+    ReturnStatus* status) {
+  // Открываем транзакцию
+  if (!Database->openTransaction()) {
+    *status = DatabaseTransactionError;
+    emit operationFinished();
+    return;
+  }
+
+  // Получаем текущий контекст
+  *status = getCurrentContext(parameters);
+  if (*status != Completed) {
+    Database->abortTransaction();
+    emit operationFinished();
+    return;
+  }
+
+  // Получаем данные о боксе
+  generatePalletData(data);
+
+  // Закрываем транзакцию
+  if (!Database->closeTransaction()) {
+    *status = DatabaseTransactionError;
+    emit operationFinished();
     return;
   }
   *status = Completed;
@@ -697,10 +766,13 @@ bool TransponderReleaseSystem::confirmCurrentBox(void) {
     }
 
     // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
-    QSharedPointer<QHash<QString, QString> > boxData(
-        new QHash<QString, QString>());
-    generateBoxData(boxData.get());
-    emit boxAssemblingFinished(boxData);
+    QHash<QString, QString> boxData;
+    IStickerPrinter::ReturnStatus status;
+    generateBoxData(&boxData);
+    emit boxAssemblingFinished(&boxData, &status);
+    if (status != IStickerPrinter::Completed) {
+      emit failed(PrintingError);
+    }
 
     // Подтверждаем сборку в палете
     if (!confirmCurrentPallet()) {
@@ -745,10 +817,13 @@ bool TransponderReleaseSystem::confirmCurrentPallet() {
 
     // Собираем данные о паллете и отправляем сигнал о завершении сборки
     // паллеты
-    QSharedPointer<QHash<QString, QString> > palletData(
-        new QHash<QString, QString>());
-    generatePalletData(palletData.get());
-    emit palletAssemblingFinished(palletData);
+    QHash<QString, QString> palletData;
+    IStickerPrinter::ReturnStatus status;
+    generatePalletData(&palletData);
+    emit palletAssemblingFinished(&palletData, &status);
+    if (status != IStickerPrinter::Completed) {
+      emit failed(PrintingError);
+    }
 
     // Подтверждаем сборку в заказе
     if (!confirmCurrentOrder()) {

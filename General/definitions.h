@@ -34,7 +34,7 @@
 #define POSTGRES_DEFAULT_USER_PASSWORD "1995"
 
 #define TIMESTAMP_DEFAULT_VALUE "2000-01-01 00:00:00"
-#define POSTGRES_TIMESTAMP_TEMPLATE "yyyy-MM-dd hh:mm:ss"
+#define POSTGRES_TIMESTAMP_TEMPLATE "yyyy-MM-ddThh:mm:ss"
 //===============================================================
 
 /* Определения для сервера */

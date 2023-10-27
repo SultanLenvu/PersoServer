@@ -15,6 +15,7 @@
 #include "Database/postgres_controller.h"
 #include "Management/firmware_generation_system.h"
 #include "Management/transponder_release_system.h"
+#include "StickerPrinter/isticker_printer.h"
 
 class PersoClient : public QObject {
   Q_OBJECT
@@ -122,12 +123,20 @@ class PersoClient : public QObject {
       const QHash<QString, QString>* parameters,
       TransponderReleaseSystem::ReturnStatus* status);
 
-  void printBoxSticker_signal(
-      const QSharedPointer<QHash<QString, QString>> data) const;
-  void printLastBoxSticker_signal(void) const;
-  void printPalletSticker_signal(
-      const QSharedPointer<QHash<QString, QString>> data) const;
-  void printLastPalletSticker_signal(void) const;
+  void getBoxData_signal(const QHash<QString, QString>* parameters,
+                         QHash<QString, QString>* data,
+                         TransponderReleaseSystem::ReturnStatus* status);
+  void getPalletData_signal(const QHash<QString, QString>* parameters,
+                            QHash<QString, QString>* data,
+                            TransponderReleaseSystem::ReturnStatus* status);
+
+  void printBoxSticker_signal(const QHash<QString, QString>* data,
+                              IStickerPrinter::ReturnStatus* status) const;
+  void printLastBoxSticker_signal(IStickerPrinter::ReturnStatus* status) const;
+  void printPalletSticker_signal(const QHash<QString, QString>* data,
+                                 IStickerPrinter::ReturnStatus* status) const;
+  void printLastPalletSticker_signal(
+      IStickerPrinter::ReturnStatus* status) const;
 };
 
 #endif  // PersoClient_H

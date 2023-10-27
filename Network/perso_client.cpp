@@ -335,11 +335,30 @@ void PersoClient::processProductionLineRollback() {
 void PersoClient::processPrintBoxSticker() {
   sendLog("Выполнение команды print_box_sticker. ");
 
-  // Печать стикера для бокса
-  QSharedPointer<QHash<QString, QString>> data(new QHash<QString, QString>());
-  data->insert("pan", CurrentCommand.value("pan").toString());
+  QHash<QString, QString> parameters;
+  QHash<QString, QString> boxData;
+  IStickerPrinter::ReturnStatus printStatus;
+  TransponderReleaseSystem::ReturnStatus trsStatus;
+  parameters.insert("personal_account_number",
+                    CurrentCommand.value("pan").toString().leftJustified(
+                        FULL_PAN_CHAR_LENGTH, QChar('F')));
 
-  emit printBoxSticker_signal(data);
+  // Запрашиваем данные о боксе
+  emit getBoxData_signal(&parameters, &boxData, &trsStatus);
+  if (trsStatus != TransponderReleaseSystem::Completed) {
+    CurrentResponse["return_status"] =
+        QString("TransponderReleaseSystemError: %1")
+            .arg(QString::number(trsStatus));
+    return;
+  }
+
+  // Запрашиваем печать бокса
+  emit printBoxSticker_signal(&boxData, &printStatus);
+  if (printStatus != IStickerPrinter::Completed) {
+    CurrentResponse["return_status"] =
+        QString("IStickerPrinterError: %1").arg(QString::number(printStatus));
+    return;
+  }
 
   CurrentResponse["return_status"] = "no_error";
 }
@@ -347,8 +366,15 @@ void PersoClient::processPrintBoxSticker() {
 void PersoClient::processPrintLastBoxSticker() {
   sendLog("Выполнение команды print_last_box_sticker. ");
 
+  IStickerPrinter::ReturnStatus printStatus;
+
   // Печать последнего стикера для бокса
-  emit printLastBoxSticker_signal();
+  emit printLastBoxSticker_signal(&printStatus);
+  if (printStatus != IStickerPrinter::Completed) {
+    CurrentResponse["return_status"] =
+        QString("IStickerPrinterError: %1").arg(QString::number(printStatus));
+    return;
+  }
 
   CurrentResponse["return_status"] = "no_error";
 }
@@ -356,12 +382,30 @@ void PersoClient::processPrintLastBoxSticker() {
 void PersoClient::processPrintPalletSticker() {
   sendLog("Выполнение команды print_pallet_sticker. ");
 
-  // Печать стикера для паллеты
-  const QSharedPointer<QHash<QString, QString>> data(
-      new QHash<QString, QString>());
-  data->insert("pan", CurrentCommand.value("pan").toString());
+  QHash<QString, QString> parameters;
+  QHash<QString, QString> palletData;
+  IStickerPrinter::ReturnStatus printStatus;
+  TransponderReleaseSystem::ReturnStatus trsStatus;
+  parameters.insert("personal_account_number",
+                    CurrentCommand.value("pan").toString().leftJustified(
+                        FULL_PAN_CHAR_LENGTH, QChar('F')));
 
-  emit printPalletSticker_signal(data);
+  // Запрашиваем данные о паллете
+  emit getPalletData_signal(&parameters, &palletData, &trsStatus);
+  if (trsStatus != TransponderReleaseSystem::Completed) {
+    CurrentResponse["return_status"] =
+        QString("TransponderReleaseSystemError: %1")
+            .arg(QString::number(trsStatus));
+    return;
+  }
+
+  // Запрашиваем печать паллеты
+  emit printPalletSticker_signal(&palletData, &printStatus);
+  if (printStatus != IStickerPrinter::Completed) {
+    CurrentResponse["return_status"] =
+        QString("IStickerPrinterError: %1").arg(QString::number(printStatus));
+    return;
+  }
 
   CurrentResponse["return_status"] = "no_error";
 }
@@ -369,8 +413,15 @@ void PersoClient::processPrintPalletSticker() {
 void PersoClient::processPrintLastPalletSticker() {
   sendLog("Выполнение команды print_last_pallet_sticker. ");
 
-  // Печать последнего стикера для паллеты
-  emit printLastPalletSticker_signal();
+  IStickerPrinter::ReturnStatus printStatus;
+
+  // Печать последнего стикера для бокса
+  emit printLastPalletSticker_signal(&printStatus);
+  if (printStatus != IStickerPrinter::Completed) {
+    CurrentResponse["return_status"] =
+        QString("IStickerPrinterError: %1").arg(QString::number(printStatus));
+    return;
+  }
 
   CurrentResponse["return_status"] = "no_error";
 }

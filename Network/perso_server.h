@@ -90,11 +90,12 @@ class PersoServer : public QTcpServer {
   void on_ClientDisconnected_slot(void);
   void on_ClientThreadDeleted_slot(void);
 
-  void printBoxSticker_slot(const QSharedPointer<QHash<QString, QString>> data);
-  void printLastBoxSticker_slot(void);
-  void printPalletSticker_slot(
-      const QSharedPointer<QHash<QString, QString>> data);
-  void printLastPalletSticker_slot(void);
+  void printBoxSticker_slot(const QHash<QString, QString>* data,
+                            IStickerPrinter::ReturnStatus* status);
+  void printLastBoxSticker_slot(IStickerPrinter::ReturnStatus* status);
+  void printPalletSticker_slot(const QHash<QString, QString>* data,
+                               IStickerPrinter::ReturnStatus* status);
+  void printLastPalletSticker_slot(IStickerPrinter::ReturnStatus* status);
 
   void on_RestartTimerTimeout_slot(void);
   void on_ReleaserFailed_slot(TransponderReleaseSystem::ReturnStatus status);
