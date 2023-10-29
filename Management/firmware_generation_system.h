@@ -70,6 +70,7 @@ class FirmwareGenerationSystem : public QObject {
 
  public:
   explicit FirmwareGenerationSystem(QObject* parent);
+  ~FirmwareGenerationSystem();
 
   bool generate(const QHash<QString, QString>* seed,
                 QByteArray* assembledFirmware);

@@ -18,11 +18,10 @@ class TransponderReleaseSystem : public QObject {
 
  public:
   enum ReturnStatus {
-    Undefined,
     DatabaseQueryError,
     DatabaseTransactionError,
     DatabaseConnectionError,
-    TransponderMissed,
+    TransponderNotFound,
     TransponderNotReleasedEarlier,
     AwaitingConfirmationError,
     IdenticalUcidError,
@@ -31,8 +30,12 @@ class TransponderReleaseSystem : public QObject {
     CurrentOrderRunOut,
     CurrentOrderAssembled,
     ProductionLineRollbackLimitError,
-    LogicError,
-    PrintingError,
+    ProductionLineStopError,
+    BoxStickerPrintError,
+    PalletStickerPrintError,
+    NextTransponderNotFound,
+    StartBoxAssemblingError,
+    StartPalletAssemblingError,
     Completed,
   };
   Q_ENUM(ReturnStatus);
@@ -103,16 +106,16 @@ class TransponderReleaseSystem : public QObject {
   ReturnStatus getCurrentContext(const QHash<QString, QString>* initData);
   void clearCurrentContext(void);
 
-  bool confirmCurrentTransponder(const QString& ucid);
-  bool confirmCurrentBox(void);
-  bool confirmCurrentPallet(void);
-  bool confirmCurrentOrder(void);
+  ReturnStatus confirmCurrentTransponder(const QString& ucid);
+  ReturnStatus confirmCurrentBox(void);
+  ReturnStatus confirmCurrentPallet(void);
+  ReturnStatus confirmCurrentOrder(void);
 
-  bool searchNextTransponderForCurrentProductionLine(void);
-  bool startBoxAssembling(const QString& id);
-  bool startPalletAssembling(const QString& id);
-  bool linkCurrentProductionLine(const QString& id);
-  bool stopCurrentProductionLine(void);
+  ReturnStatus searchNextTransponderForCurrentProductionLine(void);
+  ReturnStatus startBoxAssembling(const QString& id);
+  ReturnStatus startPalletAssembling(const QString& id);
+  ReturnStatus linkCurrentProductionLine(const QString& id);
+  ReturnStatus stopCurrentProductionLine(void);
 
   void generateFirmwareSeed(QHash<QString, QString>* seed) const;
   void generateTransponderData(QHash<QString, QString>* data) const;

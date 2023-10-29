@@ -21,6 +21,28 @@ class PersoClientConnection : public QObject {
   Q_OBJECT
 
  private:
+  enum ServerStatus {
+    NoError = 0,
+    CommandSyntaxError,
+    DatabaseError,
+    TransponderNotFound,
+    TransponderNotReleasedEarlier,
+    AwaitingConfirmationError,
+    IdenticalUcidError,
+    ProductionLineMissed,
+    ProductionLineNotActive,
+    CurrentOrderRunOut,
+    CurrentOrderAssembled,
+    ProductionLineRollbackLimitError,
+    BoxStickerPrintError,
+    PalletStickerPrintError,
+    NextTransponderNotFound,
+    StartBoxAssemblingError,
+    StartPalletAssemblingError,
+  };
+  //  Q_ENUM(ServerStatus);
+
+ private:
   bool LogEnable;
   bool ExtendedLogEnable;
   int32_t MaximumConnectionTime;
@@ -42,6 +64,9 @@ class PersoClientConnection : public QObject {
   QTimer* DataBlockWaitTimer;
 
   FirmwareGenerationSystem* Generator;
+
+  QHash<TransponderReleaseSystem::ReturnStatus, ServerStatus>
+      ServerStatusMatchTable;
 
  public:
   explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
@@ -86,6 +111,7 @@ class PersoClientConnection : public QObject {
   void createGenerator(void);
   void createCommandHandlers(void);
   void createCommandTemplates(void);
+  void createServerStatusMatchTable(void);
 
  private slots:
   void on_SocketReadyRead_slot(void);

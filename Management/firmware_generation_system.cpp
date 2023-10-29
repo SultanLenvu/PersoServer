@@ -11,6 +11,8 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(QObject *parent) : QObject(pa
   loadSettings();
 }
 
+FirmwareGenerationSystem::~FirmwareGenerationSystem() {}
+
 bool FirmwareGenerationSystem::generate(const QHash<QString, QString>* seed,
                                         QByteArray* assembledFirmware) {
   QByteArray firmwareData;

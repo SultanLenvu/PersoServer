@@ -54,11 +54,11 @@ void TransponderReleaseSystem::authorize(
   }
 
   // Получаем текущий контекст
-  if (!getCurrentContext(parameters)) {
+  *status = getCurrentContext(parameters);
+  if (*status != Completed) {
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    *status = ProductionLineMissed;
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -99,6 +99,9 @@ void TransponderReleaseSystem::release(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -162,6 +165,9 @@ void TransponderReleaseSystem::confirmRelease(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -233,6 +239,9 @@ void TransponderReleaseSystem::rerelease(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -291,6 +300,9 @@ void TransponderReleaseSystem::confirmRerelease(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -364,6 +376,9 @@ void TransponderReleaseSystem::search(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -399,6 +414,9 @@ void TransponderReleaseSystem::rollbackProductionLine(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -489,6 +507,9 @@ void TransponderReleaseSystem::getBoxData(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -521,6 +542,9 @@ void TransponderReleaseSystem::getPalletData(
   // Получаем текущий контекст
   *status = getCurrentContext(parameters);
   if (*status != Completed) {
+    sendLog(QString("Получена ошибка при получении контекста производственной "
+                    "линии '%1'. ")
+                .arg(parameters->value("login")));
     Database->abortTransaction();
     emit operationFinished();
     return;
@@ -633,7 +657,7 @@ TransponderReleaseSystem::getCurrentContext(
       sendLog(
           QString("Транспондер не найден. Сброс. ").arg(initData->value("id")));
     }
-    return TransponderMissed;
+    return TransponderNotFound;
   }
 
   CurrentBox.insert("id", CurrentTransponder.value("box_id"));
@@ -778,7 +802,8 @@ void TransponderReleaseSystem::clearCurrentContext() {
   CurrentMasterKeys.clear();
 }
 
-bool TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {
   // Увеличиваем счетчик выпусков транспондера и сохраняем ucid
   CurrentTransponder.insert("awaiting_confirmation", "false");
   CurrentTransponder.insert("ucid", ucid);
@@ -789,29 +814,26 @@ bool TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {
     sendLog(QString("Получена ошибка при увеличении счетчика выпусков "
                     "транспондера %1. ")
                 .arg(CurrentTransponder.value("id")));
-    return false;
+    return DatabaseQueryError;
   }
 
-  if (!confirmCurrentBox()) {
-    sendLog(QString("Получена ошибка при подтверждении бокса %1. ")
-                .arg(CurrentTransponder.value("box_id")));
-    return false;
-  }
-
-  return true;
+  // Подтверждаем сборку бокса
+  return confirmCurrentBox();
 }
 
-bool TransponderReleaseSystem::confirmCurrentBox(void) {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::confirmCurrentBox(void) {
   // Увеличиваем счетчик выпущенных транспондеров в боксе
   CurrentBox.insert(
       "assembled_units",
       QString::number(CurrentBox.value("assembled_units").toInt() + 1));
+  CurrentBox.insert("assembling_end", "NULL");
   if (!Database->updateRecordById("boxes", CurrentBox)) {
     sendLog(QString("Получена ошибка при увеличении счетчика выпущенных "
                     "транспондеров в "
                     "боксе %1. ")
                 .arg(CurrentBox.value("id")));
-    return false;
+    return DatabaseQueryError;
   }
 
   // Если бокс целиком собран
@@ -825,7 +847,7 @@ bool TransponderReleaseSystem::confirmCurrentBox(void) {
     if (!Database->updateRecordById("boxes", CurrentBox)) {
       sendLog(QString("Получена ошибка при завершении сборки бокса %1. ")
                   .arg(CurrentBox.value("id")));
-      return false;
+      return DatabaseQueryError;
     }
 
     // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
@@ -834,21 +856,19 @@ bool TransponderReleaseSystem::confirmCurrentBox(void) {
     generateBoxData(&boxData);
     emit boxAssemblingFinished(&boxData, &status);
     if (status != IStickerPrinter::Completed) {
-      emit failed(PrintingError);
+      emit failed(BoxStickerPrintError);
+      return BoxStickerPrintError;
     }
 
-    // Подтверждаем сборку в палете
-    if (!confirmCurrentPallet()) {
-      sendLog(QString("Получена ошибка при подтверждении паллеты %1. ")
-                  .arg(CurrentBox.value("id")));
-      return false;
-    }
+    // Подтверждаем сборку паллеты
+    return confirmCurrentPallet();
   }
 
-  return true;
+  return Completed;
 }
 
-bool TransponderReleaseSystem::confirmCurrentPallet() {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::confirmCurrentPallet() {
   // Увеличиваем счетчик выпущенных боксов в паллете
   CurrentPallet.insert(
       "assembled_units",
@@ -858,7 +878,7 @@ bool TransponderReleaseSystem::confirmCurrentPallet() {
                     "боксов в "
                     "паллете %1. ")
                 .arg(CurrentPallet.value("id")));
-    return false;
+    return DatabaseQueryError;
   }
 
   // Если паллета целиком собрана
@@ -875,7 +895,7 @@ bool TransponderReleaseSystem::confirmCurrentPallet() {
           QString(
               "Получена ошибка при установке завершении сборки паллеты %1. ")
               .arg(CurrentPallet.value("id")));
-      return false;
+      return DatabaseQueryError;
     }
 
     // Собираем данные о паллете и отправляем сигнал о завершении сборки
@@ -885,21 +905,19 @@ bool TransponderReleaseSystem::confirmCurrentPallet() {
     generatePalletData(&palletData);
     emit palletAssemblingFinished(&palletData, &status);
     if (status != IStickerPrinter::Completed) {
-      emit failed(PrintingError);
+      emit failed(PalletStickerPrintError);
+      return PalletStickerPrintError;
     }
 
     // Подтверждаем сборку в заказе
-    if (!confirmCurrentOrder()) {
-      sendLog(QString("Получена ошибка при подтверждении заказа %1. ")
-                  .arg(CurrentPallet.value("id")));
-      return false;
-    }
+    return confirmCurrentOrder();
   }
 
-  return true;
+  return Completed;
 }
 
-bool TransponderReleaseSystem::confirmCurrentOrder() {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::confirmCurrentOrder() {
   // Увеличиваем счетчик выпущенных паллет в заказе
   CurrentOrder.insert(
       "assembled_units",
@@ -909,7 +927,7 @@ bool TransponderReleaseSystem::confirmCurrentOrder() {
                     "паллет в "
                     "заказе %1. ")
                 .arg(CurrentOrder.value("id")));
-    return false;
+    return DatabaseQueryError;
   }
 
   if (CurrentOrder.value("assembled_units").toInt() ==
@@ -922,14 +940,15 @@ bool TransponderReleaseSystem::confirmCurrentOrder() {
     if (!Database->updateRecordById("orders", CurrentOrder)) {
       sendLog(QString("Получена ошибка при завершении сборки заказа %1. ")
                   .arg(CurrentOrder.value("id")));
-      return false;
+      return DatabaseQueryError;
     }
   }
 
-  return true;
+  return Completed;
 }
 
-bool TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
   QHash<QString, QString> transponderRecord;
   QHash<QString, QString> boxRecord;
   QHash<QString, QString> palletRecord;
@@ -941,7 +960,7 @@ bool TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
     sendLog(QString("Получена ошибка при поиске невыпущенного "
                     "транспондера в боксе %1. ")
                 .arg(transponderRecord.value("box_id")));
-    return false;
+    return NextTransponderNotFound;
   }
 
   // Если свободный транспондер в текущем боксе найден
@@ -958,7 +977,7 @@ bool TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
     sendLog(
         QString("Получена ошибка при поиске свободного бокса в паллете %1. ")
             .arg(boxRecord.value("pallet_id")));
-    return false;
+    return NextTransponderNotFound;
   }
 
   // Если свободный бокс найден
@@ -977,7 +996,7 @@ bool TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
     sendLog(
         QString("Получена ошибка при поиске свободной паллеты в заказе %1. ")
             .arg(palletRecord.value("order_id")));
-    return false;
+    return NextTransponderNotFound;
   }
 
   // Если свободная паллета в текущем заказе найдена
@@ -991,12 +1010,15 @@ bool TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
                   "Производственная линия %2 останавливается. ")
               .arg(palletRecord.value("order_id"),
                    CurrentProductionLine.value("id")));
-  stopCurrentProductionLine();
+  if (stopCurrentProductionLine() != Completed) {
+    return ProductionLineStopError;
+  }
 
-  return true;
+  return CurrentOrderRunOut;
 }
 
-bool TransponderReleaseSystem::startBoxAssembling(const QString& id) {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::startBoxAssembling(const QString& id) {
   QHash<QString, QString> transponderRecord;
   QHash<QString, QString> boxRecord;
 
@@ -1009,7 +1031,7 @@ bool TransponderReleaseSystem::startBoxAssembling(const QString& id) {
     sendLog(
         QString("Получена ошибка при запуске сборки бокса %1 в паллете %2. ")
             .arg(boxRecord.value("id"), boxRecord.value("pallet_id")));
-    return false;
+    return StartBoxAssemblingError;
   }
 
   // Ищем в запущенном боксе первый невыпущенный транспондер
@@ -1020,14 +1042,15 @@ bool TransponderReleaseSystem::startBoxAssembling(const QString& id) {
     sendLog(QString("Получена ошибка при поиске невыпущенного "
                     "транспондера в боксе %1. ")
                 .arg(transponderRecord.value("box_id")));
-    return false;
+    return NextTransponderNotFound;
   }
 
   // Связываем текущую линию производства с найденным транспондером
   return linkCurrentProductionLine(transponderRecord.value("id"));
 }
 
-bool TransponderReleaseSystem::startPalletAssembling(const QString& id) {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::startPalletAssembling(const QString& id) {
   QHash<QString, QString> boxRecord;
   QHash<QString, QString> palletRecord;
 
@@ -1040,7 +1063,7 @@ bool TransponderReleaseSystem::startPalletAssembling(const QString& id) {
     sendLog(
         QString("Получена ошибка при запуске сборки паллеты %1 в заказе %2. ")
             .arg(palletRecord.value("id"), palletRecord.value("order_id")));
-    return false;
+    return StartPalletAssemblingError;
   }
 
   // Ищем первый бокс в найденной свободной паллете
@@ -1052,34 +1075,36 @@ bool TransponderReleaseSystem::startPalletAssembling(const QString& id) {
     sendLog(QString("Получена ошибка при поиске несобранного "
                     "бокса в паллете %1. ")
                 .arg(id));
-    return false;
+    return NextTransponderNotFound;
   }
 
   return startBoxAssembling(boxRecord.value("id"));
 }
 
-bool TransponderReleaseSystem::linkCurrentProductionLine(const QString& id) {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::linkCurrentProductionLine(const QString& id) {
   CurrentProductionLine.insert("transponder_id", id);
   if (!Database->updateRecordById("production_lines", CurrentProductionLine)) {
     sendLog(QString("Получена ошибка при связывании линии производства с  "
                     "транспондером %1. ")
                 .arg(CurrentProductionLine.value("transponder_id")));
-    return false;
+    return DatabaseQueryError;
   }
 
-  return true;
+  return Completed;
 }
 
-bool TransponderReleaseSystem::stopCurrentProductionLine() {
+TransponderReleaseSystem::ReturnStatus
+TransponderReleaseSystem::stopCurrentProductionLine() {
   CurrentProductionLine.insert("transponder_id", "NULL");
   CurrentProductionLine.insert("active", "false");
   if (!Database->updateRecordById("production_lines", CurrentProductionLine)) {
     sendLog(QString("Получена ошибка при остановке линии производства %1. ")
                 .arg(CurrentProductionLine.value("id")));
-    return false;
+    return DatabaseQueryError;
   }
 
-  return true;
+  return Completed;
 }
 
 void TransponderReleaseSystem::generateFirmwareSeed(
