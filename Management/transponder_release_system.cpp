@@ -289,6 +289,7 @@ void TransponderReleaseSystem::confirmRerelease(
     const QHash<QString, QString>* parameters,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
+  QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -327,8 +328,15 @@ void TransponderReleaseSystem::confirmRerelease(
   }
 
   // Проверка, что новый UCID отличается от прошлого
-  if (CurrentTransponder.value("ucid") == parameters->value("ucid")) {
-    sendLog(QString("Новый UCID идентичен прошлому, повторный выпуск "
+  transponderRecord.insert("ucid", parameters->value("ucid"));
+  if (!Database->getRecordByPart("transponders", transponderRecord)) {
+    sendLog(QString(
+        "Получена ошибка при проверке уникальности полученного UCID. "));
+    *status = DatabaseQueryError;
+    return;
+  }
+  if (!transponderRecord.isEmpty()) {
+    sendLog(QString("Полученный UCID уже существует в базе, повторный выпуск "
                     "транспондера %1 невозможен. ")
                 .arg(CurrentTransponder.value("id")));
     *status = IdenticalUcidError;
