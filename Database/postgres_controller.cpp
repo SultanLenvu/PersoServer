@@ -678,13 +678,11 @@ void PostgresController::applySettings() {
   sendLog("Применение новых настроек. ");
   loadSettings();
 
-  if (QSqlDatabase::database(ConnectionName).isOpen()) {
-    sendLog("Удаление предыущего подключения к базе данных. ");
-    QSqlDatabase::removeDatabase(ConnectionName);
+  sendLog("Удаление предыдущего подключения к базе данных. ");
+  QSqlDatabase::removeDatabase(ConnectionName);
 
-    sendLog("Создание нового подключения к базе данных. ");
-    createDatabaseConnection();
-  }
+  sendLog("Создание нового подключения к базе данных. ");
+  createDatabaseConnection();
 }
 
 void PostgresController::loadSettings() {

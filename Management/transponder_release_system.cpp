@@ -121,6 +121,7 @@ void TransponderReleaseSystem::release(
 
   // Ожидаем подтверждения
   CurrentTransponder.insert("awaiting_confirmation", "true");
+  CurrentTransponder.insert("ucid", "NULL");
   if (!Database->updateRecordById("transponders", CurrentTransponder)) {
     sendLog(QString("Получена ошибка при активации ожидания подтверждения "
                     "транспондера %1. ")
