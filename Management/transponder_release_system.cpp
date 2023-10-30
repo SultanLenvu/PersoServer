@@ -897,6 +897,7 @@ TransponderReleaseSystem::confirmCurrentPallet() {
   CurrentPallet.insert(
       "assembled_units",
       QString::number(CurrentPallet.value("assembled_units").toInt() + 1));
+  CurrentPallet.insert("assembling_end", "NULL");
   if (!Database->updateRecordById("pallets", CurrentPallet)) {
     sendLog(QString("Получена ошибка при увеличении счетчика выпущенных "
                     "боксов в "
