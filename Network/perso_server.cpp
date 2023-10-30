@@ -35,12 +35,12 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  //  sendLog("Проверка конфигурации");
-  //  if (!checkConfiguration()) {
-  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-  //    RestartTimer->start();
-  //    return false;
-  //  }
+  sendLog("Проверка конфигурации");
+  if (!checkConfiguration()) {
+    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+    RestartTimer->start();
+    return false;
+  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
@@ -141,7 +141,7 @@ void PersoServer::sendLog(const QString& log) const {
 void PersoServer::processCriticalError(const QString& log) {
   QString msg("Паника. Получена критическая ошибка. ");
   sendLog(msg + log);
-  //  CurrentState = Panic;
+  CurrentState = Panic;
 }
 
 bool PersoServer::checkConfiguration() {
