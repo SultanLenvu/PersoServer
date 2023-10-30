@@ -152,8 +152,7 @@ void TransponderReleaseSystem::confirmRelease(
     const QHash<QString, QString>* parameters,
     ReturnStatus* status) {
   QMutexLocker locker(&Mutex);
-
-  QHash<QString, QString> productionLineRecord;
+  QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
   if (!Database->openTransaction()) {
@@ -191,10 +190,26 @@ void TransponderReleaseSystem::confirmRelease(
     return;
   }
 
+  // Проверка, что новый UCID отличается от прошлого
+  transponderRecord.insert("ucid", parameters->value("ucid"));
+  if (!Database->getRecordByPart("transponders", transponderRecord)) {
+    sendLog(QString(
+        "Получена ошибка при проверке уникальности полученного UCID. "));
+    *status = DatabaseQueryError;
+    return;
+  }
+  if (!transponderRecord.isEmpty()) {
+    sendLog(QString("Полученный UCID уже существует в базе, повторный выпуск "
+                    "транспондера %1 невозможен. ")
+                .arg(CurrentTransponder.value("id")));
+    *status = IdenticalUcidError;
+    return;
+  }
+
   // Подтверждаем сборку транспондера
   if (!confirmCurrentTransponder(parameters->value("ucid"))) {
     sendLog(QString("Получена ошибка при подтвеждении транспондера %1. ")
-                .arg(productionLineRecord.value("transponder_id")));
+                .arg(CurrentProductionLine.value("transponder_id")));
     *status = DatabaseQueryError;
     Database->abortTransaction();
     emit operationFinished();
@@ -205,7 +220,7 @@ void TransponderReleaseSystem::confirmRelease(
   if (!searchNextTransponderForCurrentProductionLine()) {
     sendLog(QString("Получена ошибка при поиске очередного транспондера "
                     "для производственной линии %1. ")
-                .arg(productionLineRecord.value("id")));
+                .arg(CurrentProductionLine.value("id")));
     *status = DatabaseQueryError;
     Database->abortTransaction();
     emit operationFinished();
