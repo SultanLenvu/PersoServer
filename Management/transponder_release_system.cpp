@@ -947,6 +947,7 @@ TransponderReleaseSystem::confirmCurrentOrder() {
   CurrentOrder.insert(
       "assembled_units",
       QString::number(CurrentOrder.value("assembled_units").toInt() + 1));
+  CurrentOrder.insert("assembling_end", "NULL");
   if (!Database->updateRecordById("orders", CurrentOrder)) {
     sendLog(QString("Получена ошибка при увеличении счетчика выпущенных "
                     "паллет в "
