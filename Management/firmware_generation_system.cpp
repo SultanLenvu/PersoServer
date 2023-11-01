@@ -252,10 +252,12 @@ void FirmwareGenerationSystem::generatePaymentMeans(const QString& pan,
   } else {
     uint16_t dateCompactNumber = 0;
     dateCompactNumber |= static_cast<uint16_t>(currentDate.year()) - 1990 + 10;
+    /* Вермя экспирации PAN'a + 10 лет с момента выпуска */
     dateCompactNumber |= (static_cast<uint16_t>(currentDate.month()) << 7);
     dateCompactNumber |= (static_cast<uint16_t>(currentDate.day()) << 11);
 
-    expirationDate = QString::number(dateCompactNumber, 16);
+    expirationDate =
+        QString::number(dateCompactNumber, 16).rightJustified(4, '0');
   }
 
   paymentMeans = pan + expirationDate + "0000";
