@@ -257,7 +257,7 @@ void FirmwareGenerationSystem::generatePaymentMeans(const QString& pan,
     dateCompactNumber |= (static_cast<uint16_t>(currentDate.day()) << 11);
 
     expirationDate =
-        QString::number(dateCompactNumber, 16).rightJustified(4, '0');
+        QString::number(dateCompactNumber, 16).leftJustified(4, '0');
   }
 
   paymentMeans = pan + expirationDate + "0000";
