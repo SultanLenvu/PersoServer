@@ -1013,10 +1013,9 @@ TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
   }
 
   // Если свободных боксов в текущей паллете не найдено
-  // Ищем свободную паллету в текущем заказе
+  // Ищем свободную паллету или паллету в процессе сборки в текущем заказе
   palletRecord.insert("id", "");
   palletRecord.insert("ready_indicator", "false");
-  palletRecord.insert("in_process", "false");
   palletRecord.insert("order_id", CurrentOrder.value("id"));
   if (!Database->getRecordByPart("pallets", palletRecord)) {
     sendLog(
