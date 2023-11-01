@@ -678,8 +678,7 @@ TransponderReleaseSystem::getCurrentContext(
       sendLog(QString("Транспондер %1 не найден. Сброс. ")
                   .arg(initData->value("id")));
     } else {
-      sendLog(
-          QString("Транспондер не найден. Сброс. ").arg(initData->value("id")));
+      sendLog(QString("Транспондер не найден. Сброс. "));
     }
     return TransponderNotFound;
   }
