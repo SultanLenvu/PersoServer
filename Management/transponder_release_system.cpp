@@ -993,6 +993,12 @@ TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
     // Связываем текущую линию производства с найденным транспондером
     return linkCurrentProductionLine(transponderRecord.value("id"));
   }
+
+  sendLog(
+      QString("В боксе %1 кончились свободные транспондеры. Поиск следующего "
+              "бокса для сборки.  ")
+          .arg(CurrentBox.value("id")));
+
   // В противном случае ищем свободный бокс в текущей паллете
   boxRecord.insert("id", "");
   boxRecord.insert("ready_indicator", "false");
@@ -1007,9 +1013,14 @@ TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
 
   // Если свободный бокс найден
   if (!boxRecord.isEmpty()) {
+    sendLog(QString("Запуск сборки бокса %1.  ").arg(boxRecord.value("id")));
     // Запускаем сборку бокса
     return startBoxAssembling(boxRecord.value("id"));
   }
+
+  sendLog(QString("В паллете %1 кончились свободные боксы. Поиск следующей "
+                  "паллеты для сборки.  ")
+              .arg(CurrentPallet.value("id")));
 
   // Если свободных боксов в текущей паллете не найдено
   // Ищем свободную паллету или паллету в процессе сборки в текущем заказе
@@ -1025,12 +1036,14 @@ TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
 
   // Если свободная паллета в текущем заказе найдена
   if (!palletRecord.isEmpty()) {
+    sendLog(
+        QString("Запуск сборки паллеты %1.  ").arg(palletRecord.value("id")));
     // Запускаем сборку паллеты
     return startPalletAssembling(palletRecord.value("id"));
   }
 
   // Если свободной паллеты в текущем заказе не найдено
-  sendLog(QString("В заказе %1 закончились свободные транспондеры. "
+  sendLog(QString("В заказе %1 закончились свободные паллеты. "
                   "Производственная линия %2 останавливается. ")
               .arg(palletRecord.value("order_id"),
                    CurrentProductionLine.value("id")));
