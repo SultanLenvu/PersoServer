@@ -420,8 +420,9 @@ void PersoClientConnection::createSocket(qintptr socketDescriptor) {
   connect(Socket, &QTcpSocket::disconnected, this,
           &PersoClientConnection::on_SocketDisconnected_slot);
   connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error), this,
-          &PersoClientConnection::on_SocketError_slot);
+          QOverload<QAbstractSocket::SocketError>::of(
+            &QTcpSocket::errorOccurred),
+          this, &PersoClientConnection::on_SocketError_slot);
 }
 
 void PersoClientConnection::createExpirationTimer() {
@@ -435,7 +436,8 @@ void PersoClientConnection::createExpirationTimer() {
   connect(ExpirationTimer, &QTimer::timeout, ExpirationTimer, &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер экспирации
   connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
+          QOverload<QAbstractSocket::SocketError>::of(
+            &QTcpSocket::errorOccurred),
           ExpirationTimer, &QTimer::stop);
   // Если клиент отключился, то останавливаем таймер экспирации
   connect(Socket, &QTcpSocket::disconnected, ExpirationTimer, &QTimer::stop);
@@ -460,7 +462,8 @@ void PersoClientConnection::createDataBlockWaitTimer() {
   connect(Socket, &QTcpSocket::disconnected, DataBlockWaitTimer, &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер ожидания
   connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
+          QOverload<QAbstractSocket::SocketError>::of(
+            &QTcpSocket::errorOccurred),
           DataBlockWaitTimer, &QTimer::stop);
   // Если время подключения вышло, то таймер ожидания останавливается
   connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);

@@ -19,6 +19,7 @@ void UdpLogBackend::loadSettings() {
   QSettings settings;
 
   LogEnable = settings.value("log_system/udp_log_enable").toBool();
-  DestIp = settings.value("log_system/udp_destination_ip").toString();
+  DestIp = QHostAddress(
+      settings.value("log_system/udp_destination_ip").toString());
   DestPort = settings.value("log_system/udp_destination_port").toUInt();
 }
