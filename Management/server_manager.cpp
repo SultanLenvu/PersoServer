@@ -1,11 +1,10 @@
+#include <cstdlib>
+
 #include "server_manager.h"
 
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
   setObjectName("ServerManager");
   loadSettings();
-
-  createLoggerInstance();
-  createServerInstance();
   registerMetaType();
 }
 
@@ -17,12 +16,7 @@ ServerManager::~ServerManager() {
 void ServerManager::processCommandArguments(const QStringList* args) {
   if (args->contains("-generate_default_config")) {
     generateDefaultSettings();
-  }
-  if (args->contains("-s")) {
-    if (!checkSettings()) {
-      return;
-    }
-    Server->start();
+    exit(0);
   }
 }
 
@@ -39,22 +33,25 @@ bool ServerManager::checkSettings() const {
   uint32_t temp = 0;
   QFileInfo info(settings.fileName());
 
-  emit logging("Проверка файла настроек.");
+  /* Logger is not here yet, so we have to use stdout and stderr */
+  qDebug("Проверка файла настроек.");
+
+  info.setFile(settings.fileName());
   if (!info.isFile()) {
-    emit logging("Отсутствует файл конфигурации.");
+    qCritical("Отсутствует файл конфигурации.");
     return false;
   }
 
   if (settings.value("perso_server/max_number_client_connection").toUInt() ==
       0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "максимальное количество одновременных клиентских подключений. ");
     return false;
   }
 
   if (settings.value("perso_server/restart_period").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "зачение периода для попытки перезапуска сервера. ");
     return false;
@@ -62,7 +59,7 @@ bool ServerManager::checkSettings() const {
 
   if (QHostAddress(settings.value("perso_server/listen_ip").toString())
           .isNull()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес прослушиваемый сервером. ");
     return false;
@@ -70,39 +67,78 @@ bool ServerManager::checkSettings() const {
 
   temp = settings.value("perso_server/listen_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт прослушиваемый сервером. ");
     return false;
   }
 
-  if (settings.value("perso_server/printer_for_box_sticker")
+#ifdef __linux__
+  if (!settings.contains("perso_server/box_sticker_printer")) {
+    if (!settings.contains("perso_server/box_sticker_printer_ip")
+        || !settings.contains("perso_server/box_sticker_printer_port")) {
+      qCritical("Получена ошибка при обработке файла конфигурации: "
+          "Не указаны имя или IP-адрес принтера стикеров на боксы");
+      return false;
+    }
+    QHostAddress boxIP(
+        settings.value("perso_server/box_sticker_printer_ip").toString());
+    int boxPort = settings.value(
+        "perso_server/box_sticker_printer_port").toInt();
+
+    if (boxIP.isNull() || boxPort <= 0 || boxPort > 65535) {
+      qCritical("Получена ошибка при обработке файла конфигурации: "
+          "неверный IP-адрес или порт принтера стикеров на боксы");
+      return false;
+    }
+  }
+
+  if (!settings.contains("perso_server/pallet_sticker_printer")) {
+    if (!settings.contains("perso_server/pallet_sticker_printer_ip")
+        || !settings.contains("perso_server/pallet_sticker_printer_port")) {
+      qCritical("Получена ошибка при обработке файла конфигурации: "
+          "Не указаны имя или IP-адрес принтера стикеров на паллеты.");
+      return false;
+    }
+    QHostAddress palletIP(settings.value(
+          "perso_server/pallet_sticker_printer_ip").toString());
+    int palletPort = settings.value(
+        "perso_server/pallet_sticker_printer_port").toInt();
+
+    if (palletIP.isNull() || palletPort <= 0 || palletPort > 6553500) {
+      qCritical("Получена ошибка при обработке файла конфигурации: "
+          "неверный IP-адрес или порт принтера стикеров на паллеты.");
+      return false;
+    }
+  }
+#else
+  if (settings.value("perso_server/box_sticker_printer")
           .toString()
           .isEmpty()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: не указано имя "
         "принтера для печати стикеров на боксы. ");
     return false;
   }
 
-  if (settings.value("perso_server/printer_for_pallet_sticker")
+  if (settings.value("perso_server/pallet_sticker_printer")
           .toString()
           .isEmpty()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: не указано имя "
         "принтера для печати стикеров на паллеты. ");
     return false;
   }
-
+#endif /* __linux__ */
   if (settings.value("transponder_release_system/check_period").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "зачение периода проверки системы выпуска транспондеров. ");
     return false;
   }
 
   if (settings.value("perso_client/connection_max_duration").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "значение максимальной длительности клиентского "
         "подключения. ");
@@ -110,7 +146,7 @@ bool ServerManager::checkSettings() const {
   }
 
   if (settings.value("log_system/log_file_max_number").toUInt() == 0) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "максимальное количество лог-файлов. ");
     return false;
@@ -118,7 +154,7 @@ bool ServerManager::checkSettings() const {
 
   if (QHostAddress(settings.value("log_system/udp_destination_ip").toString())
           .isNull()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес для отправки UDP логов. ");
     return false;
@@ -126,7 +162,7 @@ bool ServerManager::checkSettings() const {
 
   temp = settings.value("log_system/udp_destination_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт для отправки UDP логов. ");
     return false;
@@ -134,7 +170,7 @@ bool ServerManager::checkSettings() const {
 
   if (QHostAddress(settings.value("postgres_controller/server_ip").toString())
           .isNull()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "IP-адрес сервера базы данных PostgreSQL. ");
     return false;
@@ -142,7 +178,7 @@ bool ServerManager::checkSettings() const {
 
   temp = settings.value("postgres_controller/server_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "порт сервера базы данных PostgreSQL. ");
     return false;
@@ -151,7 +187,7 @@ bool ServerManager::checkSettings() const {
   info.setFile(settings.value("firmware_generation_system/firmware_base_path")
                    .toString());
   if (!info.isFile()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "путь к базовому файлу прошивки транспондера. ");
     return false;
@@ -160,7 +196,7 @@ bool ServerManager::checkSettings() const {
   info.setFile(settings.value("firmware_generation_system/firmware_data_path")
                    .toString());
   if (!info.isFile()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "путь к шаблонному файлу данных транспондера. ");
     return false;
@@ -168,13 +204,12 @@ bool ServerManager::checkSettings() const {
 
   info.setFile(settings.value("te310_printer/library_path").toString());
   if (!info.isFile()) {
-    emit logging(
+    qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
         "путь к библиотеке принтера TSC TE310. ");
     return false;
   }
 
-  emit logging("Обработка файла настроек успешно завершена.");
   return true;
 }
 
@@ -188,9 +223,9 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("perso_server/listen_ip", PERSO_SERVER_DEFAULT_LISTEN_IP);
   settings.setValue("perso_server/listen_port",
                     PERSO_SERVER_DEFAULT_LISTEN_PORT);
-  settings.setValue("perso_server/printer_for_box_sticker",
+  settings.setValue("perso_server/box_sticker_printer",
                     PRINTER_FOR_BOX_DEFAULT_NAME);
-  settings.setValue("perso_server/printer_for_pallet_sticker",
+  settings.setValue("perso_server/pallet_sticker_printer",
                     PRINTER_FOR_PALLET_DEFAULT_NAME);
 
   // PersoClientConnection
@@ -235,6 +270,12 @@ void ServerManager::generateDefaultSettings() const {
   // TE310Printer
   settings.setValue("te310_printer/library_path",
                     TSC_TE310_LIBRARY_DEFAULT_PATH);
+}
+
+void ServerManager::start() {
+  createLoggerInstance();
+  createServerInstance();
+  Server->start();
 }
 
 void ServerManager::createServerInstance() {

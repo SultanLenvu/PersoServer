@@ -12,6 +12,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QtPrintSupport/QPrinterInfo>
+#include <QHostAddress>
 
 #include "Log/log_system.h"
 #include "Management/transponder_release_system.h"
@@ -55,6 +56,12 @@ class PersoServer : public QTcpServer {
 
   QString PrinterForBoxSticker;
   QString PrinterForPalletSticker;
+#ifdef __linux__
+  QHostAddress BoxStickerIP;
+  int BoxStickerPort;
+  QHostAddress PalletStickerIP;
+  int PalletStickerPort;
+#endif /* __linux__ */
   IStickerPrinter* BoxStickerPrinter;
   IStickerPrinter* PalletStickerPrinter;
 

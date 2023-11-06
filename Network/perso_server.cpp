@@ -1,3 +1,5 @@
+#include <QHostAddress>
+
 #include "perso_server.h"
 
 PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {
@@ -126,10 +128,37 @@ void PersoServer::loadSettings() {
   ListeningAddress = settings.value("perso_server/listen_ip").toString();
   ListeningPort = settings.value("perso_server/listen_port").toInt();
 
+#ifdef __linux__
+  if (settings.contains("perso_server/box_sticker_printer_ip")) {
+    /* Prescense of box_sticker_printer_port is checked during validation */
+    BoxStickerIP = QHostAddress(
+        settings.value("perso_server/box_sticker_printer_ip").toString());
+    BoxStickerPort = settings.value("perso_server/box_sticker_printer_port")
+      .toInt();
+  } else {
+    PrinterForBoxSticker =
+      settings.value("perso_server/box_sticker_printer").toString();
+  }
+
+  if (settings.contains("perso_server/pallet_sticker_printer_ip")) {
+    /*
+     * Prescense of printer_for_pallet_sticker_port is checked during validation
+     */
+    PalletStickerIP = QHostAddress(
+        settings.value("perso_server/pallet_sticker_printer_ip")
+        .toString());
+    PalletStickerPort = settings.value(
+        "perso_server/pallet_sticker_printer_port").toInt();
+  } else {
+    PrinterForPalletSticker =
+      settings.value("perso_server/pallet_sticker_printer").toString();
+  }
+#else
   PrinterForBoxSticker =
       settings.value("perso_server/box_sticker_printer").toString();
   PrinterForPalletSticker =
       settings.value("perso_server/pallet_sticker_printer").toString();
+#endif /* __linux__ */
 }
 
 void PersoServer::sendLog(const QString& log) const {
@@ -280,11 +309,26 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 }
 
 void PersoServer::createStickerPrinters() {
+#ifdef __linux__
+  if (!BoxStickerIP.isNull())
+    BoxStickerPrinter = new TE310Printer(this, BoxStickerIP, BoxStickerPort);
+  else
+    BoxStickerPrinter = new TE310Printer(this, PrinterForBoxSticker);
+#else
   BoxStickerPrinter = new TE310Printer(this, PrinterForBoxSticker);
+#endif /* __linux__ */
   connect(BoxStickerPrinter, &IStickerPrinter::logging, LogSystem::instance(),
           &LogSystem::generate);
 
+#ifdef __linux__
+  if (!PalletStickerIP.isNull())
+    PalletStickerPrinter = new TE310Printer(this, PalletStickerIP,
+        PalletStickerPort);
+  else
+    PalletStickerPrinter = new TE310Printer(this, PrinterForPalletSticker);
+#else
   PalletStickerPrinter = new TE310Printer(this, PrinterForPalletSticker);
+#endif /* __linux__ */
   connect(PalletStickerPrinter, &IStickerPrinter::logging,
           LogSystem::instance(), &LogSystem::generate);
 }

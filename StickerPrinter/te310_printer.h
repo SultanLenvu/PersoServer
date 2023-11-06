@@ -2,6 +2,7 @@
 #define TE310PRINTER_H
 
 #include <QHostInfo>
+#include <QHostAddress>
 
 #include "General/definitions.h"
 #include "isticker_printer.h"
@@ -15,9 +16,16 @@ class TE310Printer : public IStickerPrinter {
   typedef int (*TscOpenPort)(const char*);
   typedef int (*TscSendCommand)(const char*);
   typedef int (*TscClosePort)(void);
+#ifdef __linux__
+  typedef int (*TscOpenEthernet)(const char*, int);
+#endif /* __linux__ */
 
  private:
   bool LogEnable;
+#ifdef __linux__
+  QHostAddress IPAddress;
+  int Port;
+#endif /* __linux__ */
 
   QString TscLibPath;
   QLibrary* TscLib;
@@ -31,9 +39,15 @@ class TE310Printer : public IStickerPrinter {
   TscOpenPort openPort;
   TscSendCommand sendCommand;
   TscClosePort closePort;
+#ifdef __linux__
+  TscOpenEthernet openEthernet;
+#endif /* __linux__ */
 
  public:
   explicit TE310Printer(QObject* parent, const QString& name);
+#ifdef __linux__
+  explicit TE310Printer(QObject* parent, const QHostAddress& ip, int port);
+#endif /* __linux__ */
 
   virtual bool checkConfiguration(void) override;
 
@@ -60,6 +74,10 @@ class TE310Printer : public IStickerPrinter {
   bool loadTscLib(void);
   void printNkdSticker(const QHash<QString, QString>* parameters);
   void printZsdSticker(const QHash<QString, QString>* parameters);
+  bool checkConfigurationByName();
+#ifdef __linux__
+  bool checkConfigurationByAddress();
+#endif /* __linux__ */
 };
 
 #endif  // TE310PRINTER_H
