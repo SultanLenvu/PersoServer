@@ -4,7 +4,6 @@
 #include <QHostInfo>
 #include <QHostAddress>
 
-#include "General/definitions.h"
 #include "isticker_printer.h"
 
 class TE310Printer : public IStickerPrinter {

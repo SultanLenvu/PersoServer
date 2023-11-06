@@ -31,10 +31,11 @@ bool TE310Printer::checkConfiguration() {
     return false;
   }
 
-  if (!IPAddress.isNull())
-    return checkConfigurationByAddress();
-  else
-    return checkConfigurationByName();
+#ifdef __linux__
+  return checkConfigurationByAddress();
+#else
+  return checkConfigurationByName();
+#endif /* __linux__ */
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
@@ -100,10 +101,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
   sendLog(QString("Печать стикера для бокса %1.").arg(parameters->value("id")));
 
 #ifdef __linux__
-  if (!IPAddress.isNull())
-    openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  else
-    openPort(objectName().toUtf8().data());
+  openEthernet(IPAddress.toString().toUtf8().data(), Port);
 #else
   openPort(objectName().toUtf8().data());
 #endif /* __linux__ */
@@ -180,10 +178,7 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
       QString("Печать стикера для паллеты %1.").arg(parameters->value("id")));
 
 #ifdef __linux__
-  if (!IPAddress.isNull())
-    openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  else
-    openPort(objectName().toUtf8().data());
+  openEthernet(IPAddress.toString().toUtf8().data(), Port);
 #else
   openPort(objectName().toUtf8().data());
 #endif /* __linux__ */
@@ -251,10 +246,8 @@ IStickerPrinter::ReturnStatus TE310Printer::exec(
   }
 
 #ifdef __linux__
-  if (!IPAddress.isNull())
-    openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  else
-    openPort(objectName().toUtf8().data());
+  openEthernet(IPAddress.toString().toUtf8().data(), Port);
+  openPort(objectName().toUtf8().data());
 #else
   openPort(objectName().toUtf8().data());
 #endif /* __linux__ */
@@ -270,7 +263,6 @@ void TE310Printer::applySetting() {
   sendLog("Применение новых настроек.");
 
   loadSetting();
-  checkConfiguration();
 }
 
 void TE310Printer::loadSetting() {
@@ -311,10 +303,7 @@ bool TE310Printer::loadTscLib() {
 
 void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
 #ifdef __linux__
-  if (!IPAddress.isNull())
-    openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  else
-    openPort(objectName().toUtf8().data());
+  openEthernet(IPAddress.toString().toUtf8().data(), Port);
 #else
   openPort(objectName().toUtf8().data());
 #endif /* __linux__ */
@@ -342,10 +331,7 @@ void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
 
 void TE310Printer::printZsdSticker(const QHash<QString, QString>* parameters) {
 #ifdef __linux__
-  if (!IPAddress.isNull())
-    openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  else
-    openPort(objectName().toUtf8().data());
+  openEthernet(IPAddress.toString().toUtf8().data(), Port);
 #else
   openPort(objectName().toUtf8().data());
 #endif /* __linux__ */
@@ -390,7 +376,7 @@ bool TE310Printer::checkConfigurationByName() {
 
 #ifdef __linux__
 bool TE310Printer::checkConfigurationByAddress() {
-  int result = openEthernet(IPAddress.toString().toUtf8().data(), Port);
+  int32_t result = openEthernet(IPAddress.toString().toUtf8().data(), Port);
   if (result == 0) {
     sendLog("Не доступен.");
     return false;

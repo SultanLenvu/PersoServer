@@ -14,9 +14,7 @@
 #include <QtPrintSupport/QPrinterInfo>
 #include <QHostAddress>
 
-#include "Log/log_system.h"
 #include "Management/transponder_release_system.h"
-#include "Management/transponder_seed.h"
 #include "StickerPrinter/isticker_printer.h"
 #include "StickerPrinter/te310_printer.h"
 #include "perso_client_connection.h"
@@ -54,13 +52,13 @@ class PersoServer : public QTcpServer {
   TransponderReleaseSystem* Releaser;
   QThread* ReleaserThread;
 
-  QString PrinterForBoxSticker;
-  QString PrinterForPalletSticker;
+  QString BoxStickerPrinterName;
+  QString PalletStickerPrinterName;
 #ifdef __linux__
-  QHostAddress BoxStickerIP;
-  int BoxStickerPort;
-  QHostAddress PalletStickerIP;
-  int PalletStickerPort;
+  QHostAddress BoxStickerPrinterIP;
+  int32_t BoxStickerPrinterPort;
+  QHostAddress PalletStickerPrinterIP;
+  int32_t PalletStickerPrinterPort;
 #endif /* __linux__ */
   IStickerPrinter* BoxStickerPrinter;
   IStickerPrinter* PalletStickerPrinter;
