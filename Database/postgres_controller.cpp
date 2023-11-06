@@ -689,7 +689,8 @@ void PostgresController::loadSettings() {
   // Загружаем настройки
   QSettings settings;
 
-  HostAddress = settings.value("postgres_controller/server_ip").toString();
+  HostAddress = QHostAddress(
+      settings.value("postgres_controller/server_ip").toString());
   Port = settings.value("postgres_controller/server_port").toInt();
   DatabaseName = settings.value("postgres_controller/database_name").toString();
   UserName = settings.value("postgres_controller/user_name").toString();

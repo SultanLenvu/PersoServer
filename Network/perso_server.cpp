@@ -125,7 +125,8 @@ void PersoServer::loadSettings() {
   MaxNumberClientConnections =
       settings.value("perso_server/max_number_client_connection").toInt();
 
-  ListeningAddress = settings.value("perso_server/listen_ip").toString();
+  ListeningAddress = QHostAddress(
+      settings.value("perso_server/listen_ip").toString());
   ListeningPort = settings.value("perso_server/listen_port").toInt();
 
 #ifdef __linux__
