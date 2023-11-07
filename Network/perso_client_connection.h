@@ -78,8 +78,13 @@ public:
 public slots:
   void instanceTesting(void);
 
+<<<<<<< HEAD
+ private:
+  Q_DISABLE_COPY_MOVE(PersoClientConnection);
+=======
 private:
   Q_DISABLE_COPY(PersoClientConnection)
+>>>>>>> 9fbbefbab1fc8348f32cc9db90ad12530473e4e6
   void loadSettings(void);
   void sendLog(const QString& log);
 

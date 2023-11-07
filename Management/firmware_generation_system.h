@@ -76,7 +76,7 @@ class FirmwareGenerationSystem : public QObject {
                 QByteArray* assembledFirmware);
 
  private:
-  Q_DISABLE_COPY(FirmwareGenerationSystem);
+  Q_DISABLE_COPY_MOVE(FirmwareGenerationSystem);
   void loadSettings(void);
   void sendLog(const QString& log) const;
   void createPositionMap(void);

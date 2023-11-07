@@ -19,7 +19,7 @@ class ConsolerLogBackend : public LogBackend {
   virtual void clear() override;
 
  private:
-  Q_DISABLE_COPY(ConsolerLogBackend);
+  Q_DISABLE_COPY_MOVE(ConsolerLogBackend);
   void loadSettings(void);
 };
 

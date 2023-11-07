@@ -2,22 +2,47 @@
 #define DATABASECONTROLLER_H
 
 #include <QAbstractTableModel>
+#include <QHash>
+#include <QHostAddress>
 #include <QObject>
+#include <QScopedPointer>
 #include <QSettings>
 #include <QStringList>
 #include <QVector>
+#include <QtSql>
 
-#include "General/definitions.h"
 #include "database_table_model.h"
 
 class IDatabaseController : public QObject {
   Q_OBJECT
-
  protected:
   bool LogEnable;
 
+  std::vector<QString> Tables;
+  std::unordered_map<std::pair<QString, QString>, std::pair<QString, QString>>
+      ForeignKeys;
+
+  Qt::SortOrder CurrentOrder;
+  uint32_t RecordsLimit;
+
  public:
   explicit IDatabaseController(QObject* parent);
+  virtual ~IDatabaseController();
+
+  void clearTables(void);
+  void addTable(const QString& name);
+
+  void clearForeignKeys(void);
+  void addForeignKeys(const QString& table1,
+                      const QString& foreignKey,
+                      const QString& table2,
+                      const QString& primaryKey);
+
+  Qt::SortOrder getCurrentOrder() const;
+  void setCurrentOrder(Qt::SortOrder newCurrentOrder);
+
+  uint32_t getRecordsLimit() const;
+  void setRecordsLimit(uint32_t newRecordsLimit);
 
   virtual bool connect(void) = 0;
   virtual void disconnect(void) = 0;
@@ -50,6 +75,11 @@ class IDatabaseController : public QObject {
   virtual bool getMergedRecordByPart(const QStringList& tables,
                                      const QStringList& foreignKeys,
                                      QHash<QString, QString>& record) const = 0;
+  //  virtual bool getAllMergedRecords(
+  //      const QStringList& tableNames,
+  //      const QStringList& foreignKeys,
+  //      const QHash<QString, QString>& searchValue,
+  //      QVector<QScopedPointer<QHash<QString, QString>>>& records) const = 0;
 
   virtual bool updateRecordById(const QString& tableName,
                                 QHash<QString, QString>& record) const = 0;
@@ -66,10 +96,10 @@ class IDatabaseController : public QObject {
   void sendLog(const QString& log) const;
 
  private:
-  Q_DISABLE_COPY(IDatabaseController);
+  Q_DISABLE_COPY_MOVE(IDatabaseController)
 
  signals:
-  void logging(const QString& log) const;
+  void logging(const QString& log);
   void disconnected(void);
 };
 

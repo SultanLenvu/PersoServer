@@ -29,7 +29,7 @@ class FileLogBackend : public LogBackend {
   virtual void clear() override;
 
  private:
-  Q_DISABLE_COPY(FileLogBackend);
+  Q_DISABLE_COPY_MOVE(FileLogBackend);
   void loadSettings(void);
   void initialize();
   void removeOldestLogFiles(void);

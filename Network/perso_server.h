@@ -78,7 +78,7 @@ class PersoServer : public QTcpServer {
   virtual void incomingConnection(qintptr socketDescriptor) override;
 
  private:
-  Q_DISABLE_COPY(PersoServer);
+  Q_DISABLE_COPY_MOVE(PersoServer);
   void loadSettings(void);
   void sendLog(const QString& log) const;
 

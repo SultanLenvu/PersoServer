@@ -1,4 +1,5 @@
 #include "postgres_controller.h"
+#include "General/definitions.h"
 
 PostgresController::PostgresController(QObject* parent,
                                        const QString& connectionName)
@@ -492,6 +493,68 @@ bool PostgresController::getMergedRecordByPart(
   }
 }
 
+bool PostgresController::getAllMergedRecords(
+    const QStringList& tableNames,
+    const QStringList& foreignKeys,
+    const QHash<QString, QString>& searchValue,
+    std::vector<std::unique_ptr<QHash<QString, QString>>>& records) const {
+  // Проверка соединения
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog(
+        QString("Соединение с Postgres не установлено. Ошибка: %1.")
+            .arg(QSqlDatabase::database(ConnectionName).lastError().text()));
+    return false;
+  }
+
+  // Создаем запрос
+  QString requestText = QString("SELECT ");
+  for (QHash<QString, QString>::const_iterator it = searchValue.constBegin();
+       it != searchValue.constEnd(); it++) {
+    requestText += QString("%1, ").arg(it.key());
+  }
+
+  requestText.chop(2);
+  requestText += QString(" FROM public.%1 ").arg(tableNames.first());
+  for (int32_t i = 0; i < searchValue.size() - 1; i++) {
+    requestText +=
+        QString("JOIN %1 ON %2.%3 = %1.id ")
+            .arg(tableNames.at(i + 1), foreignKeys.at(i), foreignKeys.at(i));
+  }
+
+  requestText += "WHERE ";
+  bool flag = false;
+  for (QHash<QString, QString>::const_iterator it = searchValue.constBegin();
+       it != searchValue.constEnd(); it++) {
+    if (it.value().size() > 0) {
+      flag = true;
+      requestText += QString("%1 = '%2' AND ").arg(it.key(), it.value());
+    }
+  }
+  if (flag) {
+    requestText.chop(4);
+  }
+  requestText +=
+      QString(" ORDER BY %1.id ASC LIMIT 1;").arg(tableNames.first());
+
+  // Выполняем запрос
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  if (request.exec(requestText)) {
+    sendLog("Запрос выполнен. ");
+    if (request.next()) {
+      sendLog("Ответные данные получены. ");
+      convertResponseToTable(request, records);
+    } else {
+      records.clear();
+      sendLog("Ответные данные не получены. ");
+    }
+    return true;
+  } else {  // Обработка ошибки выполнения запроса
+    sendLog(request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
+    return false;
+  }
+}
+
 bool PostgresController::updateRecordById(
     const QString& tableName,
     QHash<QString, QString>& record) const {
@@ -689,8 +752,8 @@ void PostgresController::loadSettings() {
   // Загружаем настройки
   QSettings settings;
 
-  HostAddress = QHostAddress(
-      settings.value("postgres_controller/server_ip").toString());
+  HostAddress =
+      QHostAddress(settings.value("postgres_controller/server_ip").toString());
   Port = settings.value("postgres_controller/server_port").toInt();
   DatabaseName = settings.value("postgres_controller/database_name").toString();
   UserName = settings.value("postgres_controller/user_name").toString();
@@ -748,5 +811,21 @@ void PostgresController::convertResponseToHash(
   record.clear();
   for (int32_t i = 0; i < request.record().count(); i++) {
     record.insert(request.record().fieldName(i), request.value(i).toString());
+  }
+}
+
+void PostgresController::convertResponseToTable(
+    QSqlQuery& request,
+    std::vector<std::unique_ptr<QHash<QString, QString>>>& table) const {
+  std::unique_ptr<QHash<QString, QString>> ptr;
+  table.clear();
+  table.resize(request.size());
+  for (int32_t j = 0; j < request.size(); j++) {
+    ptr = std::make_unique<QHash<QString, QString>>();
+    table.push_back(std::move(ptr));
+    for (int32_t j = 0; j < request.record().count(); j++) {
+      table.back()->insert(request.record().fieldName(j),
+                           request.value(j).toString());
+    }
   }
 }

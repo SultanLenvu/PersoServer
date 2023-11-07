@@ -22,7 +22,7 @@ class UdpLogBackend : public LogBackend {
   virtual void clear() override;
 
  private:
-  Q_DISABLE_COPY(UdpLogBackend);
+  Q_DISABLE_COPY_MOVE(UdpLogBackend);
   void loadSettings(void);
 };
 

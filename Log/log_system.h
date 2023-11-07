@@ -37,7 +37,7 @@ class LogSystem : public QObject {
 
  private:
   LogSystem(QObject* parent);
-  Q_DISABLE_COPY(LogSystem)
+  Q_DISABLE_COPY_MOVE(LogSystem)
   void loadSettings(void);
 };
 

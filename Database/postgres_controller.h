@@ -1,10 +1,6 @@
 #ifndef POSTGRESCONTROLLER_H
 #define POSTGRESCONTROLLER_H
 
-#include <QHash>
-#include <QHostAddress>
-#include <QtSql>
-
 #include "database_controller.h"
 
 class PostgresController : public IDatabaseController {
@@ -59,6 +55,12 @@ class PostgresController : public IDatabaseController {
       const QStringList& foreignKeys,
       QHash<QString, QString>& record) const override;
 
+  bool getAllMergedRecords(
+      const QStringList& tableNames,
+      const QStringList& foreignKeys,
+      const QHash<QString, QString>& searchValue,
+      std::vector<std::unique_ptr<QHash<QString, QString>>>& records) const;
+
   virtual bool updateRecordById(const QString& tableName,
                                 QHash<QString, QString>& record) const override;
   bool updateAllRecordsByPart(const QString& tableName,
@@ -74,13 +76,16 @@ class PostgresController : public IDatabaseController {
   virtual void applySettings() override;
 
  private:
-  Q_DISABLE_COPY(PostgresController);
+  Q_DISABLE_COPY_MOVE(PostgresController);
   void loadSettings(void);
   void createDatabaseConnection(void);
   void convertResponseToBuffer(QSqlQuery& request,
                                DatabaseTableModel* buffer) const;
   void convertResponseToHash(QSqlQuery& request,
                              QHash<QString, QString>& record) const;
+  void convertResponseToTable(
+      QSqlQuery& request,
+      std::vector<std::unique_ptr<QHash<QString, QString>>>& table) const;
 };
 
 #endif  // POSTGRESCONTROLLER_H

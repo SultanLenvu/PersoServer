@@ -1,4 +1,7 @@
 #include "transponder_release_system.h"
+#include "Log/log_system.h"
+
+#include "General/definitions.h"
 
 TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
     : QObject(parent) {

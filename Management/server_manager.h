@@ -28,7 +28,7 @@ class ServerManager : public QObject {
   void start();
 
  private:
-  Q_DISABLE_COPY(ServerManager);
+  Q_DISABLE_COPY_MOVE(ServerManager);
   void loadSettings(void) const;
   void generateDefaultSettings(void) const;
 

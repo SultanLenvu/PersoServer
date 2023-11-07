@@ -1,5 +1,6 @@
 #include <QHostAddress>
 
+#include "Log/log_system.h"
 #include "perso_server.h"
 
 PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {
@@ -37,12 +38,12 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  //  sendLog("Проверка конфигурации");
-  //  if (!checkConfiguration()) {
-  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-  //    RestartTimer->start();
-  //    return false;
-  //  }
+  sendLog("Проверка конфигурации");
+  if (!checkConfiguration()) {
+    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+    RestartTimer->start();
+    return false;
+  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
@@ -125,8 +126,8 @@ void PersoServer::loadSettings() {
   MaxNumberClientConnections =
       settings.value("perso_server/max_number_client_connection").toInt();
 
-  ListeningAddress = QHostAddress(
-      settings.value("perso_server/listen_ip").toString());
+  ListeningAddress =
+      QHostAddress(settings.value("perso_server/listen_ip").toString());
   ListeningPort = settings.value("perso_server/listen_port").toInt();
 
 #ifdef __linux__
@@ -134,7 +135,8 @@ void PersoServer::loadSettings() {
     /* Prescense of box_sticker_printer_port is checked during validation */
     BoxStickerPrinterIP = QHostAddress(
         settings.value("perso_server/box_sticker_printer_ip").toString());
-    BoxStickerPrinterPort = settings.value("perso_server/box_sticker_printer_port").toInt();
+    BoxStickerPrinterPort =
+        settings.value("perso_server/box_sticker_printer_port").toInt();
   }
 
   if (settings.contains("perso_server/pallet_sticker_printer_ip")) {
@@ -143,11 +145,14 @@ void PersoServer::loadSettings() {
      */
     PalletStickerPrinterIP = QHostAddress(
         settings.value("perso_server/pallet_sticker_printer_ip").toString());
-    PalletStickerPrinterPort = settings.value("perso_server/pallet_sticker_printer_port").toInt();
+    PalletStickerPrinterPort =
+        settings.value("perso_server/pallet_sticker_printer_port").toInt();
   }
 #else
-  BoxStickerPrinterName = settings.value("perso_server/box_sticker_printer_name").toString();
-  PalletStickerPrinterName = settings.value("perso_server/pallet_sticker_printer_name").toString();
+  BoxStickerPrinterName =
+      settings.value("perso_server/box_sticker_printer_name").toString();
+  PalletStickerPrinterName =
+      settings.value("perso_server/pallet_sticker_printer_name").toString();
 #endif /* __linux__ */
 }
 
@@ -300,7 +305,8 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
 void PersoServer::createStickerPrinters() {
 #ifdef __linux__
-  BoxStickerPrinter = new TE310Printer(this, BoxStickerPrinterIP, BoxStickerPrinterPort);
+  BoxStickerPrinter =
+      new TE310Printer(this, BoxStickerPrinterIP, BoxStickerPrinterPort);
 #else
   BoxStickerPrinter = new TE310Printer(this, BoxStickerPrinterName);
 #endif /* __linux__ */
@@ -308,7 +314,8 @@ void PersoServer::createStickerPrinters() {
           &LogSystem::generate);
 
 #ifdef __linux__
-  PalletStickerPrinter = new TE310Printer(this, PalletStickerPrinterIP, PalletStickerPrinterPort);
+  PalletStickerPrinter =
+      new TE310Printer(this, PalletStickerPrinterIP, PalletStickerPrinterPort);
 #else
   PalletStickerPrinter = new TE310Printer(this, PalletStickerPrinterName);
 #endif /* __linux__ */
