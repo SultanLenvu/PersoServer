@@ -12,6 +12,8 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     Database/database_controller.cpp Database/database_controller.h
     Database/database_table_model.cpp Database/database_table_model.h
     Database/postgres_controller.cpp Database/postgres_controller.h
+
+
     General/definitions.h
     Log/console_log_backend.cpp Log/console_log_backend.h
     Log/file_log_backend.cpp Log/file_log_backend.h

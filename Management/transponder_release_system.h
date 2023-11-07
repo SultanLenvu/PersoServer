@@ -13,15 +13,17 @@
 #include "Log/log_system.h"
 #include "StickerPrinter/isticker_printer.h"
 
-class TransponderReleaseSystem : public QObject {
+class TransponderReleaseSystem : public QObject
+{
   Q_OBJECT
 
- public:
+public:
   enum ReturnStatus {
     DatabaseQueryError,
     DatabaseTransactionError,
     DatabaseConnectionError,
     TransponderNotFound,
+    FreeBoxMissed,
     TransponderNotReleasedEarlier,
     AwaitingConfirmationError,
     IdenticalUcidError,
@@ -38,9 +40,9 @@ class TransponderReleaseSystem : public QObject {
     StartPalletAssemblingError,
     Completed,
   };
-  Q_ENUM(ReturnStatus);
+  Q_ENUM(ReturnStatus)
 
- private:
+private:
   bool LogEnable;
   uint32_t CheckPeriod;
   QTimer* CheckTimer;
@@ -58,49 +60,45 @@ class TransponderReleaseSystem : public QObject {
 
   QMutex Mutex;
 
- public:
+public:
   explicit TransponderReleaseSystem(QObject* parent);
   ~TransponderReleaseSystem();
 
- public slots:
-  void on_InstanceThreadStarted_slot(void);
+public slots:
+  void instanceThreadStarted_slot(void);
 
   void start(ReturnStatus* status);
   void stop(void);
 
-  void authorize(const QHash<QString, QString>* parameters,
-                 ReturnStatus* status);
+  void authorize(const QHash<QString, QString>* parameters, ReturnStatus* status);
   void release(const QHash<QString, QString>* parameters,
-               QHash<QString, QString>* seed,
-               QHash<QString, QString>* data,
-               ReturnStatus* status);
-  void confirmRelease(const QHash<QString, QString>* parameters,
-                      ReturnStatus* status);
+	       QHash<QString, QString>* seed,
+	       QHash<QString, QString>* data,
+	       ReturnStatus* status);
+  void confirmRelease(const QHash<QString, QString>* parameters, ReturnStatus* status);
   void rerelease(const QHash<QString, QString>* parameters,
-                 QHash<QString, QString>* seed,
-                 QHash<QString, QString>* data,
-                 ReturnStatus* status);
-  void confirmRerelease(const QHash<QString, QString>* parameters,
-                        ReturnStatus* status);
+		 QHash<QString, QString>* seed,
+		 QHash<QString, QString>* data,
+		 ReturnStatus* status);
+  void confirmRerelease(const QHash<QString, QString>* parameters, ReturnStatus* status);
   void search(const QHash<QString, QString>* parameters,
-              QHash<QString, QString>* data,
-              ReturnStatus* status);
+	      QHash<QString, QString>* data,
+	      ReturnStatus* status);
 
-  void rollbackProductionLine(const QHash<QString, QString>* parameters,
-                              ReturnStatus* status);
+  void rollbackProductionLine(const QHash<QString, QString>* parameters, ReturnStatus* status);
 
   void getBoxData(const QHash<QString, QString>* parameters,
-                  QHash<QString, QString>* data,
-                  ReturnStatus* status);
+		  QHash<QString, QString>* data,
+		  ReturnStatus* status);
   void getPalletData(const QHash<QString, QString>* parameters,
-                     QHash<QString, QString>* data,
-                     ReturnStatus* status);
+		     QHash<QString, QString>* data,
+		     ReturnStatus* status);
 
- private:
-  Q_DISABLE_COPY(TransponderReleaseSystem);
+private:
+  Q_DISABLE_COPY(TransponderReleaseSystem)
   void createDatabaseController(void);
   void loadSettings(void);
-  void sendLog(const QString& log) const;
+  void sendLog(const QString& log);
   void createCheckTimer(void);
 
   ReturnStatus getCurrentContext(const QHash<QString, QString>* initData);
@@ -124,21 +122,21 @@ class TransponderReleaseSystem : public QObject {
 
   QString generateTransponderSerialNumber(const QString& id) const;
 
- private slots:
+private slots:
   void on_CheckTimerTemeout(void);
 
- signals:
-  void logging(const QString& log) const;
+signals:
+  void logging(const QString& log);
 
   void operationFinished();
   void failed(ReturnStatus status);
 
   void boxAssemblingFinished(const QHash<QString, QString>* data,
-                             IStickerPrinter::ReturnStatus* status) const;
+			     IStickerPrinter::ReturnStatus* status);
   void palletAssemblingFinished(const QHash<QString, QString>* data,
-                                IStickerPrinter::ReturnStatus* status) const;
+				IStickerPrinter::ReturnStatus* status);
   void orderAssemblingFinished(const QHash<QString, QString>* data,
-                               IStickerPrinter::ReturnStatus* status) const;
+			       IStickerPrinter::ReturnStatus* status);
 };
 
 #endif // TRANSPONDERRELEASESYSTEM_H

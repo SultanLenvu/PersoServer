@@ -208,7 +208,7 @@ void PersoServer::createReleaserInstance() {
   connect(ReleaserThread, &QThread::finished, Releaser,
           &PersoClientConnection::deleteLater);
   connect(ReleaserThread, &QThread::started, Releaser,
-          &TransponderReleaseSystem::on_InstanceThreadStarted_slot);
+          &TransponderReleaseSystem::instanceThreadStarted_slot);
 
   // Запускаем поток
   ReleaserThread->start();

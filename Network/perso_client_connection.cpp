@@ -1,7 +1,7 @@
 #include "perso_client_connection.h"
 
-PersoClientConnection::PersoClientConnection(uint32_t id,
-                                             qintptr socketDescriptor) {
+PersoClientConnection::PersoClientConnection(uint32_t id, qintptr socketDescriptor)
+{
   setObjectName("PersoClientConnection");
   Id = id;
 
@@ -29,46 +29,49 @@ PersoClientConnection::PersoClientConnection(uint32_t id,
   createServerStatusMatchTable();
 }
 
-PersoClientConnection::~PersoClientConnection() {
+PersoClientConnection::~PersoClientConnection()
+{
   sendLog(QString("Клиент %1 удален. ").arg(QString::number(Id)));
 }
 
-uint32_t PersoClientConnection::getId() const {
+uint32_t PersoClientConnection::getId() const
+{
   return Id;
 }
 
-void PersoClientConnection::instanceTesting() {
+void PersoClientConnection::instanceTesting()
+{
   if (thread() != QCoreApplication::instance()->thread())
     sendLog("Отдельный поток выделен. ");
   else
     sendLog("Отдельный поток не выделен. ");
 }
 
-void PersoClientConnection::loadSettings() {
+void PersoClientConnection::loadSettings()
+{
   QSettings settings;
 
   LogEnable = settings.value("log_system/global_enable").toBool();
   ExtendedLogEnable = settings.value("log_system/extended_enable").toBool();
 
-  MaximumConnectionTime =
-      settings.value("perso_client/connection_max_duration").toInt();
+  MaximumConnectionTime = settings.value("perso_client/connection_max_duration").toInt();
 }
 
-void PersoClientConnection::sendLog(const QString& log) const {
+void PersoClientConnection::sendLog(const QString& log)
+{
   if (LogEnable) {
     emit logging("PersoClientConnection - " + log);
   }
 }
 
-void PersoClientConnection::createTransmittedDataBlock() {
+void PersoClientConnection::createTransmittedDataBlock()
+{
   QJsonDocument responseDocument(CurrentResponse);
 
   sendLog("Формирование блока данных для ответа на команду. ");
-  sendLog(QString("Размер ответа: %1.")
-              .arg(QString::number(responseDocument.toJson().size())));
+  sendLog(QString("Размер ответа: %1.").arg(QString::number(responseDocument.toJson().size())));
   if (ExtendedLogEnable == true) {
-    sendLog(QString("Содержание ответа: %1")
-                .arg(QString(responseDocument.toJson())));
+    sendLog(QString("Содержание ответа: %1").arg(QString(responseDocument.toJson())));
   }
 
   // Инициализируем блок данных и сериализатор
@@ -82,7 +85,8 @@ void PersoClientConnection::createTransmittedDataBlock() {
   serializator << uint32_t(TransmittedDataBlock.size() - sizeof(uint32_t));
 }
 
-void PersoClientConnection::transmitDataBlock() {
+void PersoClientConnection::transmitDataBlock()
+{
   // Если размер блок не превышает максимального размера данных для единоразовой
   // передачи
   if (TransmittedDataBlock.size() < ONETIME_TRANSMIT_DATA_SIZE) {
@@ -92,16 +96,15 @@ void PersoClientConnection::transmitDataBlock() {
   }
 
   // В противном случае дробим блок данных на части и последовательно отправляем
-  for (int32_t i = 0; i < TransmittedDataBlock.size();
-       i += ONETIME_TRANSMIT_DATA_SIZE) {
+  for (int32_t i = 0; i < TransmittedDataBlock.size(); i += ONETIME_TRANSMIT_DATA_SIZE) {
     Socket->write(TransmittedDataBlock.mid(i, ONETIME_TRANSMIT_DATA_SIZE));
   }
 }
 
-void PersoClientConnection::processReceivedDataBlock(void) {
+void PersoClientConnection::processReceivedDataBlock(void)
+{
   QJsonParseError status;
-  QJsonDocument requestDocument =
-      QJsonDocument::fromJson(ReceivedDataBlock, &status);
+  QJsonDocument requestDocument = QJsonDocument::fromJson(ReceivedDataBlock, &status);
 
   // Если пришел некорректный JSON
   if (status.error != QJsonParseError::NoError) {
@@ -122,20 +125,17 @@ void PersoClientConnection::processReceivedDataBlock(void) {
   // Проверка имени команды
   if (!CommandHandlers.value(CurrentCommand.value("command_name").toString())) {
     sendLog(QString("Получена неизвестная команда: %1. ")
-                .arg(CurrentCommand.value("command_name").toString()));
+		.arg(CurrentCommand.value("command_name").toString()));
     return;
   }
 
   // Заголовок ответа на команду
-  sendLog(QString("Получена команда: %1. ")
-              .arg(CurrentCommand.value("command_name").toString()));
-  CurrentResponse["response_name"] =
-      CurrentCommand.value("command_name").toString();
+  sendLog(QString("Получена команда: %1. ").arg(CurrentCommand.value("command_name").toString()));
+  CurrentResponse["response_name"] = CurrentCommand.value("command_name").toString();
 
   // Синтаксическая проверка команды
-  QVector<QString>* currentTemplate =
-      CommandTemplates.value(CurrentCommand.value("command_name").toString())
-          .get();
+  QVector<QString>* currentTemplate
+      = CommandTemplates.value(CurrentCommand.value("command_name").toString()).get();
   QVector<QString>::iterator it;
   for (it = currentTemplate->begin(); it != currentTemplate->end(); it++) {
     if (!CurrentCommand.contains(*it)) {
@@ -145,18 +145,19 @@ void PersoClientConnection::processReceivedDataBlock(void) {
   }
 
   // Вызов обработчика
-  (this->*CommandHandlers.value(
-              CurrentCommand.value("command_name").toString()))();
+  (this->*CommandHandlers.value(CurrentCommand.value("command_name").toString()))();
 }
 
-void PersoClientConnection::processSyntaxError() {
+void PersoClientConnection::processSyntaxError()
+{
   sendLog(QString("Получена синтаксическая ошибка в команде '%1'. ")
-              .arg(CurrentCommand.value("command_name").toString()));
+	      .arg(CurrentCommand.value("command_name").toString()));
 
   CurrentResponse["return_status"] = QString::number(CommandSyntaxError);
 }
 
-void PersoClientConnection::processEcho() {
+void PersoClientConnection::processEcho()
+{
   sendLog("Выполнение команды Echo. ");
 
   // Формирование ответа
@@ -164,16 +165,15 @@ void PersoClientConnection::processEcho() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processAuthorization() {
+void PersoClientConnection::processAuthorization()
+{
   sendLog("Выполнение команды authorization. ");
   QHash<QString, QString> authorizationParameters;
   TransponderReleaseSystem::ReturnStatus ret;
 
   // Логика
-  authorizationParameters.insert("login",
-                                 CurrentCommand.value("login").toString());
-  authorizationParameters.insert("password",
-                                 CurrentCommand.value("password").toString());
+  authorizationParameters.insert("login", CurrentCommand.value("login").toString());
+  authorizationParameters.insert("password", CurrentCommand.value("password").toString());
   emit authorize_signal(&authorizationParameters, &ret);
 
   CurrentResponse["return_status"] = QString::number(ret);
@@ -190,7 +190,8 @@ void PersoClientConnection::processAuthorization() {
   //  CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processTransponderRelease() {
+void PersoClientConnection::processTransponderRelease()
+{
   sendLog("Выполнение команды transponder_release. ");
   QHash<QString, QString> releaseParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -199,14 +200,12 @@ void PersoClientConnection::processTransponderRelease() {
 
   // Выпуск транспондера
   releaseParameters.insert("login", CurrentCommand.value("login").toString());
-  releaseParameters.insert("password",
-                           CurrentCommand.value("password").toString());
+  releaseParameters.insert("password", CurrentCommand.value("password").toString());
   emit release_signal(&releaseParameters, &seed, &data, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при выпуске транспондера. ");
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(ret));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(ret));
     return;
   }
 
@@ -224,29 +223,29 @@ void PersoClientConnection::processTransponderRelease() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processTransponderReleaseConfirm() {
+void PersoClientConnection::processTransponderReleaseConfirm()
+{
   sendLog("Выполнение команды transponder_release_confirm. ");
   QHash<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret;
 
   // Подтверждение выпуска транспондера
   confirmParameters.insert("login", CurrentCommand.value("login").toString());
-  confirmParameters.insert("password",
-                           CurrentCommand.value("password").toString());
+  confirmParameters.insert("password", CurrentCommand.value("password").toString());
   confirmParameters.insert("ucid", CurrentCommand.value("ucid").toString());
   emit confirmRelease_signal(&confirmParameters, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при подтверждении выпуска транспондера. ");
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(ret));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(ret));
     return;
   }
 
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processTransponderRerelease() {
+void PersoClientConnection::processTransponderRerelease()
+{
   sendLog("Выполнение команды transponder_rerelease. ");
   QHash<QString, QString> rereleaseParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -254,16 +253,15 @@ void PersoClientConnection::processTransponderRerelease() {
   QHash<QString, QString> data;
 
   // Перевыпуск транспондера
-  rereleaseParameters.insert(
-      "personal_account_number",
-      CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
-                                                           QChar('F')));
+  rereleaseParameters
+      .insert("personal_account_number",
+	      CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
+								   QChar('F')));
   emit rerelease_signal(&rereleaseParameters, &seed, &data, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при перевыпуске транспондера. ");
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(ret));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(ret));
     return;
   }
 
@@ -281,29 +279,30 @@ void PersoClientConnection::processTransponderRerelease() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processTransponderRereleaseConfirm() {
+void PersoClientConnection::processTransponderRereleaseConfirm()
+{
   sendLog("Выполнение команды transponder_rerelease_confirm. ");
   QHash<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret;
 
   // Подтверждение перевыпуска транспондера
   confirmParameters.insert("personal_account_number",
-                           CurrentCommand.value("pan").toString().leftJustified(
-                               FULL_PAN_CHAR_LENGTH, QChar('F')));
+			   CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
+										QChar('F')));
   confirmParameters.insert("ucid", CurrentCommand.value("ucid").toString());
   emit confirmRerelease_signal(&confirmParameters, &ret);
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при подтверждении перевыпуска транспондера. ");
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(ret));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(ret));
     return;
   }
 
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processProductionLineRollback() {
+void PersoClientConnection::processProductionLineRollback()
+{
   sendLog("Выполнение команды production_line_rollback. ");
   TransponderReleaseSystem::ReturnStatus ret;
 
@@ -316,15 +315,15 @@ void PersoClientConnection::processProductionLineRollback() {
 
   if (ret != TransponderReleaseSystem::Completed) {
     sendLog("Получена ошибка при откате производственной линии. ");
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(ret));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(ret));
     return;
   }
 
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processPrintBoxSticker() {
+void PersoClientConnection::processPrintBoxSticker()
+{
   sendLog("Выполнение команды print_box_sticker. ");
 
   QHash<QString, QString> parameters;
@@ -332,14 +331,13 @@ void PersoClientConnection::processPrintBoxSticker() {
   IStickerPrinter::ReturnStatus printStatus;
   TransponderReleaseSystem::ReturnStatus trsStatus;
   parameters.insert("personal_account_number",
-                    CurrentCommand.value("pan").toString().leftJustified(
-                        FULL_PAN_CHAR_LENGTH, QChar('F')));
+		    CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
+									 QChar('F')));
 
   // Запрашиваем данные о боксе
   emit getBoxData_signal(&parameters, &boxData, &trsStatus);
   if (trsStatus != TransponderReleaseSystem::Completed) {
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(trsStatus));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(trsStatus));
     return;
   }
 
@@ -353,7 +351,8 @@ void PersoClientConnection::processPrintBoxSticker() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processPrintLastBoxSticker() {
+void PersoClientConnection::processPrintLastBoxSticker()
+{
   sendLog("Выполнение команды print_last_box_sticker. ");
 
   IStickerPrinter::ReturnStatus printStatus;
@@ -368,7 +367,8 @@ void PersoClientConnection::processPrintLastBoxSticker() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processPrintPalletSticker() {
+void PersoClientConnection::processPrintPalletSticker()
+{
   sendLog("Выполнение команды print_pallet_sticker. ");
 
   QHash<QString, QString> parameters;
@@ -376,14 +376,13 @@ void PersoClientConnection::processPrintPalletSticker() {
   IStickerPrinter::ReturnStatus printStatus;
   TransponderReleaseSystem::ReturnStatus trsStatus;
   parameters.insert("personal_account_number",
-                    CurrentCommand.value("pan").toString().leftJustified(
-                        FULL_PAN_CHAR_LENGTH, QChar('F')));
+		    CurrentCommand.value("pan").toString().leftJustified(FULL_PAN_CHAR_LENGTH,
+									 QChar('F')));
 
   // Запрашиваем данные о паллете
   emit getPalletData_signal(&parameters, &palletData, &trsStatus);
   if (trsStatus != TransponderReleaseSystem::Completed) {
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(trsStatus));
+    CurrentResponse["return_status"] = QString::number(ServerStatusMatchTable.value(trsStatus));
     return;
   }
 
@@ -397,7 +396,8 @@ void PersoClientConnection::processPrintPalletSticker() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::processPrintLastPalletSticker() {
+void PersoClientConnection::processPrintLastPalletSticker()
+{
   sendLog("Выполнение команды print_last_pallet_sticker. ");
 
   IStickerPrinter::ReturnStatus printStatus;
@@ -412,33 +412,35 @@ void PersoClientConnection::processPrintLastPalletSticker() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void PersoClientConnection::createSocket(qintptr socketDescriptor) {
+void PersoClientConnection::createSocket(qintptr socketDescriptor)
+{
   Socket = new QTcpSocket(this);
   Socket->setSocketDescriptor(socketDescriptor);
-  connect(Socket, &QTcpSocket::readyRead, this,
-          &PersoClientConnection::on_SocketReadyRead_slot);
-  connect(Socket, &QTcpSocket::disconnected, this,
-          &PersoClientConnection::on_SocketDisconnected_slot);
+  connect(Socket, &QTcpSocket::readyRead, this, &PersoClientConnection::socketReadyRead_slot);
+  connect(Socket, &QTcpSocket::disconnected, this, &PersoClientConnection::socketDisconnected_slot);
   connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(
-            &QTcpSocket::errorOccurred),
-          this, &PersoClientConnection::on_SocketError_slot);
+	  QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
+	  this,
+	  &PersoClientConnection::socketError_slot);
 }
 
-void PersoClientConnection::createExpirationTimer() {
+void PersoClientConnection::createExpirationTimer()
+{
   // Таймер для отсчета времени экспирации
   ExpirationTimer = new QTimer(this);
   ExpirationTimer->setInterval(MaximumConnectionTime);
   // Если время подключения вышло, то вызываем соответствующий обработчик
-  connect(ExpirationTimer, &QTimer::timeout, this,
-          &PersoClientConnection::on_ExpirationTimerTimeout_slot);
+  connect(ExpirationTimer,
+	  &QTimer::timeout,
+	  this,
+	  &PersoClientConnection::expirationTimerTimeout_slot);
   // Если время подключения вышло, то останавливаем таймер экспирации
   connect(ExpirationTimer, &QTimer::timeout, ExpirationTimer, &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер экспирации
   connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(
-            &QTcpSocket::errorOccurred),
-          ExpirationTimer, &QTimer::stop);
+	  QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
+	  ExpirationTimer,
+	  &QTimer::stop);
   // Если клиент отключился, то останавливаем таймер экспирации
   connect(Socket, &QTcpSocket::disconnected, ExpirationTimer, &QTimer::stop);
 
@@ -446,63 +448,64 @@ void PersoClientConnection::createExpirationTimer() {
   ExpirationTimer->start();
 }
 
-void PersoClientConnection::createDataBlockWaitTimer() {
+void PersoClientConnection::createDataBlockWaitTimer()
+{
   // Таймер ожидания для приема блоков данных по частям
   DataBlockWaitTimer = new QTimer(this);
   DataBlockWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
   // Если время ожидания вышло, то вызываем соответствующий обработчик
-  connect(DataBlockWaitTimer, &QTimer::timeout, this,
-          &PersoClientConnection::on_DataBlockWaitTimerTimeout_slot);
+  connect(DataBlockWaitTimer,
+	  &QTimer::timeout,
+	  this,
+	  &PersoClientConnection::dataBlockWaitTimerTimeout_slot);
   // Если время ожидания вышло, то останавливаем таймер ожидания
-  connect(DataBlockWaitTimer, &QTimer::timeout, DataBlockWaitTimer,
-          &QTimer::stop);
+  connect(DataBlockWaitTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
   // Если пришли данные, то останавливаем таймер ожидания
   connect(Socket, &QTcpSocket::readyRead, DataBlockWaitTimer, &QTimer::stop);
   // Если клиент отключился, то останавливаем таймер ожидания
   connect(Socket, &QTcpSocket::disconnected, DataBlockWaitTimer, &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер ожидания
   connect(Socket,
-          QOverload<QAbstractSocket::SocketError>::of(
-            &QTcpSocket::errorOccurred),
-          DataBlockWaitTimer, &QTimer::stop);
+	  QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
+	  DataBlockWaitTimer,
+	  &QTimer::stop);
   // Если время подключения вышло, то таймер ожидания останавливается
   connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
 }
 
-void PersoClientConnection::createGenerator() {
+void PersoClientConnection::createGenerator()
+{
   Generator = new FirmwareGenerationSystem(this);
 
-  connect(Generator, &FirmwareGenerationSystem::logging, LogSystem::instance(),
-          &LogSystem::generate);
+  connect(Generator,
+	  &FirmwareGenerationSystem::logging,
+	  LogSystem::instance(),
+	  &LogSystem::generate);
 }
 
-void PersoClientConnection::createCommandHandlers() {
+void PersoClientConnection::createCommandHandlers()
+{
   CommandHandlers.insert("echo", &PersoClientConnection::processEcho);
-  CommandHandlers.insert("authorization",
-                         &PersoClientConnection::processAuthorization);
-  CommandHandlers.insert("transponder_release",
-                         &PersoClientConnection::processTransponderRelease);
-  CommandHandlers.insert(
-      "transponder_release_confirm",
-      &PersoClientConnection::processTransponderReleaseConfirm);
+  CommandHandlers.insert("authorization", &PersoClientConnection::processAuthorization);
+  CommandHandlers.insert("transponder_release", &PersoClientConnection::processTransponderRelease);
+  CommandHandlers.insert("transponder_release_confirm",
+			 &PersoClientConnection::processTransponderReleaseConfirm);
   CommandHandlers.insert("transponder_rerelease",
-                         &PersoClientConnection::processTransponderRerelease);
-  CommandHandlers.insert(
-      "transponder_rerelease_confirm",
-      &PersoClientConnection::processTransponderRereleaseConfirm);
+			 &PersoClientConnection::processTransponderRerelease);
+  CommandHandlers.insert("transponder_rerelease_confirm",
+			 &PersoClientConnection::processTransponderRereleaseConfirm);
   CommandHandlers.insert("production_line_rollback",
-                         &PersoClientConnection::processProductionLineRollback);
-  CommandHandlers.insert("print_box_sticker",
-                         &PersoClientConnection::processPrintBoxSticker);
+			 &PersoClientConnection::processProductionLineRollback);
+  CommandHandlers.insert("print_box_sticker", &PersoClientConnection::processPrintBoxSticker);
   CommandHandlers.insert("print_last_box_sticker",
-                         &PersoClientConnection::processPrintLastBoxSticker);
-  CommandHandlers.insert("print_pallet_sticker",
-                         &PersoClientConnection::processPrintPalletSticker);
+			 &PersoClientConnection::processPrintLastBoxSticker);
+  CommandHandlers.insert("print_pallet_sticker", &PersoClientConnection::processPrintPalletSticker);
   CommandHandlers.insert("print_last_pallet_sticker",
-                         &PersoClientConnection::processPrintLastPalletSticker);
+			 &PersoClientConnection::processPrintLastPalletSticker);
 }
 
-void PersoClientConnection::createCommandTemplates() {
+void PersoClientConnection::createCommandTemplates()
+{
   QSharedPointer<QVector<QString>> echoSyntax(new QVector<QString>());
   echoSyntax->append("data");
   CommandTemplates.insert("echo", echoSyntax);
@@ -512,117 +515,93 @@ void PersoClientConnection::createCommandTemplates() {
   authorizationSyntax->append("password");
   CommandTemplates.insert("authorization", authorizationSyntax);
 
-  QSharedPointer<QVector<QString>> transponderReleaseSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> transponderReleaseSyntax(new QVector<QString>());
   transponderReleaseSyntax->append("login");
   transponderReleaseSyntax->append("password");
   CommandTemplates.insert("transponder_release", transponderReleaseSyntax);
 
-  QSharedPointer<QVector<QString>> transponderReleaseConfirmSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> transponderReleaseConfirmSyntax(new QVector<QString>());
   transponderReleaseConfirmSyntax->append("login");
   transponderReleaseConfirmSyntax->append("password");
   transponderReleaseConfirmSyntax->append("ucid");
-  CommandTemplates.insert("transponder_release_confirm",
-                          transponderReleaseConfirmSyntax);
+  CommandTemplates.insert("transponder_release_confirm", transponderReleaseConfirmSyntax);
 
-  QSharedPointer<QVector<QString>> transponderRereleaseSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> transponderRereleaseSyntax(new QVector<QString>());
   transponderRereleaseSyntax->append("pan");
   CommandTemplates.insert("transponder_rerelease", transponderRereleaseSyntax);
 
-  QSharedPointer<QVector<QString>> transponderRereleaseConfirmSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> transponderRereleaseConfirmSyntax(new QVector<QString>());
   transponderRereleaseConfirmSyntax->append("pan");
   transponderRereleaseConfirmSyntax->append("ucid");
-  CommandTemplates.insert("transponder_rerelease_confirm",
-                          transponderRereleaseConfirmSyntax);
+  CommandTemplates.insert("transponder_rerelease_confirm", transponderRereleaseConfirmSyntax);
 
-  QSharedPointer<QVector<QString>> productionLineRollbackSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> productionLineRollbackSyntax(new QVector<QString>());
   productionLineRollbackSyntax->append("login");
   productionLineRollbackSyntax->append("password");
-  CommandTemplates.insert("production_line_rollback",
-                          productionLineRollbackSyntax);
+  CommandTemplates.insert("production_line_rollback", productionLineRollbackSyntax);
 
-  QSharedPointer<QVector<QString>> printBoxStickerSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> printBoxStickerSyntax(new QVector<QString>());
   printBoxStickerSyntax->append("pan");
   CommandTemplates.insert("print_box_sticker", printBoxStickerSyntax);
 
-  QSharedPointer<QVector<QString>> printLastBoxStickerSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> printLastBoxStickerSyntax(new QVector<QString>());
   CommandTemplates.insert("print_last_box_sticker", printLastBoxStickerSyntax);
 
-  QSharedPointer<QVector<QString>> printPalletStickerSyntax(
-      new QVector<QString>());
+  QSharedPointer<QVector<QString>> printPalletStickerSyntax(new QVector<QString>());
   printPalletStickerSyntax->append("pan");
   CommandTemplates.insert("print_pallet_sticker", printPalletStickerSyntax);
 
-  QSharedPointer<QVector<QString>> printLastPalletStickerSyntax(
-      new QVector<QString>());
-  CommandTemplates.insert("print_last_pallet_sticker",
-                          printLastPalletStickerSyntax);
+  QSharedPointer<QVector<QString>> printLastPalletStickerSyntax(new QVector<QString>());
+  CommandTemplates.insert("print_last_pallet_sticker", printLastPalletStickerSyntax);
 }
 
-void PersoClientConnection::createServerStatusMatchTable() {
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::DatabaseQueryError,
-                                DatabaseError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::DatabaseTransactionError, DatabaseError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::DatabaseConnectionError, DatabaseError);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::TransponderNotFound,
-                                TransponderNotFound);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::TransponderNotReleasedEarlier,
-      TransponderNotReleasedEarlier);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::AwaitingConfirmationError,
-      AwaitingConfirmationError);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::IdenticalUcidError,
-                                IdenticalUcidError);
+void PersoClientConnection::createServerStatusMatchTable()
+{
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::DatabaseQueryError, DatabaseError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::DatabaseTransactionError, DatabaseError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::DatabaseConnectionError, DatabaseError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::TransponderNotFound, TransponderNotFound);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::TransponderNotReleasedEarlier,
+				TransponderNotReleasedEarlier);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::TransponderNotReleasedEarlier,
+				TransponderNotReleasedEarlier);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::FreeBoxMissed, FreeBoxMissed);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::AwaitingConfirmationError,
+				AwaitingConfirmationError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::IdenticalUcidError, IdenticalUcidError);
   ServerStatusMatchTable.insert(TransponderReleaseSystem::ProductionLineMissed,
-                                ProductionLineMissed);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::ProductionLineNotActive,
-      ProductionLineNotActive);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::CurrentOrderRunOut,
-                                CurrentOrderRunOut);
+				ProductionLineMissed);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::ProductionLineNotActive,
+				ProductionLineNotActive);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::CurrentOrderRunOut, CurrentOrderRunOut);
   ServerStatusMatchTable.insert(TransponderReleaseSystem::CurrentOrderAssembled,
-                                CurrentOrderAssembled);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::ProductionLineRollbackLimitError,
-      ProductionLineRollbackLimitError);
+				CurrentOrderAssembled);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::ProductionLineRollbackLimitError,
+				ProductionLineRollbackLimitError);
   ServerStatusMatchTable.insert(TransponderReleaseSystem::BoxStickerPrintError,
-                                BoxStickerPrintError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::PalletStickerPrintError,
-      PalletStickerPrintError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::NextTransponderNotFound,
-      NextTransponderNotFound);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::StartBoxAssemblingError,
-      StartBoxAssemblingError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::StartPalletAssemblingError,
-      StartPalletAssemblingError);
+				BoxStickerPrintError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::PalletStickerPrintError,
+				PalletStickerPrintError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::NextTransponderNotFound,
+				NextTransponderNotFound);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::StartBoxAssemblingError,
+				StartBoxAssemblingError);
+  ServerStatusMatchTable.insert(TransponderReleaseSystem::StartPalletAssemblingError,
+				StartPalletAssemblingError);
 }
 
-void PersoClientConnection::on_SocketReadyRead_slot() {
-  QDataStream deserializator(Socket);  // Дессериализатор
-  deserializator.setVersion(
-      QDataStream::Qt_5_12);  // Настраиваем версию десериализатора
+void PersoClientConnection::socketReadyRead_slot()
+{
+  QDataStream deserializator(Socket); // Дессериализатор
+  deserializator.setVersion(QDataStream::Qt_5_12); // Настраиваем версию десериализатора
 
   // Если блок данных еще не начал формироваться
   if (ReceivedDataBlockSize == 0) {
     // Если размер поступивших байт меньше размера поля с размером байт, то
     // блок поступившие данные отбрасываются
     if (Socket->bytesAvailable() < static_cast<int64_t>(sizeof(uint32_t))) {
-      sendLog(
-          "Размер полученных данных слишком мал. Ожидается прием следующих "
-          "частей. ");
+      sendLog("Размер полученных данных слишком мал. Ожидается прием следующих "
+	      "частей. ");
       // Перезапускаем таймер ожидания для следующих частей
       DataBlockWaitTimer->start();
       return;
@@ -631,7 +610,7 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
     deserializator >> ReceivedDataBlockSize;
 
     sendLog(QString("Размер принимаемого блока данных: %1.")
-                .arg(QString::number(ReceivedDataBlockSize)));
+		.arg(QString::number(ReceivedDataBlockSize)));
 
     // Если размер блока данных слишком большой, то весь блок отбрасывается
     if (ReceivedDataBlockSize > DATA_BLOCK_MAX_SIZE) {
@@ -640,8 +619,7 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
     }
   }
 
-  sendLog(QString("Размер принятых данных: %1. ")
-              .arg(QString::number(Socket->bytesAvailable())));
+  sendLog(QString("Размер принятых данных: %1. ").arg(QString::number(Socket->bytesAvailable())));
 
   // Дожидаемся пока весь блок данных придет целиком
   if (Socket->bytesAvailable() < ReceivedDataBlockSize) {
@@ -671,31 +649,34 @@ void PersoClientConnection::on_SocketReadyRead_slot() {
   CurrentResponse = QJsonObject();
 }
 
-void PersoClientConnection::on_SocketDisconnected_slot() {
+void PersoClientConnection::socketDisconnected_slot()
+{
   sendLog("Отключился. ");
 
   //Отправляем сигнал об отключении клиента
   emit disconnected();
 }
 
-void PersoClientConnection::on_SocketError_slot(
-    QAbstractSocket::SocketError socketError) {
+void PersoClientConnection::socketError_slot(QAbstractSocket::SocketError socketError)
+{
   // Если клиент отключился не самостоятельно
   if (socketError != 1) {
-    sendLog(QString("Ошибка сети: %1. %2.")
-                .arg(QString::number(socketError), Socket->errorString()));
+    sendLog(
+	QString("Ошибка сети: %1. %2.").arg(QString::number(socketError), Socket->errorString()));
     Socket->close();
   }
 }
 
-void PersoClientConnection::on_ExpirationTimerTimeout_slot() {
+void PersoClientConnection::expirationTimerTimeout_slot()
+{
   sendLog("Экспирация времени подключения. ");
 
   // Закрываем соединение
   Socket->close();
 }
 
-void PersoClientConnection::on_DataBlockWaitTimerTimeout_slot() {
+void PersoClientConnection::dataBlockWaitTimerTimeout_slot()
+{
   sendLog("Время ожидания вышло. Блок данных сбрасывается. ");
   ReceivedDataBlock.clear();
   ReceivedDataBlockSize = 0;
