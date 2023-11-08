@@ -38,12 +38,12 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  sendLog("Проверка конфигурации");
-  if (!checkConfiguration()) {
-    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-    RestartTimer->start();
-    return false;
-  }
+  //  sendLog("Проверка конфигурации");
+  //  if (!checkConfiguration()) {
+  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+  //    RestartTimer->start();
+  //    return false;
+  //  }
 
   // Запускаем систему выпуска транспондеров
   TransponderReleaseSystem::ReturnStatus status;
@@ -165,7 +165,7 @@ void PersoServer::sendLog(const QString& log) const {
 void PersoServer::processCriticalError(const QString& log) {
   QString msg("Паника. Получена критическая ошибка. ");
   sendLog(msg + log);
-  CurrentState = Panic;
+  //  CurrentState = Panic;
 }
 
 bool PersoServer::checkConfiguration() {
@@ -202,7 +202,7 @@ void PersoServer::createReleaserInstance() {
   connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
           &PersoServer::printPalletSticker_slot, Qt::BlockingQueuedConnection);
   connect(Releaser, &TransponderReleaseSystem::failed, this,
-          &PersoServer::on_ReleaserFailed_slot, Qt::BlockingQueuedConnection);
+          &PersoServer::releaserFailed_slot, Qt::BlockingQueuedConnection);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   ReleaserThread = new QThread(this);
@@ -237,7 +237,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   connect(newClient, &PersoClientConnection::logging, LogSystem::instance(),
           &LogSystem::generate);
   connect(newClient, &PersoClientConnection::disconnected, this,
-          &PersoServer::on_ClientDisconnected_slot);
+          &PersoServer::clientDisconnected_slot);
   connect(this, &PersoServer::checkNewClientInstance, newClient,
           &PersoClientConnection::instanceTesting);
 
@@ -258,7 +258,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   connect(newClientThread, &QThread::finished, newClient,
           &PersoClientConnection::deleteLater);
   connect(newClientThread, &QThread::destroyed, this,
-          &PersoServer::on_ClientThreadDeleted_slot);
+          &PersoServer::clientThreadDeleted_slot);
 
   // Добавляем поток в соответствующий реестр
   ClientThreads.insert(clientId, newClientThread);
@@ -327,10 +327,10 @@ void PersoServer::createRestartTimer() {
   RestartTimer = new QTimer(this);
   RestartTimer->setInterval(RestartPeriod * 1000);
   connect(RestartTimer, &QTimer::timeout, this,
-          &PersoServer::on_RestartTimerTimeout_slot);
+          &PersoServer::restartTimerTimeout_slot);
 }
 
-void PersoServer::on_ClientDisconnected_slot() {
+void PersoServer::clientDisconnected_slot() {
   PersoClientConnection* disconnectedClient =
       dynamic_cast<PersoClientConnection*>(sender());
   if (!disconnectedClient) {
@@ -364,7 +364,7 @@ void PersoServer::on_ClientDisconnected_slot() {
   }
 }
 
-void PersoServer::on_ClientThreadDeleted_slot() {
+void PersoServer::clientThreadDeleted_slot() {
   sendLog(QString("Клиентский поток удален. "));
 }
 
@@ -397,13 +397,13 @@ void PersoServer::printLastPalletSticker_slot(
   *status = PalletStickerPrinter->printLastPalletSticker();
 }
 
-void PersoServer::on_RestartTimerTimeout_slot() {
+void PersoServer::restartTimerTimeout_slot() {
   if (start()) {
     RestartTimer->stop();
   }
 }
 
-void PersoServer::on_ReleaserFailed_slot(
+void PersoServer::releaserFailed_slot(
     TransponderReleaseSystem::ReturnStatus status) {
   processCriticalError("Система выпуска транспондеров неисправна.");
 }

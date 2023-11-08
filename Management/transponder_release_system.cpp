@@ -981,6 +981,7 @@ TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
   QHash<QString, QString> transponderRecord;
   QHash<QString, QString> boxRecord;
   QHash<QString, QString> palletRecord;
+  QHash<QString, QString> mergedRecord;
   ReturnStatus ret;
 
   // Ищем невыпущенный транспондер в текущем боксе
@@ -1028,34 +1029,65 @@ TransponderReleaseSystem::searchNextTransponderForCurrentProductionLine() {
                   "паллеты для сборки.  ")
               .arg(CurrentPallet.value("id")));
 
-  // Если свободных боксов в текущей паллете не найдено
-  // Ищем свободную паллету или паллету в процессе сборки в текущем заказе
-  for (uint32_t i = CurrentOrder.value("assembled_units").toUInt();
-       i < CurrentOrder.value("quantity").toUInt(); i++) {
-    palletRecord.insert("id", "");
-    palletRecord.insert("in_process", "false");
-    palletRecord.insert("ready_indicator", "false");
-    palletRecord.insert("order_id", CurrentOrder.value("id"));
-    if (!Database->getRecordByPart("pallets", palletRecord)) {
-      sendLog(
-          QString("Получена ошибка при поиске свободной паллеты в заказе %1. ")
-              .arg(palletRecord.value("order_id")));
+  QStringList tables;
+  tables.append("boxes");
+  tables.append("pallets");
+  tables.append("orders");
+
+  QStringList foreignKeys;
+  foreignKeys.append("pallet_id");
+  foreignKeys.append("order_id");
+
+  mergedRecord.insert("boxes.id", "");
+  mergedRecord.insert("boxes.pallet_id", "");
+  mergedRecord.insert("boxes.ready_indicator", "false");
+  mergedRecord.insert("boxes.in_process", "false");
+  mergedRecord.insert("pallets.order_id", CurrentOrder.value("id"));
+
+  if (!Database->getMergedRecordByPart(tables, foreignKeys, mergedRecord)) {
+    sendLog(QString("Получена ошибка при поиске свободного бокса в заказе %1. ")
+                .arg(CurrentOrder.value("id")));
+    return NextTransponderNotFound;
+  }
+
+  //  // Если свободных боксов в текущей паллете не найдено
+  //  // Ищем свободную паллету или паллету в процессе сборки в текущем заказе
+  //  palletRecord.insert("id", "");
+  //  palletRecord.insert("in_process", "false");
+  //  palletRecord.insert("ready_indicator", "false");
+  //  palletRecord.insert("order_id", CurrentOrder.value("id"));
+  //  if (!Database->getRecordByPart("pallets", palletRecord)) {
+  //    sendLog(
+  //        QString("Получена ошибка при поиске свободной паллеты в заказе %1.
+  //        ")
+  //            .arg(palletRecord.value("order_id")));
+  //    return NextTransponderNotFound;
+  //  }
+
+  //  // Если свободная паллета в текущем заказе найдена
+  //  if (!palletRecord.isEmpty()) {
+  //    sendLog(
+  //        QString("Запуск сборки паллеты %1.
+  //        ").arg(palletRecord.value("id")));
+  //    // Запускаем сборку паллеты
+  //    return startPalletAssembling(palletRecord.value("id"));
+  //  }
+
+  // Если свободный бокс найден
+  if (!mergedRecord.isEmpty()) {
+    // Ищем данные его паллеты
+    palletRecord.insert("id", mergedRecord.value("pallet_id"));
+    palletRecord.insert("in_process", "");
+    if (!Database->getRecordById("pallets", palletRecord)) {
+      sendLog(QString("Получена ошибка при поиске данных паллеты %1.")
+                  .arg(mergedRecord.value("pallet_id")));
       return NextTransponderNotFound;
     }
 
-    // Если свободная паллета в текущем заказе найдена
-    if (!palletRecord.isEmpty()) {
-      sendLog(
-          QString("Запуск сборки паллеты %1.  ").arg(palletRecord.value("id")));
-      // Запускаем сборку паллеты
-      ret = startPalletAssembling(palletRecord.value("id"));
-      if (ret == FreeBoxMissed) {
-        continue;
-      } else {
-        return ret;
-      }
+    if (palletRecord.value("in_process") == "true") {
+      return startBoxAssembling(mergedRecord.value("id"));
     } else {
-      break;
+      return startPalletAssembling(palletRecord.value("id"));
     }
   }
 

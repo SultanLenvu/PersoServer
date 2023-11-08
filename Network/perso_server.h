@@ -92,8 +92,8 @@ class PersoServer : public QTcpServer {
   void createRestartTimer(void);
 
  private slots:
-  void on_ClientDisconnected_slot(void);
-  void on_ClientThreadDeleted_slot(void);
+  void clientDisconnected_slot(void);
+  void clientThreadDeleted_slot(void);
 
   void printBoxSticker_slot(const QHash<QString, QString>* data,
                             IStickerPrinter::ReturnStatus* status);
@@ -102,8 +102,8 @@ class PersoServer : public QTcpServer {
                                IStickerPrinter::ReturnStatus* status);
   void printLastPalletSticker_slot(IStickerPrinter::ReturnStatus* status);
 
-  void on_RestartTimerTimeout_slot(void);
-  void on_ReleaserFailed_slot(TransponderReleaseSystem::ReturnStatus status);
+  void restartTimerTimeout_slot(void);
+  void releaserFailed_slot(TransponderReleaseSystem::ReturnStatus status);
 
  signals:
   void logging(const QString& log) const;
