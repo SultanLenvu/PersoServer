@@ -12,15 +12,25 @@ void IDatabaseController::clearTables() {
 }
 
 void IDatabaseController::addTable(const QString& name) {
-  Tables.append(name);
+  Tables.push_back(name);
 }
 
-void IDatabaseController::clearForeignKeys() {}
+void IDatabaseController::clearForeignKeys() {
+  //  ForeignKeys.clear();
+}
 
-void IDatabaseController::addForeignKeys(const QString& table1,
-                                         const QString& foreignKey,
-                                         const QString& table2,
-                                         const QString& primaryKey) {}
+bool IDatabaseController::addRelation(const QString& table1,
+                                      const QString& foreignKey,
+                                      const QString& table2,
+                                      const QString& primaryKey) {
+  if ((!Tables.contains(table1)) || (!Tables.contains(table2))) {
+    return false;
+  }
+
+  //  PrimaryKeys.insert(table2, primaryKey);
+  //  ForeignKeys.insert(table1, foreignKey);
+  //  Links.insert(foreignKey, primaryKey);
+}
 
 Qt::SortOrder IDatabaseController::getCurrentOrder() const {
   return CurrentOrder;

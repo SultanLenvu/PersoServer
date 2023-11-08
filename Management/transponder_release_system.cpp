@@ -604,9 +604,10 @@ void TransponderReleaseSystem::loadSettings() {
       settings.value("transponder_release_system/check_period").toUInt();
 }
 
-void TransponderReleaseSystem::sendLog(const QString& log) {
+void TransponderReleaseSystem::sendLog(const QString& log) const {
   if (LogEnable) {
-    emit logging("TransponderReleaseSystem - " + log);
+    emit const_cast<TransponderReleaseSystem*>(this)->logging(
+        "TransponderReleaseSystem - " + log);
   }
 }
 

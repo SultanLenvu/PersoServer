@@ -30,6 +30,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     StickerPrinter/isticker_printer.cpp StickerPrinter/isticker_printer.h
     StickerPrinter/te310_printer.cpp StickerPrinter/te310_printer.h
     main.cpp
+    Database/sql_table_relation.h Database/sql_table_relation.cpp
 )
 target_compile_definitions(PersoServer PRIVATE
     QT_DISABLE_DEPRECATED_BEFORE=0x060000

@@ -17,11 +17,10 @@
 #include "Management/transponder_release_system.h"
 #include "StickerPrinter/isticker_printer.h"
 
-class PersoClientConnection : public QObject
-{
+class PersoClientConnection : public QObject {
   Q_OBJECT
 
-private:
+ private:
   enum ServerStatus {
     NoError = 0,
     CommandSyntaxError,
@@ -44,7 +43,7 @@ private:
   };
   //  Q_ENUM(ServerStatus);
 
-private:
+ private:
   bool LogEnable;
   bool ExtendedLogEnable;
   int32_t MaximumConnectionTime;
@@ -67,24 +66,20 @@ private:
 
   FirmwareGenerationSystem* Generator;
 
-  QHash<TransponderReleaseSystem::ReturnStatus, ServerStatus> ServerStatusMatchTable;
+  QHash<TransponderReleaseSystem::ReturnStatus, ServerStatus>
+      ServerStatusMatchTable;
 
-public:
+ public:
   explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
   ~PersoClientConnection();
 
   uint32_t getId(void) const;
 
-public slots:
+ public slots:
   void instanceTesting(void);
 
-<<<<<<< HEAD
  private:
-  Q_DISABLE_COPY_MOVE(PersoClientConnection);
-=======
-private:
   Q_DISABLE_COPY(PersoClientConnection)
->>>>>>> 9fbbefbab1fc8348f32cc9db90ad12530473e4e6
   void loadSettings(void);
   void sendLog(const QString& log);
 
@@ -119,7 +114,7 @@ private:
   void createCommandTemplates(void);
   void createServerStatusMatchTable(void);
 
-private slots:
+ private slots:
   void socketReadyRead_slot(void);
   void socketDisconnected_slot(void);
   void socketError_slot(QAbstractSocket::SocketError socketError);
@@ -127,44 +122,45 @@ private slots:
   void expirationTimerTimeout_slot(void);
   void dataBlockWaitTimerTimeout_slot(void);
 
-signals:
+ signals:
   void logging(const QString& log);
   void disconnected(void);
 
   void authorize_signal(const QHash<QString, QString>* parameters,
-			TransponderReleaseSystem::ReturnStatus* status);
+                        TransponderReleaseSystem::ReturnStatus* status);
   void release_signal(const QHash<QString, QString>* parameters,
-		      QHash<QString, QString>* seed,
-		      QHash<QString, QString>* data,
-		      TransponderReleaseSystem::ReturnStatus* status);
+                      QHash<QString, QString>* seed,
+                      QHash<QString, QString>* data,
+                      TransponderReleaseSystem::ReturnStatus* status);
   void confirmRelease_signal(const QHash<QString, QString>* parameters,
-			     TransponderReleaseSystem::ReturnStatus* status);
+                             TransponderReleaseSystem::ReturnStatus* status);
   void rerelease_signal(const QHash<QString, QString>* parameters,
-			QHash<QString, QString>* seed,
-			QHash<QString, QString>* data,
-			TransponderReleaseSystem::ReturnStatus* status);
+                        QHash<QString, QString>* seed,
+                        QHash<QString, QString>* data,
+                        TransponderReleaseSystem::ReturnStatus* status);
   void confirmRerelease_signal(const QHash<QString, QString>* parameters,
-			       TransponderReleaseSystem::ReturnStatus* status);
+                               TransponderReleaseSystem::ReturnStatus* status);
   void search_signal(const QHash<QString, QString>* parameters,
-		     QHash<QString, QString>* data,
-		     TransponderReleaseSystem::ReturnStatus* status);
+                     QHash<QString, QString>* data,
+                     TransponderReleaseSystem::ReturnStatus* status);
 
-  void productionLineRollback_signal(const QHash<QString, QString>* parameters,
-				     TransponderReleaseSystem::ReturnStatus* status);
+  void productionLineRollback_signal(
+      const QHash<QString, QString>* parameters,
+      TransponderReleaseSystem::ReturnStatus* status);
 
   void getBoxData_signal(const QHash<QString, QString>* parameters,
-			 QHash<QString, QString>* data,
-			 TransponderReleaseSystem::ReturnStatus* status);
+                         QHash<QString, QString>* data,
+                         TransponderReleaseSystem::ReturnStatus* status);
   void getPalletData_signal(const QHash<QString, QString>* parameters,
-			    QHash<QString, QString>* data,
-			    TransponderReleaseSystem::ReturnStatus* status);
+                            QHash<QString, QString>* data,
+                            TransponderReleaseSystem::ReturnStatus* status);
 
   void printBoxSticker_signal(const QHash<QString, QString>* data,
-			      IStickerPrinter::ReturnStatus* status);
+                              IStickerPrinter::ReturnStatus* status);
   void printLastBoxSticker_signal(IStickerPrinter::ReturnStatus* status);
   void printPalletSticker_signal(const QHash<QString, QString>* data,
-				 IStickerPrinter::ReturnStatus* status);
+                                 IStickerPrinter::ReturnStatus* status);
   void printLastPalletSticker_signal(IStickerPrinter::ReturnStatus* status);
 };
 
-#endif // PersoClientConnection_H
+#endif  // PersoClientConnection_H

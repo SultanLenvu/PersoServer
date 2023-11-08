@@ -15,12 +15,19 @@
 
 class IDatabaseController : public QObject {
   Q_OBJECT
+
+ private:
+  typedef struct {
+    QPair<QString, QString> PrimaryKey;
+    QPair<QString, QString> ForeignKey;
+    QPair<QString, QString> Link;
+  } TableRelationType;
+
  protected:
   bool LogEnable;
 
-  std::vector<QString> Tables;
-  std::unordered_map<std::pair<QString, QString>, std::pair<QString, QString>>
-      ForeignKeys;
+  QVector<QString> Tables;
+  QVector<std::unique_ptr<TableRelationType>> Relations;
 
   Qt::SortOrder CurrentOrder;
   uint32_t RecordsLimit;
@@ -33,10 +40,10 @@ class IDatabaseController : public QObject {
   void addTable(const QString& name);
 
   void clearForeignKeys(void);
-  void addForeignKeys(const QString& table1,
-                      const QString& foreignKey,
-                      const QString& table2,
-                      const QString& primaryKey);
+  bool addRelation(const QString& table1,
+                   const QString& foreignKey,
+                   const QString& table2,
+                   const QString& primaryKey);
 
   Qt::SortOrder getCurrentOrder() const;
   void setCurrentOrder(Qt::SortOrder newCurrentOrder);
