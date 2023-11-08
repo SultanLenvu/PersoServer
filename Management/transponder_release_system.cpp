@@ -1313,7 +1313,8 @@ QString TransponderReleaseSystem::generateTransponderSerialNumber(
       QString::number(CurrentOrder.value("manufacturer_id").toInt(nullptr, 16));
 
   // Дата сборки
-  QDate date = QDate::currentDate();
+  QStringList tempDate = CurrentBox.value("assembling_start").split("T");
+  QDate date = QDate::fromString(tempDate.first(), "yyyy-MM-dd");
   QString batteryInsertationDate =
       QString("%1%2")
           .arg(QString::number(date.weekNumber()), 2, QChar('0'))
