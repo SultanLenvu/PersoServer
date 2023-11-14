@@ -1,0 +1,17 @@
+name: Gitea actions demo
+run-name: ${{ gitea.actor }} is testing out Gitea actions
+
+jobs:
+  Explore-actions:
+    runs-on: ubuntu-23.04
+    steps:
+      - run: echo "Event: ${{ gitea.event_name }}"
+      - run: echo "Runner os: ${{ runner.os }}"
+      - run: echo "Branch: $${{ gitea.ref }}, Repository: $${{ gitea.repository }}"
+      - name: Check out repo code
+        uses: actions/checkout@v3
+      - run: "$${{ gitea.repositoty }} has been cloned"
+      - name: List files in the repo
+        run: |
+          ls $${{ gitea.workspace }}
+      - run: echo "Job status: $${{ job.status }}."
