@@ -1,0 +1,38 @@
+name: build and deploy PersoServer
+run-name: build and deploy PersoServer
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-23.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Build persoserver
+        run: |
+          cd ${{ gitea.workspace }}
+          mkdir build
+          cd build
+          cmake -G "Ninja" ..
+          ninja
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: PersoServer
+          path: build/PersoServer
+  deploy:
+    runs-on: ubuntu-23.04
+    if: false
+    steps:
+      - name: Fetch artifact
+        uses: https://github.com/actions/download-artifact@v3
+        with:
+          name: PersoServer
+      - name: Deploy
+        run: |
+          s6-sudo /run/service-restarter.socket systemctl stop persoserver
+          s6-sudo /run/service-restarter.socket cp $PWD/PersoServer /usr/local/bin/PersoServer
+          s6-sudo /run/service-restarter.socket systemctl start persoserver
