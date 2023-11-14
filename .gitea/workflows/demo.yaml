@@ -1,5 +1,6 @@
 name: Gitea actions demo
 run-name: ${{ gitea.actor }} is testing out Gitea actions
+on: [push]
 
 jobs:
   Explore-actions:
