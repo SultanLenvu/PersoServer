@@ -11,7 +11,7 @@ jobs:
       - run: echo "Branch ${{ gitea.ref }}, Repository ${{ gitea.repository }}"
       - name: Check out repo code
         uses: actions/checkout@v3
-      - run: "${{ gitea.repositoty }} has been cloned"
+      - run: echo "${{ gitea.repositoty }} has been cloned"
       - name: List files in the repo
         run: |
           ls $${{ gitea.workspace }}
