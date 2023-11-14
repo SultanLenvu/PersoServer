@@ -104,6 +104,7 @@ bool ServerManager::checkSettings() const {
       qCritical("Получена ошибка при обработке файла конфигурации: "
                 "неверный IP-адрес или порт принтера стикеров на паллеты.");
       return false;
+    }
 #else
   if (settings.value("perso_server/box_sticker_printer_name")
           .toString()
