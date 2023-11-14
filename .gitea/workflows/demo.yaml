@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   Explore-actions:
-    runs-on: ubuntu-23.04
+    runs-on: ubuntu-latest
     steps:
       - run: echo "Event ${{ gitea.event_name }}"
       - run: echo "Runner os ${{ runner.os }}"
