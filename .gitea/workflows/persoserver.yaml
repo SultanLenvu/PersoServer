@@ -25,7 +25,6 @@ jobs:
           path: build/PersoServer
   deploy:
     runs-on: ubuntu-23.04
-    if: false
     steps:
       - name: Fetch artifact
         uses: https://github.com/actions/download-artifact@v3
@@ -33,6 +32,4 @@ jobs:
           name: PersoServer
       - name: Deploy
         run: |
-          s6-sudo /run/service-restarter.socket systemctl stop persoserver
-          s6-sudo /run/service-restarter.socket cp $PWD/PersoServer /usr/local/bin/PersoServer
-          s6-sudo /run/service-restarter.socket systemctl start persoserver
+          s6-sudo /run/service-restarter.socket $(realpath PersoServer)
