@@ -280,6 +280,7 @@ void TE310Printer::sendLog(const QString& log) {
 
 bool TE310Printer::loadTscLib() {
   if (!TscLib->load()) {
+    sendLog(TscLib->errorString());
     about = nullptr;
     openPort = nullptr;
 #ifdef __linux__
