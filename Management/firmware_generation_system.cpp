@@ -239,7 +239,6 @@ void FirmwareGenerationSystem::generateCommonKeys(
     CommonKeys.insert(it.key(),
                       QByteArray::fromRawData(reinterpret_cast<char*>(result),
                                               COMMON_KEY_SIZE));
-    delete[] result;
   }
 }
 
