@@ -8,7 +8,8 @@
 #include <QSharedPointer>
 #include <QTimer>
 
-#include "Database/postgres_controller.h"
+#include "Database/abstract_sql_database.h"
+#include "Database/sql_query_values.h"
 #include "StickerPrinter/isticker_printer.h"
 
 class TransponderReleaseSystem : public QObject {
@@ -44,16 +45,16 @@ class TransponderReleaseSystem : public QObject {
   uint32_t CheckPeriod;
   QTimer* CheckTimer;
 
-  PostgresController* Database;
+  AbstractSqlDatabase* Database;
 
-  QHash<QString, QString> CurrentProductionLine;
-  QHash<QString, QString> CurrentTransponder;
-  QHash<QString, QString> CurrentBox;
-  QHash<QString, QString> CurrentPallet;
-  QHash<QString, QString> CurrentOrder;
-  QHash<QString, QString> CurrentIssuer;
-  QHash<QString, QString> CurrentMasterKeys;
-  QHash<QString, QString> SupportData;
+  SqlQueryValues CurrentProductionLine;
+  SqlQueryValues CurrentTransponder;
+  SqlQueryValues CurrentBox;
+  SqlQueryValues CurrentPallet;
+  SqlQueryValues CurrentOrder;
+  SqlQueryValues CurrentIssuer;
+  SqlQueryValues CurrentMasterKeys;
+  SqlQueryValues SupportData;
 
   QMutex Mutex;
 
@@ -128,8 +129,6 @@ class TransponderReleaseSystem : public QObject {
 
  signals:
   void logging(const QString& log);
-
-  void operationFinished();
   void failed(ReturnStatus status);
 
   void boxAssemblingFinished(const QHash<QString, QString>* data,

@@ -9,10 +9,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Network PrintSupport 
 qt_standard_project_setup()
 
 qt_add_executable(PersoServer MACOSX_BUNDLE
-    Database/database_controller.cpp Database/database_controller.h
-    Database/database_table_model.cpp Database/database_table_model.h
-    Database/postgres_controller.cpp Database/postgres_controller.h
-
+    Database/abstract_sql_database.cpp Database/abstract_sql_database.h
+    Database/postgre_sql_database.cpp Database/postgre_sql_database.h
+    Database/postgre_sql_table.cpp Database/postgre_sql_table.h
+    Database/sql_table_relation.cpp Database/sql_table_relation.h
+    Database/abstract_sql_table.cpp Database/abstract_sql_table.h
+    Database/sql_query_values.h Database/sql_query_values.cpp
 
     General/definitions.h
     Log/console_log_backend.cpp Log/console_log_backend.h

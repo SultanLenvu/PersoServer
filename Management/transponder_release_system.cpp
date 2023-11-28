@@ -1,6 +1,5 @@
 #include "transponder_release_system.h"
-#include "Log/log_system.h"
-
+#include "Database/postgre_sql_database.h"
 #include "General/definitions.h"
 
 TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
@@ -44,47 +43,6 @@ void TransponderReleaseSystem::stop(void) {
   Database->disconnect();
 }
 
-void TransponderReleaseSystem::authorize(
-    const QHash<QString, QString>* parameters,
-    ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
-
-  // Открываем транзакцию
-  if (!Database->openTransaction()) {
-    *status = DatabaseTransactionError;
-    emit operationFinished();
-    return;
-  }
-
-  // Получаем текущий контекст
-  *status = getCurrentContext(parameters);
-  if (*status != Completed) {
-    sendLog(QString("Получена ошибка при получении контекста производственной "
-                    "линии '%1'. ")
-                .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
-    return;
-  }
-
-  // Закрываем транзакцию
-  if (!Database->closeTransaction()) {
-    *status = DatabaseTransactionError;
-    emit operationFinished();
-    return;
-  }
-
-  if (CurrentProductionLine.value("active") == "false") {
-    sendLog(QString("Производственная линия '%1' не активна. ")
-                .arg(parameters->value("login")));
-    *status = ProductionLineNotActive;
-  } else {
-    *status = Completed;
-  }
-
-  emit operationFinished();
-}
-
 void TransponderReleaseSystem::release(
     const QHash<QString, QString>* parameters,
     QHash<QString, QString>* seed,
@@ -95,7 +53,7 @@ void TransponderReleaseSystem::release(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -105,8 +63,8 @@ void TransponderReleaseSystem::release(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -117,8 +75,8 @@ void TransponderReleaseSystem::release(
         QString("Транспондер %1 уже был выпущен, повторный выпуск невозможен. ")
             .arg(CurrentTransponder.value("id")));
     *status = DatabaseQueryError;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -130,8 +88,8 @@ void TransponderReleaseSystem::release(
                     "транспондера %1. ")
                 .arg(CurrentTransponder.value("id")));
     *status = DatabaseQueryError;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -144,12 +102,11 @@ void TransponderReleaseSystem::release(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::confirmRelease(
@@ -161,7 +118,7 @@ void TransponderReleaseSystem::confirmRelease(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseQueryError;
-    emit operationFinished();
+
     return;
   }
 
@@ -171,8 +128,8 @@ void TransponderReleaseSystem::confirmRelease(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -215,8 +172,8 @@ void TransponderReleaseSystem::confirmRelease(
     sendLog(QString("Получена ошибка при подтвеждении транспондера %1. ")
                 .arg(CurrentProductionLine.value("transponder_id")));
     *status = DatabaseQueryError;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -226,19 +183,18 @@ void TransponderReleaseSystem::confirmRelease(
                     "для производственной линии %1. ")
                 .arg(CurrentProductionLine.value("id")));
     *status = DatabaseQueryError;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseQueryError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::rerelease(
@@ -251,7 +207,7 @@ void TransponderReleaseSystem::rerelease(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -261,8 +217,8 @@ void TransponderReleaseSystem::rerelease(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -272,8 +228,7 @@ void TransponderReleaseSystem::rerelease(
                     "перевыпуск невозможен. ")
                 .arg(CurrentTransponder.value("id")));
     *status = TransponderNotReleasedEarlier;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
   }
 
   // Ожидаем подтверждения
@@ -283,8 +238,8 @@ void TransponderReleaseSystem::rerelease(
                     "транспондера %1. ")
                 .arg(CurrentTransponder.value("id")));
     *status = DatabaseQueryError;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -297,11 +252,10 @@ void TransponderReleaseSystem::rerelease(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::confirmRerelease(
@@ -313,7 +267,7 @@ void TransponderReleaseSystem::confirmRerelease(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -323,8 +277,8 @@ void TransponderReleaseSystem::confirmRerelease(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -372,19 +326,18 @@ void TransponderReleaseSystem::confirmRerelease(
     sendLog(QString("Получена ошибка при сохранении UCID транспондера %1. ")
                 .arg(CurrentTransponder.value("id")));
     *status = DatabaseQueryError;
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::search(
@@ -396,7 +349,7 @@ void TransponderReleaseSystem::search(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -406,8 +359,8 @@ void TransponderReleaseSystem::search(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -417,11 +370,10 @@ void TransponderReleaseSystem::search(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::rollbackProductionLine(
@@ -434,7 +386,7 @@ void TransponderReleaseSystem::rollbackProductionLine(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -444,8 +396,8 @@ void TransponderReleaseSystem::rollbackProductionLine(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -456,9 +408,9 @@ void TransponderReleaseSystem::rollbackProductionLine(
     sendLog(QString("Получена ошибка при поиске предыдущего транспондера "
                     "производственной линии в боксе %1. ")
                 .arg(transponderRecord.value("box_id")));
-    Database->abortTransaction();
+    Database->rollbackTransaction();
     *status = DatabaseQueryError;
-    emit operationFinished();
+
     return;
   }
 
@@ -466,9 +418,9 @@ void TransponderReleaseSystem::rollbackProductionLine(
     sendLog(QString("Производственная линия '%1' связана с первым "
                     "транспондером в боксе. Откат невозможен.")
                 .arg(CurrentProductionLine.value("id")));
-    Database->abortTransaction();
+    Database->rollbackTransaction();
     *status = ProductionLineRollbackLimitError;
-    emit operationFinished();
+
     return;
   }
 
@@ -478,9 +430,9 @@ void TransponderReleaseSystem::rollbackProductionLine(
   if (!Database->updateRecordById("transponders", transponderRecord)) {
     sendLog(QString("Получена ошибка при возврате транспондера %1.")
                 .arg(transponderRecord.value("id")));
-    Database->abortTransaction();
+    Database->rollbackTransaction();
     *status = DatabaseQueryError;
-    emit operationFinished();
+
     return;
   }
 
@@ -492,9 +444,9 @@ void TransponderReleaseSystem::rollbackProductionLine(
     sendLog(QString("Получена ошибка при уменьшении количества собранных "
                     "транспондеров в боксе '%1'. ")
                 .arg(transponderRecord.value("box_id")));
-    Database->abortTransaction();
+    Database->rollbackTransaction();
     *status = DatabaseQueryError;
-    emit operationFinished();
+
     return;
   }
 
@@ -504,20 +456,19 @@ void TransponderReleaseSystem::rollbackProductionLine(
                     "с транспондером %2. ")
                 .arg(CurrentProductionLine.value("id"),
                      transponderRecord.value("id")));
-    Database->abortTransaction();
+    Database->rollbackTransaction();
     *status = DatabaseQueryError;
-    emit operationFinished();
+
     return;
   }
 
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::getBoxData(
@@ -527,7 +478,7 @@ void TransponderReleaseSystem::getBoxData(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -537,8 +488,8 @@ void TransponderReleaseSystem::getBoxData(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -548,11 +499,10 @@ void TransponderReleaseSystem::getBoxData(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::getPalletData(
@@ -562,7 +512,7 @@ void TransponderReleaseSystem::getPalletData(
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
 
@@ -572,8 +522,8 @@ void TransponderReleaseSystem::getPalletData(
     sendLog(QString("Получена ошибка при получении контекста производственной "
                     "линии '%1'. ")
                 .arg(parameters->value("login")));
-    Database->abortTransaction();
-    emit operationFinished();
+    Database->rollbackTransaction();
+
     return;
   }
 
@@ -583,15 +533,14 @@ void TransponderReleaseSystem::getPalletData(
   // Закрываем транзакцию
   if (!Database->closeTransaction()) {
     *status = DatabaseTransactionError;
-    emit operationFinished();
+
     return;
   }
   *status = Completed;
-  emit operationFinished();
 }
 
 void TransponderReleaseSystem::createDatabaseController() {
-  Database = new PostgresController(this, "TransponderReleaseSystemConnection");
+  Database = new PostgreSqlDatabase(this, "TransponderReleaseSystemConnection");
   connect(Database, &IDatabaseController::logging, LogSystem::instance(),
           &LogSystem::generate);
 }
@@ -1329,7 +1278,7 @@ QString TransponderReleaseSystem::generateTransponderSerialNumber(
 }
 
 void TransponderReleaseSystem::on_CheckTimerTemeout() {
-  if (!Database->isConnected()) {
+  if (!Database->checkConnection()) {
     sendLog("Потеряно соединение с базой данных.");
     CheckTimer->stop();
     emit failed(DatabaseConnectionError);
