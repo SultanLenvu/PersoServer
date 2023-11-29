@@ -22,7 +22,7 @@ class AbstractSqlDatabase : public QObject {
   virtual bool commitTransaction(void) const = 0;
   virtual bool rollbackTransaction(void) const = 0;
 
-  virtual Qt::SortOrder getCurrentOrder() const = 0;
+  virtual Qt::SortOrder getCurrentOrder(void) const = 0;
   virtual void setCurrentOrder(Qt::SortOrder order) = 0;
 
   virtual uint32_t getRecordMaxCount(void) const = 0;
