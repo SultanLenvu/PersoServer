@@ -3,7 +3,7 @@
 #include "General/definitions.h"
 
 TransponderReleaseSystem::TransponderReleaseSystem(QObject* parent)
-    : QObject(parent) {
+    : AbstractTransponderReleaseSystem(parent) {
   setObjectName("TransponderReleaseSystem");
   loadSettings();
 
@@ -22,8 +22,6 @@ void TransponderReleaseSystem::instanceThreadStarted_slot() {
 }
 
 void TransponderReleaseSystem::start(ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
-
   sendLog("Запуск. ");
   if (!Database->connect()) {
     sendLog("Не удалось установить соединение с базой данных. ");
@@ -36,8 +34,6 @@ void TransponderReleaseSystem::start(ReturnStatus* status) {
 }
 
 void TransponderReleaseSystem::stop(void) {
-  QMutexLocker locker(&Mutex);
-
   sendLog("Остановка. ");
   CheckTimer->stop();
   Database->disconnect();
@@ -48,8 +44,6 @@ void TransponderReleaseSystem::release(
     QHash<QString, QString>* seed,
     QHash<QString, QString>* data,
     TransponderReleaseSystem::ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
-
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
@@ -112,7 +106,6 @@ void TransponderReleaseSystem::release(
 void TransponderReleaseSystem::confirmRelease(
     const QHash<QString, QString>* parameters,
     ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
   QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
@@ -202,8 +195,6 @@ void TransponderReleaseSystem::rerelease(
     QHash<QString, QString>* seed,
     QHash<QString, QString>* data,
     ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
-
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
@@ -261,7 +252,6 @@ void TransponderReleaseSystem::rerelease(
 void TransponderReleaseSystem::confirmRerelease(
     const QHash<QString, QString>* parameters,
     ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
   QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
@@ -344,8 +334,6 @@ void TransponderReleaseSystem::search(
     const QHash<QString, QString>* parameters,
     QHash<QString, QString>* data,
     TransponderReleaseSystem::ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
-
   // Открываем транзакцию
   if (!Database->openTransaction()) {
     *status = DatabaseTransactionError;
@@ -379,8 +367,6 @@ void TransponderReleaseSystem::search(
 void TransponderReleaseSystem::rollbackProductionLine(
     const QHash<QString, QString>* parameters,
     ReturnStatus* status) {
-  QMutexLocker locker(&Mutex);
-
   QHash<QString, QString> transponderRecord;
 
   // Открываем транзакцию
@@ -1281,6 +1267,5 @@ void TransponderReleaseSystem::on_CheckTimerTemeout() {
   if (!Database->checkConnection()) {
     sendLog("Потеряно соединение с базой данных.");
     CheckTimer->stop();
-    emit failed(DatabaseConnectionError);
   }
 }

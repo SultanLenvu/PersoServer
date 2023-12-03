@@ -1,6 +1,7 @@
 #include <QHostAddress>
 
 #include "Log/log_system.h"
+#include "ProductionDispatcher/general_production_dispatcher.h"
 #include "perso_server.h"
 
 PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {

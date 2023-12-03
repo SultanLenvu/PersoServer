@@ -23,22 +23,19 @@ class ServerManager : public QObject {
   explicit ServerManager(QObject* parent);
   ~ServerManager();
 
-  void processCommandArguments(const QStringList* args);
-  bool checkSettings(void) const;
-  void start();
+  bool init(void);
 
  private:
   Q_DISABLE_COPY_MOVE(ServerManager);
   void loadSettings(void) const;
+  bool checkSettings(void) const;
   void generateDefaultSettings(void) const;
+  void processCommandArguments(void);
 
   void createServerInstance(void);
   void createLoggerInstance(void);
 
   void registerMetaType(void);
-
- signals:
-  void logging(const QString& log) const;
 };
 
 #endif  // SERVERMANAGER_H

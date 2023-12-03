@@ -1,5 +1,6 @@
-#include <cstdlib>
+#include <QCoreApplication>
 
+#include "General/definitions.h"
 #include "server_manager.h"
 
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
@@ -13,11 +14,18 @@ ServerManager::~ServerManager() {
   LoggerThread->wait();
 }
 
-void ServerManager::processCommandArguments(const QStringList* args) {
-  if (args->contains("-generate_default_config")) {
-    generateDefaultSettings();
-    exit(0);
+bool ServerManager::init() {
+  processCommandArguments();
+
+  if (!checkSettings()) {
+    return false;
   }
+
+  createLoggerInstance();
+  createServerInstance();
+  Server->start();
+
+  return true;
 }
 
 void ServerManager::loadSettings() const {
@@ -74,36 +82,42 @@ bool ServerManager::checkSettings() const {
   }
 
 #ifdef __linux__
-    if (!settings.contains("perso_server/box_sticker_printer_ip")
-        || !settings.contains("perso_server/box_sticker_printer_port")) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-          "Не указаны имя или IP-адрес принтера стикеров на боксы");
-      return false;
-    }
-    QHostAddress boxIP(
-        settings.value("perso_server/box_sticker_printer_ip").toString());
-    int boxPort = settings.value(
-        "perso_server/box_sticker_printer_port").toInt();
+  if (!settings.contains("perso_server/box_sticker_printer_ip") ||
+      !settings.contains("perso_server/box_sticker_printer_port")) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "Не указаны имя или IP-адрес принтера стикеров на боксы");
+    return false;
+  }
+  QHostAddress boxIP(
+      settings.value("perso_server/box_sticker_printer_ip").toString());
+  int boxPort = settings.value("perso_server/box_sticker_printer_port").toInt();
 
-    if (boxIP.isNull() || boxPort <= 0 || boxPort > 65535) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-          "неверный IP-адрес или порт принтера стикеров на боксы");
-      return false;
-    }
+  if (boxIP.isNull() || boxPort <= 0 || boxPort > 65535) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "неверный IP-адрес или порт принтера стикеров на боксы");
+    return false;
+  }
 
-    if (!settings.contains("perso_server/pallet_sticker_printer_ip")
-        || !settings.contains("perso_server/pallet_sticker_printer_port")) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-                "Не указаны имя или IP-адрес принтера стикеров на паллеты.");
-      return false;
-    }
-    QHostAddress palletIP(settings.value("perso_server/pallet_sticker_printer_ip").toString());
-    int palletPort = settings.value("perso_server/pallet_sticker_printer_port").toInt();
+  if (!settings.contains("perso_server/pallet_sticker_printer_ip") ||
+      !settings.contains("perso_server/pallet_sticker_printer_port")) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "Не указаны имя или IP-адрес принтера стикеров на паллеты.");
+    return false;
+  }
+  QHostAddress palletIP(
+      settings.value("perso_server/pallet_sticker_printer_ip").toString());
+  int palletPort =
+      settings.value("perso_server/pallet_sticker_printer_port").toInt();
 
-    if (palletIP.isNull() || palletPort <= 0 || palletPort > 6553500) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-                "неверный IP-адрес или порт принтера стикеров на паллеты.");
-      return false;
+  if (palletIP.isNull() || palletPort <= 0 || palletPort > 6553500) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "неверный IP-адрес или порт принтера стикеров на паллеты.");
+    return false;
+  }
 #else
   if (settings.value("perso_server/box_sticker_printer_name")
           .toString()
@@ -265,10 +279,13 @@ void ServerManager::generateDefaultSettings() const {
                     TSC_TE310_LIBRARY_DEFAULT_PATH);
 }
 
-void ServerManager::start() {
-  createLoggerInstance();
-  createServerInstance();
-  Server->start();
+void ServerManager::processCommandArguments() {
+  QStringList args = QCoreApplication::arguments();
+
+  if (args.contains("-generate_default_config")) {
+    generateDefaultSettings();
+    QCoreApplication::exit(0);
+  }
 }
 
 void ServerManager::createServerInstance() {

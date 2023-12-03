@@ -10,9 +10,9 @@
 
 #include "Database/abstract_sql_database.h"
 #include "Database/sql_query_values.h"
-#include "StickerPrinter/isticker_printer.h"
+#include "ProductionDispatcher/abstract_transponder_release_system.h"
 
-class TransponderReleaseSystem : public QObject {
+class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
   Q_OBJECT
 
  public:
@@ -55,8 +55,6 @@ class TransponderReleaseSystem : public QObject {
   SqlQueryValues CurrentIssuer;
   SqlQueryValues CurrentMasterKeys;
   SqlQueryValues SupportData;
-
-  QMutex Mutex;
 
  public:
   explicit TransponderReleaseSystem(QObject* parent);
@@ -128,15 +126,9 @@ class TransponderReleaseSystem : public QObject {
   void on_CheckTimerTemeout(void);
 
  signals:
-  void logging(const QString& log);
-  void failed(ReturnStatus status);
-
-  void boxAssemblingFinished(const QHash<QString, QString>* data,
-                             IStickerPrinter::ReturnStatus* status);
-  void palletAssemblingFinished(const QHash<QString, QString>* data,
-                                IStickerPrinter::ReturnStatus* status);
-  void orderAssemblingFinished(const QHash<QString, QString>* data,
-                               IStickerPrinter::ReturnStatus* status);
+  void boxAssemblingFinished(const QHash<QString, QString>* data);
+  void palletAssemblingFinished(const QHash<QString, QString>* data);
+  void orderAssemblingFinished(const QHash<QString, QString>* data);
 };
 
 #endif  // TRANSPONDERRELEASESYSTEM_H

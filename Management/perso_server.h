@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include <QHash>
+#include <QHostAddress>
 #include <QObject>
 #include <QSet>
 #include <QStack>
@@ -12,12 +13,9 @@
 #include <QThread>
 #include <QTimer>
 #include <QtPrintSupport/QPrinterInfo>
-#include <QHostAddress>
 
-#include "Management/transponder_release_system.h"
-#include "StickerPrinter/isticker_printer.h"
-#include "StickerPrinter/te310_printer.h"
-#include "perso_client_connection.h"
+#include "ClientConnection/abstract_client_connection.h"
+#include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 class PersoServer : public QTcpServer {
   Q_OBJECT
