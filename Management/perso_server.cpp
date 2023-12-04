@@ -1,10 +1,11 @@
 #include <QHostAddress>
 
+#include "ClientConnection/production_line_connection.h"
 #include "Log/log_system.h"
 #include "ProductionDispatcher/general_production_dispatcher.h"
 #include "perso_server.h"
 
-PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {
+PersoServer::PersoServer() : QTcpServer() {
   setObjectName("PersoServer");
   CurrentState = Idle;
   MaxNumberClientConnections = 0;
@@ -16,22 +17,20 @@ PersoServer::PersoServer(QObject* parent) : QTcpServer(parent) {
   createClientIdentifiers();
 
   // Создаем систему выпуска транспондеров
-  createReleaserInstance();
-
-  // Создаем принтеры
-  createStickerPrinters();
+  createProductionDispatcherInstance();
 
   // Создаем таймер перезапуска
   createRestartTimer();
 }
 
 PersoServer::~PersoServer() {
-  if (ReleaserThread->isRunning()) {
-    ReleaserThread->quit();
-    ReleaserThread->wait();
+  if (ProductionDispatcherThread->isRunning()) {
+    ProductionDispatcherThread->quit();
+    ProductionDispatcherThread->wait();
   }
 
-  for (QHash<int32_t, QThread*>::iterator it = ClientThreads.begin();
+  for (QHash<int32_t, std::unique_ptr<QThread>>::iterator it =
+           ClientThreads.begin();
        it != ClientThreads.end(); it++) {
     (*it)->exit();
     (*it)->wait();
@@ -39,17 +38,17 @@ PersoServer::~PersoServer() {
 }
 
 bool PersoServer::start() {
-  //  sendLog("Проверка конфигурации");
-  //  if (!checkConfiguration()) {
-  //    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
-  //    RestartTimer->start();
-  //    return false;
-  //  }
+  sendLog("Проверка конфигурации");
+  if (!checkConfiguration()) {
+    sendLog("Проверка конфигурации провалена. Запуск сервера невозможен.");
+    RestartTimer->start();
+    return false;
+  }
 
-  // Запускаем систему выпуска транспондеров
-  TransponderReleaseSystem::ReturnStatus status;
-  emit startReleaser_signal(&status);
-  if (status != TransponderReleaseSystem::Completed) {
+  // Запускаем диспетчер производства
+  AbstractProductionDispatcher::ReturnStatus ret;
+  emit startProductionDispatcher_signal(ret);
+  if (ret != AbstractProductionDispatcher::Completed) {
     sendLog(
         "Не удалось запустить систему выпуска транспондеров. Запуск сервера "
         "невозможен.");
@@ -79,15 +78,12 @@ bool PersoServer::start() {
 }
 
 void PersoServer::stop() {
-  // Останавливаем релизер
-  Releaser->stop();
-
   // Останавливаем сервер
   close();
   sendLog("Остановлен. ");
 
   // Останавливаем систему выпуска транспондеров
-  emit stopReleaser_signal();
+  emit stopProductionDispatcher_signal();
 
   CurrentState = Idle;
 }
@@ -113,9 +109,6 @@ void PersoServer::incomingConnection(qintptr socketDescriptor) {
 
   // Создаем среду выполнения для клиента
   createClientInstance(socketDescriptor);
-
-  // Проверяем созданную среду выполнения
-  emit checkNewClientInstance();
 }
 
 void PersoServer::loadSettings() {
@@ -130,36 +123,11 @@ void PersoServer::loadSettings() {
   ListeningAddress =
       QHostAddress(settings.value("perso_server/listen_ip").toString());
   ListeningPort = settings.value("perso_server/listen_port").toInt();
-
-#ifdef __linux__
-  if (settings.contains("perso_server/box_sticker_printer_ip")) {
-    /* Prescense of box_sticker_printer_port is checked during validation */
-    BoxStickerPrinterIP = QHostAddress(
-        settings.value("perso_server/box_sticker_printer_ip").toString());
-    BoxStickerPrinterPort =
-        settings.value("perso_server/box_sticker_printer_port").toInt();
-  }
-
-  if (settings.contains("perso_server/pallet_sticker_printer_ip")) {
-    /*
-     * Prescense of printer_for_pallet_sticker_port is checked during validation
-     */
-    PalletStickerPrinterIP = QHostAddress(
-        settings.value("perso_server/pallet_sticker_printer_ip").toString());
-    PalletStickerPrinterPort =
-        settings.value("perso_server/pallet_sticker_printer_port").toInt();
-  }
-#else
-  BoxStickerPrinterName =
-      settings.value("perso_server/box_sticker_printer_name").toString();
-  PalletStickerPrinterName =
-      settings.value("perso_server/pallet_sticker_printer_name").toString();
-#endif /* __linux__ */
 }
 
 void PersoServer::sendLog(const QString& log) const {
   if (LogEnable) {
-    emit logging("PersoServer - " + log);
+    emit const_cast<PersoServer*>(this)->logging("PersoServer - " + log);
   }
 }
 
@@ -170,54 +138,31 @@ void PersoServer::processCriticalError(const QString& log) {
 }
 
 bool PersoServer::checkConfiguration() {
-  sendLog("Проверка конфигурации. ");
-
-  if (!BoxStickerPrinter->checkConfiguration()) {
-    sendLog(
-        "Проверка конфигурации принтера для печати стикеров на боксы "
-        "провалена. ");
-    return false;
-  }
-
-  if (!PalletStickerPrinter->checkConfiguration()) {
-    sendLog(
-        "Проверка конфигурации принтера для печати стикеров на паллеты "
-        "провалена. ");
-    return false;
-  }
-
-  sendLog("Проверка конфигурации прошла успешно. ");
-  return true;
+  return ProductionDispatcher->checkConfiguration();
 }
 
-void PersoServer::createReleaserInstance() {
-  Releaser = new TransponderReleaseSystem(nullptr);
-  connect(this, &PersoServer::startReleaser_signal, Releaser,
-          &TransponderReleaseSystem::start, Qt::BlockingQueuedConnection);
-  connect(this, &PersoServer::stopReleaser_signal, Releaser,
-          &TransponderReleaseSystem::stop, Qt::BlockingQueuedConnection);
-  connect(Releaser, &TransponderReleaseSystem::logging, LogSystem::instance(),
-          &LogSystem::generate);
-  connect(Releaser, &TransponderReleaseSystem::boxAssemblingFinished, this,
-          &PersoServer::printBoxSticker_slot, Qt::BlockingQueuedConnection);
-  connect(Releaser, &TransponderReleaseSystem::palletAssemblingFinished, this,
-          &PersoServer::printPalletSticker_slot, Qt::BlockingQueuedConnection);
-  connect(Releaser, &TransponderReleaseSystem::failed, this,
-          &PersoServer::releaserFailed_slot, Qt::BlockingQueuedConnection);
+void PersoServer::createProductionDispatcherInstance() {
+  ProductionDispatcher = std::unique_ptr<AbstractProductionDispatcher>(
+      new GeneralProductionDispatcher("GeneralProductionDispatcher"));
+  connect(this, &PersoServer::startProductionDispatcher_signal,
+          ProductionDispatcher.get(), &AbstractProductionDispatcher::start,
+          Qt::BlockingQueuedConnection);
+  connect(this, &PersoServer::stopProductionDispatcher_signal,
+          ProductionDispatcher.get(), &AbstractProductionDispatcher::stop,
+          Qt::BlockingQueuedConnection);
+  connect(ProductionDispatcher.get(), &AbstractProductionDispatcher::logging,
+          LogSystem::instance(), &LogSystem::generate);
+  connect(ProductionDispatcher.get(),
+          &AbstractProductionDispatcher::errorDetected, this,
+          &PersoServer::productionDispatcherErrorDetected,
+          Qt::BlockingQueuedConnection);
 
   // Создаем отдельный поток для системы выпуска транспондеров
-  ReleaserThread = new QThread(this);
-  Releaser->moveToThread(ReleaserThread);
-
-  connect(ReleaserThread, &QThread::finished, ReleaserThread,
-          &QThread::deleteLater);
-  connect(ReleaserThread, &QThread::finished, Releaser,
-          &PersoClientConnection::deleteLater);
-  connect(ReleaserThread, &QThread::started, Releaser,
-          &TransponderReleaseSystem::instanceThreadStarted_slot);
+  ProductionDispatcherThread = std::unique_ptr<QThread>(new QThread());
+  ProductionDispatcher->moveToThread(ProductionDispatcherThread.get());
 
   // Запускаем поток
-  ReleaserThread->start();
+  ProductionDispatcherThread->start();
 }
 
 void PersoServer::createClientIdentifiers() {
@@ -230,17 +175,18 @@ void PersoServer::createClientIdentifiers() {
 void PersoServer::createClientInstance(qintptr socketDescriptor) {
   // Выделяем свободный идентификатор
   int32_t clientId = FreeClientIds.pop();
+  QString clientName =
+      std::move(QString("client%1").arg(QString::number(clientId)));
 
   // Создаем новое клиент-подключение
-  PersoClientConnection* newClient =
-      new PersoClientConnection(clientId, socketDescriptor);
+  std::unique_ptr<AbstractClientConnection> newClient =
+      std::unique_ptr<AbstractClientConnection>(
+          new ProductionLineConnection(clientName, clientId, socketDescriptor));
 
-  connect(newClient, &PersoClientConnection::logging, LogSystem::instance(),
-          &LogSystem::generate);
-  connect(newClient, &PersoClientConnection::disconnected, this,
+  connect(newClient.get(), &AbstractClientConnection::logging,
+          LogSystem::instance(), &LogSystem::generate);
+  connect(newClient.get(), &AbstractClientConnection::disconnected, this,
           &PersoServer::clientDisconnected_slot);
-  connect(this, &PersoServer::checkNewClientInstance, newClient,
-          &PersoClientConnection::instanceTesting);
 
   // Добавляем клиента в реестр
   Clients.insert(clientId, newClient);
@@ -249,91 +195,31 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
               .arg(QString::number(newClient->getId())));
 
   // Создаем отдельный поток для клиента
-  QThread* newClientThread = new QThread(this);
-  newClient->moveToThread(newClientThread);
+  std::unique_ptr<QThread> newClientThread =
+      std::make_unique<QThread>(new QThread());
+  newClient->moveToThread(newClientThread.get());
 
-  connect(newClient, &PersoClientConnection::disconnected, newClientThread,
-          &QThread::quit);
-  connect(newClientThread, &QThread::finished, newClientThread,
-          &QThread::deleteLater);
-  connect(newClientThread, &QThread::finished, newClient,
-          &PersoClientConnection::deleteLater);
-  connect(newClientThread, &QThread::destroyed, this,
+  connect(newClientThread.get(), &QThread::destroyed, this,
           &PersoServer::clientThreadDeleted_slot);
 
-  // Добавляем поток в соответствующий реестр
+  // Добавляем поток в соответствующий реестр и запускаем
   ClientThreads.insert(clientId, newClientThread);
-
-  // Соединяем клиента с системой выпуска транспондеров
-  connect(newClient, &PersoClientConnection::authorize_signal, Releaser,
-          &TransponderReleaseSystem::authorize, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::release_signal, Releaser,
-          &TransponderReleaseSystem::release, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::confirmRelease_signal, Releaser,
-          &TransponderReleaseSystem::confirmRelease,
-          Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::rerelease_signal, Releaser,
-          &TransponderReleaseSystem::rerelease, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::confirmRerelease_signal, Releaser,
-          &TransponderReleaseSystem::confirmRerelease,
-          Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::search_signal, Releaser,
-          &TransponderReleaseSystem::search, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::productionLineRollback_signal,
-          Releaser, &TransponderReleaseSystem::rollbackProductionLine,
-          Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::getBoxData_signal, Releaser,
-          &TransponderReleaseSystem::getBoxData, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::getPalletData_signal, Releaser,
-          &TransponderReleaseSystem::getPalletData,
-          Qt::BlockingQueuedConnection);
-
-  // Подключаем принтер
-  connect(newClient, &PersoClientConnection::printBoxSticker_signal, this,
-          &PersoServer::printBoxSticker_slot, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::printLastBoxSticker_signal, this,
-          &PersoServer::printLastBoxSticker_slot, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::printPalletSticker_signal, this,
-          &PersoServer::printPalletSticker_slot, Qt::BlockingQueuedConnection);
-  connect(newClient, &PersoClientConnection::printLastPalletSticker_signal,
-          this, &PersoServer::printLastPalletSticker_slot,
-          Qt::BlockingQueuedConnection);
-
-  // Запускаем поток
   newClientThread->start();
+
   sendLog("Клиентский поток запущен. ");
 }
 
-void PersoServer::createStickerPrinters() {
-#ifdef __linux__
-  BoxStickerPrinter =
-      new TE310Printer(this, BoxStickerPrinterIP, BoxStickerPrinterPort);
-#else
-  BoxStickerPrinter = new TE310Printer(this, BoxStickerPrinterName);
-#endif /* __linux__ */
-  connect(BoxStickerPrinter, &IStickerPrinter::logging, LogSystem::instance(),
-          &LogSystem::generate);
-
-#ifdef __linux__
-  PalletStickerPrinter =
-      new TE310Printer(this, PalletStickerPrinterIP, PalletStickerPrinterPort);
-#else
-  PalletStickerPrinter = new TE310Printer(this, PalletStickerPrinterName);
-#endif /* __linux__ */
-  connect(PalletStickerPrinter, &IStickerPrinter::logging,
-          LogSystem::instance(), &LogSystem::generate);
-}
-
 void PersoServer::createRestartTimer() {
-  RestartTimer = new QTimer(this);
+  RestartTimer = std::make_unique<QTimer>(new QTimer());
   RestartTimer->setInterval(RestartPeriod * 1000);
-  connect(RestartTimer, &QTimer::timeout, this,
+
+  connect(RestartTimer.get(), &QTimer::timeout, this,
           &PersoServer::restartTimerTimeout_slot);
 }
 
 void PersoServer::clientDisconnected_slot() {
-  PersoClientConnection* disconnectedClient =
-      dynamic_cast<PersoClientConnection*>(sender());
+  ProductionLineConnection* disconnectedClient =
+      dynamic_cast<ProductionLineConnection*>(sender());
   if (!disconnectedClient) {
     processCriticalError(
         "Не удалось получить доступ к данным отключившегося клиента. ");
@@ -369,42 +255,11 @@ void PersoServer::clientThreadDeleted_slot() {
   sendLog(QString("Клиентский поток удален. "));
 }
 
-void PersoServer::printBoxSticker_slot(const QHash<QString, QString>* data,
-                                       IStickerPrinter::ReturnStatus* status) {
-  sendLog("Запуск печати стикера для бокса.");
-
-  *status = BoxStickerPrinter->printBoxSticker(data);
-}
-
-void PersoServer::printLastBoxSticker_slot(
-    IStickerPrinter::ReturnStatus* status) {
-  sendLog("Запуск печати стикера для бокса.");
-
-  *status = BoxStickerPrinter->printLastBoxSticker();
-}
-
-void PersoServer::printPalletSticker_slot(
-    const QHash<QString, QString>* data,
-    IStickerPrinter::ReturnStatus* status) {
-  sendLog("Запуск печати стикера для паллеты.");
-
-  *status = PalletStickerPrinter->printPalletSticker(data);
-}
-
-void PersoServer::printLastPalletSticker_slot(
-    IStickerPrinter::ReturnStatus* status) {
-  sendLog("Запуск печати стикера для паллеты.");
-
-  *status = PalletStickerPrinter->printLastPalletSticker();
-}
-
 void PersoServer::restartTimerTimeout_slot() {
   if (start()) {
     RestartTimer->stop();
   }
 }
 
-void PersoServer::releaserFailed_slot(
-    TransponderReleaseSystem::ReturnStatus status) {
-  processCriticalError("Система выпуска транспондеров неисправна.");
-}
+void PersoServer::productionDispatcherErrorDetected(
+    AbstractProductionDispatcher::ReturnStatus status) {}

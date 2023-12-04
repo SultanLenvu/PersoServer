@@ -814,10 +814,10 @@ TransponderReleaseSystem::confirmCurrentBox(void) {
 
     // Собираем данные о боксе и отправляем сигнал о завершении сборки бокса
     QHash<QString, QString> boxData;
-    IStickerPrinter::ReturnStatus status;
+    AbstractStickerPrinter::ReturnStatus status;
     generateBoxData(&boxData);
     emit boxAssemblingFinished(&boxData, &status);
-    if (status != IStickerPrinter::Completed) {
+    if (status != AbstractStickerPrinter::Completed) {
       emit failed(BoxStickerPrintError);
       return BoxStickerPrintError;
     }
@@ -864,10 +864,10 @@ TransponderReleaseSystem::confirmCurrentPallet() {
     // Собираем данные о паллете и отправляем сигнал о завершении сборки
     // паллеты
     QHash<QString, QString> palletData;
-    IStickerPrinter::ReturnStatus status;
+    AbstractStickerPrinter::ReturnStatus status;
     generatePalletData(&palletData);
     emit palletAssemblingFinished(&palletData, &status);
-    if (status != IStickerPrinter::Completed) {
+    if (status != AbstractStickerPrinter::Completed) {
       emit failed(PalletStickerPrintError);
       return PalletStickerPrintError;
     }

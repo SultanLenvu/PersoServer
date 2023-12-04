@@ -7,7 +7,9 @@
 #include <QSettings>
 #include <QtPrintSupport/QPrinterInfo>
 
-class IStickerPrinter : public QObject {
+#include "General/types.h"
+
+class AbstractStickerPrinter : public QObject {
   Q_OBJECT
  public:
   enum StickerPrinterType {
@@ -30,21 +32,19 @@ class IStickerPrinter : public QObject {
   bool LogEnable;
 
  public:
-  IStickerPrinter(QObject* parent, StickerPrinterType type);
-  virtual ~IStickerPrinter();
+  AbstractStickerPrinter(StickerPrinterType type);
+  virtual ~AbstractStickerPrinter();
 
   virtual bool checkConfiguration(void) = 0;
 
   virtual ReturnStatus printTransponderSticker(
-      const QHash<QString, QString>* parameters) = 0;
+      const StringDictionary& param) = 0;
   virtual ReturnStatus printLastTransponderSticker(void) = 0;
 
-  virtual ReturnStatus printBoxSticker(
-      const QHash<QString, QString>* parameters) = 0;
+  virtual ReturnStatus printBoxSticker(const StringDictionary& param) = 0;
   virtual ReturnStatus printLastBoxSticker(void) = 0;
 
-  virtual ReturnStatus printPalletSticker(
-      const QHash<QString, QString>* parameters) = 0;
+  virtual ReturnStatus printPalletSticker(const StringDictionary& param) = 0;
   virtual ReturnStatus printLastPalletSticker(void) = 0;
 
   virtual ReturnStatus exec(const QStringList* commandScript) = 0;
@@ -55,7 +55,7 @@ class IStickerPrinter : public QObject {
   void sendLog(const QString& log);
 
  private:
-  Q_DISABLE_COPY_MOVE(IStickerPrinter);
+  Q_DISABLE_COPY_MOVE(AbstractStickerPrinter);
 
  signals:
   void logging(const QString& log);

@@ -1,7 +1,10 @@
-#include "abstarct_perso_client.h"
+#include "abstract_client_connection.h"
 
-AbstarctPersoClient::AbstarctPersoClient(QObject *parent)
-    : QObject{parent}
-{
-
+AbstractClientConnection::AbstractClientConnection(const QString& name)
+    : QObject{nullptr} {
+  setObjectName(name);
 }
+
+AbstractClientConnection::~AbstractClientConnection() {}
+
+AbstractClientConnection::AbstractClientConnection() : QObject{nullptr} {}

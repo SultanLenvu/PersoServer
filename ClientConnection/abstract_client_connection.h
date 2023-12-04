@@ -3,14 +3,26 @@
 
 #include <QObject>
 
-class AbstarctPersoClient : public QObject
-{
-    Q_OBJECT
-public:
-    explicit AbstarctPersoClient(QObject *parent = nullptr);
+#include "General/types.h"
+#include "ProductionDispatcher/abstract_production_dispatcher.h"
 
-signals:
+class AbstractClientConnection : public QObject {
+  Q_OBJECT
+ public:
+  explicit AbstractClientConnection(const QString& name);
+  virtual ~AbstractClientConnection();
 
+  virtual size_t getId(void) const = 0;
+
+ private:
+  AbstractClientConnection();
+  Q_DISABLE_COPY_MOVE(AbstractClientConnection);
+
+ signals:
+  void logging(const QString& log);
+  void disconnected(void);
+  void shutdown(const StringDictionary&,
+                AbstractProductionDispatcher::ReturnStatus);
 };
 
-#endif // ABSTARCTPERSOCLIENT_H
+#endif  // ABSTARCTPERSOCLIENT_H

@@ -1,5 +1,5 @@
-#ifndef PersoClientConnection_H
-#define PersoClientConnection_H
+#ifndef PRODUCTION_LINE_CONNECTION_H
+#define PRODUCTION_LINE_CONNECTION_H
 
 #include <QCoreApplication>
 #include <QDataStream>
@@ -11,13 +11,11 @@
 #include <QThread>
 #include <QTimer>
 
-#include "Database/database_controller.h"
-#include "Database/postgres_controller.h"
-#include "Management/firmware_generation_system.h"
-#include "Management/transponder_release_system.h"
-#include "StickerPrinter/isticker_printer.h"
+#include "ClientConnection/abstract_client_connection.h"
+#include "ClientConnection/abstract_firmware_generation_system.h"
+#include "ProductionDispatcher/abstract_production_dispatcher.h"
 
-class PersoClientConnection : public QObject {
+class ProductionLineConnection : public AbstractClientConnection {
   Q_OBJECT
 
  private:
@@ -48,7 +46,7 @@ class PersoClientConnection : public QObject {
   bool ExtendedLogEnable;
   int32_t MaximumConnectionTime;
 
-  uint32_t Id;
+  size_t Id;
 
   QTcpSocket* Socket;
 
@@ -56,30 +54,30 @@ class PersoClientConnection : public QObject {
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
-  QHash<QString, void (PersoClientConnection::*)(void)> CommandHandlers;
+  QHash<QString, void (ProductionLineConnection::*)(void)> CommandHandlers;
   QHash<QString, QSharedPointer<QVector<QString>>> CommandTemplates;
   QJsonObject CurrentCommand;
   QJsonObject CurrentResponse;
 
-  QTimer* ExpirationTimer;
-  QTimer* DataBlockWaitTimer;
+  std::unique_ptr<QTimer> ExpirationTimer;
+  std::unique_ptr<QTimer> DataBlockWaitTimer;
 
-  FirmwareGenerationSystem* Generator;
+  std::unique_ptr<AbstractFirmwareGenerationSystem> Generator;
 
-  QHash<TransponderReleaseSystem::ReturnStatus, ServerStatus>
+  QHash<AbstractProductionDispatcher::ReturnStatus, ServerStatus>
       ServerStatusMatchTable;
 
  public:
-  explicit PersoClientConnection(uint32_t id, qintptr socketDescriptor);
-  ~PersoClientConnection();
+  explicit ProductionLineConnection(const QString& name,
+                                    uint32_t id,
+                                    qintptr socketDescriptor);
+  ~ProductionLineConnection();
 
-  uint32_t getId(void) const;
-
- public slots:
-  void instanceTesting(void);
+  virtual size_t getId(void) const override;
 
  private:
-  Q_DISABLE_COPY(PersoClientConnection)
+  ProductionLineConnection();
+  Q_DISABLE_COPY(ProductionLineConnection)
   void loadSettings(void);
   void sendLog(const QString& log);
 
@@ -126,41 +124,47 @@ class PersoClientConnection : public QObject {
   void logging(const QString& log);
   void disconnected(void);
 
-  void authorize_signal(const QHash<QString, QString>* parameters,
-                        TransponderReleaseSystem::ReturnStatus* status);
-  void release_signal(const QHash<QString, QString>* parameters,
-                      QHash<QString, QString>* seed,
-                      QHash<QString, QString>* data,
-                      TransponderReleaseSystem::ReturnStatus* status);
-  void confirmRelease_signal(const QHash<QString, QString>* parameters,
-                             TransponderReleaseSystem::ReturnStatus* status);
-  void rerelease_signal(const QHash<QString, QString>* parameters,
-                        QHash<QString, QString>* seed,
-                        QHash<QString, QString>* data,
-                        TransponderReleaseSystem::ReturnStatus* status);
-  void confirmRerelease_signal(const QHash<QString, QString>* parameters,
-                               TransponderReleaseSystem::ReturnStatus* status);
-  void search_signal(const QHash<QString, QString>* parameters,
-                     QHash<QString, QString>* data,
-                     TransponderReleaseSystem::ReturnStatus* status);
+  void authorize_signal(const StringDictionary& parameters,
+                        AbstractProductionDispatcher::ReturnStatus* status);
+  void release_signal(const StringDictionary& parameters,
+                      StringDictionary& seed,
+                      StringDictionary& data,
+                      AbstractProductionDispatcher::ReturnStatus* status);
+  void confirmRelease_signal(
+      const StringDictionary& parameters,
+      AbstractProductionDispatcher::ReturnStatus* status);
+  void rerelease_signal(const StringDictionary& parameters,
+                        StringDictionary& seed,
+                        StringDictionary& data,
+                        AbstractProductionDispatcher::ReturnStatus* status);
+  void confirmRerelease_signal(
+      const StringDictionary& parameters,
+      AbstractProductionDispatcher::ReturnStatus* status);
+  void search_signal(const StringDictionary& parameters,
+                     StringDictionary& data,
+                     AbstractProductionDispatcher::ReturnStatus* status);
 
   void productionLineRollback_signal(
-      const QHash<QString, QString>* parameters,
-      TransponderReleaseSystem::ReturnStatus* status);
+      const StringDictionary& parameters,
+      AbstractProductionDispatcher::ReturnStatus* status);
 
-  void getBoxData_signal(const QHash<QString, QString>* parameters,
-                         QHash<QString, QString>* data,
-                         TransponderReleaseSystem::ReturnStatus* status);
-  void getPalletData_signal(const QHash<QString, QString>* parameters,
-                            QHash<QString, QString>* data,
-                            TransponderReleaseSystem::ReturnStatus* status);
+  void getBoxData_signal(const StringDictionary& parameters,
+                         StringDictionary& data,
+                         AbstractProductionDispatcher::ReturnStatus* status);
+  void getPalletData_signal(const StringDictionary& parameters,
+                            StringDictionary& data,
+                            AbstractProductionDispatcher::ReturnStatus* status);
 
-  void printBoxSticker_signal(const QHash<QString, QString>* data,
-                              IStickerPrinter::ReturnStatus* status);
-  void printLastBoxSticker_signal(IStickerPrinter::ReturnStatus* status);
-  void printPalletSticker_signal(const QHash<QString, QString>* data,
-                                 IStickerPrinter::ReturnStatus* status);
-  void printLastPalletSticker_signal(IStickerPrinter::ReturnStatus* status);
+  void printBoxSticker_signal(
+      const StringDictionary& data,
+      AbstractProductionDispatcher::ReturnStatus* status);
+  void printLastBoxSticker_signal(
+      AbstractProductionDispatcher::ReturnStatus* status);
+  void printPalletSticker_signal(
+      const StringDictionary& data,
+      AbstractProductionDispatcher::ReturnStatus* status);
+  void printLastPalletSticker_signal(
+      AbstractProductionDispatcher::ReturnStatus* status);
 };
 
-#endif  // PersoClientConnection_H
+#endif  // PRODUCTION_LINE_CONNECTION_H

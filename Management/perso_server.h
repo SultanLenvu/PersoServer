@@ -44,27 +44,16 @@ class PersoServer : public QTcpServer {
   OperatingState CurrentState;
 
   QStack<int32_t> FreeClientIds;
-  QHash<int32_t, QThread*> ClientThreads;
-  QHash<int32_t, PersoClientConnection*> Clients;
+  QHash<int32_t, std::unique_ptr<QThread>> ClientThreads;
+  QHash<int32_t, std::unique_ptr<AbstractClientConnection>> Clients;
 
-  TransponderReleaseSystem* Releaser;
-  QThread* ReleaserThread;
+  std::unique_ptr<AbstractProductionDispatcher> ProductionDispatcher;
+  std::unique_ptr<QThread> ProductionDispatcherThread;
 
-  QString BoxStickerPrinterName;
-  QString PalletStickerPrinterName;
-#ifdef __linux__
-  QHostAddress BoxStickerPrinterIP;
-  int32_t BoxStickerPrinterPort;
-  QHostAddress PalletStickerPrinterIP;
-  int32_t PalletStickerPrinterPort;
-#endif /* __linux__ */
-  IStickerPrinter* BoxStickerPrinter;
-  IStickerPrinter* PalletStickerPrinter;
-
-  QTimer* RestartTimer;
+  std::unique_ptr<QTimer> RestartTimer;
 
  public:
-  explicit PersoServer(QObject* parent);
+  explicit PersoServer();
   ~PersoServer();
 
  public:
@@ -83,32 +72,26 @@ class PersoServer : public QTcpServer {
   void processCriticalError(const QString& log);
   bool checkConfiguration(void);
 
-  void createReleaserInstance(void);
+  void createProductionDispatcherInstance(void);
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
-  void createStickerPrinters(void);
   void createRestartTimer(void);
 
  private slots:
   void clientDisconnected_slot(void);
   void clientThreadDeleted_slot(void);
 
-  void printBoxSticker_slot(const QHash<QString, QString>* data,
-                            IStickerPrinter::ReturnStatus* status);
-  void printLastBoxSticker_slot(IStickerPrinter::ReturnStatus* status);
-  void printPalletSticker_slot(const QHash<QString, QString>* data,
-                               IStickerPrinter::ReturnStatus* status);
-  void printLastPalletSticker_slot(IStickerPrinter::ReturnStatus* status);
-
   void restartTimerTimeout_slot(void);
-  void releaserFailed_slot(TransponderReleaseSystem::ReturnStatus status);
+
+  void productionDispatcherErrorDetected(
+      AbstractProductionDispatcher::ReturnStatus status);
 
  signals:
-  void logging(const QString& log) const;
-  void checkNewClientInstance(void);
+  void logging(const QString& log);
 
-  void startReleaser_signal(TransponderReleaseSystem::ReturnStatus* status);
-  void stopReleaser_signal(void);
+  void startProductionDispatcher_signal(
+      AbstractProductionDispatcher::ReturnStatus&);
+  void stopProductionDispatcher_signal(void);
 };
 
 #endif  // PERSOSERVER_H

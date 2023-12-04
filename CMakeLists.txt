@@ -17,6 +17,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     Database/sql_query_values.h Database/sql_query_values.cpp
 
     General/definitions.h
+    General/types.h
 
     Log/console_log_backend.cpp Log/console_log_backend.h
     Log/file_log_backend.cpp Log/file_log_backend.h
@@ -34,7 +35,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     ProductionDispatcher/general_production_dispatcher.h ProductionDispatcher/general_production_dispatcher.cpp
     ProductionDispatcher/transponder_release_system.cpp ProductionDispatcher/transponder_release_system.h
     ProductionDispatcher/transponder_seed.cpp ProductionDispatcher/transponder_seed.h
-    ProductionDispatcher/isticker_printer.cpp ProductionDispatcher/isticker_printer.h
+    ProductionDispatcher/abstract_sticker_printer.cpp ProductionDispatcher/abstract_sticker_printer.h
     ProductionDispatcher/te310_printer.cpp ProductionDispatcher/te310_printer.h
     ProductionDispatcher/abstract_authorization_system.h ProductionDispatcher/abstract_authorization_system.cpp
     ProductionDispatcher/abstract_info_system.h ProductionDispatcher/abstract_info_system.cpp

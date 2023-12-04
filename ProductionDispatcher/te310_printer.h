@@ -1,12 +1,12 @@
 #ifndef TE310PRINTER_H
 #define TE310PRINTER_H
 
-#include <QHostInfo>
 #include <QHostAddress>
+#include <QHostInfo>
 
-#include "isticker_printer.h"
+#include "abstract_sticker_printer.h"
 
-class TE310Printer : public IStickerPrinter {
+class TE310Printer : public AbstractStickerPrinter {
   Q_OBJECT
 
  private:
@@ -43,7 +43,7 @@ class TE310Printer : public IStickerPrinter {
 #endif /* __linux__ */
 
  public:
-  explicit TE310Printer(QObject* parent, const QString& name);
+  explicit TE310Printer(const QString& name);
 #ifdef __linux__
   explicit TE310Printer(QObject* parent, const QHostAddress& ip, int port);
 #endif /* __linux__ */
@@ -51,15 +51,14 @@ class TE310Printer : public IStickerPrinter {
   virtual bool checkConfiguration(void) override;
 
   virtual ReturnStatus printTransponderSticker(
-      const QHash<QString, QString>* parameters) override;
+      const StringDictionary& param) override;
   virtual ReturnStatus printLastTransponderSticker(void) override;
 
-  virtual ReturnStatus printBoxSticker(
-      const QHash<QString, QString>* parameters) override;
+  virtual ReturnStatus printBoxSticker(const StringDictionary& param) override;
   virtual ReturnStatus printLastBoxSticker(void) override;
 
   virtual ReturnStatus printPalletSticker(
-      const QHash<QString, QString>* parameters) override;
+      const StringDictionary& param) override;
   virtual ReturnStatus printLastPalletSticker(void) override;
 
   virtual ReturnStatus exec(const QStringList* commandScript) override;
@@ -71,8 +70,8 @@ class TE310Printer : public IStickerPrinter {
   void loadSetting(void);
   void sendLog(const QString& log);
   bool loadTscLib(void);
-  void printNkdSticker(const QHash<QString, QString>* parameters);
-  void printZsdSticker(const QHash<QString, QString>* parameters);
+  void printNkdSticker(const StringDictionary& param);
+  void printZsdSticker(const StringDictionary& param);
   bool checkConfigurationByName();
 #ifdef __linux__
   bool checkConfigurationByAddress();

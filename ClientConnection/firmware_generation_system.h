@@ -11,7 +11,7 @@
 
 #include "General/definitions.h"
 #include "Security/des.h"
-#include "transponder_seed.h"
+#include "abstract_firmware_generation_system.h"
 
 /*
 // Физическое представление данных транспондера: данные, не изменяемые
@@ -48,18 +48,8 @@ typedef struct {
 } VarObuDataType;
 */
 
-class FirmwareGenerationSystem : public QObject {
+class FirmwareGenerationSystem : public AbstractFirmwareGenerationSystem {
   Q_OBJECT
- public:
-  enum ExecutionStatus {
-    NotExecuted,
-    GenerationError,
-    DatabaseQueryError,
-    UnknowError,
-    CompletedSuccessfully
-  };
-  Q_ENUM(ExecutionStatus);
-
  private:
   bool LogEnable;
 
@@ -69,28 +59,28 @@ class FirmwareGenerationSystem : public QObject {
   QHash<QString, QByteArray> CommonKeys;
 
  public:
-  explicit FirmwareGenerationSystem(QObject* parent);
+  explicit FirmwareGenerationSystem(const QString& name);
   ~FirmwareGenerationSystem();
 
-  bool generate(const QHash<QString, QString>* seed,
-                QByteArray* assembledFirmware);
+  virtual bool generate(const StringDictionary& seed,
+                        QByteArray& assembledFirmware) override;
 
  private:
+  FirmwareGenerationSystem();
   Q_DISABLE_COPY_MOVE(FirmwareGenerationSystem);
   void loadSettings(void);
   void sendLog(const QString& log) const;
   void createPositionMap(void);
 
-  bool assembleFirmware(const QByteArray* firmwareData,
-                        QByteArray* assembledFirmware);
+  bool assembleFirmware(const QByteArray& firmwareData,
+                        QByteArray& assembledFirmware);
 
-  bool generateFirmwareData(const QHash<QString, QString>* seed,
-                            QByteArray* firmwareData);
-  void generateCommonKeys(const QHash<QString, QString>* transpoderSeed);
+  bool generateFirmwareData(const StringDictionary& seed,
+                            QByteArray& firmwareData);
+  void generateCommonKeys(const StringDictionary& seed);
   void generatePaymentMeans(const QString& pan, QString& paymentMeans);
 
  signals:
-  void logging(const QString& log) const;
 };
 
-#endif // FIRMWAREGENERATIONSYSTEM_H
+#endif  // FIRMWAREGENERATIONSYSTEM_H
