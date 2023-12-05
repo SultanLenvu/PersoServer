@@ -1,6 +1,6 @@
 #include <QHostAddress>
 
-#include "ClientConnection/production_line_connection.h"
+#include "ClientConnection/client_connection.h"
 #include "Log/log_system.h"
 #include "ProductionDispatcher/general_production_dispatcher.h"
 #include "perso_server.h"
@@ -46,9 +46,9 @@ bool PersoServer::start() {
   }
 
   // Запускаем диспетчер производства
-  AbstractProductionDispatcher::ReturnStatus ret;
+  ReturnStatus ret;
   emit startProductionDispatcher_signal(ret);
-  if (ret != AbstractProductionDispatcher::Completed) {
+  if (ret != ReturnStatus::NoError) {
     sendLog(
         "Не удалось запустить систему выпуска транспондеров. Запуск сервера "
         "невозможен.");
@@ -181,7 +181,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   // Создаем новое клиент-подключение
   std::unique_ptr<AbstractClientConnection> newClient =
       std::unique_ptr<AbstractClientConnection>(
-          new ProductionLineConnection(clientName, clientId, socketDescriptor));
+          new ClientConnection(clientName, clientId, socketDescriptor));
 
   connect(newClient.get(), &AbstractClientConnection::logging,
           LogSystem::instance(), &LogSystem::generate);
@@ -218,8 +218,8 @@ void PersoServer::createRestartTimer() {
 }
 
 void PersoServer::clientDisconnected_slot() {
-  ProductionLineConnection* disconnectedClient =
-      dynamic_cast<ProductionLineConnection*>(sender());
+  ClientConnection* disconnectedClient =
+      dynamic_cast<ClientConnection*>(sender());
   if (!disconnectedClient) {
     processCriticalError(
         "Не удалось получить доступ к данным отключившегося клиента. ");

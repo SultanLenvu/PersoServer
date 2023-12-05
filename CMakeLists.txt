@@ -44,7 +44,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     ProductionDispatcher/info_system.h ProductionDispatcher/info_system.cpp
 
     ClientConnection/abstract_client_connection.h ClientConnection/abstract_client_connection.cpp
-    ClientConnection/production_line_connection.cpp ClientConnection/production_line_connection.h
+    ClientConnection/client_connection.cpp ClientConnection/client_connection.h
     ClientConnection/firmware_generation_system.cpp ClientConnection/firmware_generation_system.h
     ClientConnection/abstract_firmware_generation_system.h ClientConnection/abstract_firmware_generation_system.cpp
     ClientConnection/abstract_client_command.h ClientConnection/abstract_client_command.cpp
@@ -58,6 +58,9 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     ClientConnection/last_box_sticker_print_command.h ClientConnection/last_box_sticker_print_command.cpp
     ClientConnection/pallet_sticker_print_command.h ClientConnection/pallet_sticker_print_command.cpp
     ClientConnection/last_pallet_sticker_print_command.h ClientConnection/last_pallet_sticker_print_command.cpp
+    ClientConnection/launch_command.h ClientConnection/launch_command.cpp
+    ClientConnection/shutdown_command.h ClientConnection/shutdown_command.cpp
+    ClientConnection/get_current_context_command.h ClientConnection/get_current_context_command.cpp
 
     Security/des.cpp Security/des.h
 

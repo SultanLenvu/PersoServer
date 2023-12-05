@@ -1,27 +1,22 @@
-#include "transponder_rerelease_command.h"
+#include "launch_command.h"
 #include "Management/global_context.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
-TransponderRereleaseCommand::TransponderRereleaseCommand(
-    const QString& name,
-    std::shared_ptr<AbstractFirmwareGenerationSystem> generator)
+LaunchCommand::LaunchCommand(const QString& name)
     : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
-  Firmware = std::unique_ptr<QByteArray>(new QByteArray());
-  Generator = generator;
-
   connect(
-      this, &TransponderRereleaseCommand::rereleaseTransponder_signal,
+      this, &LaunchCommand::launchProductionLine_signal,
       dynamic_cast<const AbstractProductionDispatcher*>(
           GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
-      &AbstractProductionDispatcher::rereleaseTransponder,
+      &AbstractProductionDispatcher::launchProductionLine,
       Qt::BlockingQueuedConnection);
 }
 
-TransponderRereleaseCommand::~TransponderRereleaseCommand() {}
+LaunchCommand::~LaunchCommand() {}
 
-ReturnStatus TransponderRereleaseCommand::process(const QJsonObject& command) {
+ReturnStatus LaunchCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) || !command.contains("login") ||
       !command.contains("password")) {
@@ -30,24 +25,17 @@ ReturnStatus TransponderRereleaseCommand::process(const QJsonObject& command) {
 
   Parameters.insert("login", command.value("login").toString());
   Parameters.insert("password", command.value("password").toString());
-  Parameters.insert("personal_account_number", command.value("pan").toString());
 
   // Запрашиваем печать бокса
-  emit rereleaseTransponder_signal(Parameters, Result, Status);
-
-  // Генерируем прошивку
-  if (!Generator->generate(Result, *Firmware)) {
-    Status = ReturnStatus::FirmwareGenerationError;
-  }
+  emit launchProductionLine_signal(Parameters, Result, Status);
 
   return Status;
 }
 
-void TransponderRereleaseCommand::generateResponse(QJsonObject& response) {
+void LaunchCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["firmware"] = QString::fromUtf8(Firmware->toBase64());
     response["transponder_sn"] = Result.value("transponder_sn");
     response["transponder_pan"] = Result.value("transponder_pan");
     response["box_id"] = Result.value("box_id");
@@ -60,9 +48,8 @@ void TransponderRereleaseCommand::generateResponse(QJsonObject& response) {
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 
-void TransponderRereleaseCommand::reset() {
+void LaunchCommand::reset() {
   Parameters.clear();
   Result.clear();
-  Firmware->clear();
   Status = ReturnStatus::Unknown;
 }

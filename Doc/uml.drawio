@@ -1,1 +1,429 @@
-<mxfile host="Electron" modified="2023-12-04T08:02:58.617Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/13.9.9 Chrome/85.0.4183.121 Electron/10.1.5 Safari/537.36" etag="ZQFTs0IHlXKWgGZMC7ta" version="13.9.9" type="device"><diagram name="Страница — 1" id="xjbYhO8doR0Xn5XljVLI">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</diagram></mxfile>
+<mxfile host="Electron" modified="2023-12-05T12:07:13.093Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="jgoWwXx71RUcIbm-b0KR" version="22.1.2" type="device">
+  <diagram name="Страница — 1" id="xjbYhO8doR0Xn5XljVLI">
+    <mxGraphModel dx="2989" dy="982" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2339" pageHeight="3300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-42" value="thread1" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="-640" y="-290" width="1240" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-43" value="thread2" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="-1640" y="240" width="1800" height="1680" as="geometry" />
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-44" value="thread3" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="200" y="240" width="1810" height="1320" as="geometry" />
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-4" value="PostgreSql" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2180" y="895" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-23" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-1" target="iYAQBUWoqbOEuKNMkIJt-8" edge="1">
+          <mxGeometry x="-0.7895" relative="1" as="geometry">
+            <mxPoint x="910" y="1119.9999999999995" as="sourcePoint" />
+            <mxPoint x="1110" y="1210" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="840" y="1030" />
+              <mxPoint x="840" y="1380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-24" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-1" target="iYAQBUWoqbOEuKNMkIJt-9" edge="1">
+          <mxGeometry x="-0.9375" relative="1" as="geometry">
+            <mxPoint x="750" y="730" as="sourcePoint" />
+            <mxPoint x="1330.0000000000005" y="720" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1170" y="940" />
+              <mxPoint x="1170" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-25" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-1" target="iYAQBUWoqbOEuKNMkIJt-1" edge="1">
+          <mxGeometry x="-0.9167" relative="1" as="geometry">
+            <mxPoint x="620" y="769.9999999999995" as="sourcePoint" />
+            <mxPoint x="720" y="580" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="660" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-26" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-1" target="iYAQBUWoqbOEuKNMkIJt-9" edge="1">
+          <mxGeometry x="-0.8621" relative="1" as="geometry">
+            <mxPoint x="980" y="580" as="sourcePoint" />
+            <mxPoint x="1260" y="760" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1320" y="620" />
+              <mxPoint x="1320" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-27" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-8" target="iYAQBUWoqbOEuKNMkIJt-9" edge="1">
+          <mxGeometry x="-0.84" relative="1" as="geometry">
+            <mxPoint x="1040" y="860" as="sourcePoint" />
+            <mxPoint x="1340" y="920" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1660" y="1380" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-28" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-1" target="iYAQBUWoqbOEuKNMkIJt-13" edge="1">
+          <mxGeometry x="-0.25" relative="1" as="geometry">
+            <mxPoint x="570" y="1040" as="sourcePoint" />
+            <mxPoint x="580" y="1040.0000000000002" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-29" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-1" target="iYAQBUWoqbOEuKNMkIJt-7" edge="1">
+          <mxGeometry x="-0.9474" relative="1" as="geometry">
+            <mxPoint x="570" y="769.9999999999995" as="sourcePoint" />
+            <mxPoint x="750" y="380" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="520" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-32" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;jumpStyle=arc;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-7" target="iYAQBUWoqbOEuKNMkIJt-9" edge="1">
+          <mxGeometry x="-0.9487" relative="1" as="geometry">
+            <mxPoint x="950" y="380" as="sourcePoint" />
+            <mxPoint x="1340" y="760" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1660" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-38" value="n" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-3" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry x="-0.6364" relative="1" as="geometry">
+            <mxPoint x="-930" y="815" as="sourcePoint" />
+            <mxPoint x="-780" y="895" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-39" value="n" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-14" target="u6guJtRiA1-9_UeP9TXa-3" edge="1">
+          <mxGeometry x="-0.974" relative="1" as="geometry">
+            <mxPoint x="440" y="60" as="sourcePoint" />
+            <mxPoint x="-420" y="490" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="-1400" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-40" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-14" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry x="-0.8983" relative="1" as="geometry">
+            <mxPoint x="520" y="80" as="sourcePoint" />
+            <mxPoint x="520" y="760" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-47" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="u6guJtRiA1-9_UeP9TXa-3" target="u6guJtRiA1-9_UeP9TXa-2" edge="1">
+          <mxGeometry x="-0.8636" relative="1" as="geometry">
+            <mxPoint x="-1510" y="840" as="sourcePoint" />
+            <mxPoint x="-1490" y="1060" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="-1400" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cB_1jcFKDLnhwmuv0rob-52" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;jumpStyle=arc;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-22" edge="1">
+          <mxGeometry x="-0.9104" relative="1" as="geometry">
+            <mxPoint x="-840" y="1095" as="sourcePoint" />
+            <mxPoint x="-840" y="1000" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="-680" y="850" />
+              <mxPoint x="-680" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-1" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractReleaseSystem&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«constructors»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ abstractInfoSystem(const AbstractSqlDatabase&amp;amp; db) : void&lt;/p&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ release(Type): bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ confirmRelease(Type): bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ rerelease(Type): bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ confirmRerelease(Type): bool&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="840" y="520" width="360" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-7" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;«interface»&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractAuthorizationSystem&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«constructors»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ abstractInfoSystem(const AbstractSqlDatabase&amp;amp; db) : void&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ launch(StringDictionary): bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ shutdown(StringDictionary): bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ init(void): bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ isLaunched(StringDictionary) : bool&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="840" y="280" width="360" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-8" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractInfoSystem&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«constructors»&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ abstractInfoSystem(const AbstractSqlDatabase&amp;amp; db) : void&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ generateBoxDataById(conct QString&amp;amp;,&amp;nbsp;StringDictionary&amp;amp;&lt;span&gt;) : bool&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ generateBoxDataByPan(conct QString&amp;amp;, StringDictionary&amp;amp;) : bool&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ generatePalletDataById(conct QString&amp;amp;, StringDictionary&amp;amp;) : bool&amp;nbsp;&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ generatePalletDataByPan(conct QString&amp;amp;, StringDictionary&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;+ generateTransponderDataById(conct QString&amp;amp;, StringDictionary&amp;amp;) : bool&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ generateTransponderDataByPan(conct QString&amp;amp;, StringDictionary&amp;amp;) : bool&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ generateFirmwareSeed(conct QString&amp;amp;, StringDictionary&amp;amp;) : bool&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ generateProductionLineContext(const StringDictionary&amp;amp;,&amp;nbsp;StringDictionary&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="880" y="1240" width="480" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-9" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractSqlDatabase&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ connect(void): bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ disconnect(void): bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ checkConnection(void): bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ openTransaction(void): bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ commitTransaction(void) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ getCurrentOrder(void) : Qt::SortOrder&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ setCurrentOrder(Qt::SortOrder): void&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ getRecordMaxCount(void) : size_t&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ setRecordMaxCount(size_t) : void&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ execCustomRequest(const QString&amp;amp;, SqlQueryValues&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ createRecords(const QString&amp;amp;,&amp;nbsp;const SqlQueryValues&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ readRecords(const QString&amp;amp;,&amp;nbsp;const SqlQueryValues&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ readRecords(const QString&amp;amp;,const QString&amp;amp;,const SqlQueryValues&amp;amp;) : bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ readLastRecord(const QString&amp;amp;,&amp;nbsp;const SqlQueryValues&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ updateRecords(const QString&amp;amp;,const QString&amp;amp;,const SqlQueryValues&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ deleteRecords(const QString&amp;amp;,&amp;nbsp;const SqlQueryValues&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ clearTable(const QString&amp;amp;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ readMergedRecords(const QStringList&amp;amp;,&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;const QString&amp;amp;,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;const SqlQueryValues&amp;amp;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;) : bool&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ updateMergedRecords(const QStringList&amp;amp;,&amp;nbsp;const QString&amp;amp;,&amp;nbsp;&lt;span style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;const SqlQueryValues&amp;amp;&lt;/span&gt;) : bool&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ deleteMergedRecords(const QStringList&amp;amp;,&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;const QString&amp;amp;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;) : bool&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ getRecordsCount(const QString&amp;amp;,&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;uint32_t&amp;amp;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;) : bool&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1400" y="640" width="520" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-11" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-9" target="cB_1jcFKDLnhwmuv0rob-4" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="2120" y="1020" as="sourcePoint" />
+            <mxPoint x="2390" y="1070" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-13" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractStickerPrinter&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ printPalletSticker(StringDictionary) : ReturnStatus&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ printLastPalletSticker(StringDictionary&lt;span&gt;) : ReturnStatus&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ printBoxSticker(StringDictionary) : ReturnStatus&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ printLastBoxSticker(StringDictionary) : ReturnStatus&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ printTransponderSticker(StringDictionary) : ReturnStatus&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ printLastTransponderSticker(StringDictionary) : ReturnStatus&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ checkConfiguration(void) : bool&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="340" y="1280" width="360" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-14" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;«interface»&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractPersoServer&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;+ start(void): bool&lt;/span&gt;&lt;/div&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ stop(void): void&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="280" width="200" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-16" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«singleton»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;GlobalContext&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ &lt;u&gt;instance(void) : GlobalContext*&lt;/u&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ register(const QObject* obj): void&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ get(const QString&amp;amp; name): const QObject*&amp;nbsp;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-520" y="-200" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-17" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«singleton»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;LogSystem&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ &lt;u&gt;instance(void) : LogSystem*&lt;/u&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ generate(const QString&amp;amp;): void&amp;nbsp;&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ clear(void): void&amp;nbsp;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-160" y="-200" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-18" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;«interface»&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractServerManager&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ init(void): bool&lt;/span&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="220" y="-160" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-20" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-18" target="iYAQBUWoqbOEuKNMkIJt-14" edge="1">
+          <mxGeometry x="-0.25" relative="1" as="geometry">
+            <mxPoint x="1500" y="-150" as="sourcePoint" />
+            <mxPoint x="700" y="95" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="380" y="-30" />
+              <mxPoint x="380" y="-30" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-21" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractCommand&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ process(const QJsonObject&amp;amp;) : ReturnStatus&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ generate(QJsonObject&amp;amp;) : void&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ reset(void) : void&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-1080" y="720" width="360" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-22" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="820" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=12 12;" parent="1" source="iYAQBUWoqbOEuKNMkIJt-22" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iYAQBUWoqbOEuKNMkIJt-22" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;TransponderReleaseCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«constructors»&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ TranponderReleaseCommand(AbstractFirmwareGenerator&amp;amp;) : void&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ releaseTransponder_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="760" width="560" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="u6guJtRiA1-9_UeP9TXa-1" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;AbstractProductionDispatcher&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center ; margin: 0px 0px 0px 4px&quot;&gt;«abstract»&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ checkConfiguration(void) : bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center ; margin: 0px 0px 0px 4px&quot;&gt;«abstract slots»&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ start(ReturnStatus) : void&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ stop(void) : void&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ launchProductionLine(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ shutdownProductionLine(const StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ getProductionLineContext(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ rollbackProductionLine(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ releaseTransponder(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ confirmTransponderRelease(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus): void&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ rerelease&lt;/span&gt;&lt;span&gt;Transponder(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus): void&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;&lt;span&gt;+ confirmTransponderRerelease(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus): void&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ printBoxStickerManually(const StringDictionary&amp;amp;, ReturnStatus&lt;/span&gt;&lt;span&gt;) : void&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ printLastBoxStickerManually(ReturnStatus) : void&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ printPalletStickerManually(const StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ printLastPalletStickerManually(ReturnStatus) : void&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center ; margin: 0px 0px 0px 4px&quot;&gt;«signals»&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="240" y="760" width="560" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="u6guJtRiA1-9_UeP9TXa-2" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;AbstractFirmwareGenerator&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ generate(const StringDuctionary&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;amp;, QByteArray&amp;amp;) : void&lt;/span&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-1040" y="960" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="u6guJtRiA1-9_UeP9TXa-3" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;«interface»&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;AbstractPersoClient&lt;/b&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;border-color: var(--border-color); text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«abstract»&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ getId(void) : size_t&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ isAuthorised(void) : bool&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ getLogin(void) : const QString&amp;amp;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ getPassword(void) : const QString&amp;amp;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center ; margin: 0px 0px 0px 4px&quot;&gt;«signals»&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ disconnected(void) : void&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ shutdown_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px&quot;&gt;+ logging(const QString&amp;amp;) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-1640" y="680" width="480" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-1" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="340" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-1" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;EchoCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="320" width="560" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-5" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-5" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;TransponderReleaseCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«constructors»&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ TranponderRereleaseCommand(AbstractFirmwareGenerator&amp;amp;) : void&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;«signals»&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ rereleaseTransponder_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1160" width="560" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-7" value="1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-5" target="u6guJtRiA1-9_UeP9TXa-2" edge="1">
+          <mxGeometry x="-0.8966" relative="1" as="geometry">
+            <mxPoint x="-1280" y="1355" as="sourcePoint" />
+            <mxPoint x="-1459" y="1300" as="targetPoint" />
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="-680" y="1220" />
+              <mxPoint x="-680" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-9" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="440" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-9" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="440" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-9" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;LaunchCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ launch_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="400" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-12" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="560" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-12" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-200" y="680" />
+              <mxPoint x="100" y="680" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-12" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;GetCurrentContext&lt;/b&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ getCurrentContext_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="520" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-13" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="680" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-13" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="680" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-13" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;GetCurrentContext&lt;/b&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ getCurrentContext_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="640" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-16" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="960" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-16" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="960" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-16" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;TransponderReleaseConfirmCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ confirmTransponderRelease_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus&lt;span style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;) : void&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="920" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-17" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="1080" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-48" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-17" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="1080" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-17" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;TransponderRereleaseConfirmCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ confirmTransponderRerelease_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1040" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-22" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="1360" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-22" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-200" y="1480" />
+              <mxPoint x="100" y="1480" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-22" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-22" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;RollbackCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ rollback_signal(const StringDictionary&amp;amp;, StringDictionary&amp;amp;, ReturnStatus) : void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1320" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-37" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="1480" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-37" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-200" y="1600" />
+              <mxPoint x="100" y="1600" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-37" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;BoxStickerPrintCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ printBoxSticker_signal(const StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1440" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-52" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-200" y="1720" />
+              <mxPoint x="100" y="1720" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-52" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;LastBoxStickerPrintCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ printLastBoxSticker_signal(ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1560" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-55" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-53" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="1720" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=12 12;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-53" target="u6guJtRiA1-9_UeP9TXa-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-200" y="1840" />
+              <mxPoint x="100" y="1840" />
+              <mxPoint x="100" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-53" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;PalletStickerPrintCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ printPalletSticker_signal(const StringDictionary&amp;amp;, ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1680" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;jumpStyle=arc;" parent="1" source="hqSYlJ_J1wfFKjAuanq_-54" target="iYAQBUWoqbOEuKNMkIJt-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-640" y="1840" />
+              <mxPoint x="-640" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqSYlJ_J1wfFKjAuanq_-54" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;/p&gt;&lt;span&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b style=&quot;border-color: var(--border-color); background-color: initial;&quot;&gt;LastPalletStickerPrintCommand&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;/span&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;text-align: center; margin: 0px 0px 0px 4px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;«signals»&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 4px;&quot;&gt;+ printLastPalletSticker_signal(ReturnStatus) : void&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-600" y="1800" width="560" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

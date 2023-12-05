@@ -1,7 +1,10 @@
 #include "abstract_client_command.h"
 
-AbstractClientCommand::AbstractClientCommand(QObject *parent)
-    : QObject{parent}
-{
-
+AbstractClientCommand::AbstractClientCommand(const QString& name)
+    : QObject{nullptr} {
+  setObjectName(name);
 }
+
+AbstractClientCommand::~AbstractClientCommand() {}
+
+AbstractClientCommand::AbstractClientCommand() {}

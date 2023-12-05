@@ -15,6 +15,10 @@ bool FirmwareGenerationSystem::generate(const StringDictionary& seed,
                                         QByteArray& assembledFirmware) {
   QByteArray firmwareData;
 
+  // Подгототавливаем память
+  assembledFirmware.clear();
+  assembledFirmware.reserve(FIRMWARE_SIZE);
+
   if (!generateFirmwareData(seed, firmwareData)) {
     sendLog("Получена ошибка при генерации данных прошивки. ");
     return false;
@@ -213,7 +217,7 @@ void FirmwareGenerationSystem::generateCommonKeys(
   auInit.append(ecm.at(0));
   auInit.append(ecm.at(1));
   auInit.append(ecm.at(2));
-  auInit.append(static_cast<uint8_t>(0x00));
+  auInit.append(static_cast<char>(0x00));
 
   // Генерируем ключи
   uint8_t* init;

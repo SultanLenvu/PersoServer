@@ -7,14 +7,14 @@
 class GlobalContext : public QObject {
   Q_OBJECT
  private:
-  QHash<QString, std::shared_ptr<QObject>> GlobalObjects;
+  QHash<QString, const QObject*> GlobalObjects;
 
  public:
   ~GlobalContext();
   static GlobalContext* instance(void);
 
-  void registerObject(std::shared_ptr<QObject> obj);
-  const std::shared_ptr<QObject> getObject(const QString& name);
+  void registerObject(const QObject* obj);
+  const QObject* getObject(const QString& name);
 
  private:
   explicit GlobalContext();

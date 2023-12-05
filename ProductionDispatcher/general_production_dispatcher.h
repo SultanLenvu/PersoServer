@@ -28,49 +28,37 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
 
   // AbstractProductionDispatcher interface
  public slots:
-  virtual void start(ReturnStatus ret) override;
+  virtual void start(ReturnStatus& ret) override;
   virtual void stop(void) override;
-  virtual void launchProductionLine(
-      const StringDictionary& param,
-      StringDictionary& context,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void shutdownProductionLine(
-      const StringDictionary& param,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void getProductionLineContext(
-      const StringDictionary& param,
-      StringDictionary& result,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void rollbackProductionLine(
-      const StringDictionary& param,
-      StringDictionary& context,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void releaseTransponder(
-      const StringDictionary& param,
-      StringDictionary& seed,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void confirmTransponderRelease(
-      const StringDictionary& param,
-      StringDictionary& context,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void rereleaseTransponder(
-      const StringDictionary& param,
-      StringDictionary& seed,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void confirmTransponderRerelease(
-      const StringDictionary& param,
-      StringDictionary& context,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void printBoxStickerManually(
-      const StringDictionary& param,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void printLastBoxStickerManually(
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void printPalletStickerManually(
-      const StringDictionary& param,
-      AbstractProductionDispatcher::ReturnStatus ret) override;
-  virtual void printLastPalletStickerManually(
-      AbstractProductionDispatcher::ReturnStatus ret) override;
+  virtual void launchProductionLine(const StringDictionary& param,
+                                    StringDictionary& context,
+                                    ReturnStatus& ret) override;
+  virtual void shutdownProductionLine(const StringDictionary& param,
+                                      ReturnStatus& ret) override;
+  virtual void getProductionLineContext(const StringDictionary& param,
+                                        StringDictionary& result,
+                                        ReturnStatus& ret) override;
+  virtual void rollbackProductionLine(const StringDictionary& param,
+                                      StringDictionary& context,
+                                      ReturnStatus& ret) override;
+  virtual void releaseTransponder(const StringDictionary& param,
+                                  StringDictionary& seed,
+                                  ReturnStatus& ret) override;
+  virtual void confirmTransponderRelease(const StringDictionary& param,
+                                         StringDictionary& context,
+                                         ReturnStatus& ret) override;
+  virtual void rereleaseTransponder(const StringDictionary& param,
+                                    StringDictionary& seed,
+                                    ReturnStatus& ret) override;
+  virtual void confirmTransponderRerelease(const StringDictionary& param,
+                                           StringDictionary& context,
+                                           ReturnStatus& ret) override;
+  virtual void printBoxStickerManually(const StringDictionary& param,
+                                       ReturnStatus& ret) override;
+  virtual void printLastBoxStickerManually(ReturnStatus& ret) override;
+  virtual void printPalletStickerManually(const StringDictionary& param,
+                                          ReturnStatus& ret) override;
+  virtual void printLastPalletStickerManually(ReturnStatus& ret) override;
 
  private:
   GeneralProductionDispatcher();

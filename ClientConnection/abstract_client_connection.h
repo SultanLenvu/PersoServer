@@ -4,7 +4,6 @@
 #include <QObject>
 
 #include "General/types.h"
-#include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 class AbstractClientConnection : public QObject {
   Q_OBJECT
@@ -13,16 +12,18 @@ class AbstractClientConnection : public QObject {
   virtual ~AbstractClientConnection();
 
   virtual size_t getId(void) const = 0;
+  virtual bool isAuthorised(void) const = 0;
+  virtual const QString& getLogin(void) const = 0;
+  virtual const QString& getPassword(void) const = 0;
 
  private:
   AbstractClientConnection();
-  Q_DISABLE_COPY_MOVE(AbstractClientConnection);
+  Q_DISABLE_COPY_MOVE(AbstractClientConnection)
 
  signals:
   void logging(const QString& log);
   void disconnected(void);
-  void shutdown(const StringDictionary&,
-                AbstractProductionDispatcher::ReturnStatus);
+  void shutdown(const StringDictionary&, ReturnStatus& status);
 };
 
 #endif  // ABSTARCTPERSOCLIENT_H

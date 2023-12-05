@@ -26,80 +26,84 @@ bool GeneralProductionDispatcher::checkConfiguration() {
   return true;
 }
 
-void GeneralProductionDispatcher::start(ReturnStatus ret) {}
+void GeneralProductionDispatcher::start(ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::stop() {}
 
 void GeneralProductionDispatcher::launchProductionLine(
     const StringDictionary& param,
     StringDictionary& context,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::shutdownProductionLine(
     const StringDictionary& param,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::getProductionLineContext(
     const StringDictionary& param,
     StringDictionary& result,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::rollbackProductionLine(
     const StringDictionary& param,
     StringDictionary& context,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::releaseTransponder(
     const StringDictionary& param,
     StringDictionary& seed,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::confirmTransponderRelease(
     const StringDictionary& param,
     StringDictionary& context,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::rereleaseTransponder(
     const StringDictionary& param,
     StringDictionary& seed,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::confirmTransponderRerelease(
     const StringDictionary& param,
     StringDictionary& context,
-    ReturnStatus ret) {}
+    ReturnStatus& ret) {}
 
 void GeneralProductionDispatcher::printBoxStickerManually(
     const StringDictionary& param,
-    ReturnStatus ret) {
+    ReturnStatus& ret) {
   sendLog("Запуск печати стикера для бокса.");
 
-  AbstractStickerPrinter::ReturnStatus status;
+  // Не забудь дополнить PAN
+  //  .toString().leftJustified(
+  //                          FULL_PAN_CHAR_LENGTH, QChar('F'))
+
+  AbstractStickerPrinter::ReturnStatus& status;
   status = BoxStickerPrinter->printBoxSticker(param);
 }
 
 void GeneralProductionDispatcher::printLastBoxStickerManually(
-    ReturnStatus ret) {
+    ReturnStatus& ret) {
   sendLog("Запуск печати последнего стикера для бокса.");
 
-  AbstractStickerPrinter::ReturnStatus status;
+  AbstractStickerPrinter::ReturnStatus& status;
   status = BoxStickerPrinter->printLastBoxSticker();
 }
 
 void GeneralProductionDispatcher::printPalletStickerManually(
     const StringDictionary& param,
-    ReturnStatus ret) {
+    ReturnStatus& ret) {
   sendLog("Запуск печати стикера для паллеты.");
 
-  AbstractStickerPrinter::ReturnStatus status;
+  AbstractStickerPrinter::ReturnStatus& status;
   status = PalletStickerPrinter->printPalletSticker(param);
 }
 
 void GeneralProductionDispatcher::printLastPalletStickerManually(
-    ReturnStatus ret) {
+    ReturnStatus& ret) {
   sendLog("Запуск печати последнего стикера для паллеты.");
 
-  AbstractStickerPrinter::ReturnStatus status;
+  AbstractStickerPrinter::ReturnStatus& status;
   status = PalletStickerPrinter->printLastPalletSticker();
 }
 

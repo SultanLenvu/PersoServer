@@ -27,12 +27,6 @@ class PersoServer : public QTcpServer {
     Panic,
   };
   Q_ENUM(OperatingState);
-  enum ReturnStatus {
-    Completed,
-    Failed,
-    ReleaserError,
-  };
-  Q_ENUM(ReturnStatus);
 
  private:
   bool LogEnable;
@@ -83,14 +77,12 @@ class PersoServer : public QTcpServer {
 
   void restartTimerTimeout_slot(void);
 
-  void productionDispatcherErrorDetected(
-      AbstractProductionDispatcher::ReturnStatus status);
+  void productionDispatcherErrorDetected(ReturnStatus& status);
 
  signals:
   void logging(const QString& log);
 
-  void startProductionDispatcher_signal(
-      AbstractProductionDispatcher::ReturnStatus&);
+  void startProductionDispatcher_signal(ReturnStatus&);
   void stopProductionDispatcher_signal(void);
 };
 

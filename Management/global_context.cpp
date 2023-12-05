@@ -8,13 +8,13 @@ GlobalContext* GlobalContext::instance() {
   return &context;
 }
 
-void GlobalContext::registerObject(std::shared_ptr<QObject> obj) {
+void GlobalContext::registerObject(const QObject* obj) {
   GlobalObjects.insert(obj->objectName(), obj);
 }
 
-const std::shared_ptr<QObject> GlobalContext::getObject(const QString& name) {
+const QObject* GlobalContext::getObject(const QString& name) {
   if (!GlobalObjects.contains(name)) {
-    return std::shared_ptr<QObject>();
+    return nullptr;
   }
 
   return GlobalObjects.value(name);

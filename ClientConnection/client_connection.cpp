@@ -1,8 +1,24 @@
-#include "production_line_connection.h"
+#include <QSettings>
 
-ProductionLineConnection::ProductionLineConnection(const QString& name,
-                                                   uint32_t id,
-                                                   qintptr socketDescriptor)
+#include "General/definitions.h"
+#include "Log/log_system.h"
+#include "box_sticker_print_command.h"
+#include "client_connection.h"
+#include "echo_comand.h"
+#include "firmware_generation_system.h"
+#include "get_current_context_command.h"
+#include "last_box_sticker_print_command.h"
+#include "last_pallet_sticker_print_command.h"
+#include "launch_command.h"
+#include "pallet_sticker_print_command.h"
+#include "transponder_release_command.h"
+#include "transponder_release_confirm_command.h"
+#include "transponder_rerelease_command.h"
+#include "transponder_rerelease_confirm_command.h"
+
+ClientConnection::ClientConnection(const QString& name,
+                                   uint32_t id,
+                                   qintptr socketDescriptor)
     : AbstractClientConnection(name) {
   Id = id;
 
@@ -24,21 +40,19 @@ ProductionLineConnection::ProductionLineConnection(const QString& name,
   // Создаем генератор прошивок
   createGenerator();
 
-  // Создаем шаблоны команд
-  createCommandTemplates();
-  createCommandHandlers();
-  createServerStatusMatchTable();
+  // Создаем команды
+  createCommands();
 }
 
-ProductionLineConnection::~ProductionLineConnection() {
+ClientConnection::~ClientConnection() {
   sendLog(QString("Клиент %1 удален. ").arg(QString::number(Id)));
 }
 
-size_t ProductionLineConnection::getId() const {
+size_t ClientConnection::getId() const {
   return Id;
 }
 
-void ProductionLineConnection::loadSettings() {
+void ClientConnection::loadSettings() {
   QSettings settings;
 
   LogEnable = settings.value("log_system/global_enable").toBool();
@@ -48,14 +62,14 @@ void ProductionLineConnection::loadSettings() {
       settings.value("perso_client/connection_max_duration").toInt();
 }
 
-void ProductionLineConnection::sendLog(const QString& log) {
+void ClientConnection::sendLog(const QString& log) {
   if (LogEnable) {
-    emit const_cast<ProductionLineConnection*>(this)->logging(
-        "ProductionLineConnection - " + log);
+    emit const_cast<ClientConnection*>(this)->logging("ClientConnection - " +
+                                                      log);
   }
 }
 
-void ProductionLineConnection::createTransmittedDataBlock() {
+void ClientConnection::createTransmittedDataBlock() {
   QJsonDocument responseDocument(CurrentResponse);
 
   sendLog("Формирование блока данных для ответа на команду. ");
@@ -77,7 +91,7 @@ void ProductionLineConnection::createTransmittedDataBlock() {
   serializator << uint32_t(TransmittedDataBlock.size() - sizeof(uint32_t));
 }
 
-void ProductionLineConnection::transmitDataBlock() {
+void ClientConnection::transmitDataBlock() {
   // Если размер блок не превышает максимального размера данных для единоразовой
   // передачи
   if (TransmittedDataBlock.size() < ONETIME_TRANSMIT_DATA_SIZE) {
@@ -93,7 +107,7 @@ void ProductionLineConnection::transmitDataBlock() {
   }
 }
 
-void ProductionLineConnection::processReceivedDataBlock(void) {
+void ClientConnection::processReceivedDataBlock(void) {
   QJsonParseError status;
   QJsonDocument requestDocument =
       QJsonDocument::fromJson(ReceivedDataBlock, &status);
@@ -144,22 +158,14 @@ void ProductionLineConnection::processReceivedDataBlock(void) {
               CurrentCommand.value("command_name").toString()))();
 }
 
-void ProductionLineConnection::processSyntaxError() {
+void ClientConnection::processSyntaxError() {
   sendLog(QString("Получена синтаксическая ошибка в команде '%1'. ")
               .arg(CurrentCommand.value("command_name").toString()));
 
   CurrentResponse["return_status"] = QString::number(CommandSyntaxError);
 }
 
-void ProductionLineConnection::processEcho() {
-  sendLog("Выполнение команды Echo. ");
-
-  // Формирование ответа
-  CurrentResponse["data"] = CurrentCommand.value("data");
-  CurrentResponse["return_status"] = QString::number(NoError);
-}
-
-void ProductionLineConnection::processAuthorization() {
+void ClientConnection::processAuthorization() {
   sendLog("Выполнение команды authorization. ");
   QHash<QString, QString> authorizationParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -185,7 +191,7 @@ void ProductionLineConnection::processAuthorization() {
   //  CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void ProductionLineConnection::processTransponderRelease() {
+void ClientConnection::processTransponderRelease() {
   sendLog("Выполнение команды transponder_release. ");
   QHash<QString, QString> releaseParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -219,7 +225,7 @@ void ProductionLineConnection::processTransponderRelease() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void ProductionLineConnection::processTransponderReleaseConfirm() {
+void ClientConnection::processTransponderReleaseConfirm() {
   sendLog("Выполнение команды transponder_release_confirm. ");
   QHash<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -241,7 +247,7 @@ void ProductionLineConnection::processTransponderReleaseConfirm() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void ProductionLineConnection::processTransponderRerelease() {
+void ClientConnection::processTransponderRerelease() {
   sendLog("Выполнение команды transponder_rerelease. ");
   QHash<QString, QString> rereleaseParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -276,7 +282,7 @@ void ProductionLineConnection::processTransponderRerelease() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void ProductionLineConnection::processTransponderRereleaseConfirm() {
+void ClientConnection::processTransponderRereleaseConfirm() {
   sendLog("Выполнение команды transponder_rerelease_confirm. ");
   QHash<QString, QString> confirmParameters;
   TransponderReleaseSystem::ReturnStatus ret;
@@ -298,136 +304,27 @@ void ProductionLineConnection::processTransponderRereleaseConfirm() {
   CurrentResponse["return_status"] = QString::number(NoError);
 }
 
-void ProductionLineConnection::processProductionLineRollback() {
-  sendLog("Выполнение команды production_line_rollback. ");
-  TransponderReleaseSystem::ReturnStatus ret;
-
-  // Печать стикера для бокса
-  QHash<QString, QString> data;
-  data.insert("login", CurrentCommand.value("login").toString());
-  data.insert("password", CurrentCommand.value("password").toString());
-
-  emit productionLineRollback_signal(&data, &ret);
-
-  if (ret != TransponderReleaseSystem::Completed) {
-    sendLog("Получена ошибка при откате производственной линии. ");
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(ret));
-    return;
-  }
-
-  CurrentResponse["return_status"] = QString::number(NoError);
-}
-
-void ProductionLineConnection::processPrintBoxSticker() {
-  sendLog("Выполнение команды print_box_sticker. ");
-
-  QHash<QString, QString> parameters;
-  QHash<QString, QString> boxData;
-  AbstractStickerPrinter::ReturnStatus printStatus;
-  TransponderReleaseSystem::ReturnStatus trsStatus;
-  parameters.insert("personal_account_number",
-                    CurrentCommand.value("pan").toString().leftJustified(
-                        FULL_PAN_CHAR_LENGTH, QChar('F')));
-
-  // Запрашиваем данные о боксе
-  emit getBoxData_signal(&parameters, &boxData, &trsStatus);
-  if (trsStatus != TransponderReleaseSystem::Completed) {
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(trsStatus));
-    return;
-  }
-
-  // Запрашиваем печать бокса
-  emit printBoxSticker_signal(&boxData, &printStatus);
-  if (printStatus != AbstractStickerPrinter::Completed) {
-    CurrentResponse["return_status"] = QString::number(BoxStickerPrintError);
-    return;
-  }
-
-  CurrentResponse["return_status"] = QString::number(NoError);
-}
-
-void ProductionLineConnection::processPrintLastBoxSticker() {
-  sendLog("Выполнение команды print_last_box_sticker. ");
-
-  AbstractStickerPrinter::ReturnStatus printStatus;
-
-  // Печать последнего стикера для бокса
-  emit printLastBoxSticker_signal(&printStatus);
-  if (printStatus != AbstractStickerPrinter::Completed) {
-    CurrentResponse["return_status"] = QString::number(BoxStickerPrintError);
-    return;
-  }
-
-  CurrentResponse["return_status"] = QString::number(NoError);
-}
-
-void ProductionLineConnection::processPrintPalletSticker() {
-  sendLog("Выполнение команды print_pallet_sticker. ");
-
-  QHash<QString, QString> parameters;
-  QHash<QString, QString> palletData;
-  AbstractStickerPrinter::ReturnStatus printStatus;
-  TransponderReleaseSystem::ReturnStatus trsStatus;
-  parameters.insert("personal_account_number",
-                    CurrentCommand.value("pan").toString().leftJustified(
-                        FULL_PAN_CHAR_LENGTH, QChar('F')));
-
-  // Запрашиваем данные о паллете
-  emit getPalletData_signal(&parameters, &palletData, &trsStatus);
-  if (trsStatus != TransponderReleaseSystem::Completed) {
-    CurrentResponse["return_status"] =
-        QString::number(ServerStatusMatchTable.value(trsStatus));
-    return;
-  }
-
-  // Запрашиваем печать паллеты
-  emit printPalletSticker_signal(&palletData, &printStatus);
-  if (printStatus != AbstractStickerPrinter::Completed) {
-    CurrentResponse["return_status"] = QString::number(PalletStickerPrintError);
-    return;
-  }
-
-  CurrentResponse["return_status"] = QString::number(NoError);
-}
-
-void ProductionLineConnection::processPrintLastPalletSticker() {
-  sendLog("Выполнение команды print_last_pallet_sticker. ");
-
-  AbstractStickerPrinter::ReturnStatus printStatus;
-
-  // Печать последнего стикера для бокса
-  emit printLastPalletSticker_signal(&printStatus);
-  if (printStatus != AbstractStickerPrinter::Completed) {
-    CurrentResponse["return_status"] = QString::number(PalletStickerPrintError);
-    return;
-  }
-
-  CurrentResponse["return_status"] = QString::number(NoError);
-}
-
-void ProductionLineConnection::createSocket(qintptr socketDescriptor) {
+void ClientConnection::createSocket(qintptr socketDescriptor) {
   Socket = new QTcpSocket(this);
   Socket->setSocketDescriptor(socketDescriptor);
 
   connect(Socket, &QTcpSocket::readyRead, this,
-          &ProductionLineConnection::socketReadyRead_slot);
+          &ClientConnection::socketReadyRead_slot);
   connect(Socket, &QTcpSocket::disconnected, this,
-          &ProductionLineConnection::socketDisconnected_slot);
+          &ClientConnection::socketDisconnected_slot);
   connect(
       Socket,
       QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
-      this, &ProductionLineConnection::socketError_slot);
+      this, &ClientConnection::socketError_slot);
 }
 
-void ProductionLineConnection::createExpirationTimer() {
+void ClientConnection::createExpirationTimer() {
   // Таймер для отсчета времени экспирации
   ExpirationTimer = new QTimer(this);
   ExpirationTimer->setInterval(MaximumConnectionTime);
   // Если время подключения вышло, то вызываем соответствующий обработчик
   connect(ExpirationTimer, &QTimer::timeout, this,
-          &ProductionLineConnection::expirationTimerTimeout_slot);
+          &ClientConnection::expirationTimerTimeout_slot);
   // Если время подключения вышло, то останавливаем таймер экспирации
   connect(ExpirationTimer, &QTimer::timeout, ExpirationTimer, &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер экспирации
@@ -439,13 +336,13 @@ void ProductionLineConnection::createExpirationTimer() {
   ExpirationTimer->start();
 }
 
-void ProductionLineConnection::createDataBlockWaitTimer() {
+void ClientConnection::createDataBlockWaitTimer() {
   // Таймер ожидания для приема блоков данных по частям
   DataBlockWaitTimer = new QTimer(this);
   DataBlockWaitTimer->setInterval(DATA_BLOCK_PART_WAIT_TIME);
   // Если время ожидания вышло, то вызываем соответствующий обработчик
   connect(DataBlockWaitTimer, &QTimer::timeout, this,
-          &ProductionLineConnection::dataBlockWaitTimerTimeout_slot);
+          &ClientConnection::dataBlockWaitTimerTimeout_slot);
   // Если время ожидания вышло, то останавливаем таймер ожидания
   connect(DataBlockWaitTimer, &QTimer::timeout, DataBlockWaitTimer,
           &QTimer::stop);
@@ -460,186 +357,19 @@ void ProductionLineConnection::createDataBlockWaitTimer() {
   connect(ExpirationTimer, &QTimer::timeout, DataBlockWaitTimer, &QTimer::stop);
 }
 
-void ProductionLineConnection::createGenerator() {
-  Generator = std::make_unique(
+void ClientConnection::createGenerator() {
+  Generator = std::unique_ptr<FirmwareGenerationSystem>(
       new FirmwareGenerationSystem("FirmwareGenerationSystem"));
 
   connect(Generator, &FirmwareGenerationSystem::logging, LogSystem::instance(),
           &LogSystem::generate);
 }
 
-void ProductionLineConnection::createCommandHandlers() {
-  //  connect(newClient, &ProductionLineConnection::authorize_signal, Releaser,
-  //          &TransponderReleaseSystem::authorize,
-  //          Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::release_signal, Releaser,
-  //          &TransponderReleaseSystem::release, Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::confirmRelease_signal,
-  //  Releaser,
-  //          &TransponderReleaseSystem::confirmRelease,
-  //          Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::rerelease_signal, Releaser,
-  //          &TransponderReleaseSystem::rerelease,
-  //          Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::confirmRerelease_signal,
-  //          Releaser, &TransponderReleaseSystem::confirmRerelease,
-  //          Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::search_signal, Releaser,
-  //          &TransponderReleaseSystem::search, Qt::BlockingQueuedConnection);
-  //  connect(newClient,
-  //  &ProductionLineConnection::productionLineRollback_signal,
-  //          Releaser, &TransponderReleaseSystem::rollbackProductionLine,
-  //          Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::getBoxData_signal, Releaser,
-  //          &TransponderReleaseSystem::getBoxData,
-  //          Qt::BlockingQueuedConnection);
-  //  connect(newClient, &ProductionLineConnection::getPalletData_signal,
-  //  Releaser,
-  //          &TransponderReleaseSystem::getPalletData,
-  //          Qt::BlockingQueuedConnection);
-
-  CommandHandlers.insert("echo", &ProductionLineConnection::processEcho);
-  CommandHandlers.insert("authorization",
-                         &ProductionLineConnection::processAuthorization);
-  CommandHandlers.insert("transponder_release",
-                         &ProductionLineConnection::processTransponderRelease);
-  CommandHandlers.insert(
-      "transponder_release_confirm",
-      &ProductionLineConnection::processTransponderReleaseConfirm);
-  CommandHandlers.insert(
-      "transponder_rerelease",
-      &ProductionLineConnection::processTransponderRerelease);
-  CommandHandlers.insert(
-      "transponder_rerelease_confirm",
-      &ProductionLineConnection::processTransponderRereleaseConfirm);
-  CommandHandlers.insert(
-      "production_line_rollback",
-      &ProductionLineConnection::processProductionLineRollback);
-  CommandHandlers.insert("print_box_sticker",
-                         &ProductionLineConnection::processPrintBoxSticker);
-  CommandHandlers.insert("print_last_box_sticker",
-                         &ProductionLineConnection::processPrintLastBoxSticker);
-  CommandHandlers.insert("print_pallet_sticker",
-                         &ProductionLineConnection::processPrintPalletSticker);
-  CommandHandlers.insert(
-      "print_last_pallet_sticker",
-      &ProductionLineConnection::processPrintLastPalletSticker);
+void ClientConnection::createCommands() {
+  Commands.insert("echo", std::unique_ptr(new EchoCommand("EchoCommand")))
 }
 
-void ProductionLineConnection::createCommandTemplates() {
-  QSharedPointer<QVector<QString>> echoSyntax(new QVector<QString>());
-  echoSyntax->append("data");
-  CommandTemplates.insert("echo", echoSyntax);
-
-  QSharedPointer<QVector<QString>> authorizationSyntax(new QVector<QString>());
-  authorizationSyntax->append("login");
-  authorizationSyntax->append("password");
-  CommandTemplates.insert("authorization", authorizationSyntax);
-
-  QSharedPointer<QVector<QString>> transponderReleaseSyntax(
-      new QVector<QString>());
-  transponderReleaseSyntax->append("login");
-  transponderReleaseSyntax->append("password");
-  CommandTemplates.insert("transponder_release", transponderReleaseSyntax);
-
-  QSharedPointer<QVector<QString>> transponderReleaseConfirmSyntax(
-      new QVector<QString>());
-  transponderReleaseConfirmSyntax->append("login");
-  transponderReleaseConfirmSyntax->append("password");
-  transponderReleaseConfirmSyntax->append("ucid");
-  CommandTemplates.insert("transponder_release_confirm",
-                          transponderReleaseConfirmSyntax);
-
-  QSharedPointer<QVector<QString>> transponderRereleaseSyntax(
-      new QVector<QString>());
-  transponderRereleaseSyntax->append("pan");
-  CommandTemplates.insert("transponder_rerelease", transponderRereleaseSyntax);
-
-  QSharedPointer<QVector<QString>> transponderRereleaseConfirmSyntax(
-      new QVector<QString>());
-  transponderRereleaseConfirmSyntax->append("pan");
-  transponderRereleaseConfirmSyntax->append("ucid");
-  CommandTemplates.insert("transponder_rerelease_confirm",
-                          transponderRereleaseConfirmSyntax);
-
-  QSharedPointer<QVector<QString>> productionLineRollbackSyntax(
-      new QVector<QString>());
-  productionLineRollbackSyntax->append("login");
-  productionLineRollbackSyntax->append("password");
-  CommandTemplates.insert("production_line_rollback",
-                          productionLineRollbackSyntax);
-
-  QSharedPointer<QVector<QString>> printBoxStickerSyntax(
-      new QVector<QString>());
-  printBoxStickerSyntax->append("pan");
-  CommandTemplates.insert("print_box_sticker", printBoxStickerSyntax);
-
-  QSharedPointer<QVector<QString>> printLastBoxStickerSyntax(
-      new QVector<QString>());
-  CommandTemplates.insert("print_last_box_sticker", printLastBoxStickerSyntax);
-
-  QSharedPointer<QVector<QString>> printPalletStickerSyntax(
-      new QVector<QString>());
-  printPalletStickerSyntax->append("pan");
-  CommandTemplates.insert("print_pallet_sticker", printPalletStickerSyntax);
-
-  QSharedPointer<QVector<QString>> printLastPalletStickerSyntax(
-      new QVector<QString>());
-  CommandTemplates.insert("print_last_pallet_sticker",
-                          printLastPalletStickerSyntax);
-}
-
-void ProductionLineConnection::createServerStatusMatchTable() {
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::DatabaseQueryError,
-                                DatabaseError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::DatabaseTransactionError, DatabaseError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::DatabaseConnectionError, DatabaseError);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::TransponderNotFound,
-                                TransponderNotFound);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::TransponderNotReleasedEarlier,
-      TransponderNotReleasedEarlier);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::TransponderNotReleasedEarlier,
-      TransponderNotReleasedEarlier);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::FreeBoxMissed,
-                                FreeBoxMissed);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::AwaitingConfirmationError,
-      AwaitingConfirmationError);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::IdenticalUcidError,
-                                IdenticalUcidError);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::ProductionLineMissed,
-                                ProductionLineMissed);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::ProductionLineNotActive,
-      ProductionLineNotActive);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::CurrentOrderRunOut,
-                                CurrentOrderRunOut);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::CurrentOrderAssembled,
-                                CurrentOrderAssembled);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::ProductionLineRollbackLimitError,
-      ProductionLineRollbackLimitError);
-  ServerStatusMatchTable.insert(TransponderReleaseSystem::BoxStickerPrintError,
-                                BoxStickerPrintError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::PalletStickerPrintError,
-      PalletStickerPrintError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::NextTransponderNotFound,
-      NextTransponderNotFound);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::StartBoxAssemblingError,
-      StartBoxAssemblingError);
-  ServerStatusMatchTable.insert(
-      TransponderReleaseSystem::StartPalletAssemblingError,
-      StartPalletAssemblingError);
-}
-
-void ProductionLineConnection::socketReadyRead_slot() {
+void ClientConnection::socketReadyRead_slot() {
   QDataStream deserializator(Socket);  // Дессериализатор
   deserializator.setVersion(
       QDataStream::Qt_5_12);  // Настраиваем версию десериализатора
@@ -700,14 +430,14 @@ void ProductionLineConnection::socketReadyRead_slot() {
   CurrentResponse = QJsonObject();
 }
 
-void ProductionLineConnection::socketDisconnected_slot() {
+void ClientConnection::socketDisconnected_slot() {
   sendLog("Отключился. ");
 
   // Отправляем сигнал об отключении клиента
   emit disconnected();
 }
 
-void ProductionLineConnection::socketError_slot(
+void ClientConnection::socketError_slot(
     QAbstractSocket::SocketError socketError) {
   // Если клиент отключился не самостоятельно
   if (socketError != 1) {
@@ -717,17 +447,15 @@ void ProductionLineConnection::socketError_slot(
   }
 }
 
-void ProductionLineConnection::expirationTimerTimeout_slot() {
+void ClientConnection::expirationTimerTimeout_slot() {
   sendLog("Экспирация времени подключения. ");
 
   // Закрываем соединение
   Socket->close();
 }
 
-void ProductionLineConnection::dataBlockWaitTimerTimeout_slot() {
+void ClientConnection::dataBlockWaitTimerTimeout_slot() {
   sendLog("Время ожидания вышло. Блок данных сбрасывается. ");
   ReceivedDataBlock.clear();
   ReceivedDataBlockSize = 0;
 }
-
-ProductionLineConnection::ProductionLineConnection() {}

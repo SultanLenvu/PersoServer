@@ -1,12 +1,12 @@
-#ifndef ROLLBACKCOMMAND_H
-#define ROLLBACKCOMMAND_H
+#ifndef SHUTDOWNCOMMAND_H
+#define SHUTDOWNCOMMAND_H
 
 #include "abstract_client_command.h"
 
-class RollbackCommand : public AbstractClientCommand {
+class ShutdownCommand : public AbstractClientCommand {
   Q_OBJECT
  private:
-  const QString CommandName = "rollback";
+  const QString CommandName = "shutdown";
   const size_t CommandSize = 3;
 
   StringDictionary Parameters;
@@ -14,8 +14,8 @@ class RollbackCommand : public AbstractClientCommand {
   ReturnStatus Status;
 
  public:
-  explicit RollbackCommand(const QString& name);
-  ~RollbackCommand();
+  explicit ShutdownCommand(const QString& name);
+  ~ShutdownCommand();
 
   // AbstractClientCommand interface
  public:
@@ -24,12 +24,11 @@ class RollbackCommand : public AbstractClientCommand {
   virtual void reset(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(RollbackCommand)
+  Q_DISABLE_COPY_MOVE(ShutdownCommand)
 
  signals:
-  void rollbackProductionLine_signal(const StringDictionary& data,
-                                     StringDictionary& result,
+  void shutdownProductionLine_signal(const StringDictionary& param,
                                      ReturnStatus& status);
 };
 
-#endif  // ROLLBACKCOMMAND_H
+#endif  // SHUTDOWNCOMMAND_H

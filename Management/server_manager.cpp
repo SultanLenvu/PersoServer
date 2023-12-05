@@ -235,7 +235,7 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("perso_server/pallet_sticker_printer_name",
                     PRINTER_FOR_PALLET_DEFAULT_NAME);
 
-  // ProductionLineConnection
+  // ClientConnection
   settings.setValue("perso_client/connection_max_duration",
                     CLIENT_CONNECTION_MAX_DURATION);
 

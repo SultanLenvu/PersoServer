@@ -7,8 +7,8 @@
 int main(int argc, char* argv[]) {
   QCoreApplication app(argc, argv);
 
-  ServerManager manager(nullptr);
-  if (manager.init()) {
+  std::unique_ptr<ServerManager> manager(new ServerManager(nullptr));
+  if (manager->init()) {
     exit(100);
   }
 
