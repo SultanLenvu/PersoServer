@@ -5,8 +5,8 @@
 #include "ProductionDispatcher/general_production_dispatcher.h"
 #include "perso_server.h"
 
-PersoServer::PersoServer() : QTcpServer() {
-  setObjectName("PersoServer");
+PersoServer::PersoServer(const QString& name) : QTcpServer() {
+  setObjectName(name);
   CurrentState = Idle;
   MaxNumberClientConnections = 0;
 
@@ -29,7 +29,7 @@ PersoServer::~PersoServer() {
     ProductionDispatcherThread->wait();
   }
 
-  for (QHash<int32_t, std::unique_ptr<QThread>>::iterator it =
+  for (QHash<size_t, std::unique_ptr<QThread>>::iterator it =
            ClientThreads.begin();
        it != ClientThreads.end(); it++) {
     (*it)->exit();
@@ -114,8 +114,6 @@ void PersoServer::incomingConnection(qintptr socketDescriptor) {
 void PersoServer::loadSettings() {
   QSettings settings;
 
-  LogEnable = settings.value("log_system/global_enable").toBool();
-
   RestartPeriod = settings.value("perso_server/restart_period").toInt();
   MaxNumberClientConnections =
       settings.value("perso_server/max_number_client_connection").toInt();
@@ -126,9 +124,7 @@ void PersoServer::loadSettings() {
 }
 
 void PersoServer::sendLog(const QString& log) const {
-  if (LogEnable) {
-    emit const_cast<PersoServer*>(this)->logging("PersoServer - " + log);
-  }
+  LogSystem::instance()->generate(objectName() + " - " + log);
 }
 
 void PersoServer::processCriticalError(const QString& log) {
@@ -261,5 +257,4 @@ void PersoServer::restartTimerTimeout_slot() {
   }
 }
 
-void PersoServer::productionDispatcherErrorDetected(
-    AbstractProductionDispatcher::ReturnStatus status) {}
+void PersoServer::productionDispatcherErrorDetected(ReturnStatus& status) {}

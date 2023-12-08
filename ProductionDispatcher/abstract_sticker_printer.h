@@ -29,13 +29,12 @@ class AbstractStickerPrinter : public QObject {
 
  protected:
   StickerPrinterType Type;
-  bool LogEnable;
 
  public:
   AbstractStickerPrinter(StickerPrinterType type);
   virtual ~AbstractStickerPrinter();
 
-  virtual bool checkConfiguration(void) = 0;
+  virtual bool init(void) = 0;
 
   virtual ReturnStatus printTransponderSticker(
       const StringDictionary& param) = 0;
@@ -58,7 +57,6 @@ class AbstractStickerPrinter : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractStickerPrinter);
 
  signals:
-  void logging(const QString& log);
 };
 
 #endif  // ISTICKERPRINTER_H

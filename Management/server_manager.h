@@ -8,19 +8,17 @@
 #include <QThread>
 
 #include "Log/log_system.h"
-#include "Network/perso_server.h"
+#include "perso_server.h"
 
 class ServerManager : public QObject {
   Q_OBJECT
 
  private:
-  PersoServer* Server;
-
+  std::unique_ptr<PersoServer> Server;
   LogSystem* Logger;
-  QThread* LoggerThread;
 
  public:
-  explicit ServerManager(QObject* parent);
+  explicit ServerManager(const QString& name);
   ~ServerManager();
 
   bool init(void);

@@ -6,16 +6,15 @@ EchoCommand::EchoCommand(const QString& name) : AbstractClientCommand(name) {
 
 EchoCommand::~EchoCommand() {}
 
-ReturnStatus EchoCommand::process(const QJsonObject& command) {
+void EchoCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) || !command.contains("data")) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   Parameters.insert("data", command["data"].toString());
   Status = ReturnStatus::NoError;
-
-  return Status;
 }
 
 void EchoCommand::generateResponse(QJsonObject& response) {

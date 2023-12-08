@@ -27,7 +27,7 @@ class TE310Printer : public AbstractStickerPrinter {
 #endif /* __linux__ */
 
   QString TscLibPath;
-  QLibrary* TscLib;
+  std::unique_ptr<QLibrary> TscLib;
 
   QHash<QString, QString> LastTransponderSticker;
   QHash<QString, QString> LastBoxSticker;
@@ -48,7 +48,7 @@ class TE310Printer : public AbstractStickerPrinter {
   explicit TE310Printer(QObject* parent, const QHostAddress& ip, int port);
 #endif /* __linux__ */
 
-  virtual bool checkConfiguration(void) override;
+  virtual bool init(void) override;
 
   virtual ReturnStatus printTransponderSticker(
       const StringDictionary& param) override;
@@ -69,13 +69,16 @@ class TE310Printer : public AbstractStickerPrinter {
   Q_DISABLE_COPY_MOVE(TE310Printer);
   void loadSetting(void);
   void sendLog(const QString& log);
+
   bool loadTscLib(void);
+  bool initConnectionByName();
+#ifdef __linux__
+  bool initConnectionByAddress();
+#endif /* __linux__ */
+  bool checkConfig(void);
+
   void printNkdSticker(const StringDictionary& param);
   void printZsdSticker(const StringDictionary& param);
-  bool checkConfigurationByName();
-#ifdef __linux__
-  bool checkConfigurationByAddress();
-#endif /* __linux__ */
 };
 
 #endif  // TE310PRINTER_H

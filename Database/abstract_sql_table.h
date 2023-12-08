@@ -9,7 +9,7 @@ class AbstractSqlTable : public QObject {
   Q_OBJECT
 
  public:
-  explicit AbstractSqlTable(QObject* parent);
+  explicit AbstractSqlTable(const QString& name);
   virtual ~AbstractSqlTable();
 
   virtual bool init() = 0;
@@ -25,6 +25,7 @@ class AbstractSqlTable : public QObject {
   virtual bool readLastRecord(SqlQueryValues& record) const = 0;
 
   // Update
+  virtual bool updateRecords(const SqlQueryValues& newValues) const = 0;
   virtual bool updateRecords(const QString& condition,
                              const SqlQueryValues& newValues) const = 0;
 
@@ -36,10 +37,10 @@ class AbstractSqlTable : public QObject {
   virtual bool getRecordCount(uint32_t& count) const = 0;
 
  private:
+  AbstractSqlTable();
   Q_DISABLE_COPY_MOVE(AbstractSqlTable)
 
  signals:
-  void logging(const QString& log);
 };
 
 #endif  // ABSTRACTSQLTABLE_H

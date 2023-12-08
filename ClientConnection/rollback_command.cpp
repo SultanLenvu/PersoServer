@@ -7,7 +7,7 @@ RollbackCommand::RollbackCommand(const QString& name)
   Status = ReturnStatus::Unknown;
 
   connect(
-      this, &RollbackCommand::rollbackProductionLine_signal,
+      this, &RollbackCommand::rollback_signal,
       dynamic_cast<const AbstractProductionDispatcher*>(
           GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::rollbackProductionLine,
@@ -16,20 +16,19 @@ RollbackCommand::RollbackCommand(const QString& name)
 
 RollbackCommand::~RollbackCommand() {}
 
-ReturnStatus RollbackCommand::process(const QJsonObject& command) {
+void RollbackCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) || !command.contains("login") ||
       !command.contains("password")) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   Parameters.insert("login", command.value("login").toString());
   Parameters.insert("password", command.value("password").toString());
 
   // Запрашиваем печать бокса
-  emit rollbackProductionLine_signal(Parameters, Result, Status);
-
-  return Status;
+  emit rollback_signal(Parameters, Result, Status);
 }
 
 void RollbackCommand::generateResponse(QJsonObject& response) {

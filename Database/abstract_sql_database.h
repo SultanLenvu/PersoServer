@@ -9,14 +9,14 @@ class AbstractSqlDatabase : public QObject {
   Q_OBJECT
 
  public:
-  explicit AbstractSqlDatabase(QObject* parent);
+  explicit AbstractSqlDatabase(const QString& name);
   virtual ~AbstractSqlDatabase();
 
   virtual void applySettings() = 0;
 
   virtual bool connect(void) = 0;
   virtual void disconnect(void) = 0;
-  virtual bool checkConnection() = 0;
+  virtual bool isConnected() = 0;
 
   virtual bool openTransaction(void) const = 0;
   virtual bool commitTransaction(void) const = 0;
@@ -42,6 +42,8 @@ class AbstractSqlDatabase : public QObject {
   virtual bool readLastRecord(const QString& table,
                               SqlQueryValues& record) const = 0;
   virtual bool updateRecords(const QString& table,
+                             const SqlQueryValues& newValues) const = 0;
+  virtual bool updateRecords(const QString& table,
                              const QString& condition,
                              const SqlQueryValues& newValues) const = 0;
   virtual bool deleteRecords(const QString& table,
@@ -62,10 +64,10 @@ class AbstractSqlDatabase : public QObject {
   virtual bool getRecordCount(const QString& table, uint32_t& count) const = 0;
 
  private:
+  AbstractSqlDatabase();
   Q_DISABLE_COPY_MOVE(AbstractSqlDatabase)
 
  signals:
-  void logging(const QString& log);
   void disconnected(void);
 };
 

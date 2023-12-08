@@ -1,13 +1,12 @@
-#ifndef TRANSPONDERRELEASECOMMAND_H
-#define TRANSPONDERRELEASECOMMAND_H
+#ifndef RELEASECOMMAND_H
+#define RELEASECOMMAND_H
 
 #include "abstract_client_command.h"
-#include "abstract_firmware_generation_system.h"
 
-class TransponderReleaseCommand : public AbstractClientCommand {
+class ReleaseCommand : public AbstractClientCommand {
   Q_OBJECT
  private:
-  const QString CommandName = "transponder_release";
+  const QString CommandName = "release";
   const size_t CommandSize = 3;
 
   StringDictionary Parameters;
@@ -15,27 +14,23 @@ class TransponderReleaseCommand : public AbstractClientCommand {
   ReturnStatus Status;
   std::unique_ptr<QByteArray> Firmware;
 
-  std::shared_ptr<AbstractFirmwareGenerationSystem> Generator;
-
  public:
-  explicit TransponderReleaseCommand(
-      const QString& name,
-      const std::shared_ptr<AbstractFirmwareGenerationSystem> generator);
-  ~TransponderReleaseCommand();
+  explicit ReleaseCommand(const QString& name);
+  ~ReleaseCommand();
 
   // AbstractClientCommand interface
  public:
-  virtual ReturnStatus process(const QJsonObject& command) override;
+  virtual void process(const QJsonObject& command) override;
   virtual void generateResponse(QJsonObject& response) override;
   virtual void reset(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(TransponderReleaseCommand)
+  Q_DISABLE_COPY_MOVE(ReleaseCommand)
 
  signals:
-  void releaseTransponder_signal(const StringDictionary& param,
-                                 const StringDictionary& result,
-                                 ReturnStatus& status);
+  void release_signal(const StringDictionary& param,
+                      const StringDictionary& result,
+                      ReturnStatus& status);
 };
 
-#endif  // TRANSPONDERRELEASECOMMAND_H
+#endif  // RELEASECOMMAND_H

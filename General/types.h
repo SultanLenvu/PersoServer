@@ -3,24 +3,48 @@
 
 #include <QHash>
 
+#include "Database/sql_query_values.h"
+
 using StringDictionary = QHash<QString, QString>;
+using ProductionContext = QHash<QString, std::shared_ptr<SqlQueryValues>>;
 
 enum class ReturnStatus {
   NoError = 0,
   ArgumentError,
   SyntaxError,
-  DatabaseError,
-  FirmwareGenerationError,
-  TransponderNotFound,
+  SynchronizationError,
+  FileOpenError,
+  ContextError,
+
+  DatabaseConnectionError,
+  DatabaseTransactionError,
+  DatabaseQueryError,
+
+  ProductionLineMissed,
+  TranspoderMissed,
+  BoxMissed,
+  PalletMissed,
+  OrderMissed,
+  IssuerMissed,
+  MasterKeysMissed,
+
+  TransponderWasReleasedEarlier,
+  TransponderAwaitingConfirmationError,
+
+  ProductionLineLaunchError,
+  ProductionLineAlreadyLaunched,
+  ProductionLineNotActive,
+  OrderInProcessMissed,
   FreeBoxMissed,
-  TransponderNotReleasedEarlier,
+  ProductionLineShutdownError,
+
+  FirmwareGenerationError,
+
+  TransponderRollbackLimitError,
   AwaitingConfirmationError,
   IdenticalUcidError,
-  ProductionLineMissed,
-  ProductionLineNotActive,
   CurrentOrderRunOut,
   CurrentOrderAssembled,
-  ProductionLineRollbackLimitError,
   BoxStickerPrintError,
   PalletStickerPrintError,
   NextTransponderNotFound,

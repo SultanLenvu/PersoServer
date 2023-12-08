@@ -16,7 +16,7 @@ class LastPalletStickerPrintCommand : public AbstractClientCommand {
 
   // AbstractClientCommand interface
  public:
-  virtual ReturnStatus process(const QJsonObject& command) override;
+  virtual void process(const QJsonObject& command) override;
   virtual void generateResponse(QJsonObject& response) override;
   virtual void reset(void) override;
 

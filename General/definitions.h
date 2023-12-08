@@ -49,7 +49,7 @@
 #define DATA_BLOCK_MAX_SIZE 250000
 
 #define CLIENT_MAX_COUNT 5
-#define CLIENT_CONNECTION_MAX_DURATION 10000
+#define CLIENT_IDLE_EXPIRATION_TIME 10000
 
 #define RESTART_DEFAULT_PERIOD 30
 //===============================================================

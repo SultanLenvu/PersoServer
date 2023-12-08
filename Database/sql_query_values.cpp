@@ -2,7 +2,7 @@
 
 #include "sql_query_values.h"
 
-SqlQueryValues::SqlQueryValues(QObject* parent) : QAbstractTableModel{parent} {}
+SqlQueryValues::SqlQueryValues() : QAbstractTableModel{nullptr} {}
 
 SqlQueryValues::~SqlQueryValues() {}
 

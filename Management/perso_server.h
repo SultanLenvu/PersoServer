@@ -15,6 +15,7 @@
 #include <QtPrintSupport/QPrinterInfo>
 
 #include "ClientConnection/abstract_client_connection.h"
+#include "General/types.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 class PersoServer : public QTcpServer {
@@ -29,17 +30,15 @@ class PersoServer : public QTcpServer {
   Q_ENUM(OperatingState);
 
  private:
-  bool LogEnable;
-
-  int32_t MaxNumberClientConnections;
-  int32_t RestartPeriod;
+  size_t MaxNumberClientConnections;
+  size_t RestartPeriod;
   QHostAddress ListeningAddress;
-  uint32_t ListeningPort;
+  size_t ListeningPort;
   OperatingState CurrentState;
 
-  QStack<int32_t> FreeClientIds;
-  QHash<int32_t, std::unique_ptr<QThread>> ClientThreads;
-  QHash<int32_t, std::unique_ptr<AbstractClientConnection>> Clients;
+  QStack<size_t> FreeClientIds;
+  QHash<size_t, std::unique_ptr<QThread>> ClientThreads;
+  QHash<size_t, std::unique_ptr<AbstractClientConnection>> Clients;
 
   std::unique_ptr<AbstractProductionDispatcher> ProductionDispatcher;
   std::unique_ptr<QThread> ProductionDispatcherThread;
@@ -47,7 +46,7 @@ class PersoServer : public QTcpServer {
   std::unique_ptr<QTimer> RestartTimer;
 
  public:
-  explicit PersoServer();
+  explicit PersoServer(const QString& name);
   ~PersoServer();
 
  public:
@@ -59,6 +58,7 @@ class PersoServer : public QTcpServer {
   virtual void incomingConnection(qintptr socketDescriptor) override;
 
  private:
+  PersoServer();
   Q_DISABLE_COPY_MOVE(PersoServer);
   void loadSettings(void);
   void sendLog(const QString& log) const;
@@ -80,8 +80,6 @@ class PersoServer : public QTcpServer {
   void productionDispatcherErrorDetected(ReturnStatus& status);
 
  signals:
-  void logging(const QString& log);
-
   void startProductionDispatcher_signal(ReturnStatus&);
   void stopProductionDispatcher_signal(void);
 };

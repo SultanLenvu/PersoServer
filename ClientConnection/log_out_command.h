@@ -1,12 +1,12 @@
-#ifndef SHUTDOWNCOMMAND_H
-#define SHUTDOWNCOMMAND_H
+#ifndef LogOutCommand_H
+#define LogOutCommand_H
 
 #include "abstract_client_command.h"
 
-class ShutdownCommand : public AbstractClientCommand {
+class LogOutCommand : public AbstractClientCommand {
   Q_OBJECT
  private:
-  const QString CommandName = "shutdown";
+  const QString CommandName = "log_out";
   const size_t CommandSize = 3;
 
   StringDictionary Parameters;
@@ -14,21 +14,21 @@ class ShutdownCommand : public AbstractClientCommand {
   ReturnStatus Status;
 
  public:
-  explicit ShutdownCommand(const QString& name);
-  ~ShutdownCommand();
+  explicit LogOutCommand(const QString& name);
+  ~LogOutCommand();
 
   // AbstractClientCommand interface
  public:
-  virtual ReturnStatus process(const QJsonObject& command) override;
+  virtual void process(const QJsonObject& command) override;
   virtual void generateResponse(QJsonObject& response) override;
   virtual void reset(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(ShutdownCommand)
+  Q_DISABLE_COPY_MOVE(LogOutCommand)
 
  signals:
-  void shutdownProductionLine_signal(const StringDictionary& param,
-                                     ReturnStatus& status);
+  void logOut_signal(const StringDictionary& param, ReturnStatus& status);
+  void deauthorized(void);
 };
 
-#endif  // SHUTDOWNCOMMAND_H
+#endif  // LogOutCommand_H

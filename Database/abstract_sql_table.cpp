@@ -1,7 +1,7 @@
 #include "abstract_sql_table.h"
 
-AbstractSqlTable::AbstractSqlTable(QObject* parent) : QObject{parent} {
-  setObjectName("AbstractSqlTable");
+AbstractSqlTable::AbstractSqlTable(const QString& name) : QObject{nullptr} {
+  setObjectName(name);
 }
 
 AbstractSqlTable::~AbstractSqlTable() {}

@@ -21,9 +21,8 @@ class AbstractClientConnection : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractClientConnection)
 
  signals:
-  void logging(const QString& log);
   void disconnected(void);
-  void shutdown(const StringDictionary&, ReturnStatus& status);
+  void logOut_signal(const StringDictionary& param, ReturnStatus& status);
 };
 
 #endif  // ABSTARCTPERSOCLIENT_H

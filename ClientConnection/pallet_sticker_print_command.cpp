@@ -17,19 +17,18 @@ PalletStickerPrintCommand::PalletStickerPrintCommand(const QString& name)
 
 PalletStickerPrintCommand::~PalletStickerPrintCommand() {}
 
-ReturnStatus PalletStickerPrintCommand::process(const QJsonObject& command) {
+void PalletStickerPrintCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) ||
       !command.contains("personal_account_number")) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   Parameters.insert("personal_account_number", command.value("pan").toString());
 
   // Запрашиваем печать бокса
   emit printPalletSticker_signal(Parameters, Status);
-
-  return Status;
 }
 
 void PalletStickerPrintCommand::generateResponse(QJsonObject& response) {

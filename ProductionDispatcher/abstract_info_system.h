@@ -1,15 +1,34 @@
-#ifndef AbstractInfoSystem_H
-#define AbstractInfoSystem_H
+#ifndef ABCTRACTINFOSYSTEM_H
+#define ABCTRACTINFOSYSTEM_H
 
 #include <QObject>
 
+#include "Database/abstract_sql_database.h"
+#include "General/types.h"
+
 class AbstractInfoSystem : public QObject {
   Q_OBJECT
- public:
-  explicit AbstractInfoSystem(QObject* parent = nullptr);
+ protected:
+  std::shared_ptr<AbstractSqlDatabase> Database;
 
- signals:
-  void logging(const QString&);
+ public:
+  explicit AbstractInfoSystem(const QString& name,
+                              const std::shared_ptr<AbstractSqlDatabase> db);
+  virtual ~AbstractInfoSystem() = 0;
+
+  virtual void setContext(const ProductionContext& context) = 0;
+  virtual ReturnStatus generateProductionContext(
+      const QString&,
+      ProductionContext& context) = 0;
+  virtual ReturnStatus generateBoxData(StringDictionary&) = 0;
+  virtual ReturnStatus generatePalletData(StringDictionary&) = 0;
+  virtual ReturnStatus generateTransponderData(StringDictionary&) = 0;
+  virtual ReturnStatus generateFirmwareSeed(StringDictionary&) = 0;
+  virtual void reset(void) = 0;
+
+ private:
+  AbstractInfoSystem();
+  Q_DISABLE_COPY_MOVE(AbstractInfoSystem)
 };
 
-#endif  // AbstractInfoSystem_H
+#endif  // ABCTRACTINFOSYSTEM_H

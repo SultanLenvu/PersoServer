@@ -1,12 +1,13 @@
 #include "postgre_sql_table.h"
+#include "Log/log_system.h"
 
 PostgreSqlTable::PostgreSqlTable(const QString& name,
                                  const QString& connectionName)
-    : AbstractSqlTable(nullptr) {
-  setObjectName(name);
+    : AbstractSqlTable(name) {
+  ConnectionName = connectionName;
+
   loadSettings();
 
-  ConnectionName = connectionName;
   RecordMaxCount = 1000;
   CurrentOrder = "ASC";
 }
@@ -203,6 +204,37 @@ bool PostgreSqlTable::readLastRecord(SqlQueryValues& response) const {
   return true;
 }
 
+bool PostgreSqlTable::updateRecords(const SqlQueryValues& newValues) const {
+  if (!checkFieldNames(newValues)) {
+    sendLog("Получено неизвестное имя поля таблицы. ");
+    return false;
+  }
+
+  // Создаем запрос
+  QString requestText = QString("UPDATE public.%1 SET ").arg(objectName());
+  for (int32_t i = 0; i < newValues.fieldCount(); i++) {
+    if (newValues.get(i) == "NULL") {
+      requestText += QString("%1 = NULL, ").arg(newValues.fieldName(i));
+    } else {
+      requestText +=
+          QString("%1 = '%2', ").arg(newValues.fieldName(i), newValues.get(i));
+    }
+  }
+  requestText.chop(2);
+  requestText += ";";
+
+  // Выполняем запрос
+  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  request.setForwardOnly(true);
+  if (!request.exec(requestText)) {
+    sendLog(request.lastError().text());
+    sendLog("Отправленный запрос: " + requestText);
+    return false;
+  }
+
+  return true;
+}
+
 bool PostgreSqlTable::updateRecords(const QString& condition,
                                     const SqlQueryValues& newValues) const {
   if (!checkFieldNames(newValues)) {
@@ -290,17 +322,10 @@ bool PostgreSqlTable::getRecordCount(uint32_t& count) const {
 }
 
 void PostgreSqlTable::sendLog(const QString& log) const {
-  if (LogEnable) {
-    emit const_cast<PostgreSqlTable*>(this)->logging(
-        QString("Table %1 - %2").arg(objectName(), log));
-  }
+  LogSystem::instance()->generate("Table " + objectName() + " - " + log);
 }
 
-void PostgreSqlTable::loadSettings() {
-  QSettings settings;
-
-  LogEnable = settings.value("log_system/global_enable").toBool();
-}
+void PostgreSqlTable::loadSettings() {}
 
 bool PostgreSqlTable::checkFieldNames(const SqlQueryValues& records) const {
   for (int32_t i = 0; i < records.fieldCount(); i++) {

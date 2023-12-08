@@ -1,38 +1,40 @@
-#include "launch_command.h"
+#include "log_in_command.h"
 #include "Management/global_context.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
-LaunchCommand::LaunchCommand(const QString& name)
-    : AbstractClientCommand(name) {
+LogInCommand::LogInCommand(const QString& name) : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
   connect(
-      this, &LaunchCommand::launchProductionLine_signal,
+      this, &LogInCommand::logIn_signal,
       dynamic_cast<const AbstractProductionDispatcher*>(
           GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::launchProductionLine,
       Qt::BlockingQueuedConnection);
 }
 
-LaunchCommand::~LaunchCommand() {}
+LogInCommand::~LogInCommand() {}
 
-ReturnStatus LaunchCommand::process(const QJsonObject& command) {
+void LogInCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) || !command.contains("login") ||
       !command.contains("password")) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   Parameters.insert("login", command.value("login").toString());
   Parameters.insert("password", command.value("password").toString());
 
-  // Запрашиваем печать бокса
-  emit launchProductionLine_signal(Parameters, Result, Status);
+  // Запрашиваем авторизацию
+  emit logIn_signal(Parameters, Result, Status);
 
-  return Status;
+  if (Status == ReturnStatus::NoError) {
+    emit authorized(Parameters.value("login"), Parameters.value("password"));
+  }
 }
 
-void LaunchCommand::generateResponse(QJsonObject& response) {
+void LogInCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
@@ -48,7 +50,7 @@ void LaunchCommand::generateResponse(QJsonObject& response) {
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 
-void LaunchCommand::reset() {
+void LogInCommand::reset() {
   Parameters.clear();
   Result.clear();
   Status = ReturnStatus::Unknown;

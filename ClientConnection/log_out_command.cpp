@@ -1,43 +1,42 @@
-#include "shutdown_command.h"
+#include "log_out_command.h"
 #include "Management/global_context.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
-ShutdownCommand::ShutdownCommand(const QString& name)
+LogOutCommand::LogOutCommand(const QString& name)
     : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
   connect(
-      this, &ShutdownCommand::shutdownProductionLine_signal,
+      this, &LogOutCommand::logOut_signal,
       dynamic_cast<const AbstractProductionDispatcher*>(
           GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::shutdownProductionLine,
       Qt::BlockingQueuedConnection);
 }
 
-ShutdownCommand::~ShutdownCommand() {}
+LogOutCommand::~LogOutCommand() {}
 
-ReturnStatus ShutdownCommand::process(const QJsonObject& command) {
+void LogOutCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) || !command.contains("login") ||
       !command.contains("password")) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   Parameters.insert("login", command.value("login").toString());
   Parameters.insert("password", command.value("password").toString());
 
   // Запрашиваем печать бокса
-  emit shutdownProductionLine_signal(Parameters, Status);
-
-  return Status;
+  emit logOut_signal(Parameters, Status);
 }
 
-void ShutdownCommand::generateResponse(QJsonObject& response) {
+void LogOutCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 
-void ShutdownCommand::reset() {
+void LogOutCommand::reset() {
   Parameters.clear();
   Status = ReturnStatus::Unknown;
 }

@@ -1,9 +1,10 @@
 #include "firmware_generation_system.h"
+#include "Log/log_system.h"
 
 FirmwareGenerationSystem::FirmwareGenerationSystem(const QString& name)
     : AbstractFirmwareGenerationSystem(name) {
-  FirmwareBaseFile = new QFile(this);
-  FirmwareDataFile = new QFile(this);
+  FirmwareBaseFile = std::unique_ptr<QFile>(new QFile());
+  FirmwareDataFile = std::unique_ptr<QFile>(new QFile());
 
   // Загружаем настройки
   loadSettings();
@@ -11,43 +12,11 @@ FirmwareGenerationSystem::FirmwareGenerationSystem(const QString& name)
 
 FirmwareGenerationSystem::~FirmwareGenerationSystem() {}
 
-bool FirmwareGenerationSystem::generate(const StringDictionary& seed,
-                                        QByteArray& assembledFirmware) {
-  QByteArray firmwareData;
-
-  // Подгототавливаем память
-  assembledFirmware.clear();
-  assembledFirmware.reserve(FIRMWARE_SIZE);
-
-  if (!generateFirmwareData(seed, firmwareData)) {
-    sendLog("Получена ошибка при генерации данных прошивки. ");
-    return false;
-  }
-
-  if (!assembleFirmware(firmwareData, assembledFirmware)) {
-    sendLog("Получена ошибка при сборке прошивки из базы и данных. ");
-    return false;
-  }
-
-  return true;
-}
-
-void FirmwareGenerationSystem::loadSettings() {
-  QSettings settings;
-
-  LogEnable = settings.value("log_system/global_enable").toBool();
-
-  FirmwareBaseFile->setFileName(
-      settings.value("firmware_generation_system/firmware_base_path")
-          .toString());
-  FirmwareDataFile->setFileName(
-      settings.value("firmware_generation_system/firmware_data_path")
-          .toString());
-
-  // Дополнение файлов
+bool FirmwareGenerationSystem::init() {
   uint32_t currentSize = 0;
   uint32_t bytesToAdd = 0;
   QByteArray padding;
+
   if (FirmwareBaseFile->open(QIODevice::ReadWrite)) {
     currentSize = FirmwareBaseFile->size();
     if (currentSize < FIRMWARE_BASE_SIZE) {
@@ -61,7 +30,7 @@ void FirmwareGenerationSystem::loadSettings() {
     FirmwareBaseFile->close();
   } else {
     sendLog("Не удалось открыть базовый файл прошивки на запись.");
-    return;
+    return false;
   }
 
   if (FirmwareDataFile->open(QIODevice::ReadWrite)) {
@@ -77,22 +46,57 @@ void FirmwareGenerationSystem::loadSettings() {
     FirmwareDataFile->close();
   } else {
     sendLog("Не удалось открыть базовый файл прошивки на запись.");
-    return;
+    return false;
   }
+
+  return true;
+}
+
+ReturnStatus FirmwareGenerationSystem::generate(const StringDictionary& seed,
+                                                QByteArray& assembledFirmware) {
+  ReturnStatus ret;
+  QByteArray firmwareData;
+
+  // Подгототавливаем память
+  assembledFirmware.clear();
+  assembledFirmware.reserve(FIRMWARE_SIZE);
+
+  ret = generateFirmwareData(seed, firmwareData);
+  if (ret == ReturnStatus::NoError) {
+    sendLog("Получена ошибка при генерации данных прошивки. ");
+    return ret;
+  }
+
+  ret = assembleFirmware(firmwareData, assembledFirmware);
+  if (ret == ReturnStatus::NoError) {
+    sendLog("Получена ошибка при сборке прошивки из базы и данных. ");
+    return ret;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+void FirmwareGenerationSystem::loadSettings() {
+  QSettings settings;
+
+  FirmwareBaseFile->setFileName(
+      settings.value("firmware_generation_system/firmware_base_path")
+          .toString());
+  FirmwareDataFile->setFileName(
+      settings.value("firmware_generation_system/firmware_data_path")
+          .toString());
 }
 
 void FirmwareGenerationSystem::sendLog(const QString& log) const {
-  if (LogEnable) {
-    emit const_cast<FirmwareGenerationSystem*>(this)->logging(
-        "FirmwareGenerationSystem - " + log);
-  }
+  LogSystem::instance()->generate(objectName() + " - " + log);
 }
 
-bool FirmwareGenerationSystem::assembleFirmware(const QByteArray& firmwareData,
-                                                QByteArray& assembledFirmware) {
+ReturnStatus FirmwareGenerationSystem::assembleFirmware(
+    const QByteArray& firmwareData,
+    QByteArray& assembledFirmware) {
   if (!FirmwareBaseFile->open(QIODevice::ReadOnly)) {
     sendLog("Не удалось открыть файл прошивки на чтение.");
-    return false;
+    return ReturnStatus::FileOpenError;
   }
 
   // Загружаем содержимое шаблонного файла базы прошивки
@@ -104,15 +108,15 @@ bool FirmwareGenerationSystem::assembleFirmware(const QByteArray& firmwareData,
   // Сцепляем базу и данные прошивки
   assembledFirmware.append(*firmwareData);
 
-  return true;
+  return ReturnStatus::NoError;
 }
 
-bool FirmwareGenerationSystem::generateFirmwareData(
+ReturnStatus FirmwareGenerationSystem::generateFirmwareData(
     const StringDictionary& seed,
     QByteArray& firmwareData) {
   if (!FirmwareDataFile->open(QIODevice::ReadOnly)) {
     sendLog("Не удалось открыть файл прошивки на чтение.");
-    return false;
+    return ReturnStatus::FileOpenError;
   }
 
   // Загружаем содержимое шаблонного файла данных прошивки
@@ -191,7 +195,7 @@ bool FirmwareGenerationSystem::generateFirmwareData(
                        QByteArray(TRANSPONDER_LOG_SIZE, '\x00'));
 
   FirmwareDataFile->close();
-  return true;
+  return ReturnStatus::NoError;
 }
 
 void FirmwareGenerationSystem::generateCommonKeys(
@@ -250,7 +254,7 @@ void FirmwareGenerationSystem::generatePaymentMeans(const QString& pan,
   if (currentDate.year() > 2117) {
     expirationDate = "0000";
   } else {
-    /* DateCompact format yyyyyyymmmmddddd */
+    /* DateCompact format yyyyyyymmmmddddd (bits) */
     uint16_t dateCompactNumber = 0;
     dateCompactNumber |=
         ((static_cast<uint16_t>(currentDate.year()) - 1990 + 10) << 9);

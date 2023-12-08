@@ -12,23 +12,21 @@ class PostgreSqlDatabase : public AbstractSqlDatabase {
   Q_OBJECT
 
  private:
-  bool LogEnable;
+  QString ConnectionName;
+
   QString CurrentOrder;
   uint32_t RecordMaxCount;
 
-  QString ConnectionName;
   QString DatabaseName;
-
   QHostAddress HostAddress;
   uint32_t HostPort;
-
   QString UserName;
   QString UserPassword;
 
   QHash<QString, std::shared_ptr<PostgreSqlTable>> Tables;
 
  public:
-  explicit PostgreSqlDatabase(QObject* parent, const QString& connectionName);
+  explicit PostgreSqlDatabase(const QString& name);
   ~PostgreSqlDatabase();
 
   // AbstractSqlDatabase interface
@@ -36,7 +34,7 @@ class PostgreSqlDatabase : public AbstractSqlDatabase {
 
   virtual bool connect() override;
   virtual void disconnect() override;
-  virtual bool checkConnection() override;
+  virtual bool isConnected() override;
 
   virtual bool openTransaction() const override;
   virtual bool commitTransaction() const override;
@@ -61,6 +59,8 @@ class PostgreSqlDatabase : public AbstractSqlDatabase {
                            SqlQueryValues& records) const override;
   virtual bool readLastRecord(const QString& table,
                               SqlQueryValues& record) const override;
+  virtual bool updateRecords(const QString& table,
+                             const SqlQueryValues& newValues) const override;
   virtual bool updateRecords(const QString& table,
                              const QString& conditions,
                              const SqlQueryValues& newValues) const override;

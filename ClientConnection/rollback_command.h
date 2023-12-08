@@ -19,7 +19,7 @@ class RollbackCommand : public AbstractClientCommand {
 
   // AbstractClientCommand interface
  public:
-  virtual ReturnStatus process(const QJsonObject& command) override;
+  virtual void process(const QJsonObject& command) override;
   virtual void generateResponse(QJsonObject& response) override;
   virtual void reset(void) override;
 
@@ -27,9 +27,9 @@ class RollbackCommand : public AbstractClientCommand {
   Q_DISABLE_COPY_MOVE(RollbackCommand)
 
  signals:
-  void rollbackProductionLine_signal(const StringDictionary& data,
-                                     StringDictionary& result,
-                                     ReturnStatus& status);
+  void rollback_signal(const StringDictionary& data,
+                       StringDictionary& result,
+                       ReturnStatus& status);
 };
 
 #endif  // ROLLBACKCOMMAND_H

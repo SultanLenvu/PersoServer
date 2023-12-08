@@ -1,7 +1,14 @@
 #include "abstract_transponder_release_system.h"
 
-AbstractTransponderReleaseSystem::AbstractTransponderReleaseSystem(QObject *parent)
-    : QObject{parent}
-{
-
+AbstractReleaseSystem::AbstractReleaseSystem(
+    const QString& name,
+    std::shared_ptr<AbstractSqlDatabase> db)
+    : QObject(nullptr) {
+  setObjectName(name);
+  Database = db;
 }
+
+AbstractReleaseSystem::~AbstractReleaseSystem() {}
+
+AbstractReleaseSystem::AbstractReleaseSystem()
+    : QObject{nullptr} {}

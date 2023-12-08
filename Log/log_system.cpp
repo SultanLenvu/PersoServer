@@ -1,7 +1,40 @@
 #include "log_system.h"
 
-LogSystem::LogSystem(QObject* parent) : QObject(parent) {
-  setObjectName("LogSystem");
+LogSystem::~LogSystem() {}
+
+LogSystem* LogSystem::instance() {
+  static LogSystem Logger("LogSystem");
+  return &Logger;
+}
+
+void LogSystem::clear() const {
+  QMutexLocker lock(&mutex);
+
+  for (QList<LogBackend*>::const_iterator it = Backends.begin();
+       it != Backends.end(); it++) {
+    (*it)->clear();
+  }
+}
+
+void LogSystem::generate(const QString& log) const {
+  if (!LogEnable) {
+    return;
+  }
+
+  QMutexLocker lock(&mutex);
+
+  QTime time = QDateTime::currentDateTime().time();
+  QString LogData = time.toString("hh:mm:ss.zzz - ") + log;
+  for (QList<LogBackend*>::const_iterator it = Backends.begin();
+       it != Backends.end(); it++) {
+    (*it)->writeLogLine(LogData);
+  }
+}
+
+LogSystem::LogSystem() {}
+
+LogSystem::LogSystem(const QString& name) : QObject(nullptr) {
+  setObjectName(name);
   loadSettings();
 
   UdpLogger = new UdpLogBackend(this);
@@ -14,31 +47,12 @@ LogSystem::LogSystem(QObject* parent) : QObject(parent) {
   Backends << ConsoleLogger;
 }
 
-LogSystem::~LogSystem() {}
-
-LogSystem* LogSystem::instance() {
-  static LogSystem Logger(nullptr);
-  return &Logger;
-}
-
-void LogSystem::clear() const {
-  for (QList<LogBackend*>::const_iterator it = Backends.begin();
-       it != Backends.end(); it++) {
-    (*it)->clear();
-  }
-}
-
-void LogSystem::generate(const QString& log) const {
-  QTime time = QDateTime::currentDateTime().time();
-  QString LogData = time.toString("hh:mm:ss.zzz - ") + log;
-  for (QList<LogBackend*>::const_iterator it = Backends.begin();
-       it != Backends.end(); it++) {
-    (*it)->writeLogLine(LogData);
-  }
-}
-
 /*
  * Приватные методы
  */
 
-void LogSystem::loadSettings() {}
+void LogSystem::loadSettings() {
+  QSettings settings;
+
+  LogEnable = settings.value("log_system/global_enable").toBool();
+}

@@ -25,7 +25,7 @@ class SqlQueryValues : public QAbstractTableModel {
   QMutex Mutex;
 
  public:
-  explicit SqlQueryValues(QObject* parent = nullptr);
+  explicit SqlQueryValues();
   ~SqlQueryValues();
 
   QString fieldName(uint32_t i) const;
@@ -41,7 +41,8 @@ class SqlQueryValues : public QAbstractTableModel {
 
   void extractRecords(QSqlQuery& request);
   void add(const QHash<QString, QString>& record);
-  void add(const QString& name, const std::shared_ptr<QVector<QString>>& values);
+  void add(const QString& name,
+           const std::shared_ptr<QVector<QString>>& values);
   void add(const QString& field, const QString& value);
   void addField(const QString& field);
   void clear();

@@ -12,97 +12,40 @@
 #include "Database/sql_query_values.h"
 #include "ProductionDispatcher/abstract_transponder_release_system.h"
 
-class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
+class TransponderReleaseSystem : public AbstractReleaseSystem {
   Q_OBJECT
 
- public:
-  enum ReturnStatus {
-    DatabaseQueryError,
-    DatabaseTransactionError,
-    DatabaseConnectionError,
-    TransponderNotFound,
-    FreeBoxMissed,
-    TransponderNotReleasedEarlier,
-    AwaitingConfirmationError,
-    IdenticalUcidError,
-    ProductionLineMissed,
-    ProductionLineNotActive,
-    CurrentOrderRunOut,
-    CurrentOrderAssembled,
-    ProductionLineRollbackLimitError,
-    ProductionLineStopError,
-    BoxStickerPrintError,
-    PalletStickerPrintError,
-    NextTransponderNotFound,
-    StartBoxAssemblingError,
-    StartPalletAssemblingError,
-    Completed,
-  };
-  Q_ENUM(ReturnStatus)
-
  private:
-  bool LogEnable;
-  uint32_t CheckPeriod;
-  QTimer* CheckTimer;
-
-  AbstractSqlDatabase* Database;
-
-  SqlQueryValues CurrentProductionLine;
-  SqlQueryValues CurrentTransponder;
-  SqlQueryValues CurrentBox;
-  SqlQueryValues CurrentPallet;
-  SqlQueryValues CurrentOrder;
-  SqlQueryValues CurrentIssuer;
-  SqlQueryValues CurrentMasterKeys;
-  SqlQueryValues SupportData;
+  std::shared_ptr<SqlQueryValues> CurrentProductionLine;
+  std::shared_ptr<SqlQueryValues> CurrentBox;
+  std::shared_ptr<SqlQueryValues> CurrentTransponder;
+  std::shared_ptr<SqlQueryValues> CurrentPallet;
+  std::shared_ptr<SqlQueryValues> CurrentOrder;
+  std::shared_ptr<SqlQueryValues> CurrentIssuer;
+  std::shared_ptr<SqlQueryValues> CurrentMasterKeys;
 
  public:
-  explicit TransponderReleaseSystem(QObject* parent);
+  explicit TransponderReleaseSystem(const QString& name,
+                                    std::shared_ptr<AbstractSqlDatabase> db);
   ~TransponderReleaseSystem();
 
- public slots:
-  void instanceThreadStarted_slot(void);
-
-  void start(ReturnStatus* status);
-  void stop(void);
-
-  void authorize(const QHash<QString, QString>* parameters,
-                 ReturnStatus* status);
-  void release(const QHash<QString, QString>* parameters,
-               QHash<QString, QString>* seed,
-               QHash<QString, QString>* data,
-               ReturnStatus* status);
-  void confirmRelease(const QHash<QString, QString>* parameters,
-                      ReturnStatus* status);
-  void rerelease(const QHash<QString, QString>* parameters,
-                 QHash<QString, QString>* seed,
-                 QHash<QString, QString>* data,
-                 ReturnStatus* status);
-  void confirmRerelease(const QHash<QString, QString>* parameters,
-                        ReturnStatus* status);
-  void search(const QHash<QString, QString>* parameters,
-              QHash<QString, QString>* data,
-              ReturnStatus* status);
-
-  void rollbackProductionLine(const QHash<QString, QString>* parameters,
-                              ReturnStatus* status);
-
-  void getBoxData(const QHash<QString, QString>* parameters,
-                  QHash<QString, QString>* data,
-                  ReturnStatus* status);
-  void getPalletData(const QHash<QString, QString>* parameters,
-                     QHash<QString, QString>* data,
-                     ReturnStatus* status);
+  // AbstractReleaseSystem interface
+ public:
+  virtual ReturnStatus release(const ProductionContext& context,
+                               const StringDictionary& param) override;
+  virtual ReturnStatus confirmRelease(const ProductionContext& context,
+                                      const StringDictionary& param) override;
+  virtual ReturnStatus rerelease(const ProductionContext& context,
+                                 const StringDictionary& param) override;
+  virtual ReturnStatus confirmRerelease(const ProductionContext& context,
+                                        const StringDictionary& param) override;
+  virtual ReturnStatus rollback(const ProductionContext& context,
+                                const StringDictionary& param) override;
 
  private:
   Q_DISABLE_COPY_MOVE(TransponderReleaseSystem);
-  void createDatabaseController(void);
   void loadSettings(void);
   void sendLog(const QString& log) const;
-  void createCheckTimer(void);
-
-  ReturnStatus getCurrentContext(const QHash<QString, QString>* initData);
-  void clearCurrentContext(void);
 
   ReturnStatus confirmCurrentTransponder(const QString& ucid);
   ReturnStatus confirmCurrentBox(void);
@@ -112,23 +55,13 @@ class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
   ReturnStatus searchNextTransponderForCurrentProductionLine(void);
   ReturnStatus startBoxAssembling(const QString& id);
   ReturnStatus startPalletAssembling(const QString& id);
-  ReturnStatus linkCurrentProductionLine(const QString& id);
-  ReturnStatus stopCurrentProductionLine(void);
 
-  void generateFirmwareSeed(QHash<QString, QString>* seed) const;
-  void generateTransponderData(QHash<QString, QString>* data) const;
-  void generateBoxData(QHash<QString, QString>* data) const;
-  void generatePalletData(QHash<QString, QString>* data) const;
-
-  QString generateTransponderSerialNumber(const QString& id) const;
-
- private slots:
-  void on_CheckTimerTemeout(void);
+  void generateFirmwareSeed(StringDictionary& seed) const;
 
  signals:
-  void boxAssemblingFinished(const QHash<QString, QString>* data);
-  void palletAssemblingFinished(const QHash<QString, QString>* data);
-  void orderAssemblingFinished(const QHash<QString, QString>* data);
+  void boxAssemblingFinished(const QString& id);
+  void palletAssemblingFinished(const QString& id);
+  void orderAssemblingFinished(const QString& id);
 };
 
 #endif  // TRANSPONDERRELEASESYSTEM_H

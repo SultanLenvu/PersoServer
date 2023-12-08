@@ -1,18 +1,16 @@
 #include <QCoreApplication>
 
 #include "General/definitions.h"
+#include "General/types.h"
 #include "server_manager.h"
 
-ServerManager::ServerManager(QObject* parent) : QObject(parent) {
-  setObjectName("ServerManager");
+ServerManager::ServerManager(const QString& name) : QObject(nullptr) {
+  setObjectName(name);
   loadSettings();
   registerMetaType();
 }
 
-ServerManager::~ServerManager() {
-  LoggerThread->quit();
-  LoggerThread->wait();
-}
+ServerManager::~ServerManager() {}
 
 bool ServerManager::init() {
   processCommandArguments();
@@ -144,7 +142,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (settings.value("perso_client/connection_max_duration").toUInt() == 0) {
+  if (settings.value("perso_client/idle_expiration_time").toUInt() == 0) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "значение максимальной длительности клиентского "
@@ -236,8 +234,8 @@ void ServerManager::generateDefaultSettings() const {
                     PRINTER_FOR_PALLET_DEFAULT_NAME);
 
   // ClientConnection
-  settings.setValue("perso_client/connection_max_duration",
-                    CLIENT_CONNECTION_MAX_DURATION);
+  settings.setValue("perso_client/idle_expiration_time",
+                    CLIENT_IDLE_EXPIRATION_TIME);
 
   // LogSystem
   settings.setValue("log_system/global_enable", true);
@@ -289,20 +287,11 @@ void ServerManager::processCommandArguments() {
 }
 
 void ServerManager::createServerInstance() {
-  Server = new PersoServer(this);
-  connect(Server, &PersoServer::logging, Logger, &LogSystem::generate);
+  Server = std::unique_ptr<PersoServer>(new PersoServer("PersoServer"));
 }
 
 void ServerManager::createLoggerInstance() {
   Logger = LogSystem::instance();
-  connect(this, &ServerManager::logging, Logger, &LogSystem::generate);
-
-  LoggerThread = new QThread(this);
-  connect(LoggerThread, &QThread::finished, LoggerThread,
-          &QThread::deleteLater);
-
-  Logger->moveToThread(LoggerThread);
-  LoggerThread->start();
 }
 
 void ServerManager::registerMetaType() {
@@ -312,6 +301,6 @@ void ServerManager::registerMetaType() {
       "QSharedPointer<QHash<QString, QString> >");
   qRegisterMetaType<QSharedPointer<QStringList>>("QSharedPointer<QStringList>");
   qRegisterMetaType<QSharedPointer<QFile>>("QSharedPointer<QFile>");
-  qRegisterMetaType<TransponderReleaseSystem::ReturnStatus>(
-      "TransponderReleaseSystem::ReturnStatus");
+  qRegisterMetaType<ReturnStatus>("ReturnStatus");
+  qRegisterMetaType<StringDictionary>("StringDictionary");
 }

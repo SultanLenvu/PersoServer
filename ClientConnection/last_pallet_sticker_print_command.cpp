@@ -21,13 +21,12 @@ ReturnStatus LastPalletStickerPrintCommand::process(
     const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   // Запрашиваем печать бокса
   emit printLastPalletSticker_signal(Status);
-
-  return Status;
 }
 
 void LastPalletStickerPrintCommand::generateResponse(QJsonObject& response) {

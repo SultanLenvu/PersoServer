@@ -1,15 +1,39 @@
-#ifndef ABSTRACTTRANSPONDERRELEASESYSTEM_H
-#define ABSTRACTTRANSPONDERRELEASESYSTEM_H
+#ifndef AbstractReleaseSystem_H
+#define AbstractReleaseSystem_H
 
 #include <QObject>
 
-class AbstractTransponderReleaseSystem : public QObject {
+#include "Database/abstract_sql_database.h"
+#include "General/types.h"
+
+class AbstractReleaseSystem : public QObject {
   Q_OBJECT
+
+ protected:
+  std::shared_ptr<AbstractSqlDatabase> Database;
+
  public:
-  explicit AbstractTransponderReleaseSystem(QObject* parent = nullptr);
+  explicit AbstractReleaseSystem(
+      const QString& name,
+      std::shared_ptr<AbstractSqlDatabase> db);
+  virtual ~AbstractReleaseSystem();
+
+  virtual ReturnStatus release(const ProductionContext& context,
+                               const StringDictionary& param) = 0;
+  virtual ReturnStatus confirmRelease(const ProductionContext& context,
+                                      const StringDictionary& param) = 0;
+  virtual ReturnStatus rerelease(const ProductionContext& context,
+                                 const StringDictionary& param) = 0;
+  virtual ReturnStatus confirmRerelease(const ProductionContext& context,
+                                        const StringDictionary& param) = 0;
+  virtual ReturnStatus rollback(const ProductionContext& context,
+                                const StringDictionary& param) = 0;
+
+ private:
+  AbstractReleaseSystem();
+  Q_DISABLE_COPY_MOVE(AbstractReleaseSystem)
 
  signals:
-  void logging(const QString&);
 };
 
-#endif  // ABSTRACTTRANSPONDERRELEASESYSTEM_H
+#endif  // AbstractReleaseSystem_H

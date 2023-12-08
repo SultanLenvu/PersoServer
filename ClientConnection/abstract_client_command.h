@@ -12,7 +12,7 @@ class AbstractClientCommand : public QObject {
   explicit AbstractClientCommand(const QString& name);
   virtual ~AbstractClientCommand();
 
-  virtual ReturnStatus process(const QJsonObject& command) = 0;
+  virtual void process(const QJsonObject& command) = 0;
   virtual void generateResponse(QJsonObject& response) = 0;
   virtual void reset(void) = 0;
 
@@ -21,7 +21,7 @@ class AbstractClientCommand : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractClientCommand)
 
  signals:
-  void logging(const QString& log);
+  
 };
 
 #endif  // ABSTRACTCLIENTCOMMAND_H

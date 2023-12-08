@@ -10,8 +10,6 @@
 
 class PostgreSqlTable : public AbstractSqlTable {
  private:
-  bool LogEnable;
-
   QString ConnectionName;
 
   QString PrimaryKey;
@@ -49,6 +47,7 @@ class PostgreSqlTable : public AbstractSqlTable {
   virtual bool readRecords(const QString& conditions,
                            SqlQueryValues& response) const override;
   virtual bool readLastRecord(SqlQueryValues& response) const override;
+  virtual bool updateRecords(const SqlQueryValues& newValues) const override;
   virtual bool updateRecords(const QString& condition,
                              const SqlQueryValues& newValues) const override;
   virtual bool deleteRecords(const QString& condition) const override;

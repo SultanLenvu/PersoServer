@@ -1,34 +1,59 @@
 #include "general_production_dispatcher.h"
+#include "Database/postgre_sql_database.h"
 #include "Log/log_system.h"
 #include "ProductionDispatcher/te310_printer.h"
+#include "firmware_generation_system.h"
+#include "info_system.h"
+#include "production_line_launch_system.h"
+#include "transponder_release_system.h"
 
 GeneralProductionDispatcher::GeneralProductionDispatcher(const QString& name)
-    : AbstractProductionDispatcher(name) {}
+    : AbstractProductionDispatcher(name) {
+  loadSettings();
 
-bool GeneralProductionDispatcher::checkConfiguration() {
-  sendLog("Проверка конфигурации. ");
-
-  if (!BoxStickerPrinter->checkConfiguration()) {
-    sendLog(
-        "Проверка конфигурации принтера для печати стикеров на боксы "
-        "провалена. ");
-    return false;
-  }
-
-  if (!PalletStickerPrinter->checkConfiguration()) {
-    sendLog(
-        "Проверка конфигурации принтера для печати стикеров на паллеты "
-        "провалена. ");
-    return false;
-  }
-
-  sendLog("Проверка конфигурации прошла успешно. ");
-  return true;
+  createDatabase();
+  createInfoSystem();
+  createLaunchSystem();
+  createReleaseSystem();
+  createFirmwareGenerator();
+  createStickerPrinters();
 }
 
-void GeneralProductionDispatcher::start(ReturnStatus& ret) {}
+void GeneralProductionDispatcher::start(ReturnStatus& ret) {
+  if (!Generator->init()) {
+    sendLog("Инициализация генератора прошивок провалена. ");
+    return;
+  }
 
-void GeneralProductionDispatcher::stop() {}
+  if (!BoxStickerPrinter->init()) {
+    sendLog(
+        "Инициализация принтера для печати стикеров на боксы "
+        "провалена. ");
+    return;
+  }
+
+  if (!PalletStickerPrinter->init()) {
+    sendLog(
+        "Инициализация принтера для печати стикеров на паллеты "
+        "провалена. ");
+    return;
+  }
+
+  if (!Database->connect()) {
+    sendLog("Не удалось подключиться к базе данных. ");
+    ret = ReturnStatus::DatabaseConnectionError;
+    return;
+  }
+
+  CheckTimer->start();
+  ret = ReturnStatus::NoError;
+  sendLog("Запущен.");
+}
+
+void GeneralProductionDispatcher::stop() {
+  Database->disconnect();
+  sendLog("Остановлен.");
+}
 
 void GeneralProductionDispatcher::launchProductionLine(
     const StringDictionary& param,
@@ -78,7 +103,7 @@ void GeneralProductionDispatcher::printBoxStickerManually(
   //  .toString().leftJustified(
   //                          FULL_PAN_CHAR_LENGTH, QChar('F'))
 
-  AbstractStickerPrinter::ReturnStatus& status;
+  AbstractStickerPrinter::ReturnStatus status;
   status = BoxStickerPrinter->printBoxSticker(param);
 }
 
@@ -86,7 +111,7 @@ void GeneralProductionDispatcher::printLastBoxStickerManually(
     ReturnStatus& ret) {
   sendLog("Запуск печати последнего стикера для бокса.");
 
-  AbstractStickerPrinter::ReturnStatus& status;
+  AbstractStickerPrinter::ReturnStatus status;
   status = BoxStickerPrinter->printLastBoxSticker();
 }
 
@@ -95,7 +120,7 @@ void GeneralProductionDispatcher::printPalletStickerManually(
     ReturnStatus& ret) {
   sendLog("Запуск печати стикера для паллеты.");
 
-  AbstractStickerPrinter::ReturnStatus& status;
+  AbstractStickerPrinter::ReturnStatus status;
   status = PalletStickerPrinter->printPalletSticker(param);
 }
 
@@ -103,14 +128,12 @@ void GeneralProductionDispatcher::printLastPalletStickerManually(
     ReturnStatus& ret) {
   sendLog("Запуск печати последнего стикера для паллеты.");
 
-  AbstractStickerPrinter::ReturnStatus& status;
+  AbstractStickerPrinter::ReturnStatus status;
   status = PalletStickerPrinter->printLastPalletSticker();
 }
 
 void GeneralProductionDispatcher::loadSettings() {
   QSettings settings;
-
-  LogEnable = settings.value("log_system/global_enable").toBool();
 
 #ifdef __linux__
   if (settings.contains("perso_server/box_sticker_printer_ip")) {
@@ -139,10 +162,22 @@ void GeneralProductionDispatcher::loadSettings() {
 }
 
 void GeneralProductionDispatcher::sendLog(const QString& log) {
-  if (LogEnable) {
-    emit const_cast<GeneralProductionDispatcher*>(this)->logging(
-        "GeneralProductionDispatcher - " + log);
-  }
+  LogSystem::instance()->generate(objectName() + " - " + log);
+}
+
+void GeneralProductionDispatcher::createLaunchSystem() {
+  Launcher = std::unique_ptr<AbstractLaunchSystem>(
+      new ProductionLineLaunchSystem("TransponderReleaseSystem", Database));
+}
+
+void GeneralProductionDispatcher::createReleaseSystem() {
+  Releaser = std::unique_ptr<AbstractReleaseSystem>(
+      new TransponderReleaseSystem("TransponderReleaseSystem", Database));
+}
+
+void GeneralProductionDispatcher::createInfoSystem() {
+  Informer = std::unique_ptr<AbstractInfoSystem>(
+      new InfoSystem("InfoSystem", Database));
 }
 
 void GeneralProductionDispatcher::createStickerPrinters() {
@@ -153,8 +188,6 @@ void GeneralProductionDispatcher::createStickerPrinters() {
   BoxStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer(BoxStickerPrinterName));
 #endif /* __linux__ */
-  connect(BoxStickerPrinter.get(), &AbstractStickerPrinter::logging,
-          LogSystem::instance(), &LogSystem::generate);
 
 #ifdef __linux__
   PalletStickerPrinter =
@@ -163,6 +196,30 @@ void GeneralProductionDispatcher::createStickerPrinters() {
   PalletStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer(PalletStickerPrinterName));
 #endif /* __linux__ */
-  connect(PalletStickerPrinter.get(), &AbstractStickerPrinter::logging,
-          LogSystem::instance(), &LogSystem::generate);
+}
+
+void GeneralProductionDispatcher::createDatabase() {
+  Database = std::shared_ptr<AbstractSqlDatabase>(
+      new PostgreSqlDatabase("PostgreSqlDatabase"));
+}
+
+void GeneralProductionDispatcher::createCheckTimer() {
+  CheckTimer = std::unique_ptr<QTimer>(new QTimer());
+  CheckTimer->setInterval(CheckPeriod * 1000);
+
+  connect(CheckTimer.get(), &QTimer::timeout, CheckTimer.get(), &QTimer::stop);
+  connect(CheckTimer.get(), &QTimer::timeout, this,
+          &GeneralProductionDispatcher::on_CheckTimerTemeout);
+}
+
+void GeneralProductionDispatcher::createFirmwareGenerator() {
+  Generator = std::unique_ptr<AbstractFirmwareGenerationSystem>(
+      new FirmwareGenerationSystem("FirmwareGenerationSystem"));
+}
+
+void GeneralProductionDispatcher::on_CheckTimerTemeout() {
+  if (!Database->isConnected()) {
+    sendLog("Потеряно соединение с базой данных.");
+    emit errorDetected(ReturnStatus::DatabaseConnectionError);
+  }
 }

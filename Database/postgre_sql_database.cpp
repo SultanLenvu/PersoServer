@@ -1,13 +1,11 @@
 #include "postgre_sql_database.h"
 #include "Log/log_system.h"
 
-PostgreSqlDatabase::PostgreSqlDatabase(QObject* parent,
-                                       const QString& connectionName)
-    : AbstractSqlDatabase{parent} {
-  setObjectName("PostgreSqlDatabase");
-  loadSettings();
+PostgreSqlDatabase::PostgreSqlDatabase(const QString& name)
+    : AbstractSqlDatabase{name} {
+  ConnectionName = name + "Connection";
 
-  ConnectionName = connectionName;
+  loadSettings();
 }
 
 PostgreSqlDatabase::~PostgreSqlDatabase() {
@@ -64,7 +62,7 @@ void PostgreSqlDatabase::disconnect() {
   }
 }
 
-bool PostgreSqlDatabase::checkConnection() {
+bool PostgreSqlDatabase::isConnected() {
   if (!QSqlDatabase::database(ConnectionName).isOpen()) {
     return false;
   }
@@ -255,6 +253,24 @@ bool PostgreSqlDatabase::readLastRecord(const QString& table,
   }
 
   return Tables.value(table)->readLastRecord(record);
+}
+
+bool PostgreSqlDatabase::updateRecords(const QString& table,
+                                       const SqlQueryValues& newValues) const {
+  // Проверка подключения
+  if (!QSqlDatabase::database(ConnectionName).isOpen()) {
+    sendLog(
+        QString("Соединение с Postgres не установлено. %1.")
+            .arg(QSqlDatabase::database(ConnectionName).lastError().text()));
+    return false;
+  }
+
+  if (!Tables.contains(table)) {
+    sendLog(QString("Таблица %1 отсутствует в базе.").arg(table));
+    return false;
+  }
+
+  return Tables.value(table)->updateRecords(newValues);
 }
 
 bool PostgreSqlDatabase::updateRecords(const QString& table,
@@ -499,17 +515,12 @@ bool PostgreSqlDatabase::getRecordCount(const QString& table,
  */
 
 void PostgreSqlDatabase::sendLog(const QString& log) const {
-  if (LogEnable) {
-    emit const_cast<PostgreSqlDatabase*>(this)->logging(
-        QString("%1 - %2").arg(objectName(), log));
-  }
+  LogSystem::instance()->generate(objectName() + " - " + log);
 }
 
 void PostgreSqlDatabase::loadSettings() {
   // Загружаем настройки
   QSettings settings;
-
-  LogEnable = settings.value("log_system/global_enable").toBool();
 
   HostAddress =
       QHostAddress(settings.value("postgre_sql_database/server_ip").toString());
@@ -546,8 +557,6 @@ bool PostgreSqlDatabase::init() {
 bool PostgreSqlDatabase::createTable(const QString& name) {
   std::shared_ptr<PostgreSqlTable> table(
       new PostgreSqlTable(name, ConnectionName));
-  QObject::connect(table.get(), &PostgreSqlTable::logging,
-                   LogSystem::instance(), &LogSystem::generate);
   if (!table->init()) {
     sendLog(
         QString("Получена ошибка при инициализации таблицы '%1'").arg(name));

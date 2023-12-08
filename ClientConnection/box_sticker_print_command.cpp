@@ -17,19 +17,18 @@ BoxStickerPrintCommand::BoxStickerPrintCommand(const QString& name)
 
 BoxStickerPrintCommand::~BoxStickerPrintCommand() {}
 
-ReturnStatus BoxStickerPrintCommand::process(const QJsonObject& command) {
+void BoxStickerPrintCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) ||
       !command.contains("personal_account_number")) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   Parameters.insert("personal_account_number", command.value("pan").toString());
 
   // Запрашиваем печать бокса
   emit printBoxSticker_signal(Parameters, Status);
-
-  return Status;
 }
 
 void BoxStickerPrintCommand::generateResponse(QJsonObject& response) {

@@ -10,8 +10,6 @@ class AbstractProductionDispatcher : public QObject {
  public:
   explicit AbstractProductionDispatcher(const QString& name);
 
-  virtual bool checkConfiguration(void) = 0;
-
  public slots:
   virtual void start(ReturnStatus& ret) = 0;
   virtual void stop(void) = 0;
@@ -21,9 +19,9 @@ class AbstractProductionDispatcher : public QObject {
                                     ReturnStatus& ret) = 0;
   virtual void shutdownProductionLine(const StringDictionary& param,
                                       ReturnStatus& ret) = 0;
-  virtual void getProductionLineresult(const StringDictionary& param,
-                                       StringDictionary& result,
-                                       ReturnStatus& ret) = 0;
+  virtual void getProductionLineContext(const StringDictionary& param,
+                                        StringDictionary& result,
+                                        ReturnStatus& ret) = 0;
   virtual void rollbackProductionLine(const StringDictionary& param,
                                       StringDictionary& result,
                                       ReturnStatus& ret) = 0;
@@ -53,7 +51,6 @@ class AbstractProductionDispatcher : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractProductionDispatcher);
 
  signals:
-  void logging(const QString& log);
   void errorDetected(ReturnStatus);
 };
 

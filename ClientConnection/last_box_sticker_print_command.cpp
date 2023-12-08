@@ -19,13 +19,12 @@ LastBoxStickerPrintCommand::~LastBoxStickerPrintCommand() {}
 ReturnStatus LastBoxStickerPrintCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
-    return ReturnStatus::SyntaxError;
+    Status = ReturnStatus::SyntaxError;
+    return;
   }
 
   // Запрашиваем печать бокса
   emit printLastBoxSticker_signal(Status);
-
-  return Status;
 }
 
 void LastBoxStickerPrintCommand::generateResponse(QJsonObject& response) {

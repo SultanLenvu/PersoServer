@@ -1,13 +1,27 @@
 #ifndef GENERALPRODUCTIONDISPATCHER_H
 #define GENERALPRODUCTIONDISPATCHER_H
 
+#include "Database/abstract_sql_database.h"
+#include "abstract_firmware_generation_system.h"
+#include "abstract_info_system.h"
+#include "abstract_launch_system.h"
 #include "abstract_production_dispatcher.h"
 #include "abstract_sticker_printer.h"
+#include "abstract_transponder_release_system.h"
 
 class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
  private:
-  bool LogEnable;
+  QHash<QString, ProductionContext> Contexts;
+
+  size_t CheckPeriod;
+  std::unique_ptr<QTimer> CheckTimer;
+  std::shared_ptr<AbstractSqlDatabase> Database;
+
+  std::unique_ptr<AbstractInfoSystem> Informer;
+  std::unique_ptr<AbstractLaunchSystem> Launcher;
+  std::unique_ptr<AbstractReleaseSystem> Releaser;
+  std::unique_ptr<AbstractFirmwareGenerationSystem> Generator;
 
   QString BoxStickerPrinterName;
   QString PalletStickerPrinterName;
@@ -23,6 +37,7 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
 
  public:
   explicit GeneralProductionDispatcher(const QString& name);
+  ~GeneralProductionDispatcher();
 
   virtual bool checkConfiguration(void) override;
 
@@ -63,11 +78,21 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
  private:
   GeneralProductionDispatcher();
   Q_DISABLE_COPY_MOVE(GeneralProductionDispatcher);
+  void instanceThreadStarted_slot(void);
 
   void loadSettings(void);
   void sendLog(const QString& log);
 
+  void createLaunchSystem(void);
+  void createReleaseSystem(void);
+  void createInfoSystem(void);
   void createStickerPrinters(void);
+  void createDatabase(void);
+  void createFirmwareGenerator(void);
+  void createCheckTimer(void);
+
+ private slots:
+  void on_CheckTimerTemeout(void);
 };
 
 #endif  // GENERALPRODUCTIONDISPATCHER_H

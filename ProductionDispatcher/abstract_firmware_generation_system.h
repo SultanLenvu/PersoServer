@@ -11,15 +11,15 @@ class AbstractFirmwareGenerationSystem : public QObject {
   explicit AbstractFirmwareGenerationSystem(const QString& name);
   virtual ~AbstractFirmwareGenerationSystem();
 
-  virtual bool generate(const StringDictionary& seed,
-                        QByteArray& assembledFirmware) = 0;
+  virtual bool init(void) = 0;
+  virtual ReturnStatus generate(const StringDictionary& seed,
+                                QByteArray& assembledFirmware) = 0;
 
  private:
   AbstractFirmwareGenerationSystem();
-  Q_DISABLE_COPY_MOVE(AbstractFirmwareGenerationSystem);
+  Q_DISABLE_COPY_MOVE(AbstractFirmwareGenerationSystem)
 
  signals:
-  void logging(const QString&);
 };
 
 #endif  // ABSTRACTFIRMWAREGENERATIONSYSTEM_H

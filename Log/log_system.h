@@ -22,10 +22,15 @@ class LogSystem : public QObject {
   Q_OBJECT
 
  private:
+  bool LogEnable;
+  bool ExtendedLogEnable;
+
   QList<LogBackend*> Backends;
   UdpLogBackend* UdpLogger;
   FileLogBackend* FileLogger;
   ConsolerLogBackend* ConsoleLogger;
+
+  QMutex mutex;
 
  public:
   ~LogSystem();
@@ -36,7 +41,8 @@ class LogSystem : public QObject {
   void generate(const QString& log) const;
 
  private:
-  LogSystem(QObject* parent);
+  LogSystem();
+  explicit LogSystem(const QString& name);
   Q_DISABLE_COPY_MOVE(LogSystem)
   void loadSettings(void);
 };

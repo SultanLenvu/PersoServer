@@ -51,10 +51,8 @@ typedef struct {
 class FirmwareGenerationSystem : public AbstractFirmwareGenerationSystem {
   Q_OBJECT
  private:
-  bool LogEnable;
-
-  QFile* FirmwareBaseFile;
-  QFile* FirmwareDataFile;
+  std::unique_ptr<QFile> FirmwareBaseFile;
+  std::unique_ptr<QFile> FirmwareDataFile;
 
   QHash<QString, QByteArray> CommonKeys;
 
@@ -62,8 +60,9 @@ class FirmwareGenerationSystem : public AbstractFirmwareGenerationSystem {
   explicit FirmwareGenerationSystem(const QString& name);
   ~FirmwareGenerationSystem();
 
-  virtual bool generate(const StringDictionary& seed,
-                        QByteArray& assembledFirmware) override;
+  virtual bool init(void) override;
+  virtual ReturnStatus generate(const StringDictionary& seed,
+                                QByteArray& assembledFirmware) override;
 
  private:
   FirmwareGenerationSystem();
@@ -72,11 +71,11 @@ class FirmwareGenerationSystem : public AbstractFirmwareGenerationSystem {
   void sendLog(const QString& log) const;
   void createPositionMap(void);
 
-  bool assembleFirmware(const QByteArray& firmwareData,
-                        QByteArray& assembledFirmware);
+  ReturnStatus assembleFirmware(const QByteArray& firmwareData,
+                                QByteArray& assembledFirmware);
 
-  bool generateFirmwareData(const StringDictionary& seed,
-                            QByteArray& firmwareData);
+  ReturnStatus generateFirmwareData(const StringDictionary& seed,
+                                    QByteArray& firmwareData);
   void generateCommonKeys(const StringDictionary& seed);
   void generatePaymentMeans(const QString& pan, QString& paymentMeans);
 
