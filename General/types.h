@@ -14,11 +14,15 @@ enum class ReturnStatus {
   SyntaxError,
   SynchronizationError,
   FileOpenError,
-  ContextError,
+  InvalidProductionContext,
+  UnauthorizedRequest,
 
   DatabaseConnectionError,
   DatabaseTransactionError,
   DatabaseQueryError,
+
+  FirmwareGeneratorInitError,
+  StickerPrinterInitError,
 
   ProductionLineMissed,
   TranspoderMissed,
@@ -28,28 +32,26 @@ enum class ReturnStatus {
   IssuerMissed,
   MasterKeysMissed,
 
-  TransponderWasReleasedEarlier,
-  TransponderAwaitingConfirmationError,
+  TransponderWrongRerelease,
+  TransponderNotReleasedEarlier,
+  TransponderNotAwaitingConfirmation,
+  IdenticalUcidError,
+  CurrentOrderAssembled,
+  NextTransponderNotFound,
 
   ProductionLineLaunchError,
   ProductionLineAlreadyLaunched,
   ProductionLineNotActive,
+  ProductionLineNotInProcess,
   OrderInProcessMissed,
   FreeBoxMissed,
   ProductionLineShutdownError,
+  ProductionLineRollbackLimit,
 
   FirmwareGenerationError,
 
-  TransponderRollbackLimitError,
-  AwaitingConfirmationError,
-  IdenticalUcidError,
-  CurrentOrderRunOut,
-  CurrentOrderAssembled,
   BoxStickerPrintError,
   PalletStickerPrintError,
-  NextTransponderNotFound,
-  StartBoxAssemblingError,
-  StartPalletAssemblingError,
   Unknown,
 };
 

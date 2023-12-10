@@ -39,7 +39,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     ProductionDispatcher/te310_printer.cpp ProductionDispatcher/te310_printer.h
     ProductionDispatcher/abstract_launch_system.h ProductionDispatcher/abstract_launch_system.cpp
     ProductionDispatcher/abstract_info_system.h ProductionDispatcher/abstract_info_system.cpp
-    ProductionDispatcher/abstract_transponder_release_system.h ProductionDispatcher/abstract_transponder_release_system.cpp
+    ProductionDispatcher/abstract_release_system.h ProductionDispatcher/abstract_release_system.cpp
     ProductionDispatcher/info_system.h ProductionDispatcher/info_system.cpp
     ProductionDispatcher/production_line_launch_system.h ProductionDispatcher/production_line_launch_system.cpp
     ProductionDispatcher/abstract_firmware_generation_system.h ProductionDispatcher/abstract_firmware_generation_system.cpp

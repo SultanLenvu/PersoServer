@@ -1,4 +1,4 @@
-#include "abstract_transponder_release_system.h"
+#include "abstract_release_system.h"
 
 AbstractReleaseSystem::AbstractReleaseSystem(
     const QString& name,

@@ -30,7 +30,11 @@ class InfoSystem : public AbstractInfoSystem {
       const QString& login,
       ProductionContext& context) override;
 
+  virtual ReturnStatus generateTransponderData(StringDictionary& param,
+                                               StringDictionary& data) override;
   virtual ReturnStatus generateTransponderData(StringDictionary& data) override;
+  virtual ReturnStatus generateFirmwareSeed(StringDictionary& param,
+                                            StringDictionary& seed) override;
   virtual ReturnStatus generateFirmwareSeed(StringDictionary& seed) override;
 
   virtual ReturnStatus generateBoxData(StringDictionary& data) override;

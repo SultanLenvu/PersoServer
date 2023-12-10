@@ -7,12 +7,12 @@
 #include "abstract_launch_system.h"
 #include "abstract_production_dispatcher.h"
 #include "abstract_sticker_printer.h"
-#include "abstract_transponder_release_system.h"
+#include "abstract_release_system.h"
 
 class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
  private:
-  QHash<QString, ProductionContext> Contexts;
+  QHash<QString, std::unique_ptr<ProductionContext>> Contexts;
 
   size_t CheckPeriod;
   std::unique_ptr<QTimer> CheckTimer;
@@ -38,8 +38,6 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
  public:
   explicit GeneralProductionDispatcher(const QString& name);
   ~GeneralProductionDispatcher();
-
-  virtual bool checkConfiguration(void) override;
 
   // AbstractProductionDispatcher interface
  public slots:

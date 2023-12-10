@@ -20,10 +20,14 @@ class AbstractInfoSystem : public QObject {
   virtual ReturnStatus generateProductionContext(
       const QString&,
       ProductionContext& context) = 0;
-  virtual ReturnStatus generateBoxData(StringDictionary&) = 0;
-  virtual ReturnStatus generatePalletData(StringDictionary&) = 0;
-  virtual ReturnStatus generateTransponderData(StringDictionary&) = 0;
-  virtual ReturnStatus generateFirmwareSeed(StringDictionary&) = 0;
+  virtual ReturnStatus generateTransponderData(StringDictionary& param,
+                                               StringDictionary& data) = 0;
+  virtual ReturnStatus generateTransponderData(StringDictionary& data) = 0;
+  virtual ReturnStatus generateFirmwareSeed(StringDictionary& param,
+                                            StringDictionary& seed) = 0;
+  virtual ReturnStatus generateFirmwareSeed(StringDictionary& seed) = 0;
+  virtual ReturnStatus generateBoxData(StringDictionary& data) = 0;
+  virtual ReturnStatus generatePalletData(StringDictionary& data) = 0;
   virtual void reset(void) = 0;
 
  private:

@@ -59,8 +59,7 @@ ReturnStatus InfoSystem::generateProductionContext(const QString& login,
 
   if (!Database->readRecords(
           "transponders",
-          QString("id = %1 AND release_counter = 0")
-              .arg(CurrentProductionLine->get("transponder_id")),
+          QString("id = %1").arg(CurrentProductionLine->get("transponder_id")),
           *CurrentTransponder)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;
@@ -138,9 +137,14 @@ ReturnStatus InfoSystem::generateProductionContext(const QString& login,
   return ReturnStatus::NoError;
 }
 
+ReturnStatus InfoSystem::generateTransponderData(StringDictionary& param,
+                                                 StringDictionary& data) {
+  return ReturnStatus::NoError;
+}
+
 ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
   if (!ContextReady) {
-    return ReturnStatus::ContextError;
+    return ReturnStatus::InvalidProductionContext;
   }
 
   // Данные переносимые без изменений
@@ -166,9 +170,14 @@ ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
   return ReturnStatus::NoError;
 }
 
+ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& param,
+                                              StringDictionary& seed) {
+  return ReturnStatus::NoError;
+}
+
 ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& seed) {
   if (!ContextReady) {
-    return ReturnStatus::ContextError;
+    return ReturnStatus::InvalidProductionContext;
   }
 
   // DSRC атрибуты
@@ -208,7 +217,7 @@ ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& seed) {
 
 ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
   if (!ContextReady) {
-    return ReturnStatus::ContextError;
+    return ReturnStatus::InvalidProductionContext;
   }
 
   SqlQueryValues transponders;
@@ -249,7 +258,7 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
 
 ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
   if (!ContextReady) {
-    return ReturnStatus::ContextError;
+    return ReturnStatus::InvalidProductionContext;
   }
 
   SqlQueryValues boxes;

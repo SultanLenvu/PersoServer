@@ -10,12 +10,14 @@
 
 #include "Database/abstract_sql_database.h"
 #include "Database/sql_query_values.h"
-#include "ProductionDispatcher/abstract_transponder_release_system.h"
+#include "ProductionDispatcher/abstract_release_system.h"
 
 class TransponderReleaseSystem : public AbstractReleaseSystem {
   Q_OBJECT
 
  private:
+  bool ContextReady;
+
   std::shared_ptr<SqlQueryValues> CurrentProductionLine;
   std::shared_ptr<SqlQueryValues> CurrentBox;
   std::shared_ptr<SqlQueryValues> CurrentTransponder;
@@ -31,37 +33,40 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
 
   // AbstractReleaseSystem interface
  public:
-  virtual ReturnStatus release(const ProductionContext& context,
-                               const StringDictionary& param) override;
-  virtual ReturnStatus confirmRelease(const ProductionContext& context,
-                                      const StringDictionary& param) override;
-  virtual ReturnStatus rerelease(const ProductionContext& context,
-                                 const StringDictionary& param) override;
-  virtual ReturnStatus confirmRerelease(const ProductionContext& context,
-                                        const StringDictionary& param) override;
-  virtual ReturnStatus rollback(const ProductionContext& context,
-                                const StringDictionary& param) override;
+  virtual void setContext(const ProductionContext& context) override;
+  virtual ReturnStatus release(void) override;
+  virtual ReturnStatus confirmRelease(const StringDictionary& param) override;
+  virtual ReturnStatus rerelease(const StringDictionary& param) override;
+  virtual ReturnStatus confirmRerelease(const StringDictionary& param) override;
+  virtual ReturnStatus rollback(void) override;
 
  private:
   Q_DISABLE_COPY_MOVE(TransponderReleaseSystem);
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
-  ReturnStatus confirmCurrentTransponder(const QString& ucid);
-  ReturnStatus confirmCurrentBox(void);
-  ReturnStatus confirmCurrentPallet(void);
-  ReturnStatus confirmCurrentOrder(void);
+  bool confirmCurrentTransponder(const QString& ucid);
+  bool completeCurrentBoxAssembly(void);
+  bool completeCurrentPalletAssembly(void);
+  bool completeCurrentOrderAssembly(void);
 
-  ReturnStatus searchNextTransponderForCurrentProductionLine(void);
+  ReturnStatus searchNextTransponder(void);
+  ReturnStatus searchNextBox(void);
+  ReturnStatus searchNextPallet(void);
+
   ReturnStatus startBoxAssembling(const QString& id);
   ReturnStatus startPalletAssembling(const QString& id);
 
-  void generateFirmwareSeed(StringDictionary& seed) const;
+  bool updateCurrentProductionLine(const SqlQueryValues& newValues);
+  bool updateCurrentTransponder(const SqlQueryValues& newValues);
+  bool updateCurrentBox(const SqlQueryValues& newValues);
+  bool updateCurrentPallet(const SqlQueryValues& newValues);
+  bool updateCurrentOrder(const SqlQueryValues& newValues);
 
  signals:
-  void boxAssemblingFinished(const QString& id);
-  void palletAssemblingFinished(const QString& id);
-  void orderAssemblingFinished(const QString& id);
+  void boxAssemblyCompleted(const QString& id);
+  void palletAssemblyCompleted(const QString& id);
+  void orderAssemblyCompleted(const QString& id);
 };
 
 #endif  // TRANSPONDERRELEASESYSTEM_H

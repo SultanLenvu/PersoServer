@@ -22,6 +22,7 @@ GeneralProductionDispatcher::GeneralProductionDispatcher(const QString& name)
 void GeneralProductionDispatcher::start(ReturnStatus& ret) {
   if (!Generator->init()) {
     sendLog("Инициализация генератора прошивок провалена. ");
+    ret = ReturnStatus::FirmwareGeneratorInitError;
     return;
   }
 
@@ -29,6 +30,7 @@ void GeneralProductionDispatcher::start(ReturnStatus& ret) {
     sendLog(
         "Инициализация принтера для печати стикеров на боксы "
         "провалена. ");
+    ret = ReturnStatus::StickerPrinterInitError;
     return;
   }
 
@@ -36,6 +38,7 @@ void GeneralProductionDispatcher::start(ReturnStatus& ret) {
     sendLog(
         "Инициализация принтера для печати стикеров на паллеты "
         "провалена. ");
+    ret = ReturnStatus::StickerPrinterInitError;
     return;
   }
 
@@ -58,16 +61,61 @@ void GeneralProductionDispatcher::stop() {
 void GeneralProductionDispatcher::launchProductionLine(
     const StringDictionary& param,
     StringDictionary& context,
-    ReturnStatus& ret) {}
+    ReturnStatus& ret) {
+  sendLog(QString("Запуск производственной линии '%1'. ")
+              .arg(param.value("login")));
+
+  ret = Launcher->launch(param);
+  if (ret != ReturnStatus::NoError) {
+    return;
+  }
+
+  // Если запуск успешный, то подгружаем контекст производственной линии
+  std::unique_ptr<ProductionContext> newContext(new ProductionContext());
+  Informer->generateProductionContext(param.value("login"), *newContext);
+  Contexts.insert(param.value("login"), newContext);
+
+  sendLog(QString("Контекст производственной линии '%1' загружен. ")
+              .arg(param.value("login")));
+  ret = ReturnStatus::NoError;
+}
 
 void GeneralProductionDispatcher::shutdownProductionLine(
     const StringDictionary& param,
-    ReturnStatus& ret) {}
+    ReturnStatus& ret) {
+  sendLog(QString("Остановка производственной линии '%1'. ")
+              .arg(param.value("login")));
+
+  ret = Launcher->shutdown(param);
+  if (ret != ReturnStatus::NoError) {
+    return;
+  }
+
+  // Если остановка успешная, то выгружаем контекст производственной линии
+  Contexts.remove(param.value("login"));
+
+  sendLog(QString("Контекст производственной линии '%1' загружен. ")
+              .arg(param.value("login")));
+  ret = ReturnStatus::NoError;
+}
 
 void GeneralProductionDispatcher::getProductionLineContext(
     const StringDictionary& param,
     StringDictionary& result,
-    ReturnStatus& ret) {}
+    ReturnStatus& ret) {
+  sendLog(QString("Запрос контекста производственной линии '%1'. ")
+              .arg(param.value("login")));
+
+  if (!Contexts.contains(param.value("login"))) {
+    sendLog(
+        QString(
+            "Производственная линия '%1' не запущена, контекст недоступен. ")
+            .arg(param.value("login")));
+
+    ret = ReturnStatus::UnauthorizedRequest;
+    return;
+  }
+}
 
 void GeneralProductionDispatcher::rollbackProductionLine(
     const StringDictionary& param,
