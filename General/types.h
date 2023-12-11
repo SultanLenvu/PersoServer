@@ -32,21 +32,21 @@ enum class ReturnStatus {
   IssuerMissed,
   MasterKeysMissed,
 
-  TransponderWrongRerelease,
   TransponderNotReleasedEarlier,
   TransponderNotAwaitingConfirmation,
+  TransponderIncorrectRerelease,
   IdenticalUcidError,
   CurrentOrderAssembled,
-  NextTransponderNotFound,
 
   ProductionLineLaunchError,
   ProductionLineAlreadyLaunched,
   ProductionLineNotActive,
   ProductionLineNotInProcess,
-  OrderInProcessMissed,
-  FreeBoxMissed,
+  ProductionLineCompleted,
   ProductionLineShutdownError,
   ProductionLineRollbackLimit,
+  OrderInProcessMissed,
+  FreeBoxMissed,
 
   FirmwareGenerationError,
 

@@ -4,6 +4,8 @@
 #include "abstract_client_command.h"
 
 class RereleaseCommand : public AbstractClientCommand {
+  Q_OBJECT
+
  private:
   const QString CommandName = "transponder_release";
   const size_t CommandSize = 4;
@@ -28,7 +30,7 @@ class RereleaseCommand : public AbstractClientCommand {
 
  signals:
   void rerelease_signal(const StringDictionary& param,
-                        const StringDictionary& result,
+                        StringDictionary& result,
                         ReturnStatus& status);
 };
 

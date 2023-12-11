@@ -1,5 +1,5 @@
 #include "rerelease_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 RereleaseCommand::RereleaseCommand(const QString& name)
@@ -10,8 +10,8 @@ RereleaseCommand::RereleaseCommand(const QString& name)
 
   connect(
       this, &RereleaseCommand::rerelease_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::rereleaseTransponder,
       Qt::BlockingQueuedConnection);
 }

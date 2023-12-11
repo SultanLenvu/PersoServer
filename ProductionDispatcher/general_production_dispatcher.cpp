@@ -19,6 +19,8 @@ GeneralProductionDispatcher::GeneralProductionDispatcher(const QString& name)
   createStickerPrinters();
 }
 
+GeneralProductionDispatcher::~GeneralProductionDispatcher() {}
+
 void GeneralProductionDispatcher::start(ReturnStatus& ret) {
   if (!Generator->init()) {
     sendLog("Инициализация генератора прошивок провалена. ");
@@ -71,7 +73,7 @@ void GeneralProductionDispatcher::launchProductionLine(
   }
 
   // Если запуск успешный, то подгружаем контекст производственной линии
-  std::unique_ptr<ProductionContext> newContext(new ProductionContext());
+  std::shared_ptr<ProductionContext> newContext(new ProductionContext());
   Informer->generateProductionContext(param.value("login"), *newContext);
   Contexts.insert(param.value("login"), newContext);
 

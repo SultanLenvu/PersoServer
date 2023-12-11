@@ -30,7 +30,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     Management/perso_server.cpp Management/perso_server.h
     Management/abstract_perso_server.h Management/abstract_perso_server.cpp
     Management/abstract_server_manager.h Management/abstract_server_manager.cpp
-    Management/global_context.h Management/global_context.cpp
+    Management/global_environment.h Management/global_environment.cpp
 
     ProductionDispatcher/abstract_production_dispatcher.h ProductionDispatcher/abstract_production_dispatcher.cpp
     ProductionDispatcher/general_production_dispatcher.h ProductionDispatcher/general_production_dispatcher.cpp

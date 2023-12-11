@@ -1,5 +1,5 @@
 #include "log_out_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 LogOutCommand::LogOutCommand(const QString& name)
@@ -8,8 +8,8 @@ LogOutCommand::LogOutCommand(const QString& name)
 
   connect(
       this, &LogOutCommand::logOut_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::shutdownProductionLine,
       Qt::BlockingQueuedConnection);
 }

@@ -1,17 +1,17 @@
 #include "update_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 UpdateCommand::UpdateCommand(const QString& name)
     : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
-  connect(
-      this, &UpdateCommand::update_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
-      &AbstractProductionDispatcher::getProductionLineContext,
-      Qt::BlockingQueuedConnection);
+  connect(this, &UpdateCommand::update_signal,
+          dynamic_cast<AbstractProductionDispatcher*>(
+              GlobalEnvironment::instance()->getObject(
+                  "GeneralProductionDispatcher")),
+          &AbstractProductionDispatcher::getProductionLineContext,
+          Qt::BlockingQueuedConnection);
 }
 
 UpdateCommand::~UpdateCommand() {}
@@ -28,7 +28,7 @@ void UpdateCommand::process(const QJsonObject& command) {
   Parameters.insert("password", command.value("password").toString());
 
   // Запрашиваем печать бокса
-  emit update_signal(Parameters, Status);
+  emit update_signal(Parameters, Result, Status);
 }
 
 void UpdateCommand::generateResponse(QJsonObject& response) {

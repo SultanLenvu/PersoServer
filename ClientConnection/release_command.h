@@ -29,7 +29,7 @@ class ReleaseCommand : public AbstractClientCommand {
 
  signals:
   void release_signal(const StringDictionary& param,
-                      const StringDictionary& result,
+                      StringDictionary& result,
                       ReturnStatus& status);
 };
 

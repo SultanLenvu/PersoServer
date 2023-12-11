@@ -50,9 +50,6 @@ class AbstractStickerPrinter : public QObject {
 
   virtual void applySetting(void) = 0;
 
- protected:
-  void sendLog(const QString& log);
-
  private:
   Q_DISABLE_COPY_MOVE(AbstractStickerPrinter);
 

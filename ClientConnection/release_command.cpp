@@ -1,5 +1,5 @@
 #include "release_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 ReleaseCommand::ReleaseCommand(const QString& name)
@@ -10,8 +10,8 @@ ReleaseCommand::ReleaseCommand(const QString& name)
 
   connect(
       this, &ReleaseCommand::release_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::releaseTransponder,
       Qt::BlockingQueuedConnection);
 }

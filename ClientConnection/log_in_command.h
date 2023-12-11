@@ -28,7 +28,7 @@ class LogInCommand : public AbstractClientCommand {
 
  signals:
   void logIn_signal(const StringDictionary& param,
-                    const StringDictionary& result,
+                    StringDictionary& result,
                     ReturnStatus& status);
 
   void authorized(const QString& login, const QString& password);

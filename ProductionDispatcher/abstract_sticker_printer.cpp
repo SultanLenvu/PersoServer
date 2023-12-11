@@ -7,9 +7,3 @@ AbstractStickerPrinter::AbstractStickerPrinter(StickerPrinterType type)
 }
 
 AbstractStickerPrinter::~AbstractStickerPrinter() {}
-
-void AbstractStickerPrinter::sendLog(const QString& log) {
-  if (LogEnable) {
-    emit logging(QString("%1 - %2").arg(objectName(), log));
-  }
-}

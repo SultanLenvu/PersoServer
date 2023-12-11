@@ -1,16 +1,16 @@
 #include "log_in_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 LogInCommand::LogInCommand(const QString& name) : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
-  connect(
-      this, &LogInCommand::logIn_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
-      &AbstractProductionDispatcher::launchProductionLine,
-      Qt::BlockingQueuedConnection);
+  connect(this, &LogInCommand::logIn_signal,
+          dynamic_cast<AbstractProductionDispatcher*>(
+              GlobalEnvironment::instance()->getObject(
+                  "GeneralProductionDispatcher")),
+          &AbstractProductionDispatcher::launchProductionLine,
+          Qt::BlockingQueuedConnection);
 }
 
 LogInCommand::~LogInCommand() {}

@@ -1,5 +1,5 @@
 #include "rerelease_confirm_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 RereleaseConfirmCommand::RereleaseConfirmCommand(const QString& name)
@@ -8,8 +8,8 @@ RereleaseConfirmCommand::RereleaseConfirmCommand(const QString& name)
 
   connect(
       this, &RereleaseConfirmCommand::confirmRerelease_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::confirmTransponderRerelease,
       Qt::BlockingQueuedConnection);
 }

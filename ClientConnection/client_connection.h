@@ -27,7 +27,7 @@ class ClientConnection : public AbstractClientConnection {
 
   QJsonObject CommandData;
   QJsonObject ResponseData;
-  QHash<QString, std::unique_ptr<AbstractClientCommand>> Commands;
+  QHash<QString, std::shared_ptr<AbstractClientCommand>> Commands;
 
   size_t IdleExpirationTime;
   std::unique_ptr<QTimer> ExpirationTimer;

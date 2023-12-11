@@ -5,7 +5,6 @@
 #include "box_sticker_print_command.h"
 #include "client_connection.h"
 #include "echo_comand.h"
-#include "firmware_generation_system.h"
 #include "last_box_sticker_print_command.h"
 #include "last_pallet_sticker_print_command.h"
 #include "log_in_command.h"
@@ -36,9 +35,6 @@ ClientConnection::ClientConnection(const QString& name,
 
   // Создаем таймер для приема блоков данных частями
   createDataBlockWaitTimer();
-
-  // Создаем генератор прошивок
-  createFirmwareGenerator();
 
   // Создаем команды
   createCommands();
@@ -208,50 +204,50 @@ void ClientConnection::createDataBlockWaitTimer() {
 }
 
 void ClientConnection::createCommands() {
-  Commands.insert("echo", std::unique_ptr<AbstractClientCommand>(
+  Commands.insert("echo", std::shared_ptr<AbstractClientCommand>(
                               new EchoCommand("EchoCommand")));
 
-  Commands.insert("log_in", std::unique_ptr<AbstractClientCommand>(
+  Commands.insert("log_in", std::shared_ptr<AbstractClientCommand>(
                                 new LogInCommand("LogInCommand")));
   connect(dynamic_cast<LogInCommand*>(Commands.value("log_in").get()),
           &LogInCommand::authorized, this, &ClientConnection::authorized_slot);
 
-  Commands.insert("log_out", std::unique_ptr<AbstractClientCommand>(
+  Commands.insert("log_out", std::shared_ptr<AbstractClientCommand>(
                                  new LogOutCommand("LogOutCommand")));
   connect(dynamic_cast<LogOutCommand*>(Commands.value("log_out").get()),
           &LogOutCommand::deauthorized, this,
           &ClientConnection::deauthorized_slot);
 
-  Commands.insert("update", std::unique_ptr<AbstractClientCommand>(
+  Commands.insert("update", std::shared_ptr<AbstractClientCommand>(
                                 new UpdateCommand("UpdateCommand")));
 
-  Commands.insert("release", std::unique_ptr<AbstractClientCommand>(
+  Commands.insert("release", std::shared_ptr<AbstractClientCommand>(
                                  new ReleaseCommand("ReleaseCommand")));
   Commands.insert("release_confirm",
-                  std::unique_ptr<AbstractClientCommand>(
+                  std::shared_ptr<AbstractClientCommand>(
                       new ReleaseConfirmCommand("ReleaseConfirmCommand")));
-  Commands.insert("rerelease", std::unique_ptr<AbstractClientCommand>(
+  Commands.insert("rerelease", std::shared_ptr<AbstractClientCommand>(
                                    new RereleaseCommand("RereleaseCommand")));
   Commands.insert("rerelease_confirm",
-                  std::unique_ptr<AbstractClientCommand>(
+                  std::shared_ptr<AbstractClientCommand>(
                       new RereleaseConfirmCommand("RereleaseConfirmCommand")));
   Commands.insert("rollback", std::unique_ptr<AbstractClientCommand>(
                                   new RollbackCommand("RollbackCommand")));
 
   Commands.insert("box_sticker_print",
-                  std::unique_ptr<AbstractClientCommand>(
+                  std::shared_ptr<AbstractClientCommand>(
                       new BoxStickerPrintCommand("BoxStickerPrintCommand")));
   Commands.insert(
       "last_box_sticker_print",
-      std::unique_ptr<AbstractClientCommand>(
+      std::shared_ptr<AbstractClientCommand>(
           new LastBoxStickerPrintCommand("LastBoxStickerPrintCommand")));
   Commands.insert(
       "pallet_sticker_print",
-      std::unique_ptr<AbstractClientCommand>(
+      std::shared_ptr<AbstractClientCommand>(
           new PalletStickerPrintCommand("PalletStickerPrintCommand")));
   Commands.insert(
       "last_pallet_sticker_print",
-      std::unique_ptr<AbstractClientCommand>(
+      std::shared_ptr<AbstractClientCommand>(
           new LastPalletStickerPrintCommand("LastPalletStickerPrintCommand")));
 }
 

@@ -41,7 +41,7 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
   virtual ReturnStatus rollback(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(TransponderReleaseSystem);
+  Q_DISABLE_COPY_MOVE(TransponderReleaseSystem)
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
@@ -52,10 +52,13 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
 
   ReturnStatus searchNextTransponder(void);
   ReturnStatus searchNextBox(void);
-  ReturnStatus searchNextPallet(void);
 
-  ReturnStatus startBoxAssembling(const QString& id);
-  ReturnStatus startPalletAssembling(const QString& id);
+  bool startCurrentBoxAssembly(void);
+  bool startCurrentPalletAssembly(void);
+
+  bool switchCurrentTransponder(const QString& id);
+  bool switchCurrentBox(const QString& id);
+  bool switchCurrentPallet(const QString& id);
 
   bool updateCurrentProductionLine(const SqlQueryValues& newValues);
   bool updateCurrentTransponder(const SqlQueryValues& newValues);
@@ -64,9 +67,9 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
   bool updateCurrentOrder(const SqlQueryValues& newValues);
 
  signals:
-  void boxAssemblyCompleted(const QString& id);
-  void palletAssemblyCompleted(const QString& id);
-  void orderAssemblyCompleted(const QString& id);
+  void boxAssemblyCompleted(const std::shared_ptr<QString> id);
+  void palletAssemblyCompleted(const std::shared_ptr<QString> id);
+  void orderAssemblyCompleted(const std::shared_ptr<QString> id);
 };
 
 #endif  // TRANSPONDERRELEASESYSTEM_H

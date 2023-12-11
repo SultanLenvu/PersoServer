@@ -1,6 +1,6 @@
 #include "pallet_sticker_print_command.h"
 #include "General/definitions.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 PalletStickerPrintCommand::PalletStickerPrintCommand(const QString& name)
@@ -9,8 +9,8 @@ PalletStickerPrintCommand::PalletStickerPrintCommand(const QString& name)
 
   connect(
       this, &PalletStickerPrintCommand::printPalletSticker_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::printBoxStickerManually,
       Qt::BlockingQueuedConnection);
 }

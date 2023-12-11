@@ -1,5 +1,5 @@
 #include "release_confirm_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 ReleaseConfirmCommand::ReleaseConfirmCommand(const QString& name)
@@ -8,8 +8,8 @@ ReleaseConfirmCommand::ReleaseConfirmCommand(const QString& name)
 
   connect(
       this, &ReleaseConfirmCommand::confirmRelease_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::confirmTransponderRelease,
       Qt::BlockingQueuedConnection);
 }

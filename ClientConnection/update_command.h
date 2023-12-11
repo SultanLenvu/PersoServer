@@ -27,7 +27,9 @@ class UpdateCommand : public AbstractClientCommand {
   Q_DISABLE_COPY_MOVE(UpdateCommand)
 
  signals:
-  void update_signal(const StringDictionary& param, ReturnStatus& status);
+  void update_signal(const StringDictionary& param,
+                     StringDictionary& result,
+                     ReturnStatus& status);
 };
 
 #endif  // UpdateCommand_H

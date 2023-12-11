@@ -28,7 +28,7 @@ class ReleaseConfirmCommand : public AbstractClientCommand {
 
  signals:
   void confirmRelease_signal(const StringDictionary& param,
-                             const StringDictionary& result,
+                             StringDictionary& result,
                              ReturnStatus& status);
 };
 

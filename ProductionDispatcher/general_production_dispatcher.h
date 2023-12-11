@@ -6,13 +6,13 @@
 #include "abstract_info_system.h"
 #include "abstract_launch_system.h"
 #include "abstract_production_dispatcher.h"
-#include "abstract_sticker_printer.h"
 #include "abstract_release_system.h"
+#include "abstract_sticker_printer.h"
 
 class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
  private:
-  QHash<QString, std::unique_ptr<ProductionContext>> Contexts;
+  QHash<QString, std::shared_ptr<ProductionContext>> Contexts;
 
   size_t CheckPeriod;
   std::unique_ptr<QTimer> CheckTimer;
@@ -76,7 +76,6 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
  private:
   GeneralProductionDispatcher();
   Q_DISABLE_COPY_MOVE(GeneralProductionDispatcher);
-  void instanceThreadStarted_slot(void);
 
   void loadSettings(void);
   void sendLog(const QString& log);

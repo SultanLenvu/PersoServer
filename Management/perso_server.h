@@ -37,8 +37,8 @@ class PersoServer : public QTcpServer {
   OperatingState CurrentState;
 
   QStack<size_t> FreeClientIds;
-  QHash<size_t, std::unique_ptr<QThread>> ClientThreads;
-  QHash<size_t, std::unique_ptr<AbstractClientConnection>> Clients;
+  QHash<size_t, std::shared_ptr<QThread>> ClientThreads;
+  QHash<size_t, std::shared_ptr<AbstractClientConnection>> Clients;
 
   std::unique_ptr<AbstractProductionDispatcher> ProductionDispatcher;
   std::unique_ptr<QThread> ProductionDispatcherThread;
@@ -64,7 +64,6 @@ class PersoServer : public QTcpServer {
   void sendLog(const QString& log) const;
 
   void processCriticalError(const QString& log);
-  bool checkConfiguration(void);
 
   void createProductionDispatcherInstance(void);
   void createClientIdentifiers(void);
@@ -77,7 +76,7 @@ class PersoServer : public QTcpServer {
 
   void restartTimerTimeout_slot(void);
 
-  void productionDispatcherErrorDetected(ReturnStatus& status);
+  void productionDispatcherErrorDetected(ReturnStatus status);
 
  signals:
   void startProductionDispatcher_signal(ReturnStatus&);

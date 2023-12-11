@@ -1,3 +1,5 @@
+#include <QMutexLocker>
+
 #include "log_system.h"
 
 LogSystem::~LogSystem() {}
@@ -7,7 +9,7 @@ LogSystem* LogSystem::instance() {
   return &Logger;
 }
 
-void LogSystem::clear() const {
+void LogSystem::clear() {
   QMutexLocker lock(&mutex);
 
   for (QList<LogBackend*>::const_iterator it = Backends.begin();
@@ -16,7 +18,7 @@ void LogSystem::clear() const {
   }
 }
 
-void LogSystem::generate(const QString& log) const {
+void LogSystem::generate(const QString& log) {
   if (!LogEnable) {
     return;
   }

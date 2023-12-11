@@ -32,12 +32,11 @@ ReturnStatus TransponderReleaseSystem::release() {
 
   ReturnStatus ret;
 
-  if (CurrentProductionLine->get("transponder_id").isEmpty() ||
-      CurrentProductionLine->get("box_id").isEmpty()) {
+  if (CurrentProductionLine->get("completed") == "true") {
     sendLog(
-        QString(
-            "Производственная линия %1 не связана ни с каким транспондером. ")
-            .arg(CurrentProductionLine->get("id")));
+        QString("Производственная линия %1 заврешила свою "
+                "работу в текущем заказе %2.")
+            .arg(CurrentProductionLine->get("id"), CurrentOrder->get("id")));
     return ReturnStatus::CurrentOrderAssembled;
   }
 
@@ -201,42 +200,11 @@ ReturnStatus TransponderReleaseSystem::rollback() {
   Database->setRecordMaxCount(1);
   Database->setCurrentOrder(Qt::DescendingOrder);
 
-  // Ищем предыдущий транспондер
-  if (!Database->readRecords("transponders",
-                             QString("box_id = %1  AND release_counter > 0")
-                                 .arg(CurrentBox->get("id")),
-                             transponder)) {
-    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  if (transponder.isEmpty()) {
+  if (CurrentBox->get("assembled_box") == "0") {
     sendLog(QString("Производственная линия '%1' связана с первым "
                     "транспондером в боксе. Откат невозможен.")
                 .arg(CurrentProductionLine->get("id")));
     return ReturnStatus::ProductionLineRollbackLimit;
-  }
-
-  // Уменьшаем количество собранных транспондеров в боксе
-  newBox.add("assembled_units",
-             QString::number(CurrentBox->get("assembled_units").toInt() - 1));
-  newBox.add("assembling_end", "NULL");
-  if (!updateCurrentBox(newBox)) {
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Обновляем производственную линию
-  newProductionLine.add("transponder_id", transponder.get("id"));
-  if (!updateCurrentProductionLine(newProductionLine)) {
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Обновляем текущий транспондер производственной линии
-  if (!Database->readRecords("transponders",
-                             QString("id = %1").arg(transponder.get("id")),
-                             *CurrentTransponder)) {
-    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
-    return ReturnStatus::DatabaseQueryError;
   }
 
   // Обновляем данные текущего транспондера
@@ -244,6 +212,26 @@ ReturnStatus TransponderReleaseSystem::rollback() {
   newTransponder.add("ucid", "NULL");
   newTransponder.add("awaiting_confirmation", "false");
   if (!updateCurrentTransponder(newTransponder)) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Уменьшаем количество собранных транспондеров в боксе
+  newBox.add("assembled_units",
+             QString::number(CurrentBox->get("assembled_units").toInt() - 1));
+  if (!updateCurrentBox(newBox)) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Откатываем текущий транспондер
+  QString prevTransponderId =
+      QString::number(CurrentTransponder->get("id").toInt() - 1);
+  if (!switchCurrentTransponder(prevTransponderId)) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Обновляем производственную линию
+  newProductionLine.add("transponder_id", CurrentTransponder->get("id"));
+  if (!updateCurrentProductionLine(newProductionLine)) {
     return ReturnStatus::DatabaseQueryError;
   }
 
@@ -305,7 +293,8 @@ bool TransponderReleaseSystem::completeCurrentBoxAssembly(void) {
   }
 
   // Отправляем сигнал о завершении сборки бокса
-  emit boxAssemblyCompleted(CurrentBox->get("id"));
+  std::shared_ptr<QString> boxId(new QString(CurrentBox->get("id")));
+  emit boxAssemblyCompleted(boxId);
 
   // Увеличиваем счетчик выпущенных боксов в паллете
   newPallet.add(
@@ -340,7 +329,8 @@ bool TransponderReleaseSystem::completeCurrentPalletAssembly() {
   }
 
   // Отправляем сигнал о завершении сборки паллеты
-  emit palletAssemblyCompleted(CurrentPallet->get("id"));
+  std::shared_ptr<QString> palletId(new QString(CurrentPallet->get("id")));
+  emit palletAssemblyCompleted(palletId);
 
   // Увеличиваем счетчик выпущенных паллет в заказе
   newOrder.add(
@@ -374,204 +364,170 @@ bool TransponderReleaseSystem::completeCurrentOrderAssembly() {
   }
 
   // Отправляем сигнал о завершении сборки заказа
-  emit palletAssemblyCompleted(CurrentOrder->get("id"));
+  std::shared_ptr<QString> orderId(new QString(CurrentOrder->get("id")));
+  emit palletAssemblyCompleted(orderId);
 
   return true;
 }
 
 ReturnStatus TransponderReleaseSystem::searchNextTransponder() {
-  SqlQueryValues newTransponder;
+  SqlQueryValues newProductionLine;
+  QString nextTransponderId;
   ReturnStatus ret;
 
-  // Ищем невыпущенный транспондер в текущем боксе
-  transponderRecord.insert("id", "");
-  transponderRecord.insert("release_counter", "0");
-  transponderRecord.insert("box_id", CurrentBox->get("id"));
-  if (!Database->getRecordByPart("transponders", transponderRecord)) {
-    sendLog(QString("Получена ошибка при поиске невыпущенного "
-                    "транспондера в боксе %1. ")
-                .arg(transponderRecord.get("box_id")));
-    return NextTransponderNotFound;
-  }
-
-  // Если свободный транспондер в текущем боксе найден
-  if (!transponderRecord.isEmpty()) {
-    // Связываем текущую линию производства с найденным транспондером
-    return linkCurrentProductionLine(transponderRecord.get("id"));
-  }
-
-  sendLog(
-      QString("В боксе %1 кончились свободные транспондеры. Поиск следующего "
-              "бокса для сборки.  ")
-          .arg(CurrentBox->get("id")));
-
-  // В противном случае ищем свободный бокс в текущей паллете
-  boxRecord.insert("id", "");
-  boxRecord.insert("ready_indicator", "false");
-  boxRecord.insert("in_process", "false");
-  boxRecord.insert("pallet_id", CurrentPallet->get("id"));
-  if (!Database->getRecordByPart("boxes", boxRecord)) {
-    sendLog(
-        QString("Получена ошибка при поиске свободного бокса в паллете %1. ")
-            .arg(boxRecord.get("pallet_id")));
-    return NextTransponderNotFound;
-  }
-
-  // Если свободный бокс найден
-  if (!boxRecord.isEmpty()) {
-    sendLog(QString("Запуск сборки бокса %1.  ").arg(boxRecord.get("id")));
-    // Запускаем сборку бокса
-    return startBoxAssembling(boxRecord.get("id"));
-  }
-
-  sendLog(QString("В паллете %1 кончились свободные боксы. Поиск следующей "
-                  "паллеты для сборки.  ")
-              .arg(CurrentPallet->get("id")));
-
-  QStringList tables;
-  tables.append("boxes");
-  tables.append("pallets");
-  tables.append("orders");
-
-  QStringList foreignKeys;
-  foreignKeys.append("pallet_id");
-  foreignKeys.append("order_id");
-
-  mergedRecord.insert("boxes.id", "");
-  mergedRecord.insert("boxes.pallet_id", "");
-  mergedRecord.insert("boxes.ready_indicator", "false");
-  mergedRecord.insert("boxes.in_process", "false");
-  mergedRecord.insert("pallets.order_id", CurrentOrder.get("id"));
-
-  if (!Database->getMergedRecordByPart(tables, foreignKeys, mergedRecord)) {
-    sendLog(QString("Получена ошибка при поиске свободного бокса в заказе %1. ")
-                .arg(CurrentOrder.get("id")));
-    return NextTransponderNotFound;
-  }
-
-  //  // Если свободных боксов в текущей паллете не найдено
-  //  // Ищем свободную паллету или паллету в процессе сборки в текущем заказе
-  //  palletRecord.insert("id", "");
-  //  palletRecord.insert("in_process", "false");
-  //  palletRecord.insert("ready_indicator", "false");
-  //  palletRecord.insert("order_id", CurrentOrder.get("id"));
-  //  if (!Database->getRecordByPart("pallets", palletRecord)) {
-  //    sendLog(
-  //        QString("Получена ошибка при поиске свободной паллеты в заказе %1.
-  //        ")
-  //            .arg(palletRecord.get("order_id")));
-  //    return NextTransponderNotFound;
-  //  }
-
-  //  // Если свободная паллета в текущем заказе найдена
-  //  if (!palletRecord.isEmpty()) {
-  //    sendLog(
-  //        QString("Запуск сборки паллеты %1.
-  //        ").arg(palletRecord.get("id")));
-  //    // Запускаем сборку паллеты
-  //    return startPalletAssembling(palletRecord.get("id"));
-  //  }
-
-  // Если свободный бокс найден
-  if (!mergedRecord.isEmpty()) {
-    // Ищем данные его паллеты
-    palletRecord.insert("id", mergedRecord.get("pallet_id"));
-    palletRecord.insert("in_process", "");
-    if (!Database->getRecordById("pallets", palletRecord)) {
-      sendLog(QString("Получена ошибка при поиске данных паллеты %1.")
-                  .arg(mergedRecord.get("pallet_id")));
-      return NextTransponderNotFound;
+  // Если текущий бокс собран
+  if (CurrentBox->get("assembled_units") == CurrentBox->get("quantity")) {
+    // Ищем следующий бокс
+    ret = searchNextBox();
+    if (ret != ReturnStatus::NoError) {
+      return ret;
     }
 
-    if (palletRecord.get("in_process") == "true") {
-      return startBoxAssembling(mergedRecord.get("id"));
-    } else {
-      return startPalletAssembling(palletRecord.get("id"));
+    // Ищем первый транспондер в новом текущем боксе
+    SqlQueryValues transponder;
+    Database->setRecordMaxCount(1);
+    Database->setCurrentOrder(Qt::AscendingOrder);
+    if (!Database->readRecords(
+            "transponders", QString("box_id = %1").arg(CurrentBox->get("id")),
+            transponder)) {
+      sendLog(QString("Получена ошибка при выполнении запроса в базу . "));
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    nextTransponderId = transponder.get("id");
+  } else {
+    // В противном случае двигаемся к следующему транспондеру в боксе
+    nextTransponderId =
+        QString::number(CurrentTransponder->get("id").toInt() + 1);
+  }
+
+  // Переключаем текущий транспондер
+  if (!switchCurrentTransponder(nextTransponderId)) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Обновляем производственную линию
+  newProductionLine.add("transponder_id", nextTransponderId);
+  if (!updateCurrentProductionLine(newProductionLine)) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus TransponderReleaseSystem::searchNextBox() {
+  SqlQueryValues freeBox;
+  QStringList tables{"boxes", "pallets", "orders"};
+
+  Database->setRecordMaxCount(1);
+  Database->setCurrentOrder(Qt::AscendingOrder);
+
+  if (!Database->readMergedRecords(
+          tables,
+          QString("boxes.production_line_id = NULL AND orders.id = %2 AND "
+                  "boxes.assembled_units < boxes.quantity")
+              .arg(CurrentOrder->get("id")),
+          freeBox)) {
+    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (freeBox.isEmpty()) {
+    sendLog(QString("В заказе %1 не осталось свободных боксов. "
+                    "Производственная линия %1 завершила свою работу.")
+                .arg(CurrentProductionLine->get("id")));
+    return ReturnStatus::ProductionLineCompleted;
+  }
+
+  if (!switchCurrentBox(freeBox.get("id"))) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (!startCurrentBoxAssembly()) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Если новый бокс находится в новой паллете
+  if (CurrentPallet->get("id") != freeBox.get("pallet_id")) {
+    if (switchCurrentPallet(freeBox.get("pallet_id"))) {
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    // Если новая паллета не в процессе сборки
+    if (CurrentPallet->get("in_process") == "false") {
+      if (!startCurrentPalletAssembly()) {
+        return ReturnStatus::DatabaseQueryError;
+      }
     }
   }
 
-  // Если свободной паллеты в текущем заказе не найдено
-  sendLog(
-      QString("В заказе %1 закончились свободные паллеты. "
-              "Производственная линия %2 останавливается. ")
-          .arg(palletRecord.get("order_id"), CurrentProductionLine->get("id")));
-  if (stopCurrentProductionLine() != Completed) {
-    return ProductionLineStopError;
-  }
-
-  return CurrentOrderRunOut;
+  return ReturnStatus::NoError;
 }
 
-ReturnStatus TransponderReleaseSystem::searchNextBox() {}
+bool TransponderReleaseSystem::startCurrentBoxAssembly() {
+  SqlQueryValues newBox;
 
-ReturnStatus TransponderReleaseSystem::searchNextPallet() {}
-
-ReturnStatus TransponderReleaseSystem::startBoxAssembling(const QString& id) {
-  QHash<QString, QString> transponderRecord;
-  QHash<QString, QString> boxRecord;
-
-  boxRecord.insert("id", id);
-  boxRecord.insert("in_process", "true");
-  boxRecord.insert("assembling_start", QDateTime::currentDateTime().toString(
-                                           POSTGRES_TIMESTAMP_TEMPLATE));
-  boxRecord.insert("production_line_id", CurrentProductionLine->get("id"));
-  if (!Database->updateRecordById("boxes", boxRecord)) {
-    sendLog(
-        QString("Получена ошибка при запуске сборки бокса %1 в паллете %2. ")
-            .arg(boxRecord.get("id"), boxRecord.get("pallet_id")));
-    return StartBoxAssemblingError;
+  newBox.add("in_process", "true");
+  newBox.add("assembling_start", QDateTime::currentDateTime().toString(
+                                     POSTGRES_TIMESTAMP_TEMPLATE));
+  newBox.add("production_line_id", CurrentProductionLine->get("id"));
+  if (!updateCurrentBox(newBox)) {
+    return false;
   }
 
-  // Ищем в запущенном боксе первый невыпущенный транспондер
-  transponderRecord.insert("id", "");
-  transponderRecord.insert("release_counter", "0");
-  transponderRecord.insert("box_id", boxRecord.get("id"));
-  if (!Database->getRecordByPart("transponders", transponderRecord)) {
-    sendLog(QString("Получена ошибка при поиске невыпущенного "
-                    "транспондера в боксе %1. ")
-                .arg(transponderRecord.get("box_id")));
-    return NextTransponderNotFound;
+  SqlQueryValues newProductionLine;
+  newBox.add("box_id", CurrentBox->get("id"));
+  if (!updateCurrentProductionLine(newBox)) {
+    return false;
   }
 
-  // Связываем текущую линию производства с найденным транспондером
-  return linkCurrentProductionLine(transponderRecord.get("id"));
+  return true;
 }
 
-ReturnStatus TransponderReleaseSystem::startPalletAssembling(
-    const QString& id) {
-  QHash<QString, QString> boxRecord;
-  QHash<QString, QString> palletRecord;
+bool TransponderReleaseSystem::startCurrentPalletAssembly() {
+  SqlQueryValues newPallet;
 
   // Запускаем сборку паллеты
-  palletRecord.insert("id", id);
-  palletRecord.insert("in_process", "true");
-  palletRecord.insert("assembling_start", QDateTime::currentDateTime().toString(
-                                              POSTGRES_TIMESTAMP_TEMPLATE));
-  if (!Database->updateRecordById("pallets", palletRecord)) {
-    sendLog(
-        QString("Получена ошибка при запуске сборки паллеты %1 в заказе %2. ")
-            .arg(palletRecord.get("id"), palletRecord.get("order_id")));
-    return StartPalletAssemblingError;
+  newPallet.add("in_process", "true");
+  newPallet.add("assembling_start", QDateTime::currentDateTime().toString(
+                                        POSTGRES_TIMESTAMP_TEMPLATE));
+  if (!updateCurrentPallet(newPallet)) {
+    return false;
   }
 
-  // Ищем первый бокс в найденной свободной паллете
-  boxRecord.insert("id", "");
-  boxRecord.insert("in_process", "false");
-  boxRecord.insert("ready_indicator", "false");
-  boxRecord.insert("pallet_id", palletRecord.get("id"));
-  if (!Database->getRecordByPart("boxes", boxRecord)) {
-    sendLog(QString("Получена ошибка при поиске несобранного "
-                    "бокса в паллете %1. ")
+  return true;
+}
+
+bool TransponderReleaseSystem::switchCurrentTransponder(const QString& id) {
+  if (!Database->readRecords("transponders", QString("id = %1").arg(id),
+                             *CurrentTransponder)) {
+    sendLog(QString("Получена ошибка при получении данных транспондера %1. ")
                 .arg(id));
-    return NextTransponderNotFound;
+    return false;
   }
 
-  if (boxRecord.isEmpty()) {
-    sendLog(QString("Не найдено свободных боксов в паллете %1. ").arg(id));
-    return FreeBoxMissed;
+  return true;
+}
+
+bool TransponderReleaseSystem::switchCurrentBox(const QString& id) {
+  if (!Database->readRecords("boxes", QString("id = %1").arg(id),
+                             *CurrentBox)) {
+    sendLog(QString("Получена ошибка при получении данных бокса %1. ").arg(id));
+    return false;
   }
 
-  return startBoxAssembling(boxRecord.get("id"));
+  return true;
+}
+
+bool TransponderReleaseSystem::switchCurrentPallet(const QString& id) {
+  if (!Database->readRecords("pallets", QString("id = %1").arg(id),
+                             *CurrentPallet)) {
+    sendLog(
+        QString("Получена ошибка при получении данных паллеты %1. ").arg(id));
+    return false;
+  }
+
+  return true;
 }
 
 bool TransponderReleaseSystem::updateCurrentProductionLine(

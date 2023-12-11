@@ -1,5 +1,5 @@
 #include "rollback_command.h"
-#include "Management/global_context.h"
+#include "Management/global_environment.h"
 #include "ProductionDispatcher/abstract_production_dispatcher.h"
 
 RollbackCommand::RollbackCommand(const QString& name)
@@ -8,8 +8,8 @@ RollbackCommand::RollbackCommand(const QString& name)
 
   connect(
       this, &RollbackCommand::rollback_signal,
-      dynamic_cast<const AbstractProductionDispatcher*>(
-          GlobalContext::instance()->getObject("GeneralProductionDispatcher")),
+      dynamic_cast<AbstractProductionDispatcher*>(
+          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
       &AbstractProductionDispatcher::rollbackProductionLine,
       Qt::BlockingQueuedConnection);
 }
