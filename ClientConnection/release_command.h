@@ -10,7 +10,6 @@ class ReleaseCommand : public AbstractClientCommand {
   const size_t CommandSize = 3;
 
   StringDictionary Parameters;
-  StringDictionary Result;
   ReturnStatus Status;
   std::unique_ptr<QByteArray> Firmware;
 
@@ -29,7 +28,7 @@ class ReleaseCommand : public AbstractClientCommand {
 
  signals:
   void release_signal(const StringDictionary& param,
-                      StringDictionary& result,
+                      QByteArray& result,
                       ReturnStatus& status);
 };
 

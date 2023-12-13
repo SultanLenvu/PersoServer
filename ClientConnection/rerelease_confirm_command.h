@@ -28,7 +28,6 @@ class RereleaseConfirmCommand : public AbstractClientCommand {
 
  signals:
   void confirmRerelease_signal(const StringDictionary& param,
-                               StringDictionary& result,
                                ReturnStatus& status);
 };
 

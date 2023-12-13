@@ -6,15 +6,15 @@
 #include "Database/sql_query_values.h"
 
 using StringDictionary = QHash<QString, QString>;
-using ProductionContext = QHash<QString, std::shared_ptr<SqlQueryValues>>;
+using ProductionLineContext = QHash<QString, std::shared_ptr<SqlQueryValues>>;
 
 enum class ReturnStatus {
   NoError = 0,
-  ArgumentError,
+  ParameterError,
   SyntaxError,
   SynchronizationError,
   FileOpenError,
-  InvalidProductionContext,
+  InvalidProductionLineContext,
   UnauthorizedRequest,
 
   DatabaseConnectionError,
@@ -24,6 +24,7 @@ enum class ReturnStatus {
   FirmwareGeneratorInitError,
   StickerPrinterInitError,
 
+  RecordMissed,
   ProductionLineMissed,
   TranspoderMissed,
   BoxMissed,
@@ -50,6 +51,8 @@ enum class ReturnStatus {
 
   FirmwareGenerationError,
 
+  PrinterConnectionError,
+  PrinterLibraryError,
   BoxStickerPrintError,
   PalletStickerPrintError,
   Unknown,

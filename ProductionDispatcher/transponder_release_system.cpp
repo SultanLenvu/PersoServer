@@ -7,13 +7,12 @@ TransponderReleaseSystem::TransponderReleaseSystem(
     std::shared_ptr<AbstractSqlDatabase> db)
     : AbstractReleaseSystem(name, db) {
   loadSettings();
-
-  ContextReady = false;
 }
 
 TransponderReleaseSystem::~TransponderReleaseSystem() {}
 
-void TransponderReleaseSystem::setContext(const ProductionContext& context) {
+void TransponderReleaseSystem::setContext(
+    const ProductionLineContext& context) {
   CurrentProductionLine = context.value("production_line");
   CurrentTransponder = context.value("transponder");
   CurrentBox = context.value("box");
@@ -21,15 +20,9 @@ void TransponderReleaseSystem::setContext(const ProductionContext& context) {
   CurrentOrder = context.value("order");
   CurrentIssuer = context.value("issuer");
   CurrentMasterKeys = context.value("master_keys");
-
-  ContextReady = true;
 }
 
 ReturnStatus TransponderReleaseSystem::release() {
-  if (!ContextReady) {
-    return ReturnStatus::InvalidProductionContext;
-  }
-
   ReturnStatus ret;
 
   if (CurrentProductionLine->get("completed") == "true") {
@@ -58,12 +51,7 @@ ReturnStatus TransponderReleaseSystem::release() {
   return ReturnStatus::NoError;
 }
 
-ReturnStatus TransponderReleaseSystem::confirmRelease(
-    const StringDictionary& param) {
-  if (!ContextReady) {
-    return ReturnStatus::InvalidProductionContext;
-  }
-
+ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
   // Проверка того, что транспондер не был выпущен ранее
   if (CurrentTransponder->get("release_counter").toInt() >= 1) {
     sendLog(
@@ -81,7 +69,7 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(
   }
 
   // Подтверждаем сборку транспондера
-  if (!confirmCurrentTransponder(param.value("ucid"))) {
+  if (!confirmCurrentTransponder(ucid)) {
     sendLog(QString("Получена ошибка при подтвеждении транспондера %1. ")
                 .arg(CurrentProductionLine->get("transponder_id")));
 
@@ -100,22 +88,19 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(
   return ReturnStatus::NoError;
 }
 
-ReturnStatus TransponderReleaseSystem::rerelease(
-    const StringDictionary& param) {
+ReturnStatus TransponderReleaseSystem::rerelease(const QString& key,
+                                                 const QString& value) {
   SqlQueryValues transponder;
   SqlQueryValues newTransponder;
 
-  QString pan = param.value("personal_account_number")
-                    .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
-  if (!Database->readRecords("transponders", QString("pan = %1").arg(pan),
-                             transponder)) {
+  if (!Database->readRecords(
+          "transponders", QString("%1 = '%2'").arg(key, value), transponder)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;
   }
 
   if (transponder.isEmpty()) {
-    sendLog(QString("Транспондера с PAN = %1 не найден.")
-                .arg(param.value("personal_account_number")));
+    sendLog(QString("Транспондера с %1 = '%2' не найден.").arg(key, value));
     return ReturnStatus::TranspoderMissed;
   }
 
@@ -139,22 +124,20 @@ ReturnStatus TransponderReleaseSystem::rerelease(
   return ReturnStatus::NoError;
 }
 
-ReturnStatus TransponderReleaseSystem::confirmRerelease(
-    const StringDictionary& param) {
+ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
+                                                        const QString& value,
+                                                        const QString& ucid) {
   SqlQueryValues transponder;
   SqlQueryValues newTransponder;
 
-  QString pan = param.value("personal_account_number")
-                    .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
-  if (!Database->readRecords("transponders", QString("pan = %1").arg(pan),
-                             transponder)) {
+  if (!Database->readRecords(
+          "transponders", QString("%1 = '%2'").arg(key, value), transponder)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;
   }
 
   if (transponder.isEmpty()) {
-    sendLog(QString("Транспондера с PAN = %1 не найден.")
-                .arg(param.value("personal_account_number")));
+    sendLog(QString("Транспондера с %1 = '%2' не найден.").arg(key, value));
     return ReturnStatus::TranspoderMissed;
   }
 
@@ -167,7 +150,7 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(
   }
 
   // Проверка, что новый UCID отличается от прошлого
-  if (transponder.get("ucid") == param.value("ucid")) {
+  if (transponder.get("ucid") == ucid) {
     sendLog(QString("Новый UCID идентичен предыдущему, подтверждение "
                     "перевыпуска невозможно. ")
                 .arg(transponder.get("id")));
@@ -179,7 +162,7 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(
   newTransponder.add(
       "release_counter",
       QString::number(CurrentTransponder->get("release_counter").toInt() + 1));
-  newTransponder.add("ucid", param.value("ucid"));
+  newTransponder.add("ucid", ucid);
   if (!Database->updateRecords("transponders",
                                QString("id = %1").arg(transponder.get("id")),
                                newTransponder)) {

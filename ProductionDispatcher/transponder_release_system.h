@@ -16,8 +16,6 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
   Q_OBJECT
 
  private:
-  bool ContextReady;
-
   std::shared_ptr<SqlQueryValues> CurrentProductionLine;
   std::shared_ptr<SqlQueryValues> CurrentBox;
   std::shared_ptr<SqlQueryValues> CurrentTransponder;
@@ -33,11 +31,14 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
 
   // AbstractReleaseSystem interface
  public:
-  virtual void setContext(const ProductionContext& context) override;
+  virtual void setContext(const ProductionLineContext& context) override;
   virtual ReturnStatus release(void) override;
-  virtual ReturnStatus confirmRelease(const StringDictionary& param) override;
-  virtual ReturnStatus rerelease(const StringDictionary& param) override;
-  virtual ReturnStatus confirmRerelease(const StringDictionary& param) override;
+  virtual ReturnStatus confirmRelease(const QString& ucid) override;
+  virtual ReturnStatus rerelease(const QString& key,
+                                 const QString& value) override;
+  virtual ReturnStatus confirmRerelease(const QString& key,
+                                        const QString& value,
+                                        const QString& ucid) override;
   virtual ReturnStatus rollback(void) override;
 
  private:
@@ -65,11 +66,6 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
   bool updateCurrentBox(const SqlQueryValues& newValues);
   bool updateCurrentPallet(const SqlQueryValues& newValues);
   bool updateCurrentOrder(const SqlQueryValues& newValues);
-
- signals:
-  void boxAssemblyCompleted(const std::shared_ptr<QString> id);
-  void palletAssemblyCompleted(const std::shared_ptr<QString> id);
-  void orderAssemblyCompleted(const std::shared_ptr<QString> id);
 };
 
 #endif  // TRANSPONDERRELEASESYSTEM_H

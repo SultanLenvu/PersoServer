@@ -2,17 +2,17 @@
 #define GENERALPRODUCTIONDISPATCHER_H
 
 #include "Database/abstract_sql_database.h"
+#include "Printing/abstract_sticker_printer.h"
 #include "abstract_firmware_generation_system.h"
 #include "abstract_info_system.h"
 #include "abstract_launch_system.h"
 #include "abstract_production_dispatcher.h"
 #include "abstract_release_system.h"
-#include "abstract_sticker_printer.h"
 
 class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
  private:
-  QHash<QString, std::shared_ptr<ProductionContext>> Contexts;
+  QHash<QString, std::shared_ptr<ProductionLineContext>> Contexts;
 
   size_t CheckPeriod;
   std::unique_ptr<QTimer> CheckTimer;
@@ -44,27 +44,23 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   virtual void start(ReturnStatus& ret) override;
   virtual void stop(void) override;
   virtual void launchProductionLine(const StringDictionary& param,
-                                    StringDictionary& context,
                                     ReturnStatus& ret) override;
   virtual void shutdownProductionLine(const StringDictionary& param,
                                       ReturnStatus& ret) override;
   virtual void getProductionLineContext(const StringDictionary& param,
-                                        StringDictionary& result,
+                                        StringDictionary& context,
                                         ReturnStatus& ret) override;
   virtual void rollbackProductionLine(const StringDictionary& param,
-                                      StringDictionary& context,
                                       ReturnStatus& ret) override;
   virtual void releaseTransponder(const StringDictionary& param,
-                                  StringDictionary& seed,
+                                  QByteArray& firmware,
                                   ReturnStatus& ret) override;
   virtual void confirmTransponderRelease(const StringDictionary& param,
-                                         StringDictionary& context,
                                          ReturnStatus& ret) override;
   virtual void rereleaseTransponder(const StringDictionary& param,
-                                    StringDictionary& seed,
+                                    QByteArray& firmware,
                                     ReturnStatus& ret) override;
   virtual void confirmTransponderRerelease(const StringDictionary& param,
-                                           StringDictionary& context,
                                            ReturnStatus& ret) override;
   virtual void printBoxStickerManually(const StringDictionary& param,
                                        ReturnStatus& ret) override;
@@ -80,6 +76,8 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   void loadSettings(void);
   void sendLog(const QString& log);
 
+  void switchCurrentContext(const QString& name);
+
   void createLaunchSystem(void);
   void createReleaseSystem(void);
   void createInfoSystem(void);
@@ -90,6 +88,10 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
 
  private slots:
   void on_CheckTimerTemeout(void);
+
+  void releaserBoxAssemblyComleted_slot(const std::shared_ptr<QString> id);
+  void releaserPalletAssemblyComleted_slot(const std::shared_ptr<QString> id);
+  void releaserOrderAssemblyComleted_slot(const std::shared_ptr<QString> id);
 };
 
 #endif  // GENERALPRODUCTIONDISPATCHER_H

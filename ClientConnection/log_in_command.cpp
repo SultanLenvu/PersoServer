@@ -27,7 +27,7 @@ void LogInCommand::process(const QJsonObject& command) {
   Parameters.insert("password", command.value("password").toString());
 
   // Запрашиваем авторизацию
-  emit logIn_signal(Parameters, Result, Status);
+  emit logIn_signal(Parameters, Status);
 
   if (Status == ReturnStatus::NoError) {
     emit authorized(Parameters.value("login"), Parameters.value("password"));
@@ -37,15 +37,15 @@ void LogInCommand::process(const QJsonObject& command) {
 void LogInCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
 
-  if (Status == ReturnStatus::NoError) {
-    response["transponder_sn"] = Result.value("transponder_sn");
-    response["transponder_pan"] = Result.value("transponder_pan");
-    response["box_id"] = Result.value("box_id");
-    response["pallet_id"] = Result.value("pallet_id");
-    response["order_id"] = Result.value("order_id");
-    response["issuer_name"] = Result.value("issuer_name");
-    response["transponder_model"] = Result.value("transponder_model");
-  }
+  //  if (Status == ReturnStatus::NoError) {
+  //    response["transponder_sn"] = Result.value("transponder_sn");
+  //    response["transponder_pan"] = Result.value("transponder_pan");
+  //    response["box_id"] = Result.value("box_id");
+  //    response["pallet_id"] = Result.value("pallet_id");
+  //    response["order_id"] = Result.value("order_id");
+  //    response["issuer_name"] = Result.value("issuer_name");
+  //    response["transponder_model"] = Result.value("transponder_model");
+  //  }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }

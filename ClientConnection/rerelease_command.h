@@ -11,7 +11,6 @@ class RereleaseCommand : public AbstractClientCommand {
   const size_t CommandSize = 4;
 
   StringDictionary Parameters;
-  StringDictionary Result;
   ReturnStatus Status;
   std::unique_ptr<QByteArray> Firmware;
 
@@ -30,7 +29,7 @@ class RereleaseCommand : public AbstractClientCommand {
 
  signals:
   void rerelease_signal(const StringDictionary& param,
-                        StringDictionary& result,
+                        QByteArray& firmware,
                         ReturnStatus& status);
 };
 

@@ -6,12 +6,12 @@ RollbackCommand::RollbackCommand(const QString& name)
     : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
-  connect(
-      this, &RollbackCommand::rollback_signal,
-      dynamic_cast<AbstractProductionDispatcher*>(
-          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
-      &AbstractProductionDispatcher::rollbackProductionLine,
-      Qt::BlockingQueuedConnection);
+  connect(this, &RollbackCommand::rollback_signal,
+          dynamic_cast<AbstractProductionDispatcher*>(
+              GlobalEnvironment::instance()->getObject(
+                  "GeneralProductionDispatcher")),
+          &AbstractProductionDispatcher::rollbackProductionLine,
+          Qt::BlockingQueuedConnection);
 }
 
 RollbackCommand::~RollbackCommand() {}
@@ -28,21 +28,21 @@ void RollbackCommand::process(const QJsonObject& command) {
   Parameters.insert("password", command.value("password").toString());
 
   // Запрашиваем печать бокса
-  emit rollback_signal(Parameters, Result, Status);
+  emit rollback_signal(Parameters, Status);
 }
 
 void RollbackCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
 
-  if (Status == ReturnStatus::NoError) {
-    response["transponder_sn"] = Result.value("transponder_sn");
-    response["transponder_pan"] = Result.value("transponder_pan");
-    response["box_id"] = Result.value("box_id");
-    response["pallet_id"] = Result.value("pallet_id");
-    response["order_id"] = Result.value("order_id");
-    response["issuer_name"] = Result.value("issuer_name");
-    response["transponder_model"] = Result.value("transponder_model");
-  }
+  //  if (Status == ReturnStatus::NoError) {
+  //    response["transponder_sn"] = Result.value("transponder_sn");
+  //    response["transponder_pan"] = Result.value("transponder_pan");
+  //    response["box_id"] = Result.value("box_id");
+  //    response["pallet_id"] = Result.value("pallet_id");
+  //    response["order_id"] = Result.value("order_id");
+  //    response["issuer_name"] = Result.value("issuer_name");
+  //    response["transponder_model"] = Result.value("transponder_model");
+  //  }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }

@@ -7,8 +7,6 @@ class InfoSystem : public AbstractInfoSystem {
   Q_OBJECT
 
  private:
-  bool ContextReady;
-
   std::shared_ptr<SqlQueryValues> CurrentProductionLine;
   std::shared_ptr<SqlQueryValues> CurrentTransponder;
   std::shared_ptr<SqlQueryValues> CurrentBox;
@@ -17,6 +15,8 @@ class InfoSystem : public AbstractInfoSystem {
   std::shared_ptr<SqlQueryValues> CurrentIssuer;
   std::shared_ptr<SqlQueryValues> CurrentMasterKeys;
 
+  ProductionLineContext StashedContext;
+
  public:
   explicit InfoSystem(const QString& name,
                       const std::shared_ptr<AbstractSqlDatabase> db);
@@ -24,21 +24,32 @@ class InfoSystem : public AbstractInfoSystem {
 
   // AbstractInfoSystem interface
  public:
-  virtual void setContext(const ProductionContext& context) override;
+  virtual void setContext(const ProductionLineContext& context) override;
 
-  virtual ReturnStatus generateProductionContext(
+  virtual ReturnStatus loadProductionLineContext(
       const QString& login,
-      ProductionContext& context) override;
+      ProductionLineContext& context) override;
 
-  virtual ReturnStatus generateTransponderData(StringDictionary& param,
-                                               StringDictionary& data) override;
+  virtual QString getTransponderBoxId(const QString& key,
+                                      const QString& value) override;
+  virtual QString getTransponderPalletId(const QString& key,
+                                         const QString& value) override;
+
   virtual ReturnStatus generateTransponderData(StringDictionary& data) override;
-  virtual ReturnStatus generateFirmwareSeed(StringDictionary& param,
-                                            StringDictionary& seed) override;
+  virtual ReturnStatus generateTransponderData(const QString& key,
+                                               const QString& value,
+                                               StringDictionary& data) override;
   virtual ReturnStatus generateFirmwareSeed(StringDictionary& seed) override;
+  virtual ReturnStatus generateFirmwareSeed(const QString& key,
+                                            const QString& value,
+                                            StringDictionary& seed) override;
 
   virtual ReturnStatus generateBoxData(StringDictionary& data) override;
+  virtual ReturnStatus generateBoxData(const QString& id,
+                                       StringDictionary& data) override;
   virtual ReturnStatus generatePalletData(StringDictionary& data) override;
+  virtual ReturnStatus generatePalletData(const QString& id,
+                                          StringDictionary& data) override;
 
   virtual void reset(void) override;
 
@@ -47,7 +58,13 @@ class InfoSystem : public AbstractInfoSystem {
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
-  void initContext(ProductionContext& context);
+  void stashCurrentContext(void);
+
+  ReturnStatus loadTransponderContext(const QString& key, const QString& value);
+  ReturnStatus loadBoxContext(const QString& id);
+  ReturnStatus loadPalletContext(const QString& id);
+
+  void initContext(ProductionLineContext& context);
   QString generateTransponderSerialNumber(const QString& id) const;
 };
 

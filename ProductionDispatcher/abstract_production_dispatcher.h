@@ -15,7 +15,6 @@ class AbstractProductionDispatcher : public QObject {
   virtual void stop(void) = 0;
 
   virtual void launchProductionLine(const StringDictionary& param,
-                                    StringDictionary& result,
                                     ReturnStatus& ret) = 0;
   virtual void shutdownProductionLine(const StringDictionary& param,
                                       ReturnStatus& ret) = 0;
@@ -23,20 +22,17 @@ class AbstractProductionDispatcher : public QObject {
                                         StringDictionary& result,
                                         ReturnStatus& ret) = 0;
   virtual void rollbackProductionLine(const StringDictionary& param,
-                                      StringDictionary& result,
                                       ReturnStatus& ret) = 0;
 
   virtual void releaseTransponder(const StringDictionary& param,
-                                  StringDictionary& result,
+                                  QByteArray& firmware,
                                   ReturnStatus& ret) = 0;
   virtual void confirmTransponderRelease(const StringDictionary& param,
-                                         StringDictionary& result,
                                          ReturnStatus& ret) = 0;
   virtual void rereleaseTransponder(const StringDictionary& param,
-                                    StringDictionary& result,
+                                    QByteArray& firmware,
                                     ReturnStatus& ret) = 0;
   virtual void confirmTransponderRerelease(const StringDictionary& param,
-                                           StringDictionary& result,
                                            ReturnStatus& ret) = 0;
 
   virtual void printBoxStickerManually(const StringDictionary& param,

@@ -44,25 +44,25 @@ TE310Printer::TE310Printer(QObject* parent, const QHostAddress& ip, int port)
 }
 #endif /* __linux__ */
 
-AbstractStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
+ReturnStatus TE310Printer::printTransponderSticker(
     const StringDictionary& param) {
   if (!checkConfig()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
-    return ConnectionError;
+    return ReturnStatus::PrinterConnectionError;
   }
 
   // Проврека параметров
   if (param.value("issuer_name").isEmpty() || param.value("sn").isEmpty() ||
       param.value("pan").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
-    return ParameterError;
+    return ReturnStatus::ParameterError;
   }
   sendLog(QString("Печать стикера транспондера для %1.")
               .arg(param.value("issuer_name")));
 
   if (!TscLib->isLoaded()) {
     sendLog("Библиотека не загружена. Сброс. ");
-    return LibraryMissed;
+    return ReturnStatus::PrinterLibraryError;
   }
 
   // Сохраняем данные стикера
@@ -74,22 +74,20 @@ AbstractStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
     printZsdSticker(param);
   } else {
     sendLog("Получено неизвестное название компании-эмитента. Сброс.");
-    return ParameterError;
+    return ReturnStatus::ParameterError;
   }
 
-  return Completed;
+  return ReturnStatus::NoError;
 }
 
-AbstractStickerPrinter::ReturnStatus
-TE310Printer::printLastTransponderSticker() {
+ReturnStatus TE310Printer::printLastTransponderSticker() {
   return printTransponderSticker(LastTransponderSticker);
 }
 
-AbstractStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
-    const StringDictionary& param) {
+ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
   if (!checkConfig()) {
     sendLog(QString("Ошибка конфигурации. Сброс"));
-    return ConnectionError;
+    return ReturnStatus::PrinterConnectionError;
   }
 
   if (param.value("id").isEmpty() ||
@@ -98,12 +96,11 @@ AbstractStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
       param.value("first_transponder_sn").isEmpty() ||
       param.value("last_transponder_sn").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
-    return ParameterError;
+    return ReturnStatus::ParameterError;
   }
 
   // Сохраняем данные о стикере
   LastBoxSticker = param;
-
   sendLog(QString("Печать стикера для бокса %1.").arg(param.value("id")));
 
 #ifdef __linux__
@@ -153,18 +150,17 @@ AbstractStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
   sendCommand("PRINT 1");
   closePort();
 
-  return Completed;
+  return ReturnStatus::NoError;
 }
 
-AbstractStickerPrinter::ReturnStatus TE310Printer::printLastBoxSticker() {
+ReturnStatus TE310Printer::printLastBoxSticker() {
   return printBoxSticker(LastBoxSticker);
 }
 
-AbstractStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
-    const StringDictionary& param) {
+ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
   if (!checkConfig()) {
     sendLog(QString("Ошибка конфигурации. Сброс"));
-    return ConnectionError;
+    return ReturnStatus::PrinterConnectionError;
   }
 
   if (param.value("id").isEmpty() ||
@@ -174,7 +170,7 @@ AbstractStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
       param.value("last_box_id").isEmpty() ||
       param.value("assembly_date").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
-    return ParameterError;
+    return ReturnStatus::ParameterError;
   }
 
   // Сохраняем данные о стикере
@@ -236,18 +232,17 @@ AbstractStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
 
   closePort();
 
-  return Completed;
+  return ReturnStatus::NoError;
 }
 
-AbstractStickerPrinter::ReturnStatus TE310Printer::printLastPalletSticker() {
+ReturnStatus TE310Printer::printLastPalletSticker() {
   return printPalletSticker(LastPalletSticker);
 }
 
-AbstractStickerPrinter::ReturnStatus TE310Printer::exec(
-    const QStringList* commandScript) {
+ReturnStatus TE310Printer::exec(const QStringList* commandScript) {
   if (!checkConfig()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
-    return ConnectionError;
+    return ReturnStatus::PrinterConnectionError;
   }
 
 #ifdef __linux__
@@ -261,7 +256,7 @@ AbstractStickerPrinter::ReturnStatus TE310Printer::exec(
   }
   closePort();
 
-  return Completed;
+  return ReturnStatus::NoError;
 }
 
 void TE310Printer::applySetting() {

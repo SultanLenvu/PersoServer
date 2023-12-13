@@ -14,20 +14,31 @@ class AbstractInfoSystem : public QObject {
  public:
   explicit AbstractInfoSystem(const QString& name,
                               const std::shared_ptr<AbstractSqlDatabase> db);
-  virtual ~AbstractInfoSystem() = 0;
+  virtual ~AbstractInfoSystem();
 
-  virtual void setContext(const ProductionContext& context) = 0;
-  virtual ReturnStatus generateProductionContext(
+  virtual void setContext(const ProductionLineContext& context) = 0;
+  virtual ReturnStatus loadProductionLineContext(
       const QString&,
-      ProductionContext& context) = 0;
-  virtual ReturnStatus generateTransponderData(StringDictionary& param,
-                                               StringDictionary& data) = 0;
+      ProductionLineContext& context) = 0;
+  virtual QString getTransponderBoxId(const QString& key,
+                                      const QString& value) = 0;
+  virtual QString getTransponderPalletId(const QString& key,
+                                         const QString& value) = 0;
   virtual ReturnStatus generateTransponderData(StringDictionary& data) = 0;
-  virtual ReturnStatus generateFirmwareSeed(StringDictionary& param,
-                                            StringDictionary& seed) = 0;
+  virtual ReturnStatus generateTransponderData(const QString& key,
+                                               const QString& value,
+                                               StringDictionary& data) = 0;
   virtual ReturnStatus generateFirmwareSeed(StringDictionary& seed) = 0;
+  virtual ReturnStatus generateFirmwareSeed(const QString& key,
+                                            const QString& value,
+                                            StringDictionary& seed) = 0;
+
   virtual ReturnStatus generateBoxData(StringDictionary& data) = 0;
+  virtual ReturnStatus generateBoxData(const QString& id,
+                                       StringDictionary& data) = 0;
   virtual ReturnStatus generatePalletData(StringDictionary& data) = 0;
+  virtual ReturnStatus generatePalletData(const QString& id,
+                                          StringDictionary& data) = 0;
   virtual void reset(void) = 0;
 
  private:

@@ -8,12 +8,12 @@ ReleaseCommand::ReleaseCommand(const QString& name)
 
   Firmware = std::unique_ptr<QByteArray>(new QByteArray());
 
-  connect(
-      this, &ReleaseCommand::release_signal,
-      dynamic_cast<AbstractProductionDispatcher*>(
-          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
-      &AbstractProductionDispatcher::releaseTransponder,
-      Qt::BlockingQueuedConnection);
+  connect(this, &ReleaseCommand::release_signal,
+          dynamic_cast<AbstractProductionDispatcher*>(
+              GlobalEnvironment::instance()->getObject(
+                  "GeneralProductionDispatcher")),
+          &AbstractProductionDispatcher::releaseTransponder,
+          Qt::BlockingQueuedConnection);
 }
 
 ReleaseCommand::~ReleaseCommand() {}
@@ -30,14 +30,14 @@ void ReleaseCommand::process(const QJsonObject& command) {
   Parameters.insert("password", command.value("password").toString());
 
   // Запрашиваем печать бокса
-  emit release_signal(Parameters, Result, Status);
+  emit release_signal(Parameters, *Firmware.get(), Status);
 }
 
 void ReleaseCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["firmware"] = Result.value("firmware");
+    response["firmware"] = QString(*Firmware);
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));
@@ -45,7 +45,6 @@ void ReleaseCommand::generateResponse(QJsonObject& response) {
 
 void ReleaseCommand::reset() {
   Parameters.clear();
-  Result.clear();
   Firmware->clear();
   Status = ReturnStatus::Unknown;
 }

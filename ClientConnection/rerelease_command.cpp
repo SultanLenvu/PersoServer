@@ -8,12 +8,12 @@ RereleaseCommand::RereleaseCommand(const QString& name)
 
   Firmware = std::unique_ptr<QByteArray>(new QByteArray());
 
-  connect(
-      this, &RereleaseCommand::rerelease_signal,
-      dynamic_cast<AbstractProductionDispatcher*>(
-          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
-      &AbstractProductionDispatcher::rereleaseTransponder,
-      Qt::BlockingQueuedConnection);
+  connect(this, &RereleaseCommand::rerelease_signal,
+          dynamic_cast<AbstractProductionDispatcher*>(
+              GlobalEnvironment::instance()->getObject(
+                  "GeneralProductionDispatcher")),
+          &AbstractProductionDispatcher::rereleaseTransponder,
+          Qt::BlockingQueuedConnection);
 }
 
 RereleaseCommand::~RereleaseCommand() {}
@@ -32,14 +32,14 @@ void RereleaseCommand::process(const QJsonObject& command) {
                     command.value("transpoder_pan").toString());
 
   // Запрашиваем печать бокса
-  emit rerelease_signal(Parameters, Result, Status);
+  emit rerelease_signal(Parameters, *Firmware.get(), Status);
 }
 
 void RereleaseCommand::generateResponse(QJsonObject& response) {
   response["response_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["firmware"] = Result.value("firmware");
+    response["firmware"] = QString(*Firmware);
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));
@@ -47,7 +47,6 @@ void RereleaseCommand::generateResponse(QJsonObject& response) {
 
 void RereleaseCommand::reset() {
   Parameters.clear();
-  Result.clear();
   Firmware->clear();
   Status = ReturnStatus::Unknown;
 }

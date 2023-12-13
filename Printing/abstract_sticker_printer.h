@@ -18,15 +18,6 @@ class AbstractStickerPrinter : public QObject {
   };
   Q_ENUM(StickerPrinterType);
 
-  enum ReturnStatus {
-    ParameterError,
-    LibraryMissed,
-    ConnectionError,
-    Failed,
-    Completed,
-  };
-  Q_ENUM(ReturnStatus);
-
  protected:
   StickerPrinterType Type;
 

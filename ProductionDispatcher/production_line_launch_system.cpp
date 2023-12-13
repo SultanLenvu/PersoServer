@@ -64,6 +64,13 @@ ReturnStatus ProductionLineLaunchSystem::launch(
     return ReturnStatus::ProductionLineAlreadyLaunched;
   }
 
+  if (pl.get("completed") == "true") {
+    sendLog(QString("Производственная линия '%1' завершила свою работу. Запуск "
+                    "невозможен.")
+                .arg(param.value("login")));
+    return ReturnStatus::ProductionLineCompleted;
+  }
+
   ReturnStatus ret = attachWithFreeBox(pl.get("id"));
   if (ret != ReturnStatus::NoError) {
     sendLog(QString("Не удалось связать производственную линию '%1' с "
@@ -248,6 +255,7 @@ ReturnStatus ProductionLineLaunchSystem::detachFromBox(
     return ReturnStatus::DatabaseQueryError;
   }
 
+  plNew.add("transponder_id", "NULL");
   plNew.add("box_id", "NULL");
   plNew.add("transponder_id", "NULL");
   plNew.add("launched", "false");

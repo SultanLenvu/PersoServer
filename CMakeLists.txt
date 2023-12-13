@@ -35,8 +35,6 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     ProductionDispatcher/abstract_production_dispatcher.h ProductionDispatcher/abstract_production_dispatcher.cpp
     ProductionDispatcher/general_production_dispatcher.h ProductionDispatcher/general_production_dispatcher.cpp
     ProductionDispatcher/transponder_release_system.cpp ProductionDispatcher/transponder_release_system.h
-    ProductionDispatcher/abstract_sticker_printer.cpp ProductionDispatcher/abstract_sticker_printer.h
-    ProductionDispatcher/te310_printer.cpp ProductionDispatcher/te310_printer.h
     ProductionDispatcher/abstract_launch_system.h ProductionDispatcher/abstract_launch_system.cpp
     ProductionDispatcher/abstract_info_system.h ProductionDispatcher/abstract_info_system.cpp
     ProductionDispatcher/abstract_release_system.h ProductionDispatcher/abstract_release_system.cpp
@@ -44,6 +42,10 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     ProductionDispatcher/production_line_launch_system.h ProductionDispatcher/production_line_launch_system.cpp
     ProductionDispatcher/abstract_firmware_generation_system.h ProductionDispatcher/abstract_firmware_generation_system.cpp
     ProductionDispatcher/firmware_generation_system.cpp ProductionDispatcher/firmware_generation_system.h
+    ProductionDispatcher/production_context.h ProductionDispatcher/production_context.cpp
+
+    Printing/abstract_sticker_printer.cpp Printing/abstract_sticker_printer.h
+    Printing/te310_printer.cpp Printing/te310_printer.h
 
     ClientConnection/abstract_client_connection.h ClientConnection/abstract_client_connection.cpp
     ClientConnection/client_connection.cpp ClientConnection/client_connection.h

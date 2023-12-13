@@ -17,11 +17,13 @@ class AbstractReleaseSystem : public QObject {
                                  std::shared_ptr<AbstractSqlDatabase> db);
   virtual ~AbstractReleaseSystem();
 
-  virtual void setContext(const ProductionContext& context) = 0;
+  virtual void setContext(const ProductionLineContext& context) = 0;
   virtual ReturnStatus release(void) = 0;
-  virtual ReturnStatus confirmRelease(const StringDictionary& param) = 0;
-  virtual ReturnStatus rerelease(const StringDictionary& param) = 0;
-  virtual ReturnStatus confirmRerelease(const StringDictionary& param) = 0;
+  virtual ReturnStatus confirmRelease(const QString& ucid) = 0;
+  virtual ReturnStatus rerelease(const QString& key, const QString& value) = 0;
+  virtual ReturnStatus confirmRerelease(const QString& key,
+                                        const QString& value,
+                                        const QString& ucid) = 0;
   virtual ReturnStatus rollback(void) = 0;
 
  private:
@@ -29,6 +31,9 @@ class AbstractReleaseSystem : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractReleaseSystem)
 
  signals:
+  void boxAssemblyCompleted(const std::shared_ptr<QString> id);
+  void palletAssemblyCompleted(const std::shared_ptr<QString> id);
+  void orderAssemblyCompleted(const std::shared_ptr<QString> id);
 };
 
 #endif  // AbstractReleaseSystem_H

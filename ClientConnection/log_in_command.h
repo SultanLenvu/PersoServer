@@ -27,9 +27,7 @@ class LogInCommand : public AbstractClientCommand {
   Q_DISABLE_COPY_MOVE(LogInCommand)
 
  signals:
-  void logIn_signal(const StringDictionary& param,
-                    StringDictionary& result,
-                    ReturnStatus& status);
+  void logIn_signal(const StringDictionary& param, ReturnStatus& status);
 
   void authorized(const QString& login, const QString& password);
 };

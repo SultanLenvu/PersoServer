@@ -28,7 +28,7 @@ class UpdateCommand : public AbstractClientCommand {
 
  signals:
   void update_signal(const StringDictionary& param,
-                     StringDictionary& result,
+                     StringDictionary& context,
                      ReturnStatus& status);
 };
 
