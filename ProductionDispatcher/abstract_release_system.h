@@ -31,6 +31,7 @@ class AbstractReleaseSystem : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractReleaseSystem)
 
  signals:
+  void logging(const QString& log);
   void boxAssemblyCompleted(const std::shared_ptr<QString> id);
   void palletAssemblyCompleted(const std::shared_ptr<QString> id);
   void orderAssemblyCompleted(const std::shared_ptr<QString> id);

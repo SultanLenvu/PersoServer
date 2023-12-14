@@ -88,7 +88,8 @@ void FirmwareGenerationSystem::loadSettings() {
 }
 
 void FirmwareGenerationSystem::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<FirmwareGenerationSystem*>(this)->logging(objectName() +
+                                                            " - " + log);
 }
 
 ReturnStatus FirmwareGenerationSystem::assembleFirmware(

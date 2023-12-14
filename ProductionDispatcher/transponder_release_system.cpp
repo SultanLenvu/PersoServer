@@ -1,6 +1,7 @@
-#include "transponder_release_system.h"
+#include <QSettings>
+
 #include "General/definitions.h"
-#include "Log/log_system.h"
+#include "transponder_release_system.h"
 
 TransponderReleaseSystem::TransponderReleaseSystem(
     const QString& name,
@@ -229,7 +230,8 @@ void TransponderReleaseSystem::loadSettings() {
 }
 
 void TransponderReleaseSystem::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<TransponderReleaseSystem*>(this)->logging(objectName() +
+                                                            " - " + log);
 }
 
 bool TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {

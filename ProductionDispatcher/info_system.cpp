@@ -297,7 +297,7 @@ void InfoSystem::reset() {
 void InfoSystem::loadSettings() {}
 
 void InfoSystem::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<InfoSystem*>(this)->logging(objectName() + " - " + log);
 }
 
 void InfoSystem::stashCurrentContext() {

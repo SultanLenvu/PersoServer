@@ -44,6 +44,9 @@ class AbstractInfoSystem : public QObject {
  private:
   AbstractInfoSystem();
   Q_DISABLE_COPY_MOVE(AbstractInfoSystem)
+
+ signals:
+  void logging(const QString& log);
 };
 
 #endif  // ABCTRACTINFOSYSTEM_H

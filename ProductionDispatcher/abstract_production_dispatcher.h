@@ -47,6 +47,7 @@ class AbstractProductionDispatcher : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractProductionDispatcher);
 
  signals:
+  void logging(const QString& log);
   void errorDetected(ReturnStatus);
 };
 

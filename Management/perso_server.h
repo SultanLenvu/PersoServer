@@ -14,9 +14,9 @@
 #include <QTimer>
 #include <QtPrintSupport/QPrinterInfo>
 
-#include "ClientConnection/abstract_client_connection.h"
-#include "General/types.h"
-#include "ProductionDispatcher/abstract_production_dispatcher.h"
+#include "abstract_client_connection.h"
+#include "abstract_production_dispatcher.h"
+#include "types.h"
 
 class PersoServer : public QTcpServer {
   Q_OBJECT
@@ -79,6 +79,7 @@ class PersoServer : public QTcpServer {
   void productionDispatcherErrorDetected(ReturnStatus status);
 
  signals:
+  void logging(const QString& log);
   void startProductionDispatcher_signal(ReturnStatus&);
   void stopProductionDispatcher_signal(void);
 };

@@ -67,13 +67,14 @@ bool PostgreSqlDatabase::isConnected() {
     return false;
   }
 
-  QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  if (request.exec(";")) {
-    return true;
-  } else {
-    sendLog(request.lastError().text());
-    return false;
-  }
+  //  QSqlQuery request(QSqlDatabase::database(ConnectionName));
+  //  if (!request.exec("")) {
+  //    sendLog(request.lastError().text());
+  //    sendLog("Получена ошибка при выполнении тестового запроса.");
+  //    return false;
+  //  }
+
+  return true;
 }
 
 bool PostgreSqlDatabase::openTransaction() const {
@@ -85,7 +86,7 @@ bool PostgreSqlDatabase::openTransaction() const {
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
   if (!request.exec("BEGIN;")) {
     sendLog(request.lastError().text());
-    sendLog("Получена ошибка при открытии транзакции");
+    sendLog("Получена ошибка при открытии транзакции.");
     return false;
   }
 
@@ -515,7 +516,8 @@ bool PostgreSqlDatabase::getRecordCount(const QString& table,
  */
 
 void PostgreSqlDatabase::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<PostgreSqlDatabase*>(this)->logging(objectName() + " - " +
+                                                      log);
 }
 
 void PostgreSqlDatabase::loadSettings() {
@@ -557,6 +559,8 @@ bool PostgreSqlDatabase::init() {
 bool PostgreSqlDatabase::createTable(const QString& name) {
   std::shared_ptr<PostgreSqlTable> table(
       new PostgreSqlTable(name, ConnectionName));
+  QObject::connect(table.get(), &PostgreSqlTable::logging,
+                   LogSystem::instance(), &LogSystem::generate);
   if (!table->init()) {
     sendLog(
         QString("Получена ошибка при инициализации таблицы '%1'").arg(name));

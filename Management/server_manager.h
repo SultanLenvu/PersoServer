@@ -24,6 +24,7 @@ class ServerManager : public QObject {
   bool init(void);
 
  private:
+  ServerManager();
   Q_DISABLE_COPY_MOVE(ServerManager);
   void loadSettings(void) const;
   bool checkSettings(void) const;

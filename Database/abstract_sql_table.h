@@ -41,6 +41,7 @@ class AbstractSqlTable : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractSqlTable)
 
  signals:
+  void logging(const QString& log);
 };
 
 #endif  // ABSTRACTSQLTABLE_H

@@ -27,6 +27,7 @@ class AbstractLaunchSystem : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractLaunchSystem)
 
  signals:
+  void logging(const QString& log);
 };
 
 #endif  // AbstractLaunchSystem_H

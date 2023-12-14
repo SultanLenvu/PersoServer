@@ -28,6 +28,7 @@ void GeneralProductionDispatcher::start(ReturnStatus& ret) {
     return;
   }
 
+#ifdef PRINTERS_ENABLE
   if (!BoxStickerPrinter->init()) {
     sendLog(
         "Инициализация принтера для печати стикеров на боксы "
@@ -43,6 +44,7 @@ void GeneralProductionDispatcher::start(ReturnStatus& ret) {
     ret = ReturnStatus::StickerPrinterInitError;
     return;
   }
+#endif
 
   if (!Database->connect()) {
     sendLog("Не удалось подключиться к базе данных. ");
@@ -50,6 +52,7 @@ void GeneralProductionDispatcher::start(ReturnStatus& ret) {
     return;
   }
 
+  createCheckTimer();
   CheckTimer->start();
   ret = ReturnStatus::NoError;
   sendLog("Запущен.");
@@ -361,7 +364,8 @@ void GeneralProductionDispatcher::loadSettings() {
 }
 
 void GeneralProductionDispatcher::sendLog(const QString& log) {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<GeneralProductionDispatcher*>(this)->logging(objectName() +
+                                                               " - " + log);
 }
 
 void GeneralProductionDispatcher::switchCurrentContext(const QString& name) {
@@ -372,11 +376,17 @@ void GeneralProductionDispatcher::switchCurrentContext(const QString& name) {
 void GeneralProductionDispatcher::createLaunchSystem() {
   Launcher = std::unique_ptr<AbstractLaunchSystem>(
       new ProductionLineLaunchSystem("TransponderReleaseSystem", Database));
+
+  connect(Launcher.get(), &AbstractLaunchSystem::logging, LogSystem::instance(),
+          &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createReleaseSystem() {
   Releaser = std::unique_ptr<AbstractReleaseSystem>(
       new TransponderReleaseSystem("TransponderReleaseSystem", Database));
+
+  connect(Releaser.get(), &AbstractReleaseSystem::logging,
+          LogSystem::instance(), &LogSystem::generate);
 
   connect(Releaser.get(), &AbstractReleaseSystem::boxAssemblyCompleted, this,
           &GeneralProductionDispatcher::releaserBoxAssemblyComleted_slot);
@@ -389,6 +399,9 @@ void GeneralProductionDispatcher::createReleaseSystem() {
 void GeneralProductionDispatcher::createInfoSystem() {
   Informer = std::unique_ptr<AbstractInfoSystem>(
       new InfoSystem("InfoSystem", Database));
+
+  connect(Informer.get(), &AbstractInfoSystem::logging, LogSystem::instance(),
+          &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createStickerPrinters() {
@@ -399,6 +412,8 @@ void GeneralProductionDispatcher::createStickerPrinters() {
   BoxStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer(BoxStickerPrinterName));
 #endif /* __linux__ */
+  connect(BoxStickerPrinter.get(), &AbstractStickerPrinter::logging,
+          LogSystem::instance(), &LogSystem::generate);
 
 #ifdef __linux__
   PalletStickerPrinter =
@@ -407,16 +422,21 @@ void GeneralProductionDispatcher::createStickerPrinters() {
   PalletStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer(PalletStickerPrinterName));
 #endif /* __linux__ */
+  connect(PalletStickerPrinter.get(), &AbstractStickerPrinter::logging,
+          LogSystem::instance(), &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createDatabase() {
   Database = std::shared_ptr<AbstractSqlDatabase>(
       new PostgreSqlDatabase("PostgreSqlDatabase"));
+
+  connect(Database.get(), &AbstractSqlDatabase::logging, LogSystem::instance(),
+          &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createCheckTimer() {
   CheckTimer = std::unique_ptr<QTimer>(new QTimer());
-  CheckTimer->setInterval(CheckPeriod * 1000);
+  CheckTimer->setInterval(1000);
 
   connect(CheckTimer.get(), &QTimer::timeout, CheckTimer.get(), &QTimer::stop);
   connect(CheckTimer.get(), &QTimer::timeout, this,

@@ -173,7 +173,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (QHostAddress(settings.value("postgres_controller/server_ip").toString())
+  if (QHostAddress(settings.value("postgre_sql_database/server_ip").toString())
           .isNull()) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
@@ -181,7 +181,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  temp = settings.value("postgres_controller/server_port").toUInt();
+  temp = settings.value("postgre_sql_database/server_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
@@ -251,15 +251,15 @@ void ServerManager::generateDefaultSettings() const {
                     UDP_LOG_DESTINATION_DEFAULT_PORT);
 
   // Postgres
-  settings.setValue("postgres_controller/server_ip",
+  settings.setValue("postgre_sql_database/server_ip",
                     POSTGRES_DEFAULT_SERVER_IP);
-  settings.setValue("postgres_controller/server_port",
+  settings.setValue("postgre_sql_database/server_port",
                     POSTGRES_DEFAULT_SERVER_PORT);
-  settings.setValue("postgres_controller/database_name",
+  settings.setValue("postgre_sql_database/database_name",
                     POSTGRES_DEFAULT_DATABASE_NAME);
-  settings.setValue("postgres_controller/user_name",
+  settings.setValue("postgre_sql_database/user_name",
                     POSTGRES_DEFAULT_USER_NAME);
-  settings.setValue("postgres_controller/user_password",
+  settings.setValue("postgre_sql_database/user_password",
                     POSTGRES_DEFAULT_USER_PASSWORD);
 
   // TransponderReleaseSystem
@@ -278,7 +278,7 @@ void ServerManager::generateDefaultSettings() const {
 }
 
 void ServerManager::processCommandArguments() {
-  QStringList args = QCoreApplication::arguments();
+  QList<QString> args = QCoreApplication::arguments();
 
   if (args.contains("-generate_default_config")) {
     generateDefaultSettings();
@@ -288,6 +288,8 @@ void ServerManager::processCommandArguments() {
 
 void ServerManager::createServerInstance() {
   Server = std::unique_ptr<PersoServer>(new PersoServer("PersoServer"));
+  connect(Server.get(), &PersoServer::logging, LogSystem::instance(),
+          &LogSystem::generate);
 }
 
 void ServerManager::createLoggerInstance() {

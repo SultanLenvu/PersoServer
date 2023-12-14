@@ -147,7 +147,8 @@ bool ProductionLineLaunchSystem::isLaunched(
 void ProductionLineLaunchSystem::loadSettings() {}
 
 void ProductionLineLaunchSystem::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<ProductionLineLaunchSystem*>(this)->logging(objectName() +
+                                                              " - " + log);
 }
 
 ReturnStatus ProductionLineLaunchSystem::attachWithFreeBox(

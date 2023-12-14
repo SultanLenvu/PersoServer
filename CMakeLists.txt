@@ -1,15 +1,30 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.5)
 project(PersoServer VERSION 1.0 LANGUAGES C CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Network PrintSupport Sql Core5Compat)
 
 qt_standard_project_setup()
 
-qt_add_executable(PersoServer MACOSX_BUNDLE
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PRINTERS_ENABLE OFF)
+set(SERVER_PANIC_STATE_ENABLE OFF)
+configure_file(
+    config.h.in config.h @ONLY)
+
+include_directories(Database/)
+include_directories(General/)
+include_directories(Log/)
+include_directories(Management/)
+include_directories(ProductionDispatcher/)
+include_directories(Printing/)
+include_directories(ClientConnection/)
+include_directories(Security/)
+
+add_executable(PersoServer
     Database/abstract_sql_database.cpp Database/abstract_sql_database.h
     Database/postgre_sql_database.cpp Database/postgre_sql_database.h
     Database/postgre_sql_table.cpp Database/postgre_sql_table.h
@@ -67,6 +82,7 @@ qt_add_executable(PersoServer MACOSX_BUNDLE
     Security/des.cpp Security/des.h
 
     main.cpp
+    config.h.in
     )
 target_compile_definitions(PersoServer PRIVATE
     QT_DISABLE_DEPRECATED_BEFORE=0x060000
@@ -85,10 +101,3 @@ install(TARGETS PersoServer
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-qt_generate_deploy_app_script(
-    TARGET PersoServer
-    FILENAME_VARIABLE deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})

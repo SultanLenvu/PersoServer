@@ -3,6 +3,7 @@
 #include "ClientConnection/client_connection.h"
 #include "Log/log_system.h"
 #include "ProductionDispatcher/general_production_dispatcher.h"
+// #include "config.h"
 #include "global_environment.h"
 #include "perso_server.h"
 
@@ -42,6 +43,7 @@ bool PersoServer::start() {
   // Запускаем диспетчер производства
   ReturnStatus ret;
   emit startProductionDispatcher_signal(ret);
+
   if (ret != ReturnStatus::NoError) {
     sendLog(
         "Не удалось запустить систему выпуска транспондеров. Запуск сервера "
@@ -118,13 +120,15 @@ void PersoServer::loadSettings() {
 }
 
 void PersoServer::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<PersoServer*>(this)->logging(objectName() + " - " + log);
 }
 
 void PersoServer::processCriticalError(const QString& log) {
   QString msg("Паника. Получена критическая ошибка. ");
   sendLog(msg + log);
-  //  CurrentState = Panic;
+#ifdef SERVER_PANIC_STATE_ENABLE
+  CurrentState = Panic;
+#endif
 }
 
 void PersoServer::createProductionDispatcherInstance() {
@@ -140,6 +144,8 @@ void PersoServer::createProductionDispatcherInstance() {
           &AbstractProductionDispatcher::errorDetected, this,
           &PersoServer::productionDispatcherErrorDetected,
           Qt::BlockingQueuedConnection);
+  connect(ProductionDispatcher.get(), &AbstractProductionDispatcher::logging,
+          LogSystem::instance(), &LogSystem::generate);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   ProductionDispatcherThread = std::unique_ptr<QThread>(new QThread());
@@ -162,8 +168,7 @@ void PersoServer::createClientIdentifiers() {
 void PersoServer::createClientInstance(qintptr socketDescriptor) {
   // Выделяем свободный идентификатор
   int32_t clientId = FreeClientIds.pop();
-  QString clientName =
-      std::move(QString("client%1").arg(QString::number(clientId)));
+  QString clientName = QString("client%1").arg(QString::number(clientId));
 
   // Создаем новое клиент-подключение
   std::shared_ptr<AbstractClientConnection> newClient(
@@ -171,6 +176,8 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
   connect(newClient.get(), &AbstractClientConnection::disconnected, this,
           &PersoServer::clientDisconnected_slot);
+  connect(newClient.get(), &AbstractClientConnection::logging,
+          LogSystem::instance(), &LogSystem::generate);
 
   // Добавляем клиента в реестр
   Clients.insert(clientId, newClient);
@@ -244,4 +251,8 @@ void PersoServer::restartTimerTimeout_slot() {
   }
 }
 
-void PersoServer::productionDispatcherErrorDetected(ReturnStatus status) {}
+void PersoServer::productionDispatcherErrorDetected(ReturnStatus status) {
+  processCriticalError(
+      QString("Диспетчер производства детектировал ошибку: %1.")
+          .arg(QString::number(static_cast<size_t>(status))));
+}

@@ -68,6 +68,7 @@ class AbstractSqlDatabase : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractSqlDatabase)
 
  signals:
+  void logging(const QString& log);
   void disconnected(void);
 };
 

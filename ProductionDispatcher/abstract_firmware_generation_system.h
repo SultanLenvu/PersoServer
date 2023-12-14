@@ -20,6 +20,7 @@ class AbstractFirmwareGenerationSystem : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractFirmwareGenerationSystem)
 
  signals:
+  void logging(const QString& log);
 };
 
 #endif  // ABSTRACTFIRMWAREGENERATIONSYSTEM_H

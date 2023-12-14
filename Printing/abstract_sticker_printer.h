@@ -45,6 +45,7 @@ class AbstractStickerPrinter : public QObject {
   Q_DISABLE_COPY_MOVE(AbstractStickerPrinter);
 
  signals:
+  void logging(const QString& log);
 };
 
 #endif  // ISTICKERPRINTER_H

@@ -1,6 +1,5 @@
 #include <QHostAddress>
 
-#include "Log/log_system.h"
 #include "te310_printer.h"
 
 TE310Printer::TE310Printer(const QString& name)
@@ -273,7 +272,7 @@ void TE310Printer::loadSetting() {
 }
 
 void TE310Printer::sendLog(const QString& log) {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+  emit const_cast<TE310Printer*>(this)->logging(objectName() + " - " + log);
 }
 
 bool TE310Printer::loadTscLib() {

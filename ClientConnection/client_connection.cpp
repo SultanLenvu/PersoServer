@@ -1,7 +1,6 @@
 #include <QSettings>
 
 #include "General/definitions.h"
-#include "Log/log_system.h"
 #include "box_sticker_print_command.h"
 #include "client_connection.h"
 #include "echo_comand.h"
@@ -67,8 +66,8 @@ void ClientConnection::loadSettings() {
       settings.value("perso_client/idle_expiration_time").toInt();
 }
 
-void ClientConnection::sendLog(const QString& log) const {
-  LogSystem::instance()->generate(objectName() + " - " + log);
+void ClientConnection::sendLog(const QString& log) {
+  emit const_cast<ClientConnection*>(this)->logging(objectName() + " - " + log);
 }
 
 void ClientConnection::createTransmittedDataBlock() {
@@ -95,15 +94,16 @@ void ClientConnection::createTransmittedDataBlock() {
 }
 
 void ClientConnection::transmitDataBlock() {
-  // Если размер блок не превышает максимального размера данных для единоразовой
-  // передачи
+  // Если размер блок не превышает максимального размера данных для
+  // единоразовой передачи
   if (TransmittedDataBlock.size() < ONETIME_TRANSMIT_DATA_SIZE) {
     // Отправляем блок данных
     Socket->write(TransmittedDataBlock);
     return;
   }
 
-  // В противном случае дробим блок данных на части и последовательно отправляем
+  // В противном случае дробим блок данных на части и последовательно
+  // отправляем
   for (int32_t i = 0; i < TransmittedDataBlock.size();
        i += ONETIME_TRANSMIT_DATA_SIZE) {
     Socket->write(TransmittedDataBlock.mid(i, ONETIME_TRANSMIT_DATA_SIZE));

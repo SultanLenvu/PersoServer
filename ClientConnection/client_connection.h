@@ -53,7 +53,7 @@ class ClientConnection : public AbstractClientConnection {
  private:
   Q_DISABLE_COPY_MOVE(ClientConnection)
   void loadSettings(void);
-  void sendLog(const QString& log) const;
+  void sendLog(const QString& log);
 
   // Блоки данных
   void createTransmittedDataBlock(void);
