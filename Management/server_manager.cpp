@@ -19,7 +19,9 @@ bool ServerManager::init() {
     return false;
   }
 
-  createLoggerInstance();
+  Logger = std::unique_ptr<LogSystem>(new LogSystem("LogSystem"));
+  GlobalEnv = GlobalEnvironment::instance();
+
   createServerInstance();
   Server->start();
 
@@ -288,12 +290,6 @@ void ServerManager::processCommandArguments() {
 
 void ServerManager::createServerInstance() {
   Server = std::unique_ptr<PersoServer>(new PersoServer("PersoServer"));
-  connect(Server.get(), &PersoServer::logging, LogSystem::instance(),
-          &LogSystem::generate);
-}
-
-void ServerManager::createLoggerInstance() {
-  Logger = LogSystem::instance();
 }
 
 void ServerManager::registerMetaType() {

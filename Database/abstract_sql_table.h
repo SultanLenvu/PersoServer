@@ -16,25 +16,25 @@ class AbstractSqlTable : public QObject {
   virtual void applySettings() = 0;
 
   // Create
-  virtual bool createRecords(const SqlQueryValues& records) const = 0;
+  virtual bool createRecords(const SqlQueryValues& records) = 0;
 
   // Read
-  virtual bool readRecords(SqlQueryValues& records) const = 0;
+  virtual bool readRecords(SqlQueryValues& records) = 0;
   virtual bool readRecords(const QString& conditions,
-                           SqlQueryValues& records) const = 0;
-  virtual bool readLastRecord(SqlQueryValues& record) const = 0;
+                           SqlQueryValues& records) = 0;
+  virtual bool readLastRecord(SqlQueryValues& record) = 0;
 
   // Update
-  virtual bool updateRecords(const SqlQueryValues& newValues) const = 0;
+  virtual bool updateRecords(const SqlQueryValues& newValues) = 0;
   virtual bool updateRecords(const QString& condition,
-                             const SqlQueryValues& newValues) const = 0;
+                             const SqlQueryValues& newValues) = 0;
 
   // Delete
-  virtual bool deleteRecords(const QString& condition) const = 0;
-  virtual bool clear(void) const = 0;
+  virtual bool deleteRecords(const QString& condition) = 0;
+  virtual bool clear(void) = 0;
 
   // Aggregation
-  virtual bool getRecordCount(uint32_t& count) const = 0;
+  virtual bool getRecordCount(uint32_t& count) = 0;
 
  private:
   AbstractSqlTable();

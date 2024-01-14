@@ -3,10 +3,19 @@
 
 #include <QHash>
 
-#include "Database/sql_query_values.h"
-
 using StringDictionary = QHash<QString, QString>;
-using ProductionLineContext = QHash<QString, std::shared_ptr<SqlQueryValues>>;
+// using ProductionContext = QHash<QString,
+// std::shared_ptr<SqlQueryValues>>;
+
+template <typename T>
+using SharedVector = std::shared_ptr<QVector<T>>;
+
+enum class ProductionLineState {
+  NotActive,
+  Idle,
+  Launched,
+  Completed,
+};
 
 enum class ReturnStatus {
   NoError = 0,
@@ -33,6 +42,12 @@ enum class ReturnStatus {
   IssuerMissed,
   MasterKeysMissed,
 
+  OrderMultiplyAssembly,
+  OrderAssemblyMissing,
+
+  BoxCompletelyAssembled,
+  BoxNotCompletelyAssembled,
+
   TransponderNotReleasedEarlier,
   TransponderNotAwaitingConfirmation,
   TransponderIncorrectRerelease,
@@ -41,6 +56,7 @@ enum class ReturnStatus {
 
   ProductionLineLaunchError,
   ProductionLineAlreadyLaunched,
+  ProductionLineAlreadyInProcess,
   ProductionLineNotActive,
   ProductionLineNotInProcess,
   ProductionLineCompleted,

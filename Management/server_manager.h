@@ -8,6 +8,7 @@
 #include <QThread>
 
 #include "Log/log_system.h"
+#include "global_environment.h"
 #include "perso_server.h"
 
 class ServerManager : public QObject {
@@ -15,7 +16,9 @@ class ServerManager : public QObject {
 
  private:
   std::unique_ptr<PersoServer> Server;
-  LogSystem* Logger;
+
+  std::unique_ptr<LogSystem> Logger;
+  GlobalEnvironment* GlobalEnv;
 
  public:
   explicit ServerManager(const QString& name);

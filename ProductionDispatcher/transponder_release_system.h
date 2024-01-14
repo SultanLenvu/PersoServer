@@ -8,21 +8,11 @@
 #include <QSharedPointer>
 #include <QTimer>
 
-#include "Database/abstract_sql_database.h"
-#include "Database/sql_query_values.h"
-#include "ProductionDispatcher/abstract_release_system.h"
+#include "abstract_release_system.h"
+#include "abstract_sql_database.h"
 
 class TransponderReleaseSystem : public AbstractReleaseSystem {
   Q_OBJECT
-
- private:
-  std::shared_ptr<SqlQueryValues> CurrentProductionLine;
-  std::shared_ptr<SqlQueryValues> CurrentBox;
-  std::shared_ptr<SqlQueryValues> CurrentTransponder;
-  std::shared_ptr<SqlQueryValues> CurrentPallet;
-  std::shared_ptr<SqlQueryValues> CurrentOrder;
-  std::shared_ptr<SqlQueryValues> CurrentIssuer;
-  std::shared_ptr<SqlQueryValues> CurrentMasterKeys;
 
  public:
   explicit TransponderReleaseSystem(const QString& name,
@@ -31,7 +21,8 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
 
   // AbstractReleaseSystem interface
  public:
-  virtual void setContext(const ProductionLineContext& context) override;
+  virtual void setContext(std::shared_ptr<ProductionContext> context) override;
+
   virtual ReturnStatus release(void) override;
   virtual ReturnStatus confirmRelease(const QString& ucid) override;
   virtual ReturnStatus rerelease(const QString& key,
@@ -47,25 +38,16 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
   void sendLog(const QString& log) const;
 
   bool confirmCurrentTransponder(const QString& ucid);
-  bool completeCurrentBoxAssembly(void);
-  bool completeCurrentPalletAssembly(void);
-  bool completeCurrentOrderAssembly(void);
 
   ReturnStatus searchNextTransponder(void);
-  ReturnStatus searchNextBox(void);
-
-  bool startCurrentBoxAssembly(void);
-  bool startCurrentPalletAssembly(void);
 
   bool switchCurrentTransponder(const QString& id);
   bool switchCurrentBox(const QString& id);
   bool switchCurrentPallet(const QString& id);
 
-  bool updateCurrentProductionLine(const SqlQueryValues& newValues);
-  bool updateCurrentTransponder(const SqlQueryValues& newValues);
-  bool updateCurrentBox(const SqlQueryValues& newValues);
-  bool updateCurrentPallet(const SqlQueryValues& newValues);
-  bool updateCurrentOrder(const SqlQueryValues& newValues);
+  bool updateProductionLine(const SqlQueryValues& newValues);
+  bool updateTransponder(const SqlQueryValues& newValues);
+  bool updateBox(const SqlQueryValues& newValues);
 };
 
 #endif  // TRANSPONDERRELEASESYSTEM_H

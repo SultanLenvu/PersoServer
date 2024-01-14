@@ -20,6 +20,8 @@ class GlobalEnvironment : public QObject {
   GlobalEnvironment();
   Q_DISABLE_COPY_MOVE(GlobalEnvironment)
 
+  void onRegisteredObjectDeleted(void);
+
  signals:
 };
 

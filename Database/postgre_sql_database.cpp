@@ -559,8 +559,6 @@ bool PostgreSqlDatabase::init() {
 bool PostgreSqlDatabase::createTable(const QString& name) {
   std::shared_ptr<PostgreSqlTable> table(
       new PostgreSqlTable(name, ConnectionName));
-  QObject::connect(table.get(), &PostgreSqlTable::logging,
-                   LogSystem::instance(), &LogSystem::generate);
   if (!table->init()) {
     sendLog(
         QString("Получена ошибка при инициализации таблицы '%1'").arg(name));

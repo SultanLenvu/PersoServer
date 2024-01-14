@@ -1,7 +1,7 @@
 #include "general_production_dispatcher.h"
 #include "Database/postgre_sql_database.h"
-#include "Log/log_system.h"
 #include "Printing/te310_printer.h"
+#include "abstract_client_command.h"
 #include "firmware_generation_system.h"
 #include "info_system.h"
 #include "production_line_launch_system.h"
@@ -63,106 +63,120 @@ void GeneralProductionDispatcher::stop() {
   sendLog("Остановлен.");
 }
 
-void GeneralProductionDispatcher::launchProductionLine(
-    const StringDictionary& param,
-    ReturnStatus& ret) {
-  sendLog(QString("Запуск производственной линии '%1'. ")
-              .arg(param.value("login")));
+void GeneralProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
+  sendLog(
+      QString("Запуск производственной линии '%1'. ").arg(Context->login()));
+  loadCurrentContext(sender());
 
-  ret = Launcher->launch(param);
+  ret = Launcher->launch();
   if (ret != ReturnStatus::NoError) {
     sendLog(QString("Получена ошибка при запуске производственной линии '%1'. ")
-                .arg(param.value("login")));
+                .arg(Context->login()));
     return;
   }
 
-  // Если запуск успешный, то подгружаем контекст производственной линии
-  std::shared_ptr<ProductionLineContext> newContext(
-      new ProductionLineContext());
-  Informer->loadProductionLineContext(param.value("login"), *newContext);
-  Contexts.insert(param.value("login"), newContext);
-
-  sendLog(QString("Контекст производственной линии '%1' загружен. ")
-              .arg(param.value("login")));
+  sendLog(QString("Производственная линия '%1' успешно запущена. ")
+              .arg(Context->login()));
 }
 
 void GeneralProductionDispatcher::shutdownProductionLine(
-    const StringDictionary& param,
-    ReturnStatus& ret) {
-  sendLog(QString("Остановка производственной линии '%1'. ")
-              .arg(param.value("login")));
-
-  ret = Launcher->shutdown(param);
-  if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось остановить производственную линию '%1'. ")
-                .arg(param.value("login")));
-    return;
-  }
-
-  // Выгружаем контекст производственной линии
-  Contexts.remove(param.value("login"));
-
-  sendLog(QString("Контекст производственной линии '%1' удален. ")
-              .arg(param.value("login")));
-}
-
-void GeneralProductionDispatcher::getProductionLineContext(
-    const StringDictionary& param,
-    StringDictionary& context,
-    ReturnStatus& ret) {
-  sendLog(QString("Запрос контекста производственной линии '%1'. ")
-              .arg(param.value("login")));
-
-  if (!Contexts.contains(param.value("login"))) {
-    sendLog(
-        QString(
-            "Производственная линия '%1' не запущена. Контекст недоступен. ")
-            .arg(param.value("login")));
-    ret = ReturnStatus::UnauthorizedRequest;
-    return;
-  }
-
-  ret = Informer->generateTransponderData(context);
-  if (ret != ReturnStatus::NoError) {
-    sendLog("Не удалось получить данные транспондера.");
-    return;
-  }
-}
-
-void GeneralProductionDispatcher::rollbackProductionLine(
-    const StringDictionary& param,
     ReturnStatus& ret) {
   sendLog(
-      QString("Откат производственной линии '%1'. ").arg(param.value("login")));
+      QString("Остановка производственной линии '%1'. ").arg(Context->login()));
+  loadCurrentContext(sender());
 
-  if (!Contexts.contains(param.value("login"))) {
-    sendLog(
-        QString("Производственная линия '%1' не запущена. Отка невозможен. ")
-            .arg(param.value("login")));
-    ret = ReturnStatus::UnauthorizedRequest;
+  ret = Launcher->shutdown();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось остановить производственную линию '%1'. ")
+                .arg(Context->login()));
     return;
   }
 
-  switchCurrentContext(param.value("login"));
-  ret = Releaser->rollback();
+  sendLog(QString("Производственная линия '%1' остановлена. ")
+              .arg(Context->login()));
+}
+
+void GeneralProductionDispatcher::requestBox(ReturnStatus& ret) {
+  sendLog(QString("Запрос бокса на производственной линии '%1'. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
+
+  ret = Launcher->findBox();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось найти бокс для производственной линиии %1. ")
+                .arg(Context->login()));
+    return;
+  }
+
+  sendLog(QString("Бокс успешно найден. "));
+}
+
+void GeneralProductionDispatcher::getCurrentBoxData(StringDictionary& data,
+                                                    ReturnStatus& ret) {
+  sendLog(QString("Запрос данных бокса на производственной линии '%1'. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
+
+  ret = Informer->generateBoxData(data);
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось найти данные текущего бокса на "
+                    "производственной линиии %1. ")
+                .arg(Context->login()));
+    return;
+  }
+
+  sendLog(QString("Данные успешно получены. "));
+}
+
+void GeneralProductionDispatcher::refundBox(ReturnStatus& ret) {
+  sendLog(QString("Возврат бокса на производственной линии '%1'. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
+
+  ret = Launcher->refundBox();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось найти бокс для производственной линиии %1. ")
+                .arg(Context->login()));
+    return;
+  }
+
+  sendLog(QString("Бокс успешно возвращен. "));
+}
+
+void GeneralProductionDispatcher::completeBox(ReturnStatus& ret) {
+  sendLog(QString("Завершение сборки бокса на производственной линии '%1'. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
+
+  ret = Launcher->completeBox();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось найти бокс для производственной линиии %1. ")
+                .arg(Context->login()));
+    return;
+  }
+
+  StringDictionary boxData;
+  ret = Informer->generateBoxData(boxData);
+  if (ret != ReturnStatus::NoError) {
+    emit errorDetected(ret);
+    return;
+  }
+
+  ret = BoxStickerPrinter->printBoxSticker(boxData);
+  if (ret != ReturnStatus::NoError) {
+    emit errorDetected(ret);
+    return;
+  }
+
+  sendLog(QString("Сборка бокса успешно завершена. "));
 }
 
 void GeneralProductionDispatcher::releaseTransponder(
-    const StringDictionary& param,
     QByteArray& firmware,
     ReturnStatus& ret) {
   sendLog(QString("Выпуск транспондера на производственной линии '%1'. ")
-              .arg(param.value("login")));
-
-  if (!Contexts.contains(param.value("login"))) {
-    sendLog(QString("Производственная линия '%1' не запущена. Выпуск "
-                    "транспондера невозможен. ")
-                .arg(param.value("login")));
-    ret = ReturnStatus::UnauthorizedRequest;
-    return;
-  }
-
-  switchCurrentContext(param.value("login"));
+              .arg(Context->login()));
+  loadCurrentContext(sender());
 
   ret = Releaser->release();
   if (ret != ReturnStatus::NoError) {
@@ -199,19 +213,8 @@ void GeneralProductionDispatcher::confirmTransponderRelease(
   sendLog(
       QString(
           "Подтверждение выпуска транспондера на производственной линии '%1'. ")
-          .arg(param.value("login")));
-
-  if (!Contexts.contains(param.value("login"))) {
-    sendLog(
-        QString(
-            "Производственная линия '%1' не запущена. Подтверждение выпуска "
-            "транспондера невозможно. ")
-            .arg(param.value("login")));
-    ret = ReturnStatus::UnauthorizedRequest;
-    return;
-  }
-
-  switchCurrentContext(param.value("login"));
+          .arg(Context->login()));
+  loadCurrentContext(sender());
 
   ret = Releaser->confirmRelease(param.value("transponder_ucid"));
   if (ret != ReturnStatus::NoError) {
@@ -227,7 +230,8 @@ void GeneralProductionDispatcher::rereleaseTransponder(
     const StringDictionary& param,
     QByteArray& firmware,
     ReturnStatus& ret) {
-  sendLog(QString("Перевыпуск транспондера. "));
+  sendLog(QString("Перевыпуск транспондера на производственной линии %1. ")
+              .arg(Context->login()));
 
   QString pan = param.value("transponder_pan")
                     .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
@@ -259,7 +263,10 @@ void GeneralProductionDispatcher::rereleaseTransponder(
 void GeneralProductionDispatcher::confirmTransponderRerelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog(QString("Подтверждение перевыпуска транспондера. "));
+  sendLog(QString("Подтверждение перевыпуска транспондера на производственной "
+                  "линии %1. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
 
   QString pan = param.value("transponder_pan")
                     .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
@@ -274,10 +281,61 @@ void GeneralProductionDispatcher::confirmTransponderRerelease(
   sendLog(QString("Перевыпуск транспондера успешно подтвержден."));
 }
 
+void GeneralProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
+  sendLog(QString("Откат транспондера на производственной линии '%1'. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
+
+  ret = Releaser->rollback();
+  if (ret != ReturnStatus::NoError) {
+    sendLog("Не удалось получить данные откатить транспондер.");
+    return;
+  }
+
+  sendLog(QString("Откат транспондера успешно выполнен."));
+}
+
+void GeneralProductionDispatcher::getCurrentTransponderData(
+    StringDictionary& data,
+    ReturnStatus& ret) {
+  sendLog(QString("Запрос данных текущего транспондера на производственной "
+                  "линии '%1'. ")
+              .arg(Context->login()));
+  loadCurrentContext(sender());
+
+  ret = Informer->generateTransponderData(data);
+  if (ret != ReturnStatus::NoError) {
+    sendLog("Не удалось получить данные транспондера.");
+    return;
+  }
+
+  sendLog(QString("Данные транспондера успешно получены."));
+}
+
+void GeneralProductionDispatcher::getTransponderData(
+    const StringDictionary& param,
+    StringDictionary& data,
+    ReturnStatus& ret) {
+  sendLog(QString("Запрос данных текущего транспондера на производственной "
+                  "линии '%1'. ")
+              .arg(Context->login()));
+
+  ret = Informer->generateTransponderData(
+      "personal_account_number", param.value("personal_account_number"), data);
+  if (ret != ReturnStatus::NoError) {
+    sendLog("Не удалось получить данные транспондера.");
+    return;
+  }
+
+  sendLog(QString("Данные транспондера успешно получены."));
+}
+
 void GeneralProductionDispatcher::printBoxStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog("Запуск печати стикера для бокса.");
+  sendLog(
+      QString("Запрос печати стикера для бокса на производственной линии %1.")
+          .arg(Context->login()));
 
   QString boxId = Informer->getTransponderBoxId(
       "personal_account_number",
@@ -295,19 +353,32 @@ void GeneralProductionDispatcher::printBoxStickerManually(
     emit errorDetected(ret);
     return;
   }
+
+  sendLog(QString("Стикер для бокса успешно распечатан."));
 }
 
 void GeneralProductionDispatcher::printLastBoxStickerManually(
     ReturnStatus& ret) {
-  sendLog("Запуск печати последнего стикера для бокса.");
+  sendLog(QString("Запрос печати последнего стикера для бокса на "
+                  "производственной линии %1.")
+              .arg(Context->login()));
 
   ret = BoxStickerPrinter->printLastBoxSticker();
+
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Получена ошибка при повторной печати стикера для бокса."));
+    return;
+  }
+
+  sendLog(QString("Последний стикер для бокса успешно распечатан."));
 }
 
 void GeneralProductionDispatcher::printPalletStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog("Запуск печати стикера для паллеты.");
+  sendLog(QString("Запрос печати стикера для паллеты на "
+                  "производственной линии %1.")
+              .arg(Context->login()));
 
   QString palletId = Informer->getTransponderPalletId(
       "personal_account_number",
@@ -325,13 +396,25 @@ void GeneralProductionDispatcher::printPalletStickerManually(
     emit errorDetected(ret);
     return;
   }
+
+  sendLog(QString("Стикер для паллеты успешно распечатан."));
 }
 
 void GeneralProductionDispatcher::printLastPalletStickerManually(
     ReturnStatus& ret) {
-  sendLog("Запуск печати последнего стикера для паллеты.");
+  sendLog(QString("Запрос печати последнего стикера для паллеты на "
+                  "производственной линии %1.")
+              .arg(Context->login()));
 
   ret = PalletStickerPrinter->printLastPalletSticker();
+
+  if (ret != ReturnStatus::NoError) {
+    sendLog(
+        QString("Получена ошибка при повторной печати стикера для паллеты."));
+    return;
+  }
+
+  sendLog(QString("Последний стикер для паллеты успешно распечатан."));
 }
 
 void GeneralProductionDispatcher::loadSettings() {
@@ -368,40 +451,28 @@ void GeneralProductionDispatcher::sendLog(const QString& log) {
                                                                " - " + log);
 }
 
-void GeneralProductionDispatcher::switchCurrentContext(const QString& name) {
-  Releaser->setContext(*Contexts.value(name));
-  Informer->setContext(*Contexts.value(name));
+void GeneralProductionDispatcher::loadCurrentContext(QObject* obj) {
+  AbstractClientCommand* cmd = dynamic_cast<AbstractClientCommand*>(obj);
+
+  Context = cmd->context();
+
+  Releaser->setContext(Context);
+  Informer->setContext(Context);
 }
 
 void GeneralProductionDispatcher::createLaunchSystem() {
   Launcher = std::unique_ptr<AbstractLaunchSystem>(
       new ProductionLineLaunchSystem("TransponderReleaseSystem", Database));
-
-  connect(Launcher.get(), &AbstractLaunchSystem::logging, LogSystem::instance(),
-          &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createReleaseSystem() {
   Releaser = std::unique_ptr<AbstractReleaseSystem>(
       new TransponderReleaseSystem("TransponderReleaseSystem", Database));
-
-  connect(Releaser.get(), &AbstractReleaseSystem::logging,
-          LogSystem::instance(), &LogSystem::generate);
-
-  connect(Releaser.get(), &AbstractReleaseSystem::boxAssemblyCompleted, this,
-          &GeneralProductionDispatcher::releaserBoxAssemblyComleted_slot);
-  connect(Releaser.get(), &AbstractReleaseSystem::palletAssemblyCompleted, this,
-          &GeneralProductionDispatcher::releaserPalletAssemblyComleted_slot);
-  connect(Releaser.get(), &AbstractReleaseSystem::orderAssemblyCompleted, this,
-          &GeneralProductionDispatcher::releaserOrderAssemblyComleted_slot);
 }
 
 void GeneralProductionDispatcher::createInfoSystem() {
   Informer = std::unique_ptr<AbstractInfoSystem>(
       new InfoSystem("InfoSystem", Database));
-
-  connect(Informer.get(), &AbstractInfoSystem::logging, LogSystem::instance(),
-          &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createStickerPrinters() {
@@ -412,8 +483,6 @@ void GeneralProductionDispatcher::createStickerPrinters() {
   BoxStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer(BoxStickerPrinterName));
 #endif /* __linux__ */
-  connect(BoxStickerPrinter.get(), &AbstractStickerPrinter::logging,
-          LogSystem::instance(), &LogSystem::generate);
 
 #ifdef __linux__
   PalletStickerPrinter =
@@ -422,16 +491,11 @@ void GeneralProductionDispatcher::createStickerPrinters() {
   PalletStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer(PalletStickerPrinterName));
 #endif /* __linux__ */
-  connect(PalletStickerPrinter.get(), &AbstractStickerPrinter::logging,
-          LogSystem::instance(), &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createDatabase() {
   Database = std::shared_ptr<AbstractSqlDatabase>(
       new PostgreSqlDatabase("PostgreSqlDatabase"));
-
-  connect(Database.get(), &AbstractSqlDatabase::logging, LogSystem::instance(),
-          &LogSystem::generate);
 }
 
 void GeneralProductionDispatcher::createCheckTimer() {

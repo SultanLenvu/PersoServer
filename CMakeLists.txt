@@ -4,17 +4,22 @@ project(PersoServer VERSION 1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+#=========================== Qt framework connection ==============================#
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Network PrintSupport Sql Core5Compat)
 
 qt_standard_project_setup()
+#==================================================================================#
 
+#=========================== Project configuration ================================#
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(PRINTERS_ENABLE OFF)
 set(SERVER_PANIC_STATE_ENABLE OFF)
 configure_file(
     config.h.in config.h @ONLY)
+#==================================================================================#
 
+#=========================== Project source directories ===========================#
 include_directories(Database/)
 include_directories(General/)
 include_directories(Log/)
@@ -22,7 +27,9 @@ include_directories(Management/)
 include_directories(ProductionDispatcher/)
 include_directories(Printing/)
 include_directories(ClientConnection/)
+include_directories(ClientConnection/Commands)
 include_directories(Security/)
+#==================================================================================#
 
 add_executable(PersoServer
     Database/abstract_sql_database.cpp Database/abstract_sql_database.h
@@ -57,27 +64,33 @@ add_executable(PersoServer
     ProductionDispatcher/production_line_launch_system.h ProductionDispatcher/production_line_launch_system.cpp
     ProductionDispatcher/abstract_firmware_generation_system.h ProductionDispatcher/abstract_firmware_generation_system.cpp
     ProductionDispatcher/firmware_generation_system.cpp ProductionDispatcher/firmware_generation_system.h
-    ProductionDispatcher/production_context.h ProductionDispatcher/production_context.cpp
 
     Printing/abstract_sticker_printer.cpp Printing/abstract_sticker_printer.h
     Printing/te310_printer.cpp Printing/te310_printer.h
 
     ClientConnection/abstract_client_connection.h ClientConnection/abstract_client_connection.cpp
     ClientConnection/client_connection.cpp ClientConnection/client_connection.h
-    ClientConnection/abstract_client_command.h ClientConnection/abstract_client_command.cpp
-    ClientConnection/echo_comand.h ClientConnection/echo_comand.cpp
-    ClientConnection/release_command.h ClientConnection/release_command.cpp
-    ClientConnection/release_confirm_command.h ClientConnection/release_confirm_command.cpp
-    ClientConnection/rerelease_command.h ClientConnection/rerelease_command.cpp
-    ClientConnection/rerelease_confirm_command.h ClientConnection/rerelease_confirm_command.cpp
-    ClientConnection/rollback_command.h ClientConnection/rollback_command.cpp
-    ClientConnection/box_sticker_print_command.h ClientConnection/box_sticker_print_command.cpp
-    ClientConnection/last_box_sticker_print_command.h ClientConnection/last_box_sticker_print_command.cpp
-    ClientConnection/pallet_sticker_print_command.h ClientConnection/pallet_sticker_print_command.cpp
-    ClientConnection/last_pallet_sticker_print_command.h ClientConnection/last_pallet_sticker_print_command.cpp
-    ClientConnection/log_in_command.h ClientConnection/log_in_command.cpp
-    ClientConnection/log_out_command.h ClientConnection/log_out_command.cpp
-    ClientConnection/update_command.h ClientConnection/update_command.cpp
+    ClientConnection/production_context.h ClientConnection/production_context.cpp
+
+    ClientConnection/Commands/abstract_client_command.h ClientConnection/Commands/abstract_client_command.cpp
+    ClientConnection/Commands/echo_comand.h ClientConnection/Commands/echo_comand.cpp
+    ClientConnection/Commands/release_transponder_command.h ClientConnection/Commands/release_transponder_command.cpp
+    ClientConnection/Commands/confirm_transponder_release_command.h ClientConnection/Commands/confirm_transponder_release_command.cpp
+    ClientConnection/Commands/rerelease_transponder_command.h ClientConnection/Commands/rerelease_transponder_command.cpp
+    ClientConnection/Commands/confirm_transponder_rerelease_command.h ClientConnection/Commands/confirm_transponder_rerelease_command.cpp
+    ClientConnection/Commands/rollback_transponder_command.h ClientConnection/Commands/rollback_transponder_command.cpp
+    ClientConnection/Commands/print_box_sticker_command.h ClientConnection/Commands/print_box_sticker_command.cpp
+    ClientConnection/Commands/print_last_box_sticker_command.h ClientConnection/Commands/print_last_box_sticker_command.cpp
+    ClientConnection/Commands/print_pallet_sticker_command.h ClientConnection/Commands/print_pallet_sticker_command.cpp
+    ClientConnection/Commands/print_last_pallet_sticker_command.h ClientConnection/Commands/print_last_pallet_sticker_command.cpp
+    ClientConnection/Commands/log_in_command.h ClientConnection/Commands/log_in_command.cpp
+    ClientConnection/Commands/log_out_command.h ClientConnection/Commands/log_out_command.cpp
+    ClientConnection/Commands/get_current_transponder_data_command.h ClientConnection/Commands/get_current_transponder_data_command.cpp
+    ClientConnection/Commands/get_transponder_data_command.h ClientConnection/Commands/get_transponder_data_command.cpp
+    ClientConnection/Commands/request_box_command.h ClientConnection/Commands/request_box_command.cpp
+    ClientConnection/Commands/get_current_box_data_command.h ClientConnection/Commands/get_current_box_data_command.cpp
+    ClientConnection/Commands/refund_current_box_command.h ClientConnection/Commands/refund_current_box_command.cpp
+    ClientConnection/Commands/complete_current_box_command.h ClientConnection/Commands/complete_current_box_command.cpp
 
     Security/des.cpp Security/des.h
 

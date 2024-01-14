@@ -1,7 +1,7 @@
 #ifndef ABSTRACTPRODUCTIONDISPATCHER_H
 #define ABSTRACTPRODUCTIONDISPATCHER_H
 
-#include <General/types.h>
+#include <types.h>
 #include <QObject>
 
 class AbstractProductionDispatcher : public QObject {
@@ -14,19 +14,16 @@ class AbstractProductionDispatcher : public QObject {
   virtual void start(ReturnStatus& ret) = 0;
   virtual void stop(void) = 0;
 
-  virtual void launchProductionLine(const StringDictionary& param,
-                                    ReturnStatus& ret) = 0;
-  virtual void shutdownProductionLine(const StringDictionary& param,
-                                      ReturnStatus& ret) = 0;
-  virtual void getProductionLineContext(const StringDictionary& param,
-                                        StringDictionary& result,
-                                        ReturnStatus& ret) = 0;
-  virtual void rollbackProductionLine(const StringDictionary& param,
-                                      ReturnStatus& ret) = 0;
+  virtual void launchProductionLine(ReturnStatus& ret) = 0;
+  virtual void shutdownProductionLine(ReturnStatus& ret) = 0;
 
-  virtual void releaseTransponder(const StringDictionary& param,
-                                  QByteArray& firmware,
-                                  ReturnStatus& ret) = 0;
+  virtual void requestBox(ReturnStatus& ret) = 0;
+  virtual void getCurrentBoxData(StringDictionary& result,
+                                 ReturnStatus& ret) = 0;
+  virtual void refundBox(ReturnStatus& ret) = 0;
+  virtual void completeBox(ReturnStatus& ret) = 0;
+
+  virtual void releaseTransponder(QByteArray& firmware, ReturnStatus& ret) = 0;
   virtual void confirmTransponderRelease(const StringDictionary& param,
                                          ReturnStatus& ret) = 0;
   virtual void rereleaseTransponder(const StringDictionary& param,
@@ -34,6 +31,12 @@ class AbstractProductionDispatcher : public QObject {
                                     ReturnStatus& ret) = 0;
   virtual void confirmTransponderRerelease(const StringDictionary& param,
                                            ReturnStatus& ret) = 0;
+  virtual void rollbackTransponder(ReturnStatus& ret) = 0;
+  virtual void getCurrentTransponderData(StringDictionary& result,
+                                         ReturnStatus& ret) = 0;
+  virtual void getTransponderData(const StringDictionary& param,
+                                  StringDictionary& result,
+                                  ReturnStatus& ret) = 0;
 
   virtual void printBoxStickerManually(const StringDictionary& param,
                                        ReturnStatus& ret) = 0;

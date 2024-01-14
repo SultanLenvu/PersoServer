@@ -33,8 +33,8 @@ class LogSystem : public QObject {
   QMutex mutex;
 
  public:
+  explicit LogSystem(const QString& name);
   ~LogSystem();
-  static LogSystem* instance(void);
 
  public slots:
   void clear(void);
@@ -42,7 +42,6 @@ class LogSystem : public QObject {
 
  private:
   LogSystem();
-  explicit LogSystem(const QString& name);
   Q_DISABLE_COPY_MOVE(LogSystem)
   void loadSettings(void);
 };

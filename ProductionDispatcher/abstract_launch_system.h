@@ -3,13 +3,15 @@
 
 #include <QObject>
 
-#include <General/types.h>
-#include "Database/abstract_sql_database.h"
+#include "abstract_sql_database.h"
+#include "production_context.h"
+#include "types.h"
 
 class AbstractLaunchSystem : public QObject {
   Q_OBJECT
 
  protected:
+  std::shared_ptr<ProductionContext> Context;
   std::shared_ptr<AbstractSqlDatabase> Database;
 
  public:
@@ -17,10 +19,16 @@ class AbstractLaunchSystem : public QObject {
                                 std::shared_ptr<AbstractSqlDatabase> db);
   virtual ~AbstractLaunchSystem();
 
-  virtual ReturnStatus init(const StringDictionary& param) const = 0;
-  virtual ReturnStatus launch(const StringDictionary& param) const = 0;
-  virtual ReturnStatus shutdown(const StringDictionary& param) const = 0;
-  virtual bool isLaunched(const StringDictionary& param) const = 0;
+  virtual void setContext(std::shared_ptr<ProductionContext> context) = 0;
+  virtual ReturnStatus init(void) = 0;
+
+  virtual ReturnStatus launch(void) = 0;
+  virtual ReturnStatus shutdown(void) = 0;
+  virtual bool isLaunched(void) = 0;
+
+  virtual ReturnStatus findBox(void) = 0;
+  virtual ReturnStatus refundBox(void) = 0;
+  virtual ReturnStatus completeBox(void) = 0;
 
  private:
   AbstractLaunchSystem();
@@ -28,6 +36,9 @@ class AbstractLaunchSystem : public QObject {
 
  signals:
   void logging(const QString& log);
+  void boxAssemblyCompleted(const std::shared_ptr<QString> id);
+  void palletAssemblyCompleted(const std::shared_ptr<QString> id);
+  void orderAssemblyCompleted(const std::shared_ptr<QString> id);
 };
 
 #endif  // AbstractLaunchSystem_H

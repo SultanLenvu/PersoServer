@@ -5,6 +5,7 @@
 #include "ProductionDispatcher/general_production_dispatcher.h"
 // #include "config.h"
 #include "global_environment.h"
+#include "log_system.h"
 #include "perso_server.h"
 
 PersoServer::PersoServer(const QString& name) : QTcpServer() {
@@ -23,6 +24,11 @@ PersoServer::PersoServer(const QString& name) : QTcpServer() {
 
   // Создаем таймер перезапуска
   createRestartTimer();
+
+  connect(this, &PersoServer::logging,
+          dynamic_cast<LogSystem*>(
+              GlobalEnvironment::instance()->getObject("LogSystem")),
+          &LogSystem::generate);
 }
 
 PersoServer::~PersoServer() {
@@ -144,8 +150,6 @@ void PersoServer::createProductionDispatcherInstance() {
           &AbstractProductionDispatcher::errorDetected, this,
           &PersoServer::productionDispatcherErrorDetected,
           Qt::BlockingQueuedConnection);
-  connect(ProductionDispatcher.get(), &AbstractProductionDispatcher::logging,
-          LogSystem::instance(), &LogSystem::generate);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   ProductionDispatcherThread = std::unique_ptr<QThread>(new QThread());
@@ -167,7 +171,7 @@ void PersoServer::createClientIdentifiers() {
 
 void PersoServer::createClientInstance(qintptr socketDescriptor) {
   // Выделяем свободный идентификатор
-  int32_t clientId = FreeClientIds.pop();
+  size_t clientId = FreeClientIds.pop();
   QString clientName = QString("client%1").arg(QString::number(clientId));
 
   // Создаем новое клиент-подключение
@@ -176,8 +180,6 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
 
   connect(newClient.get(), &AbstractClientConnection::disconnected, this,
           &PersoServer::clientDisconnected_slot);
-  connect(newClient.get(), &AbstractClientConnection::logging,
-          LogSystem::instance(), &LogSystem::generate);
 
   // Добавляем клиента в реестр
   Clients.insert(clientId, newClient);
@@ -216,7 +218,7 @@ void PersoServer::clientDisconnected_slot() {
     return;
   }
   // Освобождаем занятый идентификатор
-  uint32_t clientId = disconnectedClient->getId();
+  size_t clientId = disconnectedClient->getId();
   FreeClientIds.push(clientId);
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров

@@ -7,15 +7,7 @@ class InfoSystem : public AbstractInfoSystem {
   Q_OBJECT
 
  private:
-  std::shared_ptr<SqlQueryValues> CurrentProductionLine;
-  std::shared_ptr<SqlQueryValues> CurrentTransponder;
-  std::shared_ptr<SqlQueryValues> CurrentBox;
-  std::shared_ptr<SqlQueryValues> CurrentPallet;
-  std::shared_ptr<SqlQueryValues> CurrentOrder;
-  std::shared_ptr<SqlQueryValues> CurrentIssuer;
-  std::shared_ptr<SqlQueryValues> CurrentMasterKeys;
-
-  ProductionLineContext StashedContext;
+  std::shared_ptr<ProductionContext> StashedContext;
 
  public:
   explicit InfoSystem(const QString& name,
@@ -24,11 +16,7 @@ class InfoSystem : public AbstractInfoSystem {
 
   // AbstractInfoSystem interface
  public:
-  virtual void setContext(const ProductionLineContext& context) override;
-
-  virtual ReturnStatus loadProductionLineContext(
-      const QString& login,
-      ProductionLineContext& context) override;
+  virtual void setContext(std::shared_ptr<ProductionContext> context) override;
 
   virtual QString getTransponderBoxId(const QString& key,
                                       const QString& value) override;
@@ -64,7 +52,7 @@ class InfoSystem : public AbstractInfoSystem {
   ReturnStatus loadBoxContext(const QString& id);
   ReturnStatus loadPalletContext(const QString& id);
 
-  void initContext(ProductionLineContext& context);
+  void initContext(void);
   QString generateTransponderSerialNumber(const QString& id) const;
 };
 

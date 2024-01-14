@@ -1,4 +1,6 @@
 #include "abstract_release_system.h"
+#include "global_environment.h"
+#include "log_system.h"
 
 AbstractReleaseSystem::AbstractReleaseSystem(
     const QString& name,
@@ -6,6 +8,11 @@ AbstractReleaseSystem::AbstractReleaseSystem(
     : QObject(nullptr) {
   setObjectName(name);
   Database = db;
+
+  connect(this, &AbstractReleaseSystem::logging,
+          dynamic_cast<LogSystem*>(
+              GlobalEnvironment::instance()->getObject("LogSystem")),
+          &LogSystem::generate);
 }
 
 AbstractReleaseSystem::~AbstractReleaseSystem() {}

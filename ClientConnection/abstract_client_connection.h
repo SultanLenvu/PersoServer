@@ -3,8 +3,6 @@
 
 #include <QObject>
 
-#include "General/types.h"
-
 class AbstractClientConnection : public QObject {
   Q_OBJECT
  public:
@@ -12,9 +10,6 @@ class AbstractClientConnection : public QObject {
   virtual ~AbstractClientConnection();
 
   virtual size_t getId(void) const = 0;
-  virtual bool isAuthorised(void) const = 0;
-  virtual const QString& getLogin(void) const = 0;
-  virtual const QString& getPassword(void) const = 0;
 
  private:
   AbstractClientConnection();
@@ -23,7 +18,6 @@ class AbstractClientConnection : public QObject {
  signals:
   void logging(const QString& log);
   void disconnected(void);
-  void logOut_signal(const StringDictionary& param, ReturnStatus& status);
 };
 
 #endif  // ABSTARCTPERSOCLIENT_H

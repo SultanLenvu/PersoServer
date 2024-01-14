@@ -13,18 +13,47 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
 
   // AbstractLaunchSystem interface
  public:
-  virtual ReturnStatus init(const StringDictionary& param) const override;
-  virtual ReturnStatus launch(const StringDictionary& param) const override;
-  virtual ReturnStatus shutdown(const StringDictionary& param) const override;
-  virtual bool isLaunched(const StringDictionary& param) const override;
+  virtual void setContext(std::shared_ptr<ProductionContext> context) override;
+
+  virtual ReturnStatus init(void) override;
+  virtual ReturnStatus launch(void) override;
+  virtual ReturnStatus shutdown(void) override;
+  virtual bool isLaunched(void) override;
+
+  virtual ReturnStatus findBox(void) override;
+  virtual ReturnStatus refundBox(void) override;
+  virtual ReturnStatus completeBox(void) override;
 
  private:
   Q_DISABLE_COPY_MOVE(ProductionLineLaunchSystem)
   void loadSettings(void);
-  void sendLog(const QString& log) const;
+  void sendLog(const QString& log);
 
-  ReturnStatus attachWithFreeBox(const QString& id) const;
-  ReturnStatus detachFromBox(const QString& id, const QString& boxId) const;
+  ReturnStatus checkProductionLineState(void);
+
+  ReturnStatus findOrderInProcess(void);
+  ReturnStatus findUncompletedBox(void);
+  ReturnStatus findFreeBox(void);
+
+  ReturnStatus attachWithBox(void);
+  ReturnStatus detachFromBox(void);
+
+  ReturnStatus startBoxAssembly(void);
+  ReturnStatus startPalletAssembly(void);
+
+  ReturnStatus stopBoxAssembly(void);
+  ReturnStatus stopPalletAssembly(void);
+
+  ReturnStatus completePallet(void);
+  ReturnStatus completeOrder(void);
+
+  ReturnStatus loadBoxContext(void);
+
+  bool updateProductionLine(const SqlQueryValues& newValues);
+  bool updateTransponder(const SqlQueryValues& newValues);
+  bool updateBox(const SqlQueryValues& newValues);
+  bool updatePallet(const SqlQueryValues& newValues);
+  bool updateOrder(const SqlQueryValues& newValues);
 };
 
 #endif  // PRODUCTIONLINELAUNCHSYSTEM_H

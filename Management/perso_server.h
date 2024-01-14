@@ -33,7 +33,7 @@ class PersoServer : public QTcpServer {
   size_t MaxNumberClientConnections;
   size_t RestartPeriod;
   QHostAddress ListeningAddress;
-  size_t ListeningPort;
+  uint16_t ListeningPort;
   OperatingState CurrentState;
 
   QStack<size_t> FreeClientIds;

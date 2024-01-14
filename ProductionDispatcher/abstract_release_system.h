@@ -3,13 +3,15 @@
 
 #include <QObject>
 
-#include "Database/abstract_sql_database.h"
-#include "General/types.h"
+#include "abstract_sql_database.h"
+#include "production_context.h"
+#include "types.h"
 
 class AbstractReleaseSystem : public QObject {
   Q_OBJECT
 
  protected:
+  std::shared_ptr<ProductionContext> Context;
   std::shared_ptr<AbstractSqlDatabase> Database;
 
  public:
@@ -17,7 +19,8 @@ class AbstractReleaseSystem : public QObject {
                                  std::shared_ptr<AbstractSqlDatabase> db);
   virtual ~AbstractReleaseSystem();
 
-  virtual void setContext(const ProductionLineContext& context) = 0;
+  virtual void setContext(std::shared_ptr<ProductionContext> context) = 0;
+
   virtual ReturnStatus release(void) = 0;
   virtual ReturnStatus confirmRelease(const QString& ucid) = 0;
   virtual ReturnStatus rerelease(const QString& key, const QString& value) = 0;
@@ -32,9 +35,6 @@ class AbstractReleaseSystem : public QObject {
 
  signals:
   void logging(const QString& log);
-  void boxAssemblyCompleted(const std::shared_ptr<QString> id);
-  void palletAssemblyCompleted(const std::shared_ptr<QString> id);
-  void orderAssemblyCompleted(const std::shared_ptr<QString> id);
 };
 
 #endif  // AbstractReleaseSystem_H

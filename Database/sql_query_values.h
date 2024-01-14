@@ -10,12 +10,10 @@
 #include <QSqlQuery>
 #include <QVector>
 
+#include "types.h"
+
 class SqlQueryValues : public QAbstractTableModel {
   Q_OBJECT
-
- private:
-  template <typename T>
-  using SharedVector = std::shared_ptr<QVector<T>>;
 
  private:
   QVector<QString> Fields;

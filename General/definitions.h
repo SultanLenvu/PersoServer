@@ -157,4 +157,53 @@
   "C:/Workspace/Development/PersoServer/PrinterLib/x64/TSCLIB.dll"
 //========================================================================
 
+/* Определения для команд клиента */
+//===============================================================
+#define COMMAND_ECHO_SIZE 2
+#define COMMAND_LOGIN_SIZE 3
+#define COMMAND_LOGOUT_SIZE 2
+
+#define COMMAND_REQUESTBOX_SIZE 1
+#define COMMAND_GETCURRENTBOXDATA_SIZE 1
+#define COMMAND_REFUNDCURRENTBOX_SIZE 1
+#define COMMAND_COMPLETECURRENTBOX_SIZE 1
+
+#define COMMAND_RELEASETRANSPONDER_SIZE 1
+#define COMMAND_CONFIRMTRANSPONDERRELEASE_SIZE 2
+#define COMMAND_RERELEASETRANSPONDER_SIZE 2
+#define COMMAND_CONFIRMTRANSPONDERRERELEASE_SIZE 3
+#define COMMAND_ROLLBACKTRANSPONDER_SIZE 1
+
+#define COMMAND_GETCURRENTTRANSPONDERDATA_SIZE 1
+#define COMMAND_GETTRANSPONDERDATA_SIZE 2
+
+#define COMMAND_PRINTBOXSTICKER_SIZE 2
+#define COMMAND_PRINTLASTBOXSTICKER_SIZE 1
+#define COMMAND_PRINTPALLETSTICKER_SIZE 2
+#define COMMAND_PRINTLASTPALLETSTICKER_SIZE 1
+
+#define COMMAND_ECHO_NAME "echo"
+#define COMMAND_LOGIN_NAME "log_in"
+#define COMMAND_LOGOUT_NAME "log_out"
+
+#define COMMAND_REQUESTBOX_NAME "request_box"
+#define COMMAND_GETCURRENTBOXDATA_NAME "get_current_box_data"
+#define COMMAND_REFUNDCURRENTBOX_NAME "refund_current_box"
+#define COMMAND_COMPLETECURRENTBOX_NAME "complete_current_box"
+
+#define COMMAND_RELEASETRANSPONDER_NAME "release_transponder"
+#define COMMAND_CONFIRMTRANSPONDERRELEASE_NAME "confirm_transponder_release"
+#define COMMAND_RERELEASETRANSPONDER_NAME "rerelease_transponder"
+#define COMMAND_CONFIRMTRANSPONDERRERELEASE_NAME "confirm_transponder_rerelease"
+#define COMMAND_ROLLBACKTRANSPONDER_NAME "rollback_transponder"
+
+#define COMMAND_GETCURRENTTRANSPONDERDATA_NAME "get_current_transponder_data"
+#define COMMAND_GETTRANSPONDERDATA_NAME "get_transponder_data"
+
+#define COMMAND_PRINTBOXSTICKER_NAME "print_box_sticker"
+#define COMMAND_PRINTLASTBOXSTICKER_NAME "print_last_box_sticker"
+#define COMMAND_PRINTPALLETSTICKER_NAME "print_pallet_sticker"
+#define COMMAND_PRINTLASTPALLETSTICKER_NAME "print_last_pallet_sticker"
+//===============================================================
+
 #endif // DEFINITIONS_H

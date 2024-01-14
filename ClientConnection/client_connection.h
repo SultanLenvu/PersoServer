@@ -33,9 +33,7 @@ class ClientConnection : public AbstractClientConnection {
   std::unique_ptr<QTimer> ExpirationTimer;
   std::unique_ptr<QTimer> DataBlockWaitTimer;
 
-  bool Authorized;
-  QString Login;
-  QString Password;
+  std::shared_ptr<ProductionContext> Context;
 
  public:
   explicit ClientConnection(const QString& name,
@@ -46,9 +44,6 @@ class ClientConnection : public AbstractClientConnection {
   // AbstractClientConnection interface
  public:
   virtual size_t getId(void) const override;
-  virtual bool isAuthorised() const override;
-  virtual const QString& getLogin() const override;
-  virtual const QString& getPassword() const override;
 
  private:
   Q_DISABLE_COPY_MOVE(ClientConnection)
@@ -65,6 +60,7 @@ class ClientConnection : public AbstractClientConnection {
   void createExpirationTimer(void);
   void createDataBlockWaitTimer(void);
   void createCommands(void);
+  void createContext(void);
 
  private slots:
   void socketReadyRead_slot(void);
@@ -74,7 +70,7 @@ class ClientConnection : public AbstractClientConnection {
   void expirationTimerTimeout_slot(void);
   void dataBlockWaitTimerTimeout_slot(void);
 
-  void authorized_slot(const QString& login, const QString& password);
+  void authorized_slot(void);
   void deauthorized_slot(void);
 
  signals:

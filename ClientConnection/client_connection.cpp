@@ -1,20 +1,25 @@
 #include <QSettings>
 
-#include "General/definitions.h"
-#include "box_sticker_print_command.h"
 #include "client_connection.h"
+#include "complete_current_box_command.h"
+#include "confirm_transponder_release_command.h"
+#include "confirm_transponder_rerelease_command.h"
+#include "definitions.h"
 #include "echo_comand.h"
-#include "last_box_sticker_print_command.h"
-#include "last_pallet_sticker_print_command.h"
+#include "get_current_box_data_command.h"
+#include "get_current_transponder_data_command.h"
+#include "get_transponder_data_command.h"
 #include "log_in_command.h"
 #include "log_out_command.h"
-#include "pallet_sticker_print_command.h"
-#include "release_command.h"
-#include "release_confirm_command.h"
-#include "rerelease_command.h"
-#include "rerelease_confirm_command.h"
-#include "rollback_command.h"
-#include "update_command.h"
+#include "print_box_sticker_command.h"
+#include "print_last_box_sticker_command.h"
+#include "print_last_pallet_sticker_command.h"
+#include "print_pallet_sticker_command.h"
+#include "refund_current_box_command.h"
+#include "release_transponder_command.h"
+#include "request_box_command.h"
+#include "rerelease_transponder_command.h"
+#include "rollback_transponder_command.h"
 
 ClientConnection::ClientConnection(const QString& name,
                                    uint32_t id,
@@ -37,6 +42,9 @@ ClientConnection::ClientConnection(const QString& name,
 
   // Создаем команды
   createCommands();
+
+  // Создаем контекст
+  createContext();
 }
 
 ClientConnection::~ClientConnection() {
@@ -45,18 +53,6 @@ ClientConnection::~ClientConnection() {
 
 size_t ClientConnection::getId() const {
   return Id;
-}
-
-bool ClientConnection::isAuthorised() const {
-  return Authorized;
-}
-
-const QString& ClientConnection::getLogin() const {
-  return Login;
-}
-
-const QString& ClientConnection::getPassword() const {
-  return Password;
 }
 
 void ClientConnection::loadSettings() {
@@ -218,37 +214,73 @@ void ClientConnection::createCommands() {
           &LogOutCommand::deauthorized, this,
           &ClientConnection::deauthorized_slot);
 
-  Commands.insert("update", std::shared_ptr<AbstractClientCommand>(
-                                new UpdateCommand("UpdateCommand")));
-
-  Commands.insert("release", std::shared_ptr<AbstractClientCommand>(
-                                 new ReleaseCommand("ReleaseCommand")));
-  Commands.insert("release_confirm",
+  Commands.insert("request_box",
                   std::shared_ptr<AbstractClientCommand>(
-                      new ReleaseConfirmCommand("ReleaseConfirmCommand")));
-  Commands.insert("rerelease", std::shared_ptr<AbstractClientCommand>(
-                                   new RereleaseCommand("RereleaseCommand")));
-  Commands.insert("rerelease_confirm",
+                      new RequestBoxCommand("RequestBoxCommand")));
+  Commands.insert(
+      "get_current_box_data",
+      std::shared_ptr<AbstractClientCommand>(
+          new GetCurrentBoxDataCommand("GetCurrentBoxDataCommand")));
+  Commands.insert(
+      "complete_box",
+      std::shared_ptr<AbstractClientCommand>(
+          new CompleteCurrentBoxCommand("CompleteCurrentBoxCommand")));
+  Commands.insert("refund_current_box",
                   std::shared_ptr<AbstractClientCommand>(
-                      new RereleaseConfirmCommand("RereleaseConfirmCommand")));
-  Commands.insert("rollback", std::unique_ptr<AbstractClientCommand>(
-                                  new RollbackCommand("RollbackCommand")));
+                      new RefundCurrentBoxCommand("RefundCurrentBoxCommand")));
 
-  Commands.insert("box_sticker_print",
+  Commands.insert(
+      "release_transponder",
+      std::shared_ptr<AbstractClientCommand>(
+          new ReleaseTransponderCommand("ReleaseTransponderCommand")));
+  Commands.insert("confirm_transponder_release",
+                  std::shared_ptr<AbstractClientCommand>(
+                      new ConfirmTransponderReleaseCommand(
+                          "ConfirmTransponderReleaseCommand")));
+  Commands.insert(
+      "rerelease_transponder",
+      std::shared_ptr<AbstractClientCommand>(
+          new RereleaseTransponderCommand("RereleaseTransponderCommand")));
+  Commands.insert("confirm_transponder_rerelease",
+                  std::shared_ptr<AbstractClientCommand>(
+                      new ConfirmTransponderRereleaseCommand(
+                          "ConfirmTransponderRereleaseCommand")));
+  Commands.insert(
+      "rollback_transponder",
+      std::unique_ptr<AbstractClientCommand>(
+          new RollbackTransponderCommand("RollbackTransponderCommand")));
+  Commands.insert("get_current_transponder_data",
+                  std::unique_ptr<AbstractClientCommand>(
+                      new GetCurrentTransponderDataCommand(
+                          "GetCurrentTransponderDataCommand")));
+  Commands.insert(
+      "get_transponder_data",
+      std::unique_ptr<AbstractClientCommand>(
+          new GetTransponderDataCommand("GetTransponderDataCommand")));
+
+  Commands.insert("print_box_sticker",
                   std::shared_ptr<AbstractClientCommand>(
                       new BoxStickerPrintCommand("BoxStickerPrintCommand")));
   Commands.insert(
-      "last_box_sticker_print",
+      "print_last_box_sticker",
       std::shared_ptr<AbstractClientCommand>(
-          new LastBoxStickerPrintCommand("LastBoxStickerPrintCommand")));
+          new PrintLastBoxStickerCommand("PrintLastBoxStickerCommand")));
   Commands.insert(
-      "pallet_sticker_print",
+      "print_pallet_sticker",
       std::shared_ptr<AbstractClientCommand>(
-          new PalletStickerPrintCommand("PalletStickerPrintCommand")));
+          new PrintPalletStickerCommand("PrintPalletStickerCommand")));
   Commands.insert(
-      "last_pallet_sticker_print",
+      "print_last_pallet_sticker",
       std::shared_ptr<AbstractClientCommand>(
-          new LastPalletStickerPrintCommand("LastPalletStickerPrintCommand")));
+          new PrintLastPalletStickerCommand("PrintLastPalletStickerCommand")));
+}
+
+void ClientConnection::createContext() {
+  Context = std::shared_ptr<ProductionContext>(new ProductionContext());
+
+  for (auto it = Commands.begin(); it != Commands.end(); ++it) {
+    it.value()->setContext(Context);
+  }
 }
 
 void ClientConnection::socketReadyRead_slot() {
@@ -317,14 +349,6 @@ void ClientConnection::socketDisconnected_slot() {
   sendLog("Сетевое соединение оборвалось. ");
 
   // Отправляем сигналы об отключении клиента
-  if (Authorized) {
-    StringDictionary param;
-    ReturnStatus status;
-    param.insert("login", Login);
-    param.insert("password", Password);
-    emit logOut_signal(param, status);
-  }
-
   emit disconnected();
 }
 
@@ -339,7 +363,7 @@ void ClientConnection::socketError_slot(
 }
 
 void ClientConnection::expirationTimerTimeout_slot() {
-  sendLog("Экспирация времени подключения. ");
+  sendLog("Экспирация времени для неавторизированного подключения. ");
 
   // Закрываем соединение
   Socket->close();
@@ -352,19 +376,12 @@ void ClientConnection::dataBlockWaitTimerTimeout_slot() {
   ReceivedDataBlockSize = 0;
 }
 
-void ClientConnection::authorized_slot(const QString& login,
-                                       const QString& password) {
+void ClientConnection::authorized_slot() {
   sendLog("Клиент авторизовался. ");
   ExpirationTimer->stop();
-
-  Login = login;
-  Password = password;
 }
 
 void ClientConnection::deauthorized_slot() {
   sendLog("Клиент деавторизировался. ");
-  Login.clear();
-  Password.clear();
-
   ExpirationTimer->start();
 }

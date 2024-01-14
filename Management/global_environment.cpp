@@ -9,7 +9,10 @@ GlobalEnvironment* GlobalEnvironment::instance() {
 }
 
 void GlobalEnvironment::registerObject(QObject* obj) {
-  GlobalObjects.insert(obj->objectName(), obj);
+  GlobalObjects[obj->objectName()] = obj;
+
+  connect(obj, &QObject::destroyed, this,
+          &GlobalEnvironment::onRegisteredObjectDeleted);
 }
 
 QObject* GlobalEnvironment::getObject(const QString& name) {
@@ -21,3 +24,7 @@ QObject* GlobalEnvironment::getObject(const QString& name) {
 }
 
 GlobalEnvironment::GlobalEnvironment() {}
+
+void GlobalEnvironment::onRegisteredObjectDeleted() {
+  GlobalObjects.remove(sender()->objectName());
+}
