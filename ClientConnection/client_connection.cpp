@@ -59,7 +59,7 @@ void ClientConnection::loadSettings() {
   QSettings settings;
 
   IdleExpirationTime =
-      settings.value("perso_client/idle_expiration_time").toInt();
+      settings.value("perso_client/unauthorized_access_expiration_time").toInt();
 }
 
 void ClientConnection::sendLog(const QString& log) {
@@ -81,7 +81,7 @@ void ClientConnection::createTransmittedDataBlock() {
   // Инициализируем блок данных и сериализатор
   TransmittedDataBlock.clear();
   QDataStream serializator(&TransmittedDataBlock, QIODevice::WriteOnly);
-  serializator.setVersion(QDataStream::Qt_5_12);
+  serializator.setVersion(QDataStream::Qt_6_5);
 
   // Формируем единый блок данных для отправки
   serializator << uint32_t(0) << responseDocument.toJson();
@@ -144,15 +144,15 @@ bool ClientConnection::processReceivedDataBlock(void) {
 }
 
 void ClientConnection::createSocket(qintptr socketDescriptor) {
-  Socket = new QTcpSocket(this);
+  Socket = std::unique_ptr<QTcpSocket>(new QTcpSocket());
   Socket->setSocketDescriptor(socketDescriptor);
 
-  connect(Socket, &QTcpSocket::readyRead, this,
+  connect(Socket.get(), &QTcpSocket::readyRead, this,
           &ClientConnection::socketReadyRead_slot);
-  connect(Socket, &QTcpSocket::disconnected, this,
+  connect(Socket.get(), &QTcpSocket::disconnected, this,
           &ClientConnection::socketDisconnected_slot);
   connect(
-      Socket,
+      Socket.get(),
       QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
       this, &ClientConnection::socketError_slot);
 }
@@ -168,10 +168,10 @@ void ClientConnection::createExpirationTimer() {
   connect(ExpirationTimer.get(), &QTimer::timeout, ExpirationTimer.get(),
           &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер экспирации
-  connect(Socket, &QTcpSocket::errorOccurred, ExpirationTimer.get(),
+  connect(Socket.get(), &QTcpSocket::errorOccurred, ExpirationTimer.get(),
           &QTimer::stop);
   // Если клиент отключился, то останавливаем таймер экспирации
-  connect(Socket, &QTcpSocket::disconnected, ExpirationTimer.get(),
+  connect(Socket.get(), &QTcpSocket::disconnected, ExpirationTimer.get(),
           &QTimer::stop);
 
   // Запускаем таймер экспирации
@@ -186,13 +186,13 @@ void ClientConnection::createDataBlockWaitTimer() {
   connect(DataBlockWaitTimer.get(), &QTimer::timeout, this,
           &ClientConnection::dataBlockWaitTimerTimeout_slot);
   // Если пришли данные, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::readyRead, DataBlockWaitTimer.get(),
+  connect(Socket.get(), &QTcpSocket::readyRead, DataBlockWaitTimer.get(),
           &QTimer::stop);
   // Если клиент отключился, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::disconnected, DataBlockWaitTimer.get(),
+  connect(Socket.get(), &QTcpSocket::disconnected, DataBlockWaitTimer.get(),
           &QTimer::stop);
   // Если произошла ошибка сети, то останавливаем таймер ожидания
-  connect(Socket, &QTcpSocket::errorOccurred, DataBlockWaitTimer.get(),
+  connect(Socket.get(), &QTcpSocket::errorOccurred, DataBlockWaitTimer.get(),
           &QTimer::stop);
   // Если время подключения вышло, то таймер ожидания останавливается
   connect(ExpirationTimer.get(), &QTimer::timeout, DataBlockWaitTimer.get(),
@@ -284,7 +284,7 @@ void ClientConnection::createContext() {
 }
 
 void ClientConnection::socketReadyRead_slot() {
-  QDataStream deserializator(Socket);  // Дессериализатор
+  QDataStream deserializator(Socket.get());  // Дессериализатор
   deserializator.setVersion(
       QDataStream::Qt_6_5);  // Настраиваем версию десериализатора
 
@@ -300,8 +300,11 @@ void ClientConnection::socketReadyRead_slot() {
       DataBlockWaitTimer->start();
       return;
     }
+
     // Сохраняем размер блока данных
     deserializator >> ReceivedDataBlockSize;
+
+    //    ReceivedDataBlock = Socket->readAll();
 
     sendLog(QString("Размер принимаемого блока данных: %1.")
                 .arg(QString::number(ReceivedDataBlockSize)));
@@ -310,10 +313,11 @@ void ClientConnection::socketReadyRead_slot() {
     if (ReceivedDataBlockSize > DATA_BLOCK_MAX_SIZE) {
       sendLog("Размер блока данных слишком большой. Сброс. ");
       ReceivedDataBlockSize = 0;
+      ReceivedDataBlock.clear();
     }
   }
 
-  sendLog(QString("Размер принятых данных: %1. ")
+  sendLog(QString("Размер полученного блока данных: %1. ")
               .arg(QString::number(Socket->bytesAvailable())));
 
   // Дожидаемся пока весь блок данных придет целиком
@@ -326,7 +330,7 @@ void ClientConnection::socketReadyRead_slot() {
 
   // Если блок был получен целиком, то осуществляем его дессериализацию
   deserializator >> ReceivedDataBlock;
-  sendLog("Блок полученных данных: " + ReceivedDataBlock);
+  sendLog(QString("Полученный блок данных: %1").arg(ReceivedDataBlock));
 
   // Осуществляем обработку полученного блока данных
   if (!processReceivedDataBlock()) {
@@ -363,7 +367,7 @@ void ClientConnection::socketError_slot(
 }
 
 void ClientConnection::expirationTimerTimeout_slot() {
-  sendLog("Экспирация времени для неавторизированного подключения. ");
+  sendLog("Экспирация времени неавторизированного подключения. ");
 
   // Закрываем соединение
   Socket->close();

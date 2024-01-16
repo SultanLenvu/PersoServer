@@ -1,3 +1,4 @@
+#include <QCommandLineParser>
 #include <QCoreApplication>
 
 #include "General/definitions.h"
@@ -144,7 +145,8 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (settings.value("perso_client/idle_expiration_time").toUInt() == 0) {
+  if (settings.value("perso_client/unauthorized_access_expiration_time")
+          .toUInt() == 0) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "значение максимальной длительности клиентского "
@@ -236,7 +238,7 @@ void ServerManager::generateDefaultSettings() const {
                     PRINTER_FOR_PALLET_DEFAULT_NAME);
 
   // ClientConnection
-  settings.setValue("perso_client/idle_expiration_time",
+  settings.setValue("perso_client/unauthorized_access_expiration_time",
                     CLIENT_IDLE_EXPIRATION_TIME);
 
   // LogSystem
@@ -280,7 +282,7 @@ void ServerManager::generateDefaultSettings() const {
 }
 
 void ServerManager::processCommandArguments() {
-  QList<QString> args = QCoreApplication::arguments();
+  QStringList args = QCoreApplication::arguments();
 
   if (args.contains("-generate_default_config")) {
     generateDefaultSettings();

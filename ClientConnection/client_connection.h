@@ -19,9 +19,9 @@ class ClientConnection : public AbstractClientConnection {
 
  private:
   size_t Id;
-  QTcpSocket* Socket;
+  std::unique_ptr<QTcpSocket> Socket;
 
-  size_t ReceivedDataBlockSize;
+  int32_t ReceivedDataBlockSize;
   QByteArray ReceivedDataBlock;
   QByteArray TransmittedDataBlock;
 
