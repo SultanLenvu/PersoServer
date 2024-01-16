@@ -19,6 +19,7 @@ class ClientConnection : public AbstractClientConnection {
 
  private:
   size_t Id;
+  quintptr SocketDescriptor;
   std::unique_ptr<QTcpSocket> Socket;
 
   int32_t ReceivedDataBlockSize;
@@ -43,6 +44,7 @@ class ClientConnection : public AbstractClientConnection {
 
   // AbstractClientConnection interface
  public:
+  virtual void onInstanceThreadStarted(void) override;
   virtual size_t getId(void) const override;
 
  private:

@@ -9,6 +9,7 @@ class AbstractClientConnection : public QObject {
   explicit AbstractClientConnection(const QString& name);
   virtual ~AbstractClientConnection();
 
+  virtual void onInstanceThreadStarted(void) = 0;
   virtual size_t getId(void) const = 0;
 
  private:

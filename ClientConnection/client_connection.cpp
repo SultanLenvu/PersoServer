@@ -27,12 +27,19 @@ ClientConnection::ClientConnection(const QString& name,
     : AbstractClientConnection(name) {
   Id = id;
   ReceivedDataBlockSize = 0;
+  SocketDescriptor = socketDescriptor;
 
   // Загружаем настройки
   loadSettings();
+}
 
+ClientConnection::~ClientConnection() {
+  sendLog(QString("Клиент %1 удален. ").arg(QString::number(Id)));
+}
+
+void ClientConnection::onInstanceThreadStarted() {
   // Создаем сокет в соответствии с системным дескриптором
-  createSocket(socketDescriptor);
+  createSocket(SocketDescriptor);
 
   // Создаем таймер экспирации подключения
   createExpirationTimer();
@@ -45,10 +52,6 @@ ClientConnection::ClientConnection(const QString& name,
 
   // Создаем контекст
   createContext();
-}
-
-ClientConnection::~ClientConnection() {
-  sendLog(QString("Клиент %1 удален. ").arg(QString::number(Id)));
 }
 
 size_t ClientConnection::getId() const {

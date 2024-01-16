@@ -191,6 +191,8 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   std::shared_ptr<QThread> newClientThread(new QThread());
   newClient->moveToThread(newClientThread.get());
 
+  connect(newClientThread.get(), &QThread::started, newClient.get(),
+          &AbstractClientConnection::onInstanceThreadStarted);
   connect(newClientThread.get(), &QThread::destroyed, this,
           &PersoServer::clientThreadDeleted_slot);
 
