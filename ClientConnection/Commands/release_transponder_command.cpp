@@ -37,7 +37,7 @@ void ReleaseTransponderCommand::process(const QJsonObject& command) {
 }
 
 void ReleaseTransponderCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
     response["firmware"] = QString(*Firmware);

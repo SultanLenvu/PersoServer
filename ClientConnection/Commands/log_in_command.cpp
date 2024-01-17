@@ -37,7 +37,7 @@ void LogInCommand::process(const QJsonObject& command) {
 }
 
 void LogInCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
 
   //  if (Status == ReturnStatus::NoError) {
   //    response["transponder_sn"] = Result.value("transponder_sn");

@@ -18,7 +18,7 @@ void EchoCommand::process(const QJsonObject& command) {
 }
 
 void EchoCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
   response["data"] = Parameters.value("data");
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }

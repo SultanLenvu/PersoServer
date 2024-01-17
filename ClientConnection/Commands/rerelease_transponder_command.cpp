@@ -40,7 +40,7 @@ void RereleaseTransponderCommand::process(const QJsonObject& command) {
 }
 
 void RereleaseTransponderCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
     response["firmware"] = QString(*Firmware);

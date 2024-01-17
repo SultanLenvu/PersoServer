@@ -34,7 +34,7 @@ void LogOutCommand::process(const QJsonObject& command) {
 }
 
 void LogOutCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 

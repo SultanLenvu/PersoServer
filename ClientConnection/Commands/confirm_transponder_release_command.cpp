@@ -37,7 +37,7 @@ void ConfirmTransponderReleaseCommand::process(const QJsonObject& command) {
 }
 
 void ConfirmTransponderReleaseCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 

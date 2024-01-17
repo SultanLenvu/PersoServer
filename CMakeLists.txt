@@ -14,6 +14,7 @@ qt_standard_project_setup()
 #=========================== Project configuration ================================#
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(PRINTERS_ENABLE OFF)
+set(UNAUTHORIZE_EXPIRATION OFF)
 set(SERVER_PANIC_STATE_ENABLE OFF)
 configure_file(
     config.h.in config.h @ONLY)

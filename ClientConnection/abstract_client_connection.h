@@ -11,6 +11,7 @@ class AbstractClientConnection : public QObject {
 
   virtual void onInstanceThreadStarted(void) = 0;
   virtual size_t getId(void) const = 0;
+  virtual void reset(void) = 0;
 
  private:
   AbstractClientConnection();

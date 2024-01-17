@@ -58,11 +58,20 @@ size_t ClientConnection::getId() const {
   return Id;
 }
 
+void ClientConnection::reset() {
+  ReceivedDataBlock.clear();
+  ReceivedDataBlockSize = 0;
+  Commands.value(CommandData.value("command_name").toString())->reset();
+  CommandData = QJsonObject();
+  ResponseData = QJsonObject();
+}
+
 void ClientConnection::loadSettings() {
   QSettings settings;
 
-  IdleExpirationTime =
-      settings.value("perso_client/unauthorized_access_expiration_time").toInt();
+  UnauthorizedExpirationTime =
+      settings.value("perso_client/unauthorized_access_expiration_time")
+          .toInt();
 }
 
 void ClientConnection::sendLog(const QString& log) {
@@ -75,11 +84,11 @@ void ClientConnection::createTransmittedDataBlock() {
       ->generateResponse(ResponseData);
   QJsonDocument responseDocument(ResponseData);
 
-  sendLog("Формирование блока данных для ответа на команду. ");
-  sendLog(QString("Размер ответа: %1.")
+  sendLog("Формирование ответного блока данных. ");
+  sendLog(QString("Размер ответного блока данных: %1.")
               .arg(QString::number(responseDocument.toJson().size())));
-  sendLog(
-      QString("Содержание ответа: %1").arg(QString(responseDocument.toJson())));
+  sendLog(QString("Содержание ответного блока данных: %1")
+              .arg(QString(responseDocument.toJson())));
 
   // Инициализируем блок данных и сериализатор
   TransmittedDataBlock.clear();
@@ -163,7 +172,7 @@ void ClientConnection::createSocket(qintptr socketDescriptor) {
 void ClientConnection::createExpirationTimer() {
   // Таймер для отсчета времени экспирации
   ExpirationTimer = std::unique_ptr<QTimer>(new QTimer());
-  ExpirationTimer->setInterval(IdleExpirationTime);
+  ExpirationTimer->setInterval(UnauthorizedExpirationTime);
   // Если время подключения вышло, то вызываем соответствующий обработчик
   connect(ExpirationTimer.get(), &QTimer::timeout, this,
           &ClientConnection::expirationTimerTimeout_slot);
@@ -347,9 +356,7 @@ void ClientConnection::socketReadyRead_slot() {
   transmitDataBlock();
 
   // Очистка
-  Commands.value(CommandData.value("command_name").toString())->reset();
-  CommandData = QJsonObject();
-  ResponseData = QJsonObject();
+  reset();
 }
 
 void ClientConnection::socketDisconnected_slot() {
@@ -372,8 +379,9 @@ void ClientConnection::socketError_slot(
 void ClientConnection::expirationTimerTimeout_slot() {
   sendLog("Экспирация времени неавторизированного подключения. ");
 
-  // Закрываем соединение
+#ifdef UNAUTHORIZE_EXPIRATION  // Закрываем соединение
   Socket->close();
+#endif
 }
 
 void ClientConnection::dataBlockWaitTimerTimeout_slot() {

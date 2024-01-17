@@ -38,7 +38,7 @@ void GetTransponderDataCommand::process(const QJsonObject& command) {
 }
 
 void GetTransponderDataCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
     response["transponder_sn"] = Result.value("transponder_sn");

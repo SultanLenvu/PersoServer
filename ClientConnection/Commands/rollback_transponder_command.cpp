@@ -34,7 +34,7 @@ void RollbackTransponderCommand::process(const QJsonObject& command) {
 }
 
 void RollbackTransponderCommand::generateResponse(QJsonObject& response) {
-  response["response_name"] = CommandName;
+  response["command_name"] = CommandName;
 
   //  if (Status == ReturnStatus::NoError) {
   //    response["transponder_sn"] = Result.value("transponder_sn");

@@ -30,7 +30,7 @@ class ClientConnection : public AbstractClientConnection {
   QJsonObject ResponseData;
   QHash<QString, std::shared_ptr<AbstractClientCommand>> Commands;
 
-  size_t IdleExpirationTime;
+  int32_t UnauthorizedExpirationTime;
   std::unique_ptr<QTimer> ExpirationTimer;
   std::unique_ptr<QTimer> DataBlockWaitTimer;
 
@@ -46,6 +46,7 @@ class ClientConnection : public AbstractClientConnection {
  public:
   virtual void onInstanceThreadStarted(void) override;
   virtual size_t getId(void) const override;
+  virtual void reset(void) override;
 
  private:
   Q_DISABLE_COPY_MOVE(ClientConnection)
