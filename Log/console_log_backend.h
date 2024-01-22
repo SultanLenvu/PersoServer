@@ -6,20 +6,20 @@
 
 #include "log_backend.h"
 
-class ConsolerLogBackend : public LogBackend {
+class ConsoleLogBackend : public LogBackend {
   Q_OBJECT
  private:
   bool LogEnable;
 
  public:
-  explicit ConsolerLogBackend(QObject* parent);
-  ~ConsolerLogBackend();
+  explicit ConsoleLogBackend(const QString& name);
+  ~ConsoleLogBackend();
 
   virtual void writeLogLine(const QString& str) override;
   virtual void clear() override;
 
  private:
-  Q_DISABLE_COPY_MOVE(ConsolerLogBackend);
+  Q_DISABLE_COPY_MOVE(ConsoleLogBackend);
   void loadSettings(void);
 };
 

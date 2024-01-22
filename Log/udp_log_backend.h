@@ -16,7 +16,7 @@ class UdpLogBackend : public LogBackend {
   QUdpSocket* LogSocket;
 
  public:
-  explicit UdpLogBackend(QObject* parent);
+  explicit UdpLogBackend(const QString& name);
 
   virtual void writeLogLine(const QString& str) override;
   virtual void clear() override;

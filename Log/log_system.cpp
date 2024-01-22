@@ -1,20 +1,19 @@
-#include <QMutexLocker>
-
-#include "global_environment.h"
 #include "log_system.h"
+#include "console_log_backend.h"
+#include "file_log_backend.h"
+#include "global_environment.h"
+#include "udp_log_backend.h"
 
 LogSystem::LogSystem(const QString& name) : QObject(nullptr) {
   setObjectName(name);
   loadSettings();
 
-  UdpLogger = new UdpLogBackend(this);
-  Backends << UdpLogger;
-
-  FileLogger = new FileLogBackend(this);
-  Backends << FileLogger;
-
-  ConsoleLogger = new ConsolerLogBackend(this);
-  Backends << ConsoleLogger;
+  Backends.push_back(
+      std::shared_ptr<UdpLogBackend>(new UdpLogBackend("UdpLogBackend")));
+  Backends.push_back(
+      std::shared_ptr<FileLogBackend>(new FileLogBackend("FileLogBackend")));
+  Backends.push_back(std::shared_ptr<ConsoleLogBackend>(
+      new ConsoleLogBackend("ConsoleLogBackend")));
 
   GlobalEnvironment::instance()->registerObject(this);
 }
@@ -22,8 +21,6 @@ LogSystem::LogSystem(const QString& name) : QObject(nullptr) {
 LogSystem::~LogSystem() {}
 
 void LogSystem::clear() {
-  QMutexLocker lock(&mutex);
-
   for (auto it = Backends.begin(); it != Backends.end(); it++) {
     (*it)->clear();
   }
@@ -33,8 +30,6 @@ void LogSystem::generate(const QString& log) {
   if (!LogEnable) {
     return;
   }
-
-  QMutexLocker lock(&mutex);
 
   QTime time = QDateTime::currentDateTime().time();
   QString LogData = time.toString("hh:mm:ss.zzz - ") + log;

@@ -1,7 +1,6 @@
 #include "udp_log_backend.h"
 
-UdpLogBackend::UdpLogBackend(QObject* parent) : LogBackend(parent) {
-  setObjectName("UdpLogBackend");
+UdpLogBackend::UdpLogBackend(const QString& name) : LogBackend(name) {
   loadSettings();
 
   LogSocket = new QUdpSocket(this);

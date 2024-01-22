@@ -33,6 +33,12 @@ ReturnStatus ProductionLineLaunchSystem::init() {
 
 ReturnStatus ProductionLineLaunchSystem::launch() {
   ReturnStatus ret;
+
+  ret = loadProductionLine();
+  if (ret != ReturnStatus::NoError) {
+    return ret;
+  }
+
   ret = checkProductionLineState();
   if (ret != ReturnStatus::NoError) {
     return ret;
@@ -558,6 +564,27 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
     sendLog(QString("Получена ошибка при поиске мастер ключей для заказа %1.")
                 .arg(Context->order().get("id")));
     return ReturnStatus::FreeBoxMissed;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus ProductionLineLaunchSystem::loadProductionLine() {
+  if (!Database->readRecords("production_lines",
+                             QString("login = %1 AND password = ")
+                                 .arg(Context->login(), Context->password()),
+                             Context->productionLine())) {
+    sendLog(QString(
+        "Получена ошибка при получении данных из таблицы production_lines."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (Context->productionLine().isEmpty()) {
+    sendLog(
+        QString(
+            "Получена ошибка при поиске данных производственной линии '%1'.")
+            .arg(Context->login()));
+    return ReturnStatus::ProductionLineMissed;
   }
 
   return ReturnStatus::NoError;

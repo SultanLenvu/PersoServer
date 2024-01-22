@@ -48,6 +48,7 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   ReturnStatus completeOrder(void);
 
   ReturnStatus loadBoxContext(void);
+  ReturnStatus loadProductionLine(void);
 
   bool updateProductionLine(const SqlQueryValues& newValues);
   bool updateTransponder(const SqlQueryValues& newValues);

@@ -8,7 +8,7 @@ class LogBackend: public QObject {
  Q_OBJECT
 
  public:
-  explicit LogBackend(QObject* parent);
+  explicit LogBackend(const QString& name);
   ~LogBackend();
 
   virtual void writeLogLine(const QString& str) = 0;

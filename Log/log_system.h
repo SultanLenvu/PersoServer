@@ -10,10 +10,7 @@
 #include <QTime>
 #include <QUdpSocket>
 
-#include "Log/console_log_backend.h"
-#include "Log/file_log_backend.h"
-#include "Log/log_backend.h"
-#include "Log/udp_log_backend.h"
+#include "log_backend.h"
 
 /* Глобальная система логгирования */
 //==================================================================================
@@ -25,12 +22,7 @@ class LogSystem : public QObject {
   bool LogEnable;
   bool ExtendedLogEnable;
 
-  QList<LogBackend*> Backends;
-  UdpLogBackend* UdpLogger;
-  FileLogBackend* FileLogger;
-  ConsolerLogBackend* ConsoleLogger;
-
-  QMutex mutex;
+  std::vector<std::shared_ptr<LogBackend>> Backends;
 
  public:
   explicit LogSystem(const QString& name);

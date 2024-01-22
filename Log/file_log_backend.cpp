@@ -1,7 +1,6 @@
 #include "file_log_backend.h"
 
-FileLogBackend::FileLogBackend(QObject* parent) : LogBackend(parent) {
-  setObjectName("FileLogBackend");
+FileLogBackend::FileLogBackend(const QString& name) : LogBackend(name) {
   loadSettings();
   initialize();
 }

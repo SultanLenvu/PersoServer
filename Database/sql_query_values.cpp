@@ -11,22 +11,50 @@ QString SqlQueryValues::fieldName(uint32_t i) const {
 }
 
 QString SqlQueryValues::get(uint32_t record, const QString& field) const {
+  if (FieldIndex.contains(field)) {
+    return QString();
+  }
+
+  if (Values.at(FieldIndex.value(field))->size() <= record) {
+    return QString();
+  }
+
   return Values.at(FieldIndex.value(field))->at(record);
 }
 
 QString SqlQueryValues::get(uint32_t record, uint32_t field) const {
+  if (Values.size() <= field) {
+    return QString();
+  }
+
+  if (Values.at(field)->size() <= record) {
+    return QString();
+  }
+
   return Values.at(field)->at(record);
 }
 
 QString SqlQueryValues::get(uint32_t field) const {
+  if (Values.size() <= field) {
+    return QString();
+  }
+
   return Values.at(field)->at(0);
 }
 
 QString SqlQueryValues::get(const QString& field) const {
+  if (FieldIndex.contains(field)) {
+    return QString();
+  }
+
   return Values.at(FieldIndex.value(field))->at(0);
 }
 
 QString SqlQueryValues::getLast(const QString& field) const {
+  if (FieldIndex.contains(field)) {
+    return QString();
+  }
+
   return Values.at(FieldIndex.value(field))->last();
 }
 
