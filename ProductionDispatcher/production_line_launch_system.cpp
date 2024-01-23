@@ -481,7 +481,7 @@ ReturnStatus ProductionLineLaunchSystem::completeOrder() {
 
 ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
   if (!Database->readRecords("transponders",
-                             QString("release_counter = 0 AND box_id = %1")
+                             QString("release_counter = 0 AND box_id = '%1'")
                                  .arg(Context->box().get("id")),
                              Context->transponder())) {
     sendLog(QString(
@@ -498,7 +498,7 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
   }
 
   if (!Database->readRecords(
-          "pallets", QString("id = %1").arg(Context->box().get("pallet_id")),
+          "pallets", QString("id = '%1'").arg(Context->box().get("pallet_id")),
           Context->pallet())) {
     sendLog(
         QString("Получена ошибка при получении данных из таблицы pallets."));
@@ -514,7 +514,7 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
   }
 
   if (!Database->readRecords(
-          "orders", QString("id = %1").arg(Context->pallet().get("order_id")),
+          "orders", QString("id = '%1'").arg(Context->pallet().get("order_id")),
           Context->order())) {
     sendLog(QString("Получена ошибка при получении данных из таблицы orders."));
     return ReturnStatus::DatabaseQueryError;
@@ -528,7 +528,8 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
   }
 
   if (!Database->readRecords(
-          "issuers", QString("id = %1").arg(Context->order().get("issuer_id")),
+          "issuers",
+          QString("id = '%1'").arg(Context->order().get("issuer_id")),
           Context->issuer())) {
     sendLog(
         QString("Получена ошибка при получении данных из таблицы issuers."));
@@ -537,7 +538,7 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
 
   if (Context->issuer().isEmpty()) {
     sendLog(QString("Получена ошибка при поиске эмитента, которому принадлежит "
-                    "заказ %1.")
+                    "заказ '%1'.")
                 .arg(Context->order().get("id")));
     return ReturnStatus::FreeBoxMissed;
   }
@@ -553,7 +554,8 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
   }
 
   if (!Database->readRecords(
-          keyTable, QString("id = %1").arg(Context->issuer().get(keyTableRef)),
+          keyTable,
+          QString("id = '%1'").arg(Context->issuer().get(keyTableRef)),
           Context->masterKeys())) {
     sendLog(QString("Получена ошибка при получении данных из таблицы %1.")
                 .arg(keyTable));
@@ -571,7 +573,7 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
 
 ReturnStatus ProductionLineLaunchSystem::loadProductionLine() {
   if (!Database->readRecords("production_lines",
-                             QString("login = %1 AND password = ")
+                             QString("login = '%1' AND password = '%2'")
                                  .arg(Context->login(), Context->password()),
                              Context->productionLine())) {
     sendLog(QString(
@@ -594,7 +596,7 @@ bool ProductionLineLaunchSystem::updateProductionLine(
     const SqlQueryValues& newValues) {
   if (!Database->updateRecords(
           "production_lines",
-          QString("id = %1").arg(Context->productionLine().get("id")),
+          QString("id = '%1'").arg(Context->productionLine().get("id")),
           newValues)) {
     sendLog(
         QString(

@@ -30,15 +30,15 @@ class PersoServer : public QTcpServer {
   Q_ENUM(OperatingState);
 
  private:
-  size_t MaxNumberClientConnections;
-  size_t RestartPeriod;
+  int32_t MaxNumberClientConnections;
+  int32_t RestartPeriod;
   QHostAddress ListeningAddress;
   uint16_t ListeningPort;
   OperatingState CurrentState;
 
-  QStack<size_t> FreeClientIds;
-  QHash<size_t, std::shared_ptr<QThread>> ClientThreads;
-  QHash<size_t, std::shared_ptr<AbstractClientConnection>> Clients;
+  QStack<int32_t> FreeClientIds;
+  QHash<int32_t, std::shared_ptr<QThread>> ClientThreads;
+  QHash<int32_t, std::shared_ptr<AbstractClientConnection>> Clients;
 
   std::unique_ptr<AbstractProductionDispatcher> ProductionDispatcher;
   std::unique_ptr<QThread> ProductionDispatcherThread;

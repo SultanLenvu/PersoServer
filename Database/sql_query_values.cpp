@@ -11,7 +11,7 @@ QString SqlQueryValues::fieldName(uint32_t i) const {
 }
 
 QString SqlQueryValues::get(uint32_t record, const QString& field) const {
-  if (FieldIndex.contains(field)) {
+  if (!FieldIndex.contains(field)) {
     return QString();
   }
 
@@ -43,7 +43,7 @@ QString SqlQueryValues::get(uint32_t field) const {
 }
 
 QString SqlQueryValues::get(const QString& field) const {
-  if (FieldIndex.contains(field)) {
+  if (!FieldIndex.contains(field)) {
     return QString();
   }
 
@@ -51,7 +51,7 @@ QString SqlQueryValues::get(const QString& field) const {
 }
 
 QString SqlQueryValues::getLast(const QString& field) const {
-  if (FieldIndex.contains(field)) {
+  if (!FieldIndex.contains(field)) {
     return QString();
   }
 

@@ -18,7 +18,7 @@ class ClientConnection : public AbstractClientConnection {
   Q_OBJECT
 
  private:
-  size_t Id;
+  int32_t Id;
   quintptr SocketDescriptor;
   std::unique_ptr<QTcpSocket> Socket;
 
@@ -38,14 +38,14 @@ class ClientConnection : public AbstractClientConnection {
 
  public:
   explicit ClientConnection(const QString& name,
-                            uint32_t id,
+                            int32_t id,
                             qintptr socketDescriptor);
   ~ClientConnection();
 
   // AbstractClientConnection interface
  public:
   virtual void onInstanceThreadStarted(void) override;
-  virtual size_t getId(void) const override;
+  virtual int32_t getId(void) const override;
   virtual void reset(void) override;
 
  private:

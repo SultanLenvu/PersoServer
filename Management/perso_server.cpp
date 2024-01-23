@@ -37,9 +37,7 @@ PersoServer::~PersoServer() {
     ProductionDispatcherThread->wait();
   }
 
-  for (QHash<size_t, std::shared_ptr<QThread>>::iterator it =
-           ClientThreads.begin();
-       it != ClientThreads.end(); ++it) {
+  for (auto it = ClientThreads.begin(); it != ClientThreads.end(); ++it) {
     (*it)->quit();
     (*it)->wait();
   }
@@ -171,7 +169,7 @@ void PersoServer::createClientIdentifiers() {
 
 void PersoServer::createClientInstance(qintptr socketDescriptor) {
   // Выделяем свободный идентификатор
-  size_t clientId = FreeClientIds.pop();
+  int32_t clientId = FreeClientIds.pop();
   QString clientName = QString("client%1").arg(QString::number(clientId));
 
   // Создаем новое клиент-подключение
@@ -220,7 +218,7 @@ void PersoServer::clientDisconnected_slot() {
     return;
   }
   // Освобождаем занятый идентификатор
-  size_t clientId = disconnectedClient->getId();
+  int32_t clientId = disconnectedClient->getId();
   FreeClientIds.push(clientId);
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров

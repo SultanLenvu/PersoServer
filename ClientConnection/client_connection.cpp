@@ -22,7 +22,7 @@
 #include "rollback_transponder_command.h"
 
 ClientConnection::ClientConnection(const QString& name,
-                                   uint32_t id,
+                                   int32_t id,
                                    qintptr socketDescriptor)
     : AbstractClientConnection(name) {
   Id = id;
@@ -54,7 +54,7 @@ void ClientConnection::onInstanceThreadStarted() {
   createContext();
 }
 
-size_t ClientConnection::getId() const {
+int32_t ClientConnection::getId() const {
   return Id;
 }
 
