@@ -10,7 +10,7 @@ InfoSystem::InfoSystem(const QString& name,
 
 InfoSystem::~InfoSystem() {}
 
-void InfoSystem::setContext(std::shared_ptr<ProductionContext> context) {
+void InfoSystem::setContext(std::shared_ptr<ProductionLineContext> context) {
   Context = context;
 }
 
@@ -144,6 +144,10 @@ ReturnStatus InfoSystem::generateFirmwareSeed(const QString& key,
 
 ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
   SqlQueryValues transponders;
+
+  Database->setRecordMaxCount(0);
+  Database->setCurrentOrder(Qt::AscendingOrder);
+
   if (!Database->readRecords("transponders",
                              QString("box_id = %1 AND release_counter > 0")
                                  .arg(Context->box().get("id")),
@@ -365,7 +369,7 @@ ReturnStatus InfoSystem::loadPalletContext(const QString& id) {
 }
 
 void InfoSystem::initContext(void) {
-  Context = std::shared_ptr<ProductionContext>(new ProductionContext());
+  Context = std::shared_ptr<ProductionLineContext>(new ProductionLineContext());
 }
 
 QString InfoSystem::generateTransponderSerialNumber(const QString& id) const {

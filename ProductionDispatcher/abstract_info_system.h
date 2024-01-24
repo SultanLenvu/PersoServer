@@ -4,13 +4,13 @@
 #include <QObject>
 
 #include "abstract_sql_database.h"
-#include "production_context.h"
+#include "production_line_context.h"
 #include "types.h"
 
 class AbstractInfoSystem : public QObject {
   Q_OBJECT
  protected:
-  std::shared_ptr<ProductionContext> Context;
+  std::shared_ptr<ProductionLineContext> Context;
   std::shared_ptr<AbstractSqlDatabase> Database;
 
  public:
@@ -18,7 +18,7 @@ class AbstractInfoSystem : public QObject {
                               const std::shared_ptr<AbstractSqlDatabase> db);
   virtual ~AbstractInfoSystem();
 
-  virtual void setContext(std::shared_ptr<ProductionContext> context) = 0;
+  virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
   virtual QString getTransponderBoxId(const QString& key,
                                       const QString& value) = 0;
   virtual QString getTransponderPalletId(const QString& key,

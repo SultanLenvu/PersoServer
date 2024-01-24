@@ -1,5 +1,6 @@
 #include "firmware_generation_system.h"
-#include "Log/log_system.h"
+#include "definitions.h"
+#include "des.h"
 
 FirmwareGenerationSystem::FirmwareGenerationSystem(const QString& name)
     : AbstractFirmwareGenerationSystem(name) {
@@ -45,7 +46,7 @@ bool FirmwareGenerationSystem::init() {
     }
     FirmwareDataFile->close();
   } else {
-    sendLog("Не удалось открыть базовый файл прошивки на запись.");
+    sendLog("Не удалось открыть файл данных прошивки на запись.");
     return false;
   }
 

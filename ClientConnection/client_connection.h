@@ -34,8 +34,6 @@ class ClientConnection : public AbstractClientConnection {
   std::unique_ptr<QTimer> ExpirationTimer;
   std::unique_ptr<QTimer> DataBlockWaitTimer;
 
-  std::shared_ptr<ProductionContext> Context;
-
  public:
   explicit ClientConnection(const QString& name,
                             int32_t id,
@@ -45,7 +43,7 @@ class ClientConnection : public AbstractClientConnection {
   // AbstractClientConnection interface
  public:
   virtual void onInstanceThreadStarted(void) override;
-  virtual int32_t getId(void) const override;
+  virtual int32_t id(void) const override;
   virtual void reset(void) override;
 
  private:

@@ -11,6 +11,8 @@ class AbstractProductionDispatcher : public QObject {
   explicit AbstractProductionDispatcher(const QString& name);
 
  public slots:
+  virtual void onInstanceThreadStarted(void) = 0;
+
   virtual void start(ReturnStatus& ret) = 0;
   virtual void stop(void) = 0;
 

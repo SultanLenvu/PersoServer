@@ -3,7 +3,7 @@
 #include "log_system.h"
 
 AbstractClientCommand::AbstractClientCommand(const QString& name)
-    : QObject{nullptr} {
+    : ProductionContextOwner{name} {
   setObjectName(name);
 
   connect(this, &AbstractClientCommand::logging,
@@ -14,17 +14,6 @@ AbstractClientCommand::AbstractClientCommand(const QString& name)
 
 AbstractClientCommand::~AbstractClientCommand() {}
 
-std::shared_ptr<ProductionContext> AbstractClientCommand::context() {
-  return Context;
-}
-
-void AbstractClientCommand::setContext(
-    std::shared_ptr<ProductionContext> context) {
-  Context = context;
-}
-
 void AbstractClientCommand::sendLog(const QString& log) {
   emit logging(QString("%1 - %2").arg(objectName(), log));
 }
-
-AbstractClientCommand::AbstractClientCommand() {}

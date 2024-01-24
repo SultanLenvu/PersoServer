@@ -21,7 +21,7 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
 
   // AbstractReleaseSystem interface
  public:
-  virtual void setContext(std::shared_ptr<ProductionContext> context) override;
+  virtual void setContext(std::shared_ptr<ProductionLineContext> context) override;
 
   virtual ReturnStatus release(void) override;
   virtual ReturnStatus confirmRelease(const QString& ucid) override;

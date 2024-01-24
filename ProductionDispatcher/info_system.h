@@ -7,7 +7,7 @@ class InfoSystem : public AbstractInfoSystem {
   Q_OBJECT
 
  private:
-  std::shared_ptr<ProductionContext> StashedContext;
+  std::shared_ptr<ProductionLineContext> StashedContext;
 
  public:
   explicit InfoSystem(const QString& name,
@@ -16,7 +16,8 @@ class InfoSystem : public AbstractInfoSystem {
 
   // AbstractInfoSystem interface
  public:
-  virtual void setContext(std::shared_ptr<ProductionContext> context) override;
+  virtual void setContext(
+      std::shared_ptr<ProductionLineContext> context) override;
 
   virtual QString getTransponderBoxId(const QString& key,
                                       const QString& value) override;

@@ -8,7 +8,7 @@ LogInCommand::LogInCommand(const QString& name) : AbstractClientCommand(name) {
   connect(this, &LogInCommand::launchProductionLine_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::launchProductionLine,
           Qt::BlockingQueuedConnection);
 }

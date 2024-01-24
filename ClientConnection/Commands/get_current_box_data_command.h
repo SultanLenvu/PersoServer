@@ -28,7 +28,8 @@ class GetCurrentBoxDataCommand : public AbstractClientCommand
   Q_DISABLE_COPY_MOVE(GetCurrentBoxDataCommand)
 
  signals:
-  void getCurrentBoxData_signal(StringDictionary& data, ReturnStatus& status);
+  //  void getCurrentBoxData_signal(StringDictionary& data, ReturnStatus&
+  //  status);
 };
 
 #endif // GETCURRENTBOXDATACOMMAND_H

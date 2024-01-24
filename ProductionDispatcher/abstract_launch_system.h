@@ -4,14 +4,14 @@
 #include <QObject>
 
 #include "abstract_sql_database.h"
-#include "production_context.h"
+#include "production_line_context.h"
 #include "types.h"
 
 class AbstractLaunchSystem : public QObject {
   Q_OBJECT
 
  protected:
-  std::shared_ptr<ProductionContext> Context;
+  std::shared_ptr<ProductionLineContext> Context;
   std::shared_ptr<AbstractSqlDatabase> Database;
 
  public:
@@ -19,12 +19,11 @@ class AbstractLaunchSystem : public QObject {
                                 std::shared_ptr<AbstractSqlDatabase> db);
   virtual ~AbstractLaunchSystem();
 
-  virtual void setContext(std::shared_ptr<ProductionContext> context) = 0;
+  virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
   virtual ReturnStatus init(void) = 0;
 
   virtual ReturnStatus launch(void) = 0;
   virtual ReturnStatus shutdown(void) = 0;
-  virtual bool isLaunched(void) = 0;
 
   virtual ReturnStatus findBox(void) = 0;
   virtual ReturnStatus refundBox(void) = 0;

@@ -9,7 +9,7 @@ RefundCurrentBoxCommand::RefundCurrentBoxCommand(const QString& name)
   connect(this, &RefundCurrentBoxCommand::refundCurrentBox_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::refundBox,
           Qt::BlockingQueuedConnection);
 }
@@ -20,12 +20,6 @@ void RefundCurrentBoxCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

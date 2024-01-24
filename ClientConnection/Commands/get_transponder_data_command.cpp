@@ -9,7 +9,7 @@ GetTransponderDataCommand::GetTransponderDataCommand(const QString& name)
   connect(this, &GetTransponderDataCommand::getTransponderData_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::getTransponderData,
           Qt::BlockingQueuedConnection);
 }
@@ -24,12 +24,6 @@ void GetTransponderDataCommand::process(const QJsonObject& command) {
     return;
   }
 
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
-    return;
-  }
-
   Parameters.insert("personal_account_number",
                     command.value("transpoder_pan").toString() + "F");
 
@@ -41,13 +35,13 @@ void GetTransponderDataCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["transponder_sn"] = Result.value("transponder_sn");
-    response["transponder_pan"] = Result.value("transponder_pan");
-    response["box_id"] = Result.value("box_id");
-    response["pallet_id"] = Result.value("pallet_id");
-    response["order_id"] = Result.value("order_id");
-    response["issuer_name"] = Result.value("issuer_name");
-    response["transponder_model"] = Result.value("transponder_model");
+    response["transponder_sn"] = Context->transponder().get("transponder_sn");
+    response["transponder_pan"] = Context->transponder().get("transponder_pan");
+    response["transponder_ucid"] =
+        Context->transponder().get("transponder_ucid");
+    response["transponder_release_counter"] =
+        Context->transponder().get("transponder_release_counter");
+    response["box_id"] = Context->transponder().get("box_id");
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));

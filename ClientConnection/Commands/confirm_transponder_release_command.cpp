@@ -9,7 +9,7 @@ ConfirmTransponderReleaseCommand::ConfirmTransponderReleaseCommand(const QString
   connect(this, &ConfirmTransponderReleaseCommand::confirmTransponderRelease_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::confirmTransponderRelease,
           Qt::BlockingQueuedConnection);
 }
@@ -21,12 +21,6 @@ void ConfirmTransponderReleaseCommand::process(const QJsonObject& command) {
       (command["command_name"] != CommandName) ||
       !command.contains("transponder_ucid")) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

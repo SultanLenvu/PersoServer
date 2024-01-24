@@ -14,20 +14,20 @@ ProductionLineLaunchSystem::ProductionLineLaunchSystem(
 ProductionLineLaunchSystem::~ProductionLineLaunchSystem() {}
 
 void ProductionLineLaunchSystem::setContext(
-    std::shared_ptr<ProductionContext> context) {
+    std::shared_ptr<ProductionLineContext> context) {
   Context = context;
 }
 
 ReturnStatus ProductionLineLaunchSystem::init() {
-  sendLog("Инициализация всех производственных линий.");
-
   SqlQueryValues newValues;
   newValues.add("launched", "false");
   newValues.add("in_process", "false");
   if (!updateProductionLine(newValues)) {
+    sendLog("Не удалось инициализировать производственные линии.");
     return ReturnStatus::DatabaseQueryError;
   }
 
+  sendLog("Производственные линии успешно инициализированы.");
   return ReturnStatus::NoError;
 }
 
@@ -54,6 +54,13 @@ ReturnStatus ProductionLineLaunchSystem::launch() {
 }
 
 ReturnStatus ProductionLineLaunchSystem::shutdown() {
+  if (!Context->isLaunched()) {
+    sendLog(QString("Производственная линия '%1' не была запущена. Остановка "
+                    "не требуется.")
+                .arg(Context->login()));
+    return ReturnStatus::NoError;
+  }
+
   SqlQueryValues plNew;
   Database->setRecordMaxCount(1);
 
@@ -73,34 +80,13 @@ ReturnStatus ProductionLineLaunchSystem::shutdown() {
   return ReturnStatus::NoError;
 }
 
-bool ProductionLineLaunchSystem::isLaunched() {
-  Database->setRecordMaxCount(1);
-
-  SqlQueryValues pl;
-  if (!Database->readRecords("production_lines",
-                             QString("login = '%1' AND password = '%2'")
-                                 .arg(Context->login(), Context->password()),
-                             pl)) {
-    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
-    return false;
-  }
-
-  if (pl.isEmpty()) {
-    sendLog(
-        QString(
-            "Получена ошибка при поиске данных производственной линии '%1'.")
-            .arg(Context->login()));
-    return false;
-  }
-
-  if (pl.get("launched") == "true") {
-    return true;
-  }
-
-  return false;
-}
-
 ReturnStatus ProductionLineLaunchSystem::findBox() {
+  if (!Context->isLaunched()) {
+    sendLog(QString("Производственная линия '%1' не была запущена.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotLaunched;
+  }
+
   Database->setRecordMaxCount(1);
   Database->setCurrentOrder(Qt::AscendingOrder);
 
@@ -142,6 +128,12 @@ ReturnStatus ProductionLineLaunchSystem::findBox() {
 }
 
 ReturnStatus ProductionLineLaunchSystem::refundBox() {
+  if (!Context->isLaunched()) {
+    sendLog(QString("Производственная линия '%1' не была запущена.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotLaunched;
+  }
+
   ReturnStatus ret = detachFromBox();
   if (ret != ReturnStatus::NoError) {
     sendLog(QString("Не удалось отвязать производственную линию '%1' от "
@@ -183,6 +175,12 @@ ReturnStatus ProductionLineLaunchSystem::refundBox() {
 }
 
 ReturnStatus ProductionLineLaunchSystem::completeBox() {
+  if (!Context->isLaunched()) {
+    sendLog(QString("Производственная линия '%1' не была запущена.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotLaunched;
+  }
+
   SqlQueryValues newBox;
   SqlQueryValues newPallet;
 

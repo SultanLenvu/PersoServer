@@ -9,7 +9,7 @@ PrintLastBoxStickerCommand::PrintLastBoxStickerCommand(const QString& name)
   connect(this, &PrintLastBoxStickerCommand::printLastBoxSticker_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::printLastBoxStickerManually,
           Qt::BlockingQueuedConnection);
 }
@@ -20,12 +20,6 @@ void PrintLastBoxStickerCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

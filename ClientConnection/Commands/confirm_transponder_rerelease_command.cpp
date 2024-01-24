@@ -9,7 +9,7 @@ ConfirmTransponderRereleaseCommand::ConfirmTransponderRereleaseCommand(const QSt
   connect(this, &ConfirmTransponderRereleaseCommand::confirmTransponderRerelease_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::confirmTransponderRerelease,
           Qt::BlockingQueuedConnection);
 }
@@ -22,12 +22,6 @@ void ConfirmTransponderRereleaseCommand::process(const QJsonObject& command) {
       !command.contains("password") || !command.contains("transpoder_ucid") ||
       !command.contains("transpoder_pan")) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

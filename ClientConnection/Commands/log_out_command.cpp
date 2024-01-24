@@ -9,7 +9,7 @@ LogOutCommand::LogOutCommand(const QString& name)
   connect(
       this, &LogOutCommand::shutdownProductionLine_signal,
       dynamic_cast<AbstractProductionDispatcher*>(
-          GlobalEnvironment::instance()->getObject("GeneralProductionDispatcher")),
+          GlobalEnvironment::instance()->getObject("ProductionDispatcher")),
       &AbstractProductionDispatcher::shutdownProductionLine,
       Qt::BlockingQueuedConnection);
 }
@@ -20,12 +20,6 @@ void LogOutCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

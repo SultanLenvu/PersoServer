@@ -11,7 +11,7 @@ ReleaseTransponderCommand::ReleaseTransponderCommand(const QString& name)
   connect(this, &ReleaseTransponderCommand::releaseTransponder_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::releaseTransponder,
           Qt::BlockingQueuedConnection);
 }
@@ -26,12 +26,6 @@ void ReleaseTransponderCommand::process(const QJsonObject& command) {
     return;
   }
 
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
-    return;
-  }
-
   // Запрашиваем печать бокса
   emit releaseTransponder_signal(*Firmware.get(), Status);
 }
@@ -40,7 +34,7 @@ void ReleaseTransponderCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["firmware"] = QString(*Firmware);
+    response["firmware"] = QString(Firmware->toBase64());
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));

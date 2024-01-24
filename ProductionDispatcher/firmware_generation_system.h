@@ -9,8 +9,6 @@
 #include <QSettings>
 #include <QString>
 
-#include "General/definitions.h"
-#include "Security/des.h"
 #include "abstract_firmware_generation_system.h"
 
 /*

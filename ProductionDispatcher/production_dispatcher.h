@@ -1,5 +1,5 @@
-#ifndef GENERALPRODUCTIONDISPATCHER_H
-#define GENERALPRODUCTIONDISPATCHER_H
+#ifndef PRODUCTIONDISPATCHER_H
+#define PRODUCTIONDISPATCHER_H
 
 #include "Database/abstract_sql_database.h"
 #include "Printing/abstract_sticker_printer.h"
@@ -9,7 +9,7 @@
 #include "abstract_production_dispatcher.h"
 #include "abstract_release_system.h"
 
-class GeneralProductionDispatcher : public AbstractProductionDispatcher {
+class ProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
  private:
   size_t CheckPeriod;
@@ -33,14 +33,16 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   std::unique_ptr<AbstractStickerPrinter> BoxStickerPrinter;
   std::unique_ptr<AbstractStickerPrinter> PalletStickerPrinter;
 
-  std::shared_ptr<ProductionContext> Context;
+  std::shared_ptr<ProductionLineContext> Context;
 
  public:
-  explicit GeneralProductionDispatcher(const QString& name);
-  ~GeneralProductionDispatcher();
+  explicit ProductionDispatcher(const QString& name);
+  ~ProductionDispatcher();
 
   // AbstractProductionDispatcher interface
  public slots:
+  virtual void onInstanceThreadStarted(void) override;
+
   virtual void start(ReturnStatus& ret) override;
   virtual void stop(void) override;
 
@@ -77,13 +79,13 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   virtual void printLastPalletStickerManually(ReturnStatus& ret) override;
 
  private:
-  GeneralProductionDispatcher();
-  Q_DISABLE_COPY_MOVE(GeneralProductionDispatcher);
+  ProductionDispatcher();
+  Q_DISABLE_COPY_MOVE(ProductionDispatcher);
 
   void loadSettings(void);
   void sendLog(const QString& log);
 
-  void loadCurrentContext(QObject* obj);
+  bool loadContext(QObject* obj);
 
   void createLaunchSystem(void);
   void createReleaseSystem(void);
@@ -101,4 +103,4 @@ class GeneralProductionDispatcher : public AbstractProductionDispatcher {
   void releaserOrderAssemblyComleted_slot(const std::shared_ptr<QString> id);
 };
 
-#endif  // GENERALPRODUCTIONDISPATCHER_H
+#endif  // PRODUCTIONDISPATCHER_H

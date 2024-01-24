@@ -1,11 +1,12 @@
-#ifndef PRODUCTION_CONTEXT_H
-#define PRODUCTION_CONTEXT_H
+#ifndef PRODUCTION_LINE_CONTEXT_H
+#define PRODUCTION_LINE_CONTEXT_H
 
+#include <QJsonObject>
 #include <QMutex>
 
 #include "sql_query_values.h"
 
-class ProductionContext {
+class ProductionLineContext {
  private:
   QMutex Mutex;
 
@@ -21,16 +22,23 @@ class ProductionContext {
   SqlQueryValues MasterKeys;
 
  public:
-  explicit ProductionContext();
-  ~ProductionContext();
+  explicit ProductionLineContext();
+  ~ProductionLineContext();
 
+ public:
   const QString& login(void) const;
-  void setLogin(QString& login);
+  void setLogin(const QString& login);
+
   const QString& password(void) const;
-  void setPassword(QString& password);
+  void setPassword(const QString& password);
+
+ public:
   bool isActive(void) const;
   bool isLaunched(void) const;
+  bool isAuthorized(void) const;
+  bool isInProcess(void) const;
 
+ public:
   SqlQueryValues& productionLine(void);
   SqlQueryValues& transponder(void);
   SqlQueryValues& box(void);
@@ -39,8 +47,16 @@ class ProductionContext {
   SqlQueryValues& issuer(void);
   SqlQueryValues& masterKeys(void);
 
+ public:
+  void generateFirmwareSeed(StringDictionary seed) const;
+
+  void addTransponderDataToJson(QJsonObject& json) const;
+  void addBoxDataToJson(QJsonObject& json) const;
+
  private:
-  Q_DISABLE_COPY_MOVE(ProductionContext)
+  Q_DISABLE_COPY_MOVE(ProductionLineContext)
+
+  QString generateTransponderSerialNumber(const QString& id) const;
 };
 
-#endif  // PRODUCTION_CONTEXT_H
+#endif  // PRODUCTION_LINE_CONTEXT_H

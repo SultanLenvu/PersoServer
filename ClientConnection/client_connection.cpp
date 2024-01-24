@@ -54,7 +54,7 @@ void ClientConnection::onInstanceThreadStarted() {
   createContext();
 }
 
-int32_t ClientConnection::getId() const {
+int32_t ClientConnection::id() const {
   return Id;
 }
 
@@ -288,7 +288,7 @@ void ClientConnection::createCommands() {
 }
 
 void ClientConnection::createContext() {
-  Context = std::shared_ptr<ProductionContext>(new ProductionContext());
+  Context = std::shared_ptr<ProductionLineContext>(new ProductionLineContext());
 
   for (auto it = Commands.begin(); it != Commands.end(); ++it) {
     it.value()->setContext(Context);
@@ -364,6 +364,12 @@ void ClientConnection::socketDisconnected_slot() {
 
   // Отправляем сигналы об отключении клиента
   emit disconnected();
+
+  // Если клиент запустил производственную линию
+  if (Context->isAuthorized()) {
+    ReturnStatus ret;
+    emit shutdownProductionLine_signal(ret);
+  }
 }
 
 void ClientConnection::socketError_slot(

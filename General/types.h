@@ -4,7 +4,7 @@
 #include <QHash>
 
 using StringDictionary = QHash<QString, QString>;
-// using ProductionContext = QHash<QString,
+// using ProductionLineContext = QHash<QString,
 // std::shared_ptr<SqlQueryValues>>;
 
 template <typename T>
@@ -23,8 +23,6 @@ enum class ReturnStatus {
   SyntaxError,
   SynchronizationError,
   FileOpenError,
-  InvalidProductionLineContext,
-  UnauthorizedRequest,
 
   DatabaseConnectionError,
   DatabaseTransactionError,
@@ -54,13 +52,16 @@ enum class ReturnStatus {
   IdenticalUcidError,
   CurrentOrderAssembled,
 
+  ProductionContextNotAuthorized,
+  ProductionLineNotLaunched,
   ProductionLineLaunchError,
   ProductionLineAlreadyLaunched,
   ProductionLineAlreadyInProcess,
   ProductionLineNotActive,
-  ProductionLineNotInProcess,
   ProductionLineCompleted,
   ProductionLineShutdownError,
+
+  ProductionLineNotInProcess,
   ProductionLineRollbackLimit,
   OrderInProcessMissed,
   FreeBoxMissed,

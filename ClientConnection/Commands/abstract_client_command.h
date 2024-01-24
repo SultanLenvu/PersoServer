@@ -5,21 +5,16 @@
 #include <QObject>
 
 #include <types.h>
-#include "production_context.h"
+#include "production_context_owner.h"
 
-class AbstractClientCommand : public QObject {
+class AbstractClientCommand : public ProductionContextOwner {
   Q_OBJECT
-
- protected:
-  std::shared_ptr<ProductionContext> Context;
 
  public:
   explicit AbstractClientCommand(const QString& name);
   virtual ~AbstractClientCommand();
 
-  std::shared_ptr<ProductionContext> context();
-  void setContext(std::shared_ptr<ProductionContext> context);
-
+ public:
   virtual void process(const QJsonObject& command) = 0;
   virtual void generateResponse(QJsonObject& response) = 0;
   virtual void reset(void) = 0;

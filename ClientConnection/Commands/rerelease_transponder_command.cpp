@@ -11,7 +11,7 @@ RereleaseTransponderCommand::RereleaseTransponderCommand(const QString& name)
   connect(this, &RereleaseTransponderCommand::rereleaseTransponder_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::rereleaseTransponder,
           Qt::BlockingQueuedConnection);
 }
@@ -23,12 +23,6 @@ void RereleaseTransponderCommand::process(const QJsonObject& command) {
       (command["command_name"] != CommandName) ||
       !command.contains("transpoder_pan")) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

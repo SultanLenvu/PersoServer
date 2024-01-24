@@ -13,12 +13,11 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
 
   // AbstractLaunchSystem interface
  public:
-  virtual void setContext(std::shared_ptr<ProductionContext> context) override;
+  virtual void setContext(std::shared_ptr<ProductionLineContext> context) override;
 
   virtual ReturnStatus init(void) override;
   virtual ReturnStatus launch(void) override;
   virtual ReturnStatus shutdown(void) override;
-  virtual bool isLaunched(void) override;
 
   virtual ReturnStatus findBox(void) override;
   virtual ReturnStatus refundBox(void) override;

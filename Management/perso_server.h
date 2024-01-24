@@ -40,8 +40,8 @@ class PersoServer : public QTcpServer {
   QHash<int32_t, std::shared_ptr<QThread>> ClientThreads;
   QHash<int32_t, std::shared_ptr<AbstractClientConnection>> Clients;
 
-  std::unique_ptr<AbstractProductionDispatcher> ProductionDispatcher;
-  std::unique_ptr<QThread> ProductionDispatcherThread;
+  std::unique_ptr<AbstractProductionDispatcher> Dispatcher;
+  std::unique_ptr<QThread> DispatcherThread;
 
   std::unique_ptr<QTimer> RestartTimer;
 
@@ -65,7 +65,7 @@ class PersoServer : public QTcpServer {
 
   void processCriticalError(const QString& log);
 
-  void createProductionDispatcherInstance(void);
+  void createDispatcherInstance(void);
   void createClientIdentifiers(void);
   void createClientInstance(qintptr socketDescriptor);
   void createRestartTimer(void);

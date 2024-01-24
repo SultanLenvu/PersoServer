@@ -10,7 +10,7 @@ GetCurrentTransponderDataCommand::GetCurrentTransponderDataCommand(const QString
           &GetCurrentTransponderDataCommand::getCurrentTransponderData_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::getCurrentTransponderData,
           Qt::BlockingQueuedConnection);
 }
@@ -21,12 +21,6 @@ void GetCurrentTransponderDataCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

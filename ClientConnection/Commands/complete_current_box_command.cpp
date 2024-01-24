@@ -8,8 +8,7 @@ CompleteCurrentBoxCommand::CompleteCurrentBoxCommand(const QString& name)
 
   connect(this, &CompleteCurrentBoxCommand::completeCurrentBox_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
-              GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+              GlobalEnvironment::instance()->getObject("ProductionDispatcher")),
           &AbstractProductionDispatcher::completeBox,
           Qt::BlockingQueuedConnection);
 }
@@ -23,18 +22,13 @@ void CompleteCurrentBoxCommand::process(const QJsonObject& command) {
     return;
   }
 
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
-    return;
-  }
-
   // Запрашиваем авторизацию
   emit completeCurrentBox_signal(Status);
 }
 
 void CompleteCurrentBoxCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
+
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 

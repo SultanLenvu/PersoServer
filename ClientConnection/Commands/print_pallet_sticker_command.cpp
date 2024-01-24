@@ -9,7 +9,7 @@ PrintPalletStickerCommand::PrintPalletStickerCommand(const QString& name)
   connect(this, &PrintPalletStickerCommand::printPalletSticker_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
-                  "GeneralProductionDispatcher")),
+                  "ProductionDispatcher")),
           &AbstractProductionDispatcher::printBoxStickerManually,
           Qt::BlockingQueuedConnection);
 }
@@ -21,12 +21,6 @@ void PrintPalletStickerCommand::process(const QJsonObject& command) {
       (command["command_name"] != CommandName) ||
       !command.contains("personal_account_number")) {
     Status = ReturnStatus::SyntaxError;
-    return;
-  }
-
-  if (!Context->isLaunched()) {
-    sendLog("Команда не может быть выполнена без авторизации.");
-    Status = ReturnStatus::UnauthorizedRequest;
     return;
   }
 

@@ -1,8 +1,8 @@
 #include <QHostAddress>
 
-#include "ClientConnection/client_connection.h"
-#include "Log/log_system.h"
-#include "ProductionDispatcher/general_production_dispatcher.h"
+#include "client_connection.h"
+#include "log_system.h"
+#include "production_dispatcher.h"
 // #include "config.h"
 #include "global_environment.h"
 #include "log_system.h"
@@ -20,7 +20,7 @@ PersoServer::PersoServer(const QString& name) : QTcpServer() {
   createClientIdentifiers();
 
   // Создаем систему выпуска транспондеров
-  createProductionDispatcherInstance();
+  createDispatcherInstance();
 
   // Создаем таймер перезапуска
   createRestartTimer();
@@ -32,9 +32,9 @@ PersoServer::PersoServer(const QString& name) : QTcpServer() {
 }
 
 PersoServer::~PersoServer() {
-  if (ProductionDispatcherThread->isRunning()) {
-    ProductionDispatcherThread->quit();
-    ProductionDispatcherThread->wait();
+  if (DispatcherThread->isRunning()) {
+    DispatcherThread->quit();
+    DispatcherThread->wait();
   }
 
   for (auto it = ClientThreads.begin(); it != ClientThreads.end(); ++it) {
@@ -135,29 +135,26 @@ void PersoServer::processCriticalError(const QString& log) {
 #endif
 }
 
-void PersoServer::createProductionDispatcherInstance() {
-  ProductionDispatcher = std::unique_ptr<AbstractProductionDispatcher>(
-      new GeneralProductionDispatcher("GeneralProductionDispatcher"));
+void PersoServer::createDispatcherInstance() {
+  Dispatcher = std::unique_ptr<AbstractProductionDispatcher>(
+      new ProductionDispatcher("ProductionDispatcher"));
   connect(this, &PersoServer::startProductionDispatcher_signal,
-          ProductionDispatcher.get(), &AbstractProductionDispatcher::start,
+          Dispatcher.get(), &AbstractProductionDispatcher::start,
           Qt::BlockingQueuedConnection);
-  connect(this, &PersoServer::stopProductionDispatcher_signal,
-          ProductionDispatcher.get(), &AbstractProductionDispatcher::stop,
-          Qt::BlockingQueuedConnection);
-  connect(ProductionDispatcher.get(),
-          &AbstractProductionDispatcher::errorDetected, this,
+  connect(this, &PersoServer::stopProductionDispatcher_signal, Dispatcher.get(),
+          &AbstractProductionDispatcher::stop, Qt::BlockingQueuedConnection);
+  connect(Dispatcher.get(), &AbstractProductionDispatcher::errorDetected, this,
           &PersoServer::productionDispatcherErrorDetected,
           Qt::BlockingQueuedConnection);
 
   // Создаем отдельный поток для системы выпуска транспондеров
-  ProductionDispatcherThread = std::unique_ptr<QThread>(new QThread());
-  ProductionDispatcher->moveToThread(ProductionDispatcherThread.get());
+  DispatcherThread = std::unique_ptr<QThread>(new QThread());
+  connect(DispatcherThread.get(), &QThread::started, Dispatcher.get(),
+          &AbstractProductionDispatcher::onInstanceThreadStarted);
 
   // Запускаем поток
-  ProductionDispatcherThread->start();
-
-  // Выбрасываем указатель на глобальный контекст
-  GlobalEnvironment::instance()->registerObject(ProductionDispatcher.get());
+  Dispatcher->moveToThread(DispatcherThread.get());
+  DispatcherThread->start();
 }
 
 void PersoServer::createClientIdentifiers() {
@@ -183,7 +180,7 @@ void PersoServer::createClientInstance(qintptr socketDescriptor) {
   Clients.insert(clientId, newClient);
   sendLog(QString("Новый клиент создан и зарегистрирован в реестре с "
                   "идентификатором %1. ")
-              .arg(QString::number(newClient->getId())));
+              .arg(QString::number(newClient->id())));
 
   // Создаем отдельный поток для клиента
   std::shared_ptr<QThread> newClientThread(new QThread());
@@ -218,7 +215,7 @@ void PersoServer::clientDisconnected_slot() {
     return;
   }
   // Освобождаем занятый идентификатор
-  int32_t clientId = disconnectedClient->getId();
+  int32_t clientId = disconnectedClient->id();
   FreeClientIds.push(clientId);
 
   // Удаляем отключившегося клиента и его поток из соответствующих реестров

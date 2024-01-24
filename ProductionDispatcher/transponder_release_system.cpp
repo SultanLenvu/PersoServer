@@ -1,6 +1,5 @@
 #include <QSettings>
 
-#include "General/definitions.h"
 #include "transponder_release_system.h"
 
 TransponderReleaseSystem::TransponderReleaseSystem(
@@ -13,17 +12,15 @@ TransponderReleaseSystem::TransponderReleaseSystem(
 TransponderReleaseSystem::~TransponderReleaseSystem() {}
 
 void TransponderReleaseSystem::setContext(
-    std::shared_ptr<ProductionContext> context) {
+    std::shared_ptr<ProductionLineContext> context) {
   Context = context;
 }
 
 ReturnStatus TransponderReleaseSystem::release() {
-  if (Context->productionLine().get("completed") == "true") {
-    sendLog(QString("Производственная линия %1 заврешила свою "
-                    "работу в текущем заказе %2.")
-                .arg(Context->productionLine().get("id"),
-                     Context->order().get("id")));
-    return ReturnStatus::CurrentOrderAssembled;
+  if (!Context->isInProcess()) {
+    sendLog(QString("Производственная линия %1 не в процессе сборки.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
   }
 
   if (Context->transponder().get("box_id") !=
@@ -45,6 +42,12 @@ ReturnStatus TransponderReleaseSystem::release() {
 }
 
 ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
+  if (!Context->isInProcess()) {
+    sendLog(QString("Производственная линия %1 не в процессе сборки.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
   // Проверка того, что транспондер не был выпущен ранее
   if (Context->transponder().get("release_counter").toInt() >= 1) {
     sendLog(
@@ -169,6 +172,12 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
 }
 
 ReturnStatus TransponderReleaseSystem::rollback() {
+  if (!Context->isInProcess()) {
+    sendLog(QString("Производственная линия %1 не в процессе сборки.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
   SqlQueryValues newTransponder;
   SqlQueryValues transponder;
   SqlQueryValues newBox;

@@ -56,7 +56,7 @@ add_executable(PersoServer
     Management/global_environment.h Management/global_environment.cpp
 
     ProductionDispatcher/abstract_production_dispatcher.h ProductionDispatcher/abstract_production_dispatcher.cpp
-    ProductionDispatcher/general_production_dispatcher.h ProductionDispatcher/general_production_dispatcher.cpp
+    ProductionDispatcher/production_dispatcher.h ProductionDispatcher/production_dispatcher.cpp
     ProductionDispatcher/transponder_release_system.cpp ProductionDispatcher/transponder_release_system.h
     ProductionDispatcher/abstract_launch_system.h ProductionDispatcher/abstract_launch_system.cpp
     ProductionDispatcher/abstract_info_system.h ProductionDispatcher/abstract_info_system.cpp
@@ -71,7 +71,8 @@ add_executable(PersoServer
 
     ClientConnection/abstract_client_connection.h ClientConnection/abstract_client_connection.cpp
     ClientConnection/client_connection.cpp ClientConnection/client_connection.h
-    ClientConnection/production_context.h ClientConnection/production_context.cpp
+    ClientConnection/production_line_context.h ClientConnection/production_line_context.cpp
+    ClientConnection/production_context_owner.h ClientConnection/production_context_owner.cpp
 
     ClientConnection/Commands/abstract_client_command.h ClientConnection/Commands/abstract_client_command.cpp
     ClientConnection/Commands/echo_comand.h ClientConnection/Commands/echo_comand.cpp
