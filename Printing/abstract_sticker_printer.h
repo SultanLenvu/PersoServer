@@ -7,7 +7,7 @@
 #include <QSettings>
 #include <QtPrintSupport/QPrinterInfo>
 
-#include "General/types.h"
+#include "types.h"
 
 class AbstractStickerPrinter : public QObject {
   Q_OBJECT
@@ -18,14 +18,12 @@ class AbstractStickerPrinter : public QObject {
   };
   Q_ENUM(StickerPrinterType);
 
- protected:
-  StickerPrinterType Type;
-
  public:
-  AbstractStickerPrinter(StickerPrinterType type);
+  AbstractStickerPrinter(const QString& name);
   virtual ~AbstractStickerPrinter();
 
   virtual bool init(void) = 0;
+  virtual StickerPrinterType type(void) = 0;
 
   virtual ReturnStatus printTransponderSticker(
       const StringDictionary& param) = 0;
@@ -37,7 +35,7 @@ class AbstractStickerPrinter : public QObject {
   virtual ReturnStatus printPalletSticker(const StringDictionary& param) = 0;
   virtual ReturnStatus printLastPalletSticker(void) = 0;
 
-  virtual ReturnStatus exec(const QStringList* commandScript) = 0;
+  virtual ReturnStatus exec(const QStringList& commandScript) = 0;
 
   virtual void applySetting(void) = 0;
 

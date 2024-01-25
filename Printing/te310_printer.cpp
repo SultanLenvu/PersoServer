@@ -2,9 +2,7 @@
 
 #include "te310_printer.h"
 
-TE310Printer::TE310Printer(const QString& name)
-    : AbstractStickerPrinter(TE310) {
-  setObjectName(name);
+TE310Printer::TE310Printer(const QString& name) : AbstractStickerPrinter(name) {
   loadSetting();
 
   TscLib = std::unique_ptr<QLibrary>(new QLibrary(TscLibPath));
@@ -31,6 +29,10 @@ bool TE310Printer::init() {
   return true;
 }
 
+AbstractStickerPrinter::StickerPrinterType TE310Printer::type() {
+  return TE310;
+}
+
 #ifdef __linux__
 TE310Printer::TE310Printer(QObject* parent, const QHostAddress& ip, int port)
     : AbstractStickerPrinter(parent, TE310), IPAddress(ip) {
@@ -47,7 +49,7 @@ ReturnStatus TE310Printer::printTransponderSticker(
     const StringDictionary& param) {
   if (!checkConfig()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
-    return ReturnStatus::PrinterConnectionError;
+    return ReturnStatus::StickerPrinterConnectionError;
   }
 
   // Проврека параметров
@@ -61,7 +63,7 @@ ReturnStatus TE310Printer::printTransponderSticker(
 
   if (!TscLib->isLoaded()) {
     sendLog("Библиотека не загружена. Сброс. ");
-    return ReturnStatus::PrinterLibraryError;
+    return ReturnStatus::DynamicLibraryMissing;
   }
 
   // Сохраняем данные стикера
@@ -86,7 +88,7 @@ ReturnStatus TE310Printer::printLastTransponderSticker() {
 ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
   if (!checkConfig()) {
     sendLog(QString("Ошибка конфигурации. Сброс"));
-    return ReturnStatus::PrinterConnectionError;
+    return ReturnStatus::StickerPrinterConnectionError;
   }
 
   if (param.value("id").isEmpty() ||
@@ -159,7 +161,7 @@ ReturnStatus TE310Printer::printLastBoxSticker() {
 ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
   if (!checkConfig()) {
     sendLog(QString("Ошибка конфигурации. Сброс"));
-    return ReturnStatus::PrinterConnectionError;
+    return ReturnStatus::StickerPrinterConnectionError;
   }
 
   if (param.value("id").isEmpty() ||
@@ -238,10 +240,10 @@ ReturnStatus TE310Printer::printLastPalletSticker() {
   return printPalletSticker(LastPalletSticker);
 }
 
-ReturnStatus TE310Printer::exec(const QStringList* commandScript) {
+ReturnStatus TE310Printer::exec(const QStringList& commandScript) {
   if (!checkConfig()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
-    return ReturnStatus::PrinterConnectionError;
+    return ReturnStatus::StickerPrinterConnectionError;
   }
 
 #ifdef __linux__
@@ -250,8 +252,8 @@ ReturnStatus TE310Printer::exec(const QStringList* commandScript) {
 #else
   openPort(objectName().toUtf8().data());
 #endif /* __linux__ */
-  for (int32_t i = 0; i < commandScript->size(); i++) {
-    sendCommand(commandScript->at(i).toUtf8().data());
+  for (int32_t i = 0; i < commandScript.size(); i++) {
+    sendCommand(commandScript.at(i).toUtf8().data());
   }
   closePort();
 
@@ -267,12 +269,11 @@ void TE310Printer::applySetting() {
 void TE310Printer::loadSetting() {
   QSettings settings;
 
-  LogEnable = settings.value("log_system/global_enable").toBool();
   TscLibPath = settings.value("te310_printer/library_path").toString();
 }
 
 void TE310Printer::sendLog(const QString& log) {
-  emit const_cast<TE310Printer*>(this)->logging(objectName() + " - " + log);
+  emit logging(QString("%1 - %2").arg(objectName(), log));
 }
 
 bool TE310Printer::loadTscLib() {

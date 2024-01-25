@@ -18,9 +18,7 @@ class SqlQueryValues : public QAbstractTableModel {
  private:
   QVector<QString> Fields;
   QHash<QString, int32_t> FieldIndex;
-  QVector<SharedVector<QString>> Values;
-
-  QMutex Mutex;
+  std::vector<SharedVector<QString>> Values;
 
  public:
   explicit SqlQueryValues();
@@ -32,17 +30,19 @@ class SqlQueryValues : public QAbstractTableModel {
   QString get(uint32_t field) const;
   QString get(const QString& field) const;
   QString getLast(const QString& field) const;
-  int32_t recordCount(void) const;
-  int32_t fieldCount(void) const;
+  QHash<QString, QString> getRecord(uint32_t num) const;
+
+  size_t recordCount(void) const;
+  size_t fieldCount(void) const;
   bool isEmpty(void) const;
   void appendToInsert(QString& queryText) const;
 
   void extractRecords(QSqlQuery& request);
   void add(const QHash<QString, QString>& record);
-  void add(const QString& name,
-           const std::shared_ptr<QVector<QString>>& values);
   void add(const QString& field, const QString& value);
   void addField(const QString& field);
+  void addField(const QString& name, const SharedVector<QString> values);
+  void addRecord(const QHash<QString, QString> record);
   void clear();
 
   // Интерфейс модели

@@ -50,6 +50,7 @@ bool FirmwareGenerationSystem::init() {
     return false;
   }
 
+  sendLog("Инициализация успешно заврешена.");
   return true;
 }
 

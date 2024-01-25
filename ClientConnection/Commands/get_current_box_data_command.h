@@ -11,7 +11,7 @@ class GetCurrentBoxDataCommand : public AbstractClientCommand
   const QString CommandName = COMMAND_GETCURRENTBOXDATA_NAME;
   const size_t CommandSize = COMMAND_GETCURRENTBOXDATA_SIZE;
 
-  StringDictionary CurrentBoxData;
+  StringDictionary BoxData;
   ReturnStatus Status;
 
  public:
@@ -28,8 +28,7 @@ class GetCurrentBoxDataCommand : public AbstractClientCommand
   Q_DISABLE_COPY_MOVE(GetCurrentBoxDataCommand)
 
  signals:
-  //  void getCurrentBoxData_signal(StringDictionary& data, ReturnStatus&
-  //  status);
+  void getCurrentBoxData_signal(StringDictionary& data, ReturnStatus& status);
 };
 
 #endif // GETCURRENTBOXDATACOMMAND_H

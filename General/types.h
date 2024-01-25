@@ -8,7 +8,7 @@ using StringDictionary = QHash<QString, QString>;
 // std::shared_ptr<SqlQueryValues>>;
 
 template <typename T>
-using SharedVector = std::shared_ptr<QVector<T>>;
+using SharedVector = std::shared_ptr<std::vector<T>>;
 
 enum class ProductionLineState {
   NotActive,
@@ -19,15 +19,17 @@ enum class ProductionLineState {
 
 enum class ReturnStatus {
   NoError = 0,
+  DynamicLibraryMissing,
   ParameterError,
   SyntaxError,
-  SynchronizationError,
+  ConsistencyViolation,
   FileOpenError,
 
   DatabaseConnectionError,
   DatabaseTransactionError,
   DatabaseQueryError,
 
+  ProductionLineLaunchSystemInitError,
   FirmwareGeneratorInitError,
   StickerPrinterInitError,
 
@@ -41,7 +43,7 @@ enum class ReturnStatus {
   MasterKeysMissed,
 
   OrderMultiplyAssembly,
-  OrderAssemblyMissing,
+  OrderInProcessMissed,
 
   BoxCompletelyAssembled,
   BoxNotCompletelyAssembled,
@@ -52,7 +54,7 @@ enum class ReturnStatus {
   IdenticalUcidError,
   CurrentOrderAssembled,
 
-  ProductionContextNotAuthorized,
+  ProductionLineContextNotAuthorized,
   ProductionLineNotLaunched,
   ProductionLineLaunchError,
   ProductionLineAlreadyLaunched,
@@ -63,13 +65,12 @@ enum class ReturnStatus {
 
   ProductionLineNotInProcess,
   ProductionLineRollbackLimit,
-  OrderInProcessMissed,
+  UncompletedBoxMissed,
   FreeBoxMissed,
 
   FirmwareGenerationError,
 
-  PrinterConnectionError,
-  PrinterLibraryError,
+  StickerPrinterConnectionError,
   BoxStickerPrintError,
   PalletStickerPrintError,
   Unknown,

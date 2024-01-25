@@ -25,7 +25,7 @@ class AbstractLaunchSystem : public QObject {
   virtual ReturnStatus launch(void) = 0;
   virtual ReturnStatus shutdown(void) = 0;
 
-  virtual ReturnStatus findBox(void) = 0;
+  virtual ReturnStatus requestBox(void) = 0;
   virtual ReturnStatus refundBox(void) = 0;
   virtual ReturnStatus completeBox(void) = 0;
 

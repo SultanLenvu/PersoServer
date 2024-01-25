@@ -2,10 +2,9 @@
 #include "global_environment.h"
 #include "log_system.h"
 
-AbstractStickerPrinter::AbstractStickerPrinter(StickerPrinterType type)
+AbstractStickerPrinter::AbstractStickerPrinter(const QString& name)
     : QObject(nullptr) {
-  setObjectName("AbstractStickerPrinter");
-  Type = type;
+  setObjectName(name);
 
   connect(this, &AbstractStickerPrinter::logging,
           dynamic_cast<LogSystem*>(

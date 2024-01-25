@@ -149,7 +149,6 @@ bool PostgreSqlTable::readRecords(SqlQueryValues& response) {
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -173,7 +172,6 @@ bool PostgreSqlTable::readRecords(const QString& conditions,
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -192,7 +190,7 @@ bool PostgreSqlTable::readLastRecord(SqlQueryValues& response) {
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -224,7 +222,7 @@ bool PostgreSqlTable::updateRecords(const SqlQueryValues& newValues) {
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -257,7 +255,7 @@ bool PostgreSqlTable::updateRecords(const QString& condition,
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -274,7 +272,7 @@ bool PostgreSqlTable::deleteRecords(const QString& condition) {
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -290,7 +288,7 @@ bool PostgreSqlTable::clear() {
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -307,7 +305,7 @@ bool PostgreSqlTable::getRecordCount(uint32_t& count) {
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);

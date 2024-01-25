@@ -35,13 +35,12 @@ void GetTransponderDataCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["transponder_sn"] = Context->transponder().get("transponder_sn");
-    response["transponder_pan"] = Context->transponder().get("transponder_pan");
-    response["transponder_ucid"] =
-        Context->transponder().get("transponder_ucid");
+    response["transponder_sn"] = Result.value("transponder_sn");
+    response["transponder_pan"] = Result.value("transponder_pan");
+    response["transponder_ucid"] = Result.value("transponder_ucid");
     response["transponder_release_counter"] =
-        Context->transponder().get("transponder_release_counter");
-    response["box_id"] = Context->transponder().get("box_id");
+        Result.value("transponder_release_counter");
+    response["box_id"] = Result.value("box_id");
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));

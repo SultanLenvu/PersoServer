@@ -6,12 +6,11 @@ GetCurrentBoxDataCommand::GetCurrentBoxDataCommand(const QString& name)
     : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
-  //  connect(this, &GetCurrentBoxDataCommand::getCurrentBoxData_signal,
-  //          dynamic_cast<AbstractProductionDispatcher*>(
-  //              GlobalEnvironment::instance()->getObject(
-  //                  "ProductionDispatcher")),
-  //          &AbstractProductionDispatcher::getCurrentBoxData,
-  //          Qt::BlockingQueuedConnection);
+  connect(this, &GetCurrentBoxDataCommand::getCurrentBoxData_signal,
+          dynamic_cast<AbstractProductionDispatcher*>(
+              GlobalEnvironment::instance()->getObject("ProductionDispatcher")),
+          &AbstractProductionDispatcher::getCurrentBoxData,
+          Qt::BlockingQueuedConnection);
 }
 
 GetCurrentBoxDataCommand::~GetCurrentBoxDataCommand() {}
@@ -24,20 +23,28 @@ void GetCurrentBoxDataCommand::process(const QJsonObject& command) {
   }
 
   // Запрашиваем авторизацию
-  //  emit getCurrentBoxData_signal(CurrentBoxData, Status);
+  emit getCurrentBoxData_signal(BoxData, Status);
 }
 
 void GetCurrentBoxDataCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    Context->addBoxDataToJson(response);
+    response["box_id"] = BoxData.value("box_id");
+    response["box_in_process"] = BoxData.value("box_in_process");
+    response["box_quantity"] = BoxData.value("box_quantity");
+    response["box_assembled_units"] = BoxData.value("box_assembled_units");
+    response["box_assembling_start"] = BoxData.value("box_assembling_start");
+    response["box_assembling_end"] = BoxData.value("box_assembling_end");
+
+    response["pallet_id"] = BoxData.value("pallet_id");
+    response["production_line_id"] = BoxData.value("production_line_id");
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 
 void GetCurrentBoxDataCommand::reset() {
-  CurrentBoxData.clear();
+  BoxData.clear();
   Status = ReturnStatus::Unknown;
 }

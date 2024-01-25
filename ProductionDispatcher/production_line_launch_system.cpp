@@ -20,14 +20,18 @@ void ProductionLineLaunchSystem::setContext(
 
 ReturnStatus ProductionLineLaunchSystem::init() {
   SqlQueryValues newValues;
+
   newValues.add("launched", "false");
   newValues.add("in_process", "false");
-  if (!updateProductionLine(newValues)) {
-    sendLog("Не удалось инициализировать производственные линии.");
+  newValues.add("box_id", "NULL");
+  newValues.add("transponder_id", "NULL");
+  if (!Database->updateRecords("production_lines", newValues)) {
+    sendLog(QString(
+        "Получена ошибка при обновлении данных производственных линии. "));
     return ReturnStatus::DatabaseQueryError;
   }
 
-  sendLog("Производственные линии успешно инициализированы.");
+  sendLog("Инициализация производственных линий успешно завершена.");
   return ReturnStatus::NoError;
 }
 
@@ -38,11 +42,17 @@ ReturnStatus ProductionLineLaunchSystem::launch() {
   if (ret != ReturnStatus::NoError) {
     return ret;
   }
-
   ret = checkProductionLineState();
   if (ret != ReturnStatus::NoError) {
     return ret;
   }
+  sendLog(QString("Данные производственной линии загружены. "));
+
+  ret = loadOrderInProcess();
+  if (ret != ReturnStatus::NoError) {
+    return ret;
+  }
+  sendLog(QString("Данные заказа находящегося в процессе сборки загружены. "));
 
   SqlQueryValues newValues;
   newValues.add("launched", "true");
@@ -80,46 +90,44 @@ ReturnStatus ProductionLineLaunchSystem::shutdown() {
   return ReturnStatus::NoError;
 }
 
-ReturnStatus ProductionLineLaunchSystem::findBox() {
+ReturnStatus ProductionLineLaunchSystem::requestBox() {
   if (!Context->isLaunched()) {
     sendLog(QString("Производственная линия '%1' не была запущена.")
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
 
-  Database->setRecordMaxCount(1);
-  Database->setCurrentOrder(Qt::AscendingOrder);
-
   ReturnStatus ret;
-  ret = findUncompletedBox();
-  if (ret == ReturnStatus::NoError) {
-    return ret;
-  }
 
-  ret = findFreeBox();
+  ret = findBox();
   if (ret != ReturnStatus::NoError) {
+    sendLog("Не удалось найти бокс.");
     return ret;
   }
 
   ret = loadBoxContext();
   if (ret != ReturnStatus::NoError) {
-    return ReturnStatus::DatabaseQueryError;
+    sendLog("Не удалось загрузить контекст бокса.");
+    return ret;
   }
 
   ret = attachWithBox();
   if (ret != ReturnStatus::NoError) {
+    sendLog("Не удалось связать производственную линию с боксом.");
     return ret;
   }
 
   ret = startBoxAssembly();
   if (ret != ReturnStatus::NoError) {
+    sendLog("Не удалось загрузить запустить сборку бокса.");
     return ReturnStatus::DatabaseQueryError;
   }
 
-  // Если новая паллета не в процессе сборки
+  // Если паллета не в процессе сборки
   if (Context->pallet().get("in_process") == "false") {
     ret = startPalletAssembly();
     if (ret != ReturnStatus::NoError) {
+      sendLog("Не удалось загрузить запустить сборку паллеты.");
       return ReturnStatus::DatabaseQueryError;
     }
   }
@@ -291,20 +299,23 @@ ReturnStatus ProductionLineLaunchSystem::findOrderInProcess() {
   if (Context->order().recordCount() == 0) {
     sendLog(
         QString("В системе отсутствуют заказ, находящийся в процессе сборки."));
-    return ReturnStatus::OrderAssemblyMissing;
+    return ReturnStatus::OrderInProcessMissed;
   }
 
   return ReturnStatus::NoError;
 }
 
-ReturnStatus ProductionLineLaunchSystem::findUncompletedBox() {
+ReturnStatus ProductionLineLaunchSystem::findBox() {
   QStringList tables{"boxes", "pallets", "orders"};
   Database->setRecordMaxCount(1);
+  Database->setRecordMaxCount(Qt::AscendingOrder);
+
+  Context->box().clear();
 
   if (!Database->readMergedRecords(
           tables,
           QString("boxes.production_line_id = %1 AND orders.id = %2 AND "
-                  "boxes.assembled_units < boxes.quantity)")
+                  "boxes.assembled_units < boxes.quantity")
               .arg(Context->productionLine().get("id"),
                    Context->order().get("id")),
           Context->box())) {
@@ -312,25 +323,24 @@ ReturnStatus ProductionLineLaunchSystem::findUncompletedBox() {
     return ReturnStatus::DatabaseQueryError;
   }
 
-  if (Context->box().isEmpty()) {
-    sendLog(QString("Получена ошибка при поиске начатого бокса в заказе %1.")
-                .arg(Context->order().get("id")));
-    return ReturnStatus::FreeBoxMissed;
+  if (!Context->box().isEmpty()) {
+    sendLog(QString("В заказе %1 у производственной линии '%2' найден "
+                    "незавершенный бокс %3.")
+                .arg(Context->order().get("id"), Context->login(),
+                     Context->box().get("id")));
+    return ReturnStatus::NoError;
   }
+  sendLog(QString("В заказе %1 у производственной линии '%1' нет "
+                  "незавершенных боксов.")
+              .arg(Context->order().get("id"), Context->login()));
 
-  return ReturnStatus::NoError;
-}
-
-ReturnStatus ProductionLineLaunchSystem::findFreeBox() {
-  QStringList tables{"boxes", "pallets", "orders"};
-  Database->setRecordMaxCount(1);
-
+  sendLog(QString("Поиск свободного бокса в заказе %1.")
+              .arg(Context->order().get("id")));
   if (!Database->readMergedRecords(
           tables,
-          QString("boxes.production_line_id = NULL AND orders.id = %2 AND "
-                  "boxes.assemled_units = 0")
-              .arg(Context->productionLine().get("id"),
-                   Context->order().get("id")),
+          QString("boxes.production_line_id IS NULL AND orders.id = %1 AND "
+                  "boxes.assembled_units = 0")
+              .arg(Context->order().get("id")),
           Context->box())) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;
@@ -342,6 +352,8 @@ ReturnStatus ProductionLineLaunchSystem::findFreeBox() {
     return ReturnStatus::FreeBoxMissed;
   }
 
+  sendLog(QString("Свободный бокс найден, идентификатор: %1.")
+              .arg(Context->box().get("id")));
   return ReturnStatus::NoError;
 }
 
@@ -381,7 +393,7 @@ ReturnStatus ProductionLineLaunchSystem::startBoxAssembly() {
                                        POSTGRES_TIMESTAMP_TEMPLATE));
   }
   boxNew.add("in_process", "true");
-  if (!updateProductionLine(boxNew)) {
+  if (!updateBox(boxNew)) {
     return ReturnStatus::DatabaseQueryError;
   }
 
@@ -478,13 +490,46 @@ ReturnStatus ProductionLineLaunchSystem::completeOrder() {
 }
 
 ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
-  if (!Database->readRecords("transponders",
-                             QString("release_counter = 0 AND box_id = '%1'")
-                                 .arg(Context->box().get("id")),
-                             Context->transponder())) {
-    sendLog(QString(
-        "Получена ошибка при получении данных из таблицы transponders."));
-    return ReturnStatus::DatabaseQueryError;
+  // Если все транспондеры в боксе были собраны,
+  // то останавливаемся на последнем и ожидаем заверешения сборки бокса
+
+  Database->setCurrentOrder(Qt::AscendingOrder);
+
+  if (Context->box().get("assembled_units") == Context->box().get("quantity")) {
+    // Дополнительная проверка консистентности системы
+    int32_t quant = Context->box().get("quantity").toInt();
+
+    Database->setRecordMaxCount(quant);
+
+    SqlQueryValues transponders;
+    if (!Database->readRecords("transponders",
+                               QString("box_id = '%1' AND release_counter > 0")
+                                   .arg(Context->box().get("id")),
+                               transponders)) {
+      sendLog(QString(
+          "Получена ошибка при получении данных из таблицы transponders."));
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    if (transponders.recordCount() != quant) {
+      sendLog(
+          QString("Количество выпущенных транспондеров в боксе не "
+                  "соответствует счетчику."));
+      return ReturnStatus::ConsistencyViolation;
+    }
+
+    Database->setRecordMaxCount(1);
+    Context->transponder().addRecord(transponders.getRecord(quant - 1));
+  } else {  // В противном случае ищем первый невыпущенный транспондер в боксе
+    Database->setRecordMaxCount(1);
+    if (!Database->readRecords("transponders",
+                               QString("release_counter = 0 AND box_id = '%1'")
+                                   .arg(Context->box().get("id")),
+                               Context->transponder())) {
+      sendLog(QString(
+          "Получена ошибка при получении данных из таблицы transponders."));
+      return ReturnStatus::DatabaseQueryError;
+    }
   }
 
   if (Context->transponder().isEmpty()) {
@@ -494,6 +539,8 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
             .arg(Context->box().get("id")));
     return ReturnStatus::FreeBoxMissed;
   }
+
+  Database->setRecordMaxCount(1);
 
   if (!Database->readRecords(
           "pallets", QString("id = '%1'").arg(Context->box().get("pallet_id")),
@@ -511,65 +558,13 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
     return ReturnStatus::FreeBoxMissed;
   }
 
-  if (!Database->readRecords(
-          "orders", QString("id = '%1'").arg(Context->pallet().get("order_id")),
-          Context->order())) {
-    sendLog(QString("Получена ошибка при получении данных из таблицы orders."));
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  if (Context->order().isEmpty()) {
-    sendLog(QString("Получена ошибка при поиске заказа, в котором содержится "
-                    "паллета %1.")
-                .arg(Context->pallet().get("id")));
-    return ReturnStatus::FreeBoxMissed;
-  }
-
-  if (!Database->readRecords(
-          "issuers",
-          QString("id = '%1'").arg(Context->order().get("issuer_id")),
-          Context->issuer())) {
-    sendLog(
-        QString("Получена ошибка при получении данных из таблицы issuers."));
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  if (Context->issuer().isEmpty()) {
-    sendLog(QString("Получена ошибка при поиске эмитента, которому принадлежит "
-                    "заказ '%1'.")
-                .arg(Context->order().get("id")));
-    return ReturnStatus::FreeBoxMissed;
-  }
-
-  QString keyTable;
-  QString keyTableRef;
-  if (Context->order().get("full_personalization") == "true") {
-    keyTable = "transport_master_keys";
-    keyTableRef = "transport_master_keys_id";
-  } else {
-    keyTable = "commecial_master_keys";
-    keyTableRef = "commecial_master_keys_id";
-  }
-
-  if (!Database->readRecords(
-          keyTable,
-          QString("id = '%1'").arg(Context->issuer().get(keyTableRef)),
-          Context->masterKeys())) {
-    sendLog(QString("Получена ошибка при получении данных из таблицы %1.")
-                .arg(keyTable));
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  if (Context->masterKeys().isEmpty()) {
-    sendLog(QString("Получена ошибка при поиске мастер ключей для заказа %1.")
-                .arg(Context->order().get("id")));
-    return ReturnStatus::FreeBoxMissed;
-  }
-
   return ReturnStatus::NoError;
 }
 
 ReturnStatus ProductionLineLaunchSystem::loadProductionLine() {
+  Context->productionLine().clear();
+  Database->setRecordMaxCount(1);
+
   if (!Database->readRecords("production_lines",
                              QString("login = '%1' AND password = '%2'")
                                  .arg(Context->login(), Context->password()),
@@ -585,6 +580,75 @@ ReturnStatus ProductionLineLaunchSystem::loadProductionLine() {
             "Получена ошибка при поиске данных производственной линии '%1'.")
             .arg(Context->login()));
     return ReturnStatus::ProductionLineMissed;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus ProductionLineLaunchSystem::loadOrderInProcess() {
+  Context->order().clear();
+  Context->issuer().clear();
+  Context->masterKeys().clear();
+  Database->setRecordMaxCount(0);
+
+  if (!Database->readRecords("orders", QString("in_process = true"),
+                             Context->order())) {
+    sendLog(QString("Получена ошибка при получении данных из таблицы order."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (Context->order().isEmpty()) {
+    sendLog(QString(
+        "Получена ошибка при поиске  заказа, находящегося в процессе сборки."));
+    return ReturnStatus::OrderInProcessMissed;
+  }
+
+  if (Context->order().recordCount() > 1) {
+    sendLog(
+        QString("В системе одновременно находится более одного заказа в "
+                "процессе сборки."));
+    return ReturnStatus::OrderMultiplyAssembly;
+  }
+
+  if (!Database->readRecords(
+          "issuers",
+          QString("id = '%1'").arg(Context->order().get("issuer_id")),
+          Context->issuer())) {
+    sendLog(
+        QString("Получена ошибка при получении данных из таблицы issuers."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (Context->issuer().isEmpty()) {
+    sendLog(QString("Получена ошибка при поиске эмитента, которому принадлежит "
+                    "заказ '%1'.")
+                .arg(Context->order().get("id")));
+    return ReturnStatus::IssuerMissed;
+  }
+
+  QString keyTable;
+  QString keyTableRef;
+  if (Context->order().get("full_personalization") == "false") {
+    keyTable = "transport_master_keys";
+    keyTableRef = "transport_master_keys_id";
+  } else {
+    keyTable = "commercial_master_keys";
+    keyTableRef = "commercial_master_keys_id";
+  }
+
+  if (!Database->readRecords(
+          keyTable,
+          QString("id = '%1'").arg(Context->issuer().get(keyTableRef)),
+          Context->masterKeys())) {
+    sendLog(QString("Получена ошибка при получении данных из таблицы %1.")
+                .arg(keyTable));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (Context->masterKeys().isEmpty()) {
+    sendLog(QString("Получена ошибка при поиске мастер ключей для заказа %1.")
+                .arg(Context->order().get("id")));
+    return ReturnStatus::MasterKeysMissed;
   }
 
   return ReturnStatus::NoError;

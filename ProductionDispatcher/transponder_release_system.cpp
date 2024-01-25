@@ -28,7 +28,7 @@ ReturnStatus TransponderReleaseSystem::release() {
     sendLog(QString("Транспондер %1 не содержится в соответствующем боксе %1")
                 .arg(Context->transponder().get("id"),
                      Context->productionLine().get("box_id")));
-    return ReturnStatus::SynchronizationError;
+    return ReturnStatus::ConsistencyViolation;
   }
 
   if (Context->transponder().get("release_counter").toUInt() > 0) {

@@ -347,7 +347,7 @@ bool PostgreSqlDatabase::readMergedRecords(const QStringList& tables,
   // Создаем запрос
   QString requestText;
   if (response.fieldCount() == 0) {
-    requestText += QString("SELECT * FROM public.%1 ").arg(tables.first());
+    requestText += QString("SELECT %1.* FROM public.%1 ").arg(tables.first());
   } else {
     requestText += "SELECT ";
     for (int32_t i = 0; i < response.fieldCount(); i++) {
@@ -368,9 +368,9 @@ bool PostgreSqlDatabase::readMergedRecords(const QStringList& tables,
   }
 
   requestText +=
-      QString("WHERE %1 ORDER BY %2 %3 ")
-          .arg(conditions, Tables.value(tables.first())->getPrimaryKey(),
-               CurrentOrder);
+      QString("WHERE %1 ORDER BY %2.%3 %4 ")
+          .arg(conditions, tables.first(),
+               Tables.value(tables.first())->getPrimaryKey(), CurrentOrder);
   if (RecordMaxCount > 0) {
     requestText += QString("LIMIT %1").arg(QString::number(RecordMaxCount));
   }
@@ -378,7 +378,7 @@ bool PostgreSqlDatabase::readMergedRecords(const QStringList& tables,
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -441,7 +441,6 @@ bool PostgreSqlDatabase::updateMergedRecords(
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);
@@ -483,7 +482,7 @@ bool PostgreSqlDatabase::deleteMergedRecords(const QStringList& tables,
 
   // Выполняем запрос
   QSqlQuery request(QSqlDatabase::database(ConnectionName));
-  request.setForwardOnly(true);
+
   if (!request.exec(requestText)) {
     sendLog(request.lastError().text());
     sendLog("Отправленный запрос: " + requestText);

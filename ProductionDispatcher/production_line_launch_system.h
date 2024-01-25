@@ -19,7 +19,7 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   virtual ReturnStatus launch(void) override;
   virtual ReturnStatus shutdown(void) override;
 
-  virtual ReturnStatus findBox(void) override;
+  virtual ReturnStatus requestBox(void) override;
   virtual ReturnStatus refundBox(void) override;
   virtual ReturnStatus completeBox(void) override;
 
@@ -31,8 +31,7 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   ReturnStatus checkProductionLineState(void);
 
   ReturnStatus findOrderInProcess(void);
-  ReturnStatus findUncompletedBox(void);
-  ReturnStatus findFreeBox(void);
+  ReturnStatus findBox(void);
 
   ReturnStatus attachWithBox(void);
   ReturnStatus detachFromBox(void);
@@ -48,6 +47,7 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
 
   ReturnStatus loadBoxContext(void);
   ReturnStatus loadProductionLine(void);
+  ReturnStatus loadOrderInProcess(void);
 
   bool updateProductionLine(const SqlQueryValues& newValues);
   bool updateTransponder(const SqlQueryValues& newValues);

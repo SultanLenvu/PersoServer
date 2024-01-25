@@ -20,7 +20,6 @@ class TE310Printer : public AbstractStickerPrinter {
 #endif /* __linux__ */
 
  private:
-  bool LogEnable;
 #ifdef __linux__
   QHostAddress IPAddress;
   int Port;
@@ -49,6 +48,7 @@ class TE310Printer : public AbstractStickerPrinter {
 #endif /* __linux__ */
 
   virtual bool init(void) override;
+  virtual StickerPrinterType type(void) override;
 
   virtual ReturnStatus printTransponderSticker(
       const StringDictionary& param) override;
@@ -61,7 +61,7 @@ class TE310Printer : public AbstractStickerPrinter {
       const StringDictionary& param) override;
   virtual ReturnStatus printLastPalletSticker(void) override;
 
-  virtual ReturnStatus exec(const QStringList* commandScript) override;
+  virtual ReturnStatus exec(const QStringList& commandScript) override;
 
   virtual void applySetting(void) override;
 
