@@ -45,6 +45,7 @@ enum class ReturnStatus {
   OrderMultiplyAssembly,
   OrderInProcessMissed,
 
+  FreeBoxMissed,
   BoxCompletelyAssembled,
   BoxNotCompletelyAssembled,
 
@@ -62,11 +63,8 @@ enum class ReturnStatus {
   ProductionLineNotActive,
   ProductionLineCompleted,
   ProductionLineShutdownError,
-
   ProductionLineNotInProcess,
   ProductionLineRollbackLimit,
-  UncompletedBoxMissed,
-  FreeBoxMissed,
 
   FirmwareGenerationError,
 

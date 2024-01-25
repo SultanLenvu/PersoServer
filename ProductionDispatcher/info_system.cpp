@@ -148,10 +148,9 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
   Database->setRecordMaxCount(0);
   Database->setCurrentOrder(Qt::AscendingOrder);
 
-  if (!Database->readRecords("transponders",
-                             QString("box_id = %1 AND release_counter > 0")
-                                 .arg(Context->box().get("id")),
-                             transponders)) {
+  if (!Database->readRecords(
+          "transponders", QString("box_id = %1").arg(Context->box().get("id")),
+          transponders)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;
   }
@@ -162,19 +161,25 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
     return ReturnStatus::TranspoderMissed;
   }
 
-  // Идентификатор бокса
-  data.insert("id", Context->box().get("id"));
+  // Данные бокса
+  data.insert("box_id", Context->box().get("id"));
+  data.insert("box_in_process", Context->box().get("in_process"));
+  data.insert("box_quantity", Context->box().get("quantity"));
 
-  // Количество транспондеров в боксе
-  data.insert("quantity", Context->box().get("assembled_units"));
+  data.insert("box_assembled_units", Context->box().get("assembled_units"));
+  data.insert("box_assembling_start",
+              Context->box().get("assembling_start").replace("T", " "));
+  data.insert("box_assembling_end",
+              Context->box().get("assembling_end").replace("T", " "));
 
-  // Сохраняем серийник первого транспондера в боксе
+  data.insert("transponder_model", Context->order().get("transponder_model"));
   data.insert("first_transponder_sn",
               generateTransponderSerialNumber(transponders.get("id")));
-
-  // Сохраняем серийник последнего транспондера в боксе
   data.insert("last_transponder_sn",
               generateTransponderSerialNumber(transponders.getLast("id")));
+
+  data.insert("pallet_id", Context->box().get("pallet_id"));
+  data.insert("production_line_id", Context->box().get("production_line_id"));
 
   // Сохраняем модель транспондера
   QString model = Context->order().get("transponder_model");

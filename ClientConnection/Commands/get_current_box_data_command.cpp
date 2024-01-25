@@ -33,9 +33,13 @@ void GetCurrentBoxDataCommand::generateResponse(QJsonObject& response) {
     response["box_id"] = BoxData.value("box_id");
     response["box_in_process"] = BoxData.value("box_in_process");
     response["box_quantity"] = BoxData.value("box_quantity");
+
     response["box_assembled_units"] = BoxData.value("box_assembled_units");
     response["box_assembling_start"] = BoxData.value("box_assembling_start");
     response["box_assembling_end"] = BoxData.value("box_assembling_end");
+
+    response["first_transponder_sn"] = BoxData.value("first_transponder_sn");
+    response["last_transponder_sn"] = BoxData.value("last_transponder_sn");
 
     response["pallet_id"] = BoxData.value("pallet_id");
     response["production_line_id"] = BoxData.value("production_line_id");

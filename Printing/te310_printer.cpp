@@ -91,9 +91,9 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
     return ReturnStatus::StickerPrinterConnectionError;
   }
 
-  if (param.value("id").isEmpty() ||
+  if (param.value("box_id").isEmpty() ||
+      param.value("box_assembled_units").isEmpty() ||
       param.value("transponder_model").isEmpty() ||
-      param.value("quantity").isEmpty() ||
       param.value("first_transponder_sn").isEmpty() ||
       param.value("last_transponder_sn").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
@@ -130,7 +130,7 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
   //                  .data());
   sendCommand("TEXT 50, 190, \"D.FNT\", 0, 2, 2, 1, \"QUANTITY:\"");
   sendCommand(QString("TEXT 600, 190, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
-                  .arg(param.value("quantity"))
+                  .arg(param.value("box_assembled_units"))
                   .toUtf8()
                   .data());
   sendCommand("TEXT 50, 290, \"D.FNT\", 0, 2, 2, 1, \"SERIAL NO FROM:\"");
