@@ -214,12 +214,10 @@ void ClientConnection::createDataBlockWaitTimer() {
 void ClientConnection::createCommands() {
   Commands.insert("echo", std::shared_ptr<AbstractClientCommand>(
                               new EchoCommand("EchoCommand")));
-
   Commands.insert("log_in", std::shared_ptr<AbstractClientCommand>(
                                 new LogInCommand("LogInCommand")));
   connect(dynamic_cast<LogInCommand*>(Commands.value("log_in").get()),
           &LogInCommand::authorized, this, &ClientConnection::authorized_slot);
-
   Commands.insert("log_out", std::shared_ptr<AbstractClientCommand>(
                                  new LogOutCommand("LogOutCommand")));
   connect(dynamic_cast<LogOutCommand*>(Commands.value("log_out").get()),
@@ -234,7 +232,7 @@ void ClientConnection::createCommands() {
       std::shared_ptr<AbstractClientCommand>(
           new GetCurrentBoxDataCommand("GetCurrentBoxDataCommand")));
   Commands.insert(
-      "complete_box",
+      "complete_current_box",
       std::shared_ptr<AbstractClientCommand>(
           new CompleteCurrentBoxCommand("CompleteCurrentBoxCommand")));
   Commands.insert("refund_current_box",

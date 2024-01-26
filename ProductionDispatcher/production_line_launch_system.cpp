@@ -79,15 +79,12 @@ ReturnStatus ProductionLineLaunchSystem::shutdown() {
     return ReturnStatus::DatabaseQueryError;
   }
 
-  ReturnStatus ret = detachFromBox();
-  if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось отвязать производственную линию '%1' от "
-                    "бокса %1.")
-                .arg(Context->login(), Context->box().get("id")));
-    return ret;
+  ReturnStatus ret = refundBoxSubprocess();
+  if (ret == ReturnStatus::BoxNotRequested || ret == ReturnStatus::NoError) {
+    return ReturnStatus::NoError;
   }
 
-  return ReturnStatus::NoError;
+  return ret;
 }
 
 ReturnStatus ProductionLineLaunchSystem::requestBox() {
@@ -95,6 +92,13 @@ ReturnStatus ProductionLineLaunchSystem::requestBox() {
     sendLog(QString("Производственная линия '%1' не была запущена.")
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotLaunched;
+  }
+
+  if (!Context->box().isEmpty() ||
+      (Context->productionLine().get("box_id") != "0") ||
+      (Context->productionLine().get("transponder_id") != "0")) {
+    sendLog(QString("Производственная линия %1 уже имеет бокс для сборки."));
+    return ReturnStatus::BoxAlreadyRequested;
   }
 
   ReturnStatus ret;
@@ -142,44 +146,7 @@ ReturnStatus ProductionLineLaunchSystem::refundBox() {
     return ReturnStatus::ProductionLineNotLaunched;
   }
 
-  ReturnStatus ret = detachFromBox();
-  if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось отвязать производственную линию '%1' от "
-                    "бокса %1.")
-                .arg(Context->login(), Context->box().get("id")));
-    return ret;
-  }
-
-  ret = stopBoxAssembly();
-  if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось остановить процесс сборки бокса %1.")
-                .arg(Context->box().get("id")));
-    return ret;
-  }
-
-  SqlQueryValues boxesInProcess;
-  if (!Database->readRecords("boxes",
-                             QString("pallet_id = %1 AND in_process = true")
-                                 .arg(Context->pallet().get("id")),
-                             boxesInProcess)) {
-    sendLog(QString("Получена ошибка при получении данных из таблицы boxes."));
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Если в паллете все еще есть боксы, находящиеся в процессе сборки, то
-  // возвращаемся
-  if (!boxesInProcess.isEmpty()) {
-    return ReturnStatus::NoError;
-  }
-  // В противном случае останавливаем сборку паллеты
-  ret = stopPalletAssembly();
-  if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось остановить процесс сборки паллеты %1.")
-                .arg(Context->pallet().get("id")));
-    return ret;
-  }
-
-  return ReturnStatus::NoError;
+  return refundBoxSubprocess();
 }
 
 ReturnStatus ProductionLineLaunchSystem::completeBox() {
@@ -275,6 +242,62 @@ ReturnStatus ProductionLineLaunchSystem::checkProductionLineState() {
                     "невозможен.")
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineCompleted;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus ProductionLineLaunchSystem::refundBoxSubprocess() {
+  ReturnStatus ret;
+
+  if (Context->box().isEmpty() &&
+      (Context->productionLine().get("box_id") == "0") &&
+      (Context->productionLine().get("transponder_id") == "0")) {
+    sendLog(
+        QString(
+            "Производственная линия '%1' не связана ни с каким боксом. Возврат "
+            "не требуется.")
+            .arg(Context->login()));
+    return ReturnStatus::BoxNotRequested;
+  }
+  sendLog(QString("Осуществление возврата бокса %1.")
+              .arg(Context->box().get("id")));
+
+  ret = stopBoxAssembly();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось остановить процесс сборки бокса %1.")
+                .arg(Context->box().get("id")));
+    return ret;
+  }
+
+  SqlQueryValues boxesInProcess;
+  if (!Database->readRecords("boxes",
+                             QString("pallet_id = %1 AND in_process = true")
+                                 .arg(Context->pallet().get("id")),
+                             boxesInProcess)) {
+    sendLog(QString("Получена ошибка при получении данных из таблицы boxes."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Если в паллете все еще есть боксы, находящиеся в процессе сборки, то
+  // возвращаемся
+  if (!boxesInProcess.isEmpty()) {
+    return ReturnStatus::NoError;
+  }
+  // В противном случае останавливаем сборку паллеты
+  ret = stopPalletAssembly();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось остановить процесс сборки паллеты %1.")
+                .arg(Context->pallet().get("id")));
+    return ret;
+  }
+
+  ret = detachFromBox();
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Не удалось отвязать производственную линию '%1' от "
+                    "бокса %1.")
+                .arg(Context->login(), Context->box().get("id")));
+    return ret;
   }
 
   return ReturnStatus::NoError;
@@ -381,6 +404,9 @@ ReturnStatus ProductionLineLaunchSystem::detachFromBox() {
     return ReturnStatus::DatabaseQueryError;
   }
 
+  // Очищаем контекст бокса
+  clearBoxContext();
+
   return ReturnStatus::NoError;
 }
 
@@ -432,8 +458,11 @@ ReturnStatus ProductionLineLaunchSystem::stopBoxAssembly() {
 ReturnStatus ProductionLineLaunchSystem::stopPalletAssembly() {
   SqlQueryValues palletNew;
 
+  palletNew.add("id", Context->pallet().get("id"));
   palletNew.add("in_process", "false");
-  palletNew.add("id", Context->box().get("id"));
+  if (Context->pallet().get("assembled_units") == "0") {
+    palletNew.add("assembling_start", "NULL");
+  }
   if (!updatePallet(palletNew)) {
     return ReturnStatus::DatabaseQueryError;
   }
@@ -559,6 +588,12 @@ ReturnStatus ProductionLineLaunchSystem::loadBoxContext() {
   }
 
   return ReturnStatus::NoError;
+}
+
+void ProductionLineLaunchSystem::clearBoxContext() {
+  Context->transponder().clear();
+  Context->box().clear();
+  Context->pallet().clear();
 }
 
 ReturnStatus ProductionLineLaunchSystem::loadProductionLine() {

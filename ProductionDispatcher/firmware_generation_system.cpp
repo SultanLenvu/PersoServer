@@ -64,13 +64,13 @@ ReturnStatus FirmwareGenerationSystem::generate(const StringDictionary& seed,
   assembledFirmware.reserve(FIRMWARE_SIZE);
 
   ret = generateFirmwareData(seed, firmwareData);
-  if (ret == ReturnStatus::NoError) {
+  if (ret != ReturnStatus::NoError) {
     sendLog("Получена ошибка при генерации данных прошивки. ");
     return ret;
   }
 
   ret = assembleFirmware(firmwareData, assembledFirmware);
-  if (ret == ReturnStatus::NoError) {
+  if (ret != ReturnStatus::NoError) {
     sendLog("Получена ошибка при сборке прошивки из базы и данных. ");
     return ret;
   }
@@ -109,7 +109,7 @@ ReturnStatus FirmwareGenerationSystem::assembleFirmware(
   FirmwareBaseFile->close();
 
   // Сцепляем базу и данные прошивки
-  assembledFirmware.append(*firmwareData);
+  assembledFirmware.append(firmwareData);
 
   return ReturnStatus::NoError;
 }

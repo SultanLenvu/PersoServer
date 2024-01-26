@@ -53,25 +53,29 @@ QString InfoSystem::getTransponderPalletId(const QString& key,
 }
 
 ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
+  if (!Context->isInProcess()) {
+    sendLog(
+        QString("Производственная линия '%1' не находится в процессе сборки.")
+            .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
   // Данные переносимые без изменений
   data.insert("box_id", Context->box().get("id"));
-  data.insert("pallet_id", Context->pallet().get("id"));
-  data.insert("order_id", Context->order().get("id"));
-
-  // Удаляем пробелы из названия модели
-  QString tempModel = Context->order().get("transponder_model");
-  data.insert("transponder_model", tempModel.remove(" "));
+  data.insert("transponder_release_counter",
+              Context->transponder().get("release_counter"));
+  data.insert("transponder_ucid", Context->transponder().get("ucid"));
 
   // Конструируем серийный номер транспондера
-  data.insert(
-      "sn", generateTransponderSerialNumber(Context->transponder().get("id")));
+  data.insert("transponder_sn", generateTransponderSerialNumber(
+                                    Context->transponder().get("id")));
 
   // Вычленяем символы F из personal_account_number
   QString tempPan = Context->transponder().get("personal_account_number");
-  data.insert("pan", tempPan.remove(QChar('F')));
+  data.insert("transponder_pan", tempPan.remove(QChar('F')));
 
   // Название компании-заказчика
-  data.insert("issuer_name", Context->order().get("name"));
+  data.insert("issuer_name", Context->issuer().get("name"));
 
   return ReturnStatus::NoError;
 }
@@ -92,6 +96,13 @@ ReturnStatus InfoSystem::generateTransponderData(const QString& key,
 }
 
 ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& seed) {
+  if (!Context->isInProcess()) {
+    sendLog(
+        QString("Производственная линия '%1' не находится в процессе сборки.")
+            .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
   // DSRC атрибуты
   seed.insert("personal_account_number",
               Context->transponder().get("personal_account_number"));
@@ -143,11 +154,17 @@ ReturnStatus InfoSystem::generateFirmwareSeed(const QString& key,
 }
 
 ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
-  SqlQueryValues transponders;
+  if (!Context->isInProcess()) {
+    sendLog(
+        QString("Производственная линия '%1' не находится в процессе сборки.")
+            .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
 
   Database->setRecordMaxCount(0);
   Database->setCurrentOrder(Qt::AscendingOrder);
 
+  SqlQueryValues transponders;
   if (!Database->readRecords(
           "transponders", QString("box_id = %1").arg(Context->box().get("id")),
           transponders)) {
@@ -203,6 +220,13 @@ ReturnStatus InfoSystem::generateBoxData(const QString& id,
 }
 
 ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
+  if (Context->isInProcess()) {
+    sendLog(
+        QString("Производственная линия '%1' не находится в процессе сборки.")
+            .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
   SqlQueryValues boxes;
   if (!Database->readRecords(
           "boxes",

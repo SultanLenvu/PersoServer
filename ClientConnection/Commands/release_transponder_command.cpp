@@ -20,8 +20,7 @@ ReleaseTransponderCommand::~ReleaseTransponderCommand() {}
 
 void ReleaseTransponderCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
-      (command["command_name"] != CommandName) || !command.contains("login") ||
-      !command.contains("password")) {
+      (command["command_name"] != CommandName)) {
     Status = ReturnStatus::SyntaxError;
     return;
   }
@@ -34,7 +33,7 @@ void ReleaseTransponderCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["firmware"] = QString(Firmware->toBase64());
+    response["transponder_firmware"] = QString(Firmware->toBase64());
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));

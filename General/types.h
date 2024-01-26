@@ -45,6 +45,8 @@ enum class ReturnStatus {
   OrderMultiplyAssembly,
   OrderInProcessMissed,
 
+  BoxAlreadyRequested,
+  BoxNotRequested,
   FreeBoxMissed,
   BoxCompletelyAssembled,
   BoxNotCompletelyAssembled,

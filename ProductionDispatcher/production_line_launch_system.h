@@ -30,6 +30,8 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
 
   ReturnStatus checkProductionLineState(void);
 
+  ReturnStatus refundBoxSubprocess(void);
+
   ReturnStatus findOrderInProcess(void);
   ReturnStatus findBox(void);
 
@@ -46,6 +48,8 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   ReturnStatus completeOrder(void);
 
   ReturnStatus loadBoxContext(void);
+  void clearBoxContext(void);
+
   ReturnStatus loadProductionLine(void);
   ReturnStatus loadOrderInProcess(void);
 

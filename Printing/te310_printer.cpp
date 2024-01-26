@@ -53,8 +53,9 @@ ReturnStatus TE310Printer::printTransponderSticker(
   }
 
   // Проврека параметров
-  if (param.value("issuer_name").isEmpty() || param.value("sn").isEmpty() ||
-      param.value("pan").isEmpty()) {
+  if (param.value("issuer_name").isEmpty() ||
+      param.value("transponder_sn").isEmpty() ||
+      param.value("transponder_pan").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ReturnStatus::ParameterError;
   }
@@ -92,8 +93,8 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
   }
 
   if (param.value("box_id").isEmpty() ||
-      param.value("box_assembled_units").isEmpty() ||
       param.value("transponder_model").isEmpty() ||
+      param.value("box_assembled_units").isEmpty() ||
       param.value("first_transponder_sn").isEmpty() ||
       param.value("last_transponder_sn").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
@@ -264,6 +265,8 @@ void TE310Printer::applySetting() {
   sendLog("Применение новых настроек.");
 
   loadSetting();
+
+  init();
 }
 
 void TE310Printer::loadSetting() {
