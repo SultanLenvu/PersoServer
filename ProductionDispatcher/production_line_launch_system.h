@@ -35,21 +35,19 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   ReturnStatus findOrderInProcess(void);
   ReturnStatus findBox(void);
 
-  ReturnStatus attachWithBox(void);
-  ReturnStatus detachFromBox(void);
+  bool attachBox(void);
+  bool detachBox(void);
 
   ReturnStatus startBoxAssembly(void);
   ReturnStatus startPalletAssembly(void);
 
-  ReturnStatus stopBoxAssembly(void);
-  ReturnStatus stopPalletAssembly(void);
+  bool stopBoxAssembly(void);
+  bool stopPalletAssembly(void);
 
   ReturnStatus completePallet(void);
   ReturnStatus completeOrder(void);
 
   ReturnStatus loadBoxContext(void);
-  void clearBoxContext(void);
-
   ReturnStatus loadProductionLine(void);
   ReturnStatus loadOrderInProcess(void);
 

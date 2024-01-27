@@ -6,6 +6,34 @@ SqlQueryValues::SqlQueryValues() : QAbstractTableModel{nullptr} {}
 
 SqlQueryValues::~SqlQueryValues() {}
 
+SqlQueryValues::SqlQueryValues(const SqlQueryValues& other)
+    : Fields(other.Fields),
+      FieldIndex(other.FieldIndex),
+      Values(other.Values) {}
+
+SqlQueryValues::SqlQueryValues(SqlQueryValues&& other) noexcept
+    : Fields(std::move(other.Fields)),
+      FieldIndex(std::move(other.FieldIndex)),
+      Values(std::move(other.Values)) {}
+
+SqlQueryValues& SqlQueryValues::operator=(const SqlQueryValues& other) {
+  if (this != &other) {
+    Fields = other.Fields;
+    FieldIndex = other.FieldIndex;
+    Values = other.Values;
+  }
+  return *this;
+}
+
+SqlQueryValues& SqlQueryValues::operator=(SqlQueryValues&& other) noexcept {
+  if (this != &other) {
+    Fields = std::move(other.Fields);
+    FieldIndex = std::move(other.FieldIndex);
+    Values = std::move(other.Values);
+  }
+  return *this;
+}
+
 QString SqlQueryValues::fieldName(uint32_t i) const {
   return Fields.at(i);
 }

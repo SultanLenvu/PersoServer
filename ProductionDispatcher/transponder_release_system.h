@@ -21,8 +21,11 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
 
   // AbstractReleaseSystem interface
  public:
-  virtual void setContext(std::shared_ptr<ProductionLineContext> context) override;
+  virtual void setContext(
+      std::shared_ptr<ProductionLineContext> context) override;
 
+  virtual ReturnStatus findLastReleased(void) override;
+  virtual ReturnStatus findNext(void) override;
   virtual ReturnStatus release(void) override;
   virtual ReturnStatus confirmRelease(const QString& ucid) override;
   virtual ReturnStatus rerelease(const QString& key,
@@ -37,11 +40,12 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
-  bool confirmCurrentTransponder(const QString& ucid);
+  ReturnStatus checkContext(void);
 
-  ReturnStatus searchNextTransponder(void);
+  bool confirmTransponder(const QString& ucid);
+  bool attachTransponder(void);
 
-  bool switchCurrentTransponder(const QString& id);
+  bool switchTransponder(const QString& id);
   bool switchCurrentBox(const QString& id);
   bool switchCurrentPallet(const QString& id);
 

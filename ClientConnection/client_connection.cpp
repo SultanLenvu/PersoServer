@@ -82,6 +82,8 @@ void ClientConnection::createTransmittedDataBlock() {
   // Вызов обработчика
   Commands.value(CommandData.value("command_name").toString())
       ->generateResponse(ResponseData);
+  Commands.value(CommandData.value("command_name").toString())->reset();
+
   QJsonDocument responseDocument(ResponseData);
 
   sendLog("Формирование ответного блока данных. ");

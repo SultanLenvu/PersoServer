@@ -2,14 +2,11 @@
 #define PRODUCTION_LINE_CONTEXT_H
 
 #include <QJsonObject>
-#include <QMutex>
 
 #include "sql_query_values.h"
 
 class ProductionLineContext {
  private:
-  QMutex Mutex;
-
   QString Login;
   QString Password;
 
@@ -21,8 +18,10 @@ class ProductionLineContext {
   SqlQueryValues Issuer;
   SqlQueryValues MasterKeys;
 
+  std::unique_ptr<ProductionLineContext> Stash;
+
  public:
-  explicit ProductionLineContext();
+  ProductionLineContext();
   ~ProductionLineContext();
 
  public:
@@ -48,13 +47,17 @@ class ProductionLineContext {
   SqlQueryValues& masterKeys(void);
 
  public:
+  void stash(void);
+  void applyStash(void);
+
+ public:
   void generateFirmwareSeed(StringDictionary seed) const;
 
   void addTransponderDataToJson(QJsonObject& json) const;
   void addBoxDataToJson(QJsonObject& json) const;
 
  private:
-  Q_DISABLE_COPY_MOVE(ProductionLineContext)
+  //  Q_DISABLE_COPY_MOVE(ProductionLineContext)
 
   QString generateTransponderSerialNumber(const QString& id) const;
 };

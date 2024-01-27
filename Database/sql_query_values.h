@@ -21,9 +21,22 @@ class SqlQueryValues : public QAbstractTableModel {
   std::vector<SharedVector<QString>> Values;
 
  public:
-  explicit SqlQueryValues();
+  SqlQueryValues();
   ~SqlQueryValues();
 
+  // Конструктор копирования
+  SqlQueryValues(const SqlQueryValues& other);
+
+  // Конструктор перемещения
+  SqlQueryValues(SqlQueryValues&& other) noexcept;
+
+  // Оператор присваивания
+  SqlQueryValues& operator=(const SqlQueryValues& other);
+
+  // Оператор присваивания перемещением
+  SqlQueryValues& operator=(SqlQueryValues&& other) noexcept;
+
+ public:
   QString fieldName(uint32_t i) const;
   QString get(uint32_t record, const QString& field) const;
   QString get(uint32_t record, uint32_t field) const;
@@ -53,10 +66,6 @@ class SqlQueryValues : public QAbstractTableModel {
   QVariant headerData(int section,
                       Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
-
- private:
-  Q_DISABLE_COPY_MOVE(SqlQueryValues)
- signals:
 };
 
 #endif  // SQL_QUERY_VALUES_H

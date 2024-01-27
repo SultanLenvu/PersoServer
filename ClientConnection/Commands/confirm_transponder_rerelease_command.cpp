@@ -18,18 +18,17 @@ ConfirmTransponderRereleaseCommand::~ConfirmTransponderRereleaseCommand() {}
 
 void ConfirmTransponderRereleaseCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
-      (command["command_name"] != CommandName) || !command.contains("login") ||
-      !command.contains("password") || !command.contains("transpoder_ucid") ||
+      (command["command_name"] != CommandName) ||
+      !command.contains("transpoder_ucid") ||
       !command.contains("transpoder_pan")) {
     Status = ReturnStatus::SyntaxError;
     return;
   }
 
-  Parameters.insert("login", command.value("login").toString());
-  Parameters.insert("password", command.value("password").toString());
   Parameters.insert("personal_account_number",
                     command.value("transpoder_pan").toString());
-  Parameters.insert("ucid", command.value("transpoder_ucid").toString());
+  Parameters.insert("transponder_ucid",
+                    command.value("transpoder_ucid").toString());
 
   // Подтверждение выпуска транспондера
   emit confirmTransponderRerelease_signal(Parameters, Status);

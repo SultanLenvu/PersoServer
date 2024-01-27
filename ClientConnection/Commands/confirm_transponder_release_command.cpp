@@ -24,7 +24,8 @@ void ConfirmTransponderReleaseCommand::process(const QJsonObject& command) {
     return;
   }
 
-  Parameters.insert("ucid", command.value("transponder_ucid").toString());
+  Parameters.insert("transponder_ucid",
+                    command.value("transponder_ucid").toString());
 
   // Подтверждение выпуска транспондера
   emit confirmTransponderRelease_signal(Parameters, Status);

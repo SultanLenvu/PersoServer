@@ -77,62 +77,62 @@ void ProductionDispatcher::stop() {
 }
 
 void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
-  sendLog(QString("Запуск производственной линии. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("launchProductionLine");
 
   ret = Launcher->launch();
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Получена ошибка при запуске производственной линии '%1'. ")
-                .arg(Context->login()));
+    processOperationError("launchProductionLine", ret);
     return;
   }
 
-  sendLog(
-      QString("Производственная линия '%1' запущена. ").arg(Context->login()));
+  completeOperation("launchProductionLine");
 }
 
 void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
-  sendLog(QString("Остановка производственной линии. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("shutdownProductionLine");
 
   ret = Launcher->shutdown();
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось остановить производственную линию '%1'. ")
-                .arg(Context->login()));
+    processOperationError("shutdownProductionLine", ret);
     return;
   }
 
-  sendLog(QString("Производственная линия '%1' остановлена. ")
-              .arg(Context->login()));
-  ret = ReturnStatus::NoError;
+  completeOperation("shutdownProductionLine");
 }
 
 void ProductionDispatcher::requestBox(ReturnStatus& ret) {
-  sendLog(QString("Запрос бокса. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("requestBox");
 
   ret = Launcher->requestBox();
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не получить бокс для производственной линиии '%1'. ")
-                .arg(Context->login()));
+    processOperationError("requestBox", ret);
     return;
   }
 
-  sendLog(QString("Бокс успешно найден. "));
+  ret = Releaser->findLastReleased();
+  if (ret != ReturnStatus::NoError) {
+    processOperationError("requestBox", ret);
+    return;
+  }
+
+  completeOperation("requestBox");
 }
 
 void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
                                              ReturnStatus& ret) {
-  sendLog(QString("Получение данных бокса. "));
+  initOperation("getCurrentBoxData");
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
@@ -140,158 +140,154 @@ void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
 
   ret = Informer->generateBoxData(data);
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось найти данные текущего бокса на "
-                    "производственной линиии %1. ")
-                .arg(Context->login()));
+    processOperationError("getCurrentBoxData", ret);
     return;
   }
 
-  sendLog(QString("Данные успешно получены. "));
+  completeOperation("getCurrentBoxData");
 }
 
 void ProductionDispatcher::refundBox(ReturnStatus& ret) {
-  sendLog(QString("Возврат бокса. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("refundBox");
 
   ret = Launcher->refundBox();
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось найти бокс для производственной линиии %1. ")
-                .arg(Context->login()));
+    processOperationError("refundBox", ret);
     return;
   }
 
-  sendLog(QString("Бокс успешно возвращен. "));
+  // Очищаем соответствующий контекст
+  Context->box().clear();
+  Context->pallet().clear();
+  Context->transponder().clear();
+
+  completeOperation("refundBox");
 }
 
 void ProductionDispatcher::completeBox(ReturnStatus& ret) {
-  sendLog(QString("Завершение сборки бокса. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("completeBox");
 
   ret = Launcher->completeBox();
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Не удалось найти бокс для производственной линиии %1. ")
-                .arg(Context->login()));
+    processOperationError("completeBox", ret);
     return;
   }
 
   StringDictionary boxData;
   ret = Informer->generateBoxData(boxData);
   if (ret != ReturnStatus::NoError) {
-    emit errorDetected(ret);
+    processOperationError("completeBox", ret);
     return;
   }
 
   ret = BoxStickerPrinter->printBoxSticker(boxData);
   if (ret != ReturnStatus::NoError) {
-    emit errorDetected(ret);
+    processOperationError("completeBox", ret);
     return;
   }
 
-  sendLog(QString("Сборка бокса успешно завершена. "));
+  completeOperation("completeBox");
 }
 
 void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
                                               ReturnStatus& ret) {
-  sendLog(QString("Выпуск транспондера. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
+    return;
+  }
+  initOperation("releaseTransponder");
+
+  ret = Releaser->findNext();
+  if (ret != ReturnStatus::NoError) {
+    processOperationError("confirmTransponderRelease", ret);
     return;
   }
 
   ret = Releaser->release();
   if (ret != ReturnStatus::NoError) {
-    sendLog("Получена ошибка при выпуске транспондера.");
-    emit errorDetected(ret);
+    processOperationError("releaseTransponder", ret);
     return;
   }
 
   StringDictionary seed;
   ret = Informer->generateFirmwareSeed(seed);
   if (ret != ReturnStatus::NoError) {
-    sendLog(
-        "Получена ошибка при генерации сида для генерации прошивки "
-        "транспондера.");
-    emit errorDetected(ret);
+    processOperationError("releaseTransponder", ret);
     return;
   }
 
   ret = Generator->generate(seed, firmware);
   if (ret != ReturnStatus::NoError) {
-    sendLog(
-        "Получена ошибка при генерации сида для генерации прошивки "
-        "транспондера.");
-    emit errorDetected(ret);
+    processOperationError("releaseTransponder", ret);
     return;
   }
 
-  sendLog(QString("Транспондер успешно выпущен. "));
+  completeOperation("releaseTransponder");
 }
 
 void ProductionDispatcher::confirmTransponderRelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog(QString("Подтверждение выпуска транспондера. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("confirmTransponderRelease");
 
   ret = Releaser->confirmRelease(param.value("transponder_ucid"));
   if (ret != ReturnStatus::NoError) {
-    sendLog("Получена ошибка при выпуске транспондера.");
-    emit errorDetected(ret);
+    processOperationError("confirmTransponderRelease", ret);
     return;
   }
 
-  sendLog(QString("Выпуск транспондера успешно подтвержден."));
+  completeOperation("confirmTransponderRelease");
 }
 
 void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
                                                 QByteArray& firmware,
                                                 ReturnStatus& ret) {
-  sendLog(QString("Перевыпуск транспондера. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("rereleaseTransponder");
 
   QString pan = param.value("transponder_pan")
                     .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
   ret = Releaser->rerelease("personal_account_number", pan);
   if (ret != ReturnStatus::NoError) {
-    sendLog("Получена ошибка при перевыпуске транспондера.");
-    emit errorDetected(ret);
+    processOperationError("rereleaseTransponder", ret);
     return;
   }
 
   StringDictionary seed;
   ret = Informer->generateFirmwareSeed("personal_account_number", pan, seed);
   if (ret != ReturnStatus::NoError) {
-    sendLog("Получена ошибка при генерации сида для прошивки транспондера.");
-    emit errorDetected(ret);
+    processOperationError("rereleaseTransponder", ret);
     return;
   }
 
   ret = Generator->generate(seed, firmware);
   if (ret != ReturnStatus::NoError) {
-    sendLog("Получена ошибка при генерации прошивки транспондера.");
-    emit errorDetected(ret);
+    processOperationError("rereleaseTransponder", ret);
     return;
   }
 
-  sendLog(QString("Транспондер успешно перевыпущен."));
+  completeOperation("rereleaseTransponder");
 }
 
 void ProductionDispatcher::confirmTransponderRerelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog(QString("Подтверждение перевыпуска транспондера. "));
+  initOperation("confirmTransponderRerelease");
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
@@ -302,74 +298,73 @@ void ProductionDispatcher::confirmTransponderRerelease(
   ret = Releaser->confirmRerelease("personal_account_number", pan,
                                    param.value("transponder_ucid"));
   if (ret != ReturnStatus::NoError) {
-    sendLog("Получена ошибка при перевыпуске транспондера.");
-    emit errorDetected(ret);
+    processOperationError("confirmTransponderRerelease", ret);
     return;
   }
 
-  sendLog(QString("Перевыпуск транспондера успешно подтвержден."));
+  completeOperation("confirmTransponderRerelease");
 }
 
 void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
-  sendLog(QString("Откат транспондера. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("rollbackTransponder");
 
   ret = Releaser->rollback();
   if (ret != ReturnStatus::NoError) {
-    sendLog("Не удалось получить данные откатить транспондер.");
+    processOperationError("rollbackTransponder", ret);
     return;
   }
 
-  sendLog(QString("Откат транспондера успешно выполнен."));
+  completeOperation("rollbackTransponder");
 }
 
 void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
                                                      ReturnStatus& ret) {
-  sendLog(QString("Получение данных текущего транспондера. "));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("getCurrentTransponderData");
 
   ret = Informer->generateTransponderData(data);
   if (ret != ReturnStatus::NoError) {
-    sendLog("Не удалось получить данные транспондера.");
+    processOperationError("getCurrentTransponderData", ret);
     return;
   }
 
-  sendLog(QString("Данные транспондера успешно получены."));
+  completeOperation("getCurrentTransponderData");
 }
 
 void ProductionDispatcher::getTransponderData(const StringDictionary& param,
                                               StringDictionary& data,
                                               ReturnStatus& ret) {
-  sendLog(QString("Получение данных текущего транспондера"));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("getTransponderData");
 
   ret = Informer->generateTransponderData(
       "personal_account_number", param.value("personal_account_number"), data);
   if (ret != ReturnStatus::NoError) {
-    sendLog("Не удалось получить данные транспондера.");
+    processOperationError("getTransponderData", ret);
     return;
   }
 
-  sendLog(QString("Данные транспондера успешно получены."));
+  completeOperation("getTransponderData");
 }
 
 void ProductionDispatcher::printBoxStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog(QString("Печать стикера для бокса."));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("printBoxStickerManually");
 
   QString boxId = Informer->getTransponderBoxId(
       "personal_account_number",
@@ -378,44 +373,43 @@ void ProductionDispatcher::printBoxStickerManually(
   StringDictionary boxData;
   ret = Informer->generateBoxData(boxId, boxData);
   if (ret != ReturnStatus::NoError) {
-    emit errorDetected(ret);
+    processOperationError("printBoxStickerManually", ret);
     return;
   }
 
   ret = BoxStickerPrinter->printBoxSticker(boxData);
   if (ret != ReturnStatus::NoError) {
-    emit errorDetected(ret);
+    processOperationError("printBoxStickerManually", ret);
     return;
   }
 
-  sendLog(QString("Стикер для бокса успешно распечатан."));
+  completeOperation("printBoxStickerManually");
 }
 
 void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
-  sendLog(QString("Печать последнего стикера для бокса."));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("printLastBoxStickerManually");
 
   ret = BoxStickerPrinter->printLastBoxSticker();
-
   if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Получена ошибка при повторной печати стикера для бокса."));
+    processOperationError("printLastBoxStickerManually", ret);
     return;
   }
 
-  sendLog(QString("Последний стикер для бокса успешно распечатан."));
+  completeOperation("printLastBoxStickerManually");
 }
 
 void ProductionDispatcher::printPalletStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  sendLog(QString("Печать стикера для паллеты."));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("printPalletStickerManually");
 
   QString palletId = Informer->getTransponderPalletId(
       "personal_account_number",
@@ -424,35 +418,33 @@ void ProductionDispatcher::printPalletStickerManually(
   StringDictionary palletData;
   ret = Informer->generatePalletData(palletId, palletData);
   if (ret != ReturnStatus::NoError) {
-    emit errorDetected(ret);
+    processOperationError("printPalletStickerManually", ret);
     return;
   }
 
   ret = PalletStickerPrinter->printPalletSticker(palletData);
   if (ret != ReturnStatus::NoError) {
-    emit errorDetected(ret);
+    processOperationError("printPalletStickerManually", ret);
     return;
   }
 
-  sendLog(QString("Стикер для паллеты успешно распечатан."));
+  completeOperation("printPalletStickerManually");
 }
 
 void ProductionDispatcher::printLastPalletStickerManually(ReturnStatus& ret) {
-  sendLog(QString("Печать последнего стикера для паллеты"));
   if (!loadContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
+  initOperation("printLastPalletStickerManually");
 
   ret = PalletStickerPrinter->printLastPalletSticker();
-
   if (ret != ReturnStatus::NoError) {
-    sendLog(
-        QString("Получена ошибка при повторной печати стикера для паллеты."));
+    processOperationError("printLastPalletStickerManually", ret);
     return;
   }
 
-  sendLog(QString("Последний стикер для паллеты успешно распечатан."));
+  completeOperation("printLastPalletStickerManually");
 }
 
 void ProductionDispatcher::loadSettings() {
@@ -487,6 +479,25 @@ void ProductionDispatcher::loadSettings() {
 void ProductionDispatcher::sendLog(const QString& log) {
   emit const_cast<ProductionDispatcher*>(this)->logging(objectName() + " - " +
                                                         log);
+}
+
+void ProductionDispatcher::initOperation(const QString& name) {
+  sendLog(QString("Инициализация операции '%1'").arg(name));
+  Context->stash();
+  Database->openTransaction();
+}
+
+void ProductionDispatcher::processOperationError(const QString& name,
+                                                 ReturnStatus ret) {
+  sendLog(QString("Получена ошибка при выполнении операции '%1'. ").arg(name));
+  Context->applyStash();
+  Database->rollbackTransaction();
+  emit errorDetected(ret);
+}
+
+void ProductionDispatcher::completeOperation(const QString& name) {
+  sendLog(QString("Операция '%1' успешно выполнена. ").arg(name));
+  Database->commitTransaction();
 }
 
 bool ProductionDispatcher::loadContext(QObject* obj) {

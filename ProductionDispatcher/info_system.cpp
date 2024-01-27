@@ -60,6 +60,14 @@ ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
     return ReturnStatus::ProductionLineNotInProcess;
   }
 
+  if (Context->transponder().isEmpty()) {
+    sendLog(
+        QString(
+            "Производственная линия %1 не связана ни с каким транспондером.")
+            .arg(Context->login()));
+    return ReturnStatus::NoError;
+  }
+
   // Данные переносимые без изменений
   data.insert("box_id", Context->box().get("id"));
   data.insert("transponder_release_counter",
@@ -101,6 +109,14 @@ ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& seed) {
         QString("Производственная линия '%1' не находится в процессе сборки.")
             .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
+  }
+
+  if (Context->transponder().isEmpty()) {
+    sendLog(
+        QString(
+            "Производственная линия %1 не связана ни с каким транспондером.")
+            .arg(Context->login()));
+    return ReturnStatus::NoError;
   }
 
   // DSRC атрибуты
@@ -159,6 +175,12 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
         QString("Производственная линия '%1' не находится в процессе сборки.")
             .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
+  }
+
+  if (Context->box().isEmpty()) {
+    sendLog(QString("Производственная линия %1 не связана ни с каким боксом.")
+                .arg(Context->login()));
+    return ReturnStatus::NoError;
   }
 
   Database->setRecordMaxCount(0);
@@ -225,6 +247,12 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
         QString("Производственная линия '%1' не находится в процессе сборки.")
             .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
+  }
+
+  if (Context->pallet().isEmpty()) {
+    sendLog(QString("Производственная линия %1 не связана ни с какой паллетой.")
+                .arg(Context->login()));
+    return ReturnStatus::NoError;
   }
 
   SqlQueryValues boxes;

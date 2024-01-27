@@ -21,6 +21,8 @@ class AbstractReleaseSystem : public QObject {
 
   virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
 
+  virtual ReturnStatus findLastReleased(void) = 0;
+  virtual ReturnStatus findNext(void) = 0;
   virtual ReturnStatus release(void) = 0;
   virtual ReturnStatus confirmRelease(const QString& ucid) = 0;
   virtual ReturnStatus rerelease(const QString& key, const QString& value) = 0;

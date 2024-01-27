@@ -51,22 +51,23 @@ enum class ReturnStatus {
   BoxCompletelyAssembled,
   BoxNotCompletelyAssembled,
 
+  TransponderRepeatRelease,
   TransponderNotReleasedEarlier,
   TransponderNotAwaitingConfirmation,
   TransponderIncorrectRerelease,
   IdenticalUcidError,
   CurrentOrderAssembled,
+  TransponderRollbackLimit,
 
   ProductionLineContextNotAuthorized,
+  ProductionLineNotActive,
   ProductionLineNotLaunched,
+  ProductionLineNotInProcess,
   ProductionLineLaunchError,
   ProductionLineAlreadyLaunched,
   ProductionLineAlreadyInProcess,
-  ProductionLineNotActive,
   ProductionLineCompleted,
   ProductionLineShutdownError,
-  ProductionLineNotInProcess,
-  ProductionLineRollbackLimit,
 
   FirmwareGenerationError,
 

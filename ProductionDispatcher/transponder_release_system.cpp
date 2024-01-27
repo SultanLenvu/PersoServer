@@ -16,11 +16,134 @@ void TransponderReleaseSystem::setContext(
   Context = context;
 }
 
-ReturnStatus TransponderReleaseSystem::release() {
+ReturnStatus TransponderReleaseSystem::findLastReleased() {
   if (!Context->isInProcess()) {
     sendLog(QString("Производственная линия %1 не в процессе сборки.")
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
+  }
+
+  // Если сборка бокса завершена
+  if (Context->box().get("completed") == "true") {
+    sendLog(QString("Сборка бокса %1 была завершена. Поиск очередного "
+                    "транспондера невозможен.")
+                .arg(Context->box().get("id")));
+    return ReturnStatus::BoxCompletelyAssembled;
+  }
+
+  Database->setRecordMaxCount(1);
+  Database->setCurrentOrder(Qt::DescendingOrder);
+  if (!Database->readRecords("transponders",
+                             QString("release_counter > 0 AND box_id = '%1'")
+                                 .arg(Context->box().get("id")),
+                             Context->transponder())) {
+    sendLog(QString("Получена ошибка поиске последнего выпущенного "
+                    "транспондера в боксе %1.")
+                .arg(Context->box().get("id")));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus TransponderReleaseSystem::findNext() {
+  if (!Context->isInProcess()) {
+    sendLog(QString("Производственная линия %1 не в процессе сборки.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
+  // Если сборка бокса завершена
+  if (Context->box().get("completed") == "true") {
+    sendLog(QString("Сборка бокса %1 была завершена. Поиск очередного "
+                    "транспондера невозможен.")
+                .arg(Context->box().get("id")));
+    return ReturnStatus::BoxCompletelyAssembled;
+  }
+
+  // Если текущий транспондер определен
+  if (!Context->transponder().isEmpty()) {
+    // И при этом не был выпущен
+    if (Context->transponder().get("release_counter") == "0") {
+      return ReturnStatus::NoError;
+    }
+
+    // В противном случае переключаем текущий транспондер на следующий за ним
+    QString nextTransponderId =
+        QString::number(Context->transponder().get("id").toInt() + 1);
+    if (!switchTransponder(nextTransponderId)) {
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    // Связываем транспондер с производственной линией
+    if (!attachTransponder()) {
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    return ReturnStatus::NoError;
+  }
+
+  // В противном случае ищем первый невыпущенный транспондер в  боксе
+  Database->setRecordMaxCount(1);
+  Database->setCurrentOrder(Qt::AscendingOrder);
+  if (!Database->readRecords("transponders",
+                             QString("release_counter = 0 AND box_id = '%1'")
+                                 .arg(Context->box().get("id")),
+                             Context->transponder())) {
+    sendLog(QString(
+        "Получена ошибка при получении данных из таблицы transponders."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Если транспондер не найден и сборка бокса не была завершена,
+  // то останавливаемся на последнем транспондере в боксе
+  if (Context->transponder().isEmpty() &&
+      (Context->box().get("assembled_units") ==
+       Context->box().get("quantity"))) {
+    Database->setCurrentOrder(Qt::DescendingOrder);
+    if (!Database->readRecords(
+            "transponders",
+            QString("box_id = '%1'").arg(Context->box().get("id")),
+            Context->transponder())) {
+      sendLog(QString(
+          "Получена ошибка при получении данных из таблицы transponders."));
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    if (Context->transponder().isEmpty()) {
+      sendLog(QString("Не удалось найти очередной транспондер в боксе %1.")
+                  .arg(Context->box().get("id")));
+
+      return ReturnStatus::TranspoderMissed;
+    }
+
+    if (!attachTransponder()) {
+      return ReturnStatus::DatabaseQueryError;
+    }
+
+    return ReturnStatus::NoError;
+  }
+  // Если транспондер не найден и бокс не собран
+  else if (Context->transponder().isEmpty() &&
+           (Context->box().get("assembled_units") !=
+            Context->box().get("quantity"))) {
+    sendLog(QString("Не удалось найти очередной транспондер в боксе %1.")
+                .arg(Context->box().get("id")));
+    return ReturnStatus::FreeBoxMissed;
+  }
+
+  if (!attachTransponder()) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus TransponderReleaseSystem::release() {
+  ReturnStatus ret;
+  ret = checkContext();
+  if (ret != ReturnStatus::NoError) {
+    return ret;
   }
 
   if (Context->transponder().get("box_id") !=
@@ -31,25 +154,40 @@ ReturnStatus TransponderReleaseSystem::release() {
     return ReturnStatus::ConsistencyViolation;
   }
 
+  if (Context->transponder().get("id") !=
+      Context->productionLine().get("transponder_id")) {
+    sendLog(QString("Транспондер %1 не связан с производственной линией %1")
+                .arg(Context->transponder().get("id"),
+                     Context->productionLine().get("box_id")));
+    return ReturnStatus::ConsistencyViolation;
+  }
+
   if (Context->transponder().get("release_counter").toUInt() > 0) {
     sendLog(
         QString("Транспондер %1 уже был выпущен. Повторный выпуск невозможен.")
             .arg(Context->transponder().get("id")));
-    return ReturnStatus::TransponderIncorrectRerelease;
+    return ReturnStatus::TransponderRepeatRelease;
+  }
+
+  // Увеличиваем счетчик выпусков транспондера и сохраняем ucid
+  SqlQueryValues newTransponder;
+  newTransponder.add("awaiting_confirmation", "true");
+  if (!updateTransponder(newTransponder)) {
+    return ReturnStatus::DatabaseQueryError;
   }
 
   return ReturnStatus::NoError;
 }
 
 ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
-  if (!Context->isInProcess()) {
-    sendLog(QString("Производственная линия %1 не в процессе сборки.")
-                .arg(Context->login()));
-    return ReturnStatus::ProductionLineNotInProcess;
+  ReturnStatus ret;
+  ret = checkContext();
+  if (ret != ReturnStatus::NoError) {
+    return ret;
   }
 
   // Проверка того, что транспондер не был выпущен ранее
-  if (Context->transponder().get("release_counter").toInt() >= 1) {
+  if (Context->transponder().get("release_counter").toInt() > 0) {
     sendLog(
         QString("Транспондер %1 был выпущен ранее. Подтверждение невозможно. ")
             .arg(Context->transponder().get("id")));
@@ -65,19 +203,10 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
   }
 
   // Подтверждаем сборку транспондера
-  if (!confirmCurrentTransponder(ucid)) {
+  if (!confirmTransponder(ucid)) {
     sendLog(QString("Получена ошибка при подтвеждении транспондера %1. ")
                 .arg(Context->productionLine().get("transponder_id")));
 
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Ищем новый транспондер для производственной линии
-  ReturnStatus ret = searchNextTransponder();
-  if (ret != ReturnStatus::NoError) {
-    sendLog(QString("Получена ошибка при поиске очередного транспондера "
-                    "для производственной линии %1. ")
-                .arg(Context->productionLine().get("id")));
     return ReturnStatus::DatabaseQueryError;
   }
 
@@ -96,7 +225,7 @@ ReturnStatus TransponderReleaseSystem::rerelease(const QString& key,
   }
 
   if (transponder.isEmpty()) {
-    sendLog(QString("Транспондера с %1 = '%2' не найден.").arg(key, value));
+    sendLog(QString("Транспондер с %1 = '%2' не найден.").arg(key, value));
     return ReturnStatus::TranspoderMissed;
   }
 
@@ -133,7 +262,7 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
   }
 
   if (transponder.isEmpty()) {
-    sendLog(QString("Транспондера с %1 = '%2' не найден.").arg(key, value));
+    sendLog(QString("Транспондер с %1 = '%2' не найден.").arg(key, value));
     return ReturnStatus::TranspoderMissed;
   }
 
@@ -184,21 +313,13 @@ ReturnStatus TransponderReleaseSystem::rollback() {
   SqlQueryValues newProductionLine;
 
   Database->setRecordMaxCount(1);
-  Database->setCurrentOrder(Qt::DescendingOrder);
+  Database->setCurrentOrder(Qt::AscendingOrder);
 
-  if (Context->box().get("assembled_box") == "0") {
+  if (Context->box().get("assembled_units") == "0") {
     sendLog(QString("Производственная линия '%1' связана с первым "
                     "транспондером в боксе. Откат невозможен.")
                 .arg(Context->productionLine().get("id")));
-    return ReturnStatus::ProductionLineRollbackLimit;
-  }
-
-  // Обновляем данные текущего транспондера
-  newTransponder.add("release_counter", "0");
-  newTransponder.add("ucid", "NULL");
-  newTransponder.add("awaiting_confirmation", "false");
-  if (!updateTransponder(newTransponder)) {
-    return ReturnStatus::DatabaseQueryError;
+    return ReturnStatus::TransponderRollbackLimit;
   }
 
   // Уменьшаем количество собранных транспондеров в боксе
@@ -209,21 +330,33 @@ ReturnStatus TransponderReleaseSystem::rollback() {
     return ReturnStatus::DatabaseQueryError;
   }
 
-  // Откатываем текущий транспондер
-  QString prevTransponderId =
-      QString::number(Context->transponder().get("id").toInt() - 1);
-  if (!switchCurrentTransponder(prevTransponderId)) {
+  // Обновляем данные текущего транспондера
+  newTransponder.add("release_counter", "0");
+  newTransponder.add("ucid", "NULL");
+  newTransponder.add("awaiting_confirmation", "false");
+  if (!updateTransponder(newTransponder)) {
     return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Если в боксе не осталось собранных транспондеров
+  // то очищаем данные транспондера из контекста
+  QString prevTransponderId("NULL");
+  if (Context->box().get("assembled_units") == "0") {
+    Context->transponder().clear();
+  } else {
+    // В противном случае откатываеся на предыдущий
+    QString prevTransponderId =
+        QString::number(Context->transponder().get("id").toInt() - 1);
+    if (!switchTransponder(prevTransponderId)) {
+      return ReturnStatus::DatabaseQueryError;
+    }
   }
 
   // Обновляем производственную линию
-  newProductionLine.add("transponder_id", Context->transponder().get("id"));
+  newProductionLine.add("transponder_id", prevTransponderId);
   if (!updateProductionLine(newProductionLine)) {
     return ReturnStatus::DatabaseQueryError;
   }
-
-  Database->setRecordMaxCount(0);
-  Database->setCurrentOrder(Qt::AscendingOrder);
 
   return ReturnStatus::NoError;
 }
@@ -237,7 +370,25 @@ void TransponderReleaseSystem::sendLog(const QString& log) const {
                                                             " - " + log);
 }
 
-bool TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {
+ReturnStatus TransponderReleaseSystem::checkContext() {
+  if (!Context->isInProcess()) {
+    sendLog(QString("Производственная линия %1 не в процессе сборки.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotInProcess;
+  }
+
+  if (Context->transponder().isEmpty()) {
+    sendLog(
+        QString(
+            "В контексте производственной линии %1 отсутствует транспондер.")
+            .arg(Context->login()));
+    return ReturnStatus::TranspoderMissed;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+bool TransponderReleaseSystem::confirmTransponder(const QString& ucid) {
   SqlQueryValues newTransponder;
   SqlQueryValues newBox;
 
@@ -262,36 +413,25 @@ bool TransponderReleaseSystem::confirmCurrentTransponder(const QString& ucid) {
   return true;
 }
 
-ReturnStatus TransponderReleaseSystem::searchNextTransponder() {
-  SqlQueryValues newProductionLine;
-  QString nextTransponderId;
+bool TransponderReleaseSystem::attachTransponder() {
+  SqlQueryValues plNew;
 
-  // Если текущий бокс собран
-  if (Context->box().get("assembled_units") == Context->box().get("quantity")) {
-    sendLog(QString("Все транспондеры боксе %1 были собраны.")
-                .arg(Context->box().get("id")));
-    return ReturnStatus::BoxCompletelyAssembled;
+  plNew.add("transponder_id", Context->transponder().get("id"));
+  plNew.add("in_process", "true");
+  if (!updateProductionLine(plNew)) {
+    sendLog(QString("Не удалось связать производственную линию '%1' с "
+                    "транспондером %2.")
+                .arg(Context->login(), Context->transponder().get("id")));
+    return false;
   }
 
-  // В противном случае двигаемся к следующему транспондеру в боксе
-  nextTransponderId =
-      QString::number(Context->transponder().get("id").toInt() + 1);
-
-  // Переключаем текущий транспондер
-  if (!switchCurrentTransponder(nextTransponderId)) {
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Обновляем производственную линию
-  newProductionLine.add("transponder_id", nextTransponderId);
-  if (!updateProductionLine(newProductionLine)) {
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  return ReturnStatus::NoError;
+  sendLog(QString("Производственная линия '%1' успешно связана с "
+                  "транспондером %2.")
+              .arg(Context->login(), Context->transponder().get("id")));
+  return true;
 }
 
-bool TransponderReleaseSystem::switchCurrentTransponder(const QString& id) {
+bool TransponderReleaseSystem::switchTransponder(const QString& id) {
   if (!Database->readRecords("transponders", QString("id = %1").arg(id),
                              Context->transponder())) {
     sendLog(QString("Получена ошибка при получении данных транспондера %1. ")
@@ -329,10 +469,9 @@ bool TransponderReleaseSystem::updateProductionLine(
           "production_lines",
           QString("id = %1").arg(Context->productionLine().get("id")),
           newValues)) {
-    sendLog(
-        QString(
-            "Получена ошибка при обновлении данных производственной линии %1. ")
-            .arg(Context->productionLine().get("id")));
+    sendLog(QString("Получена ошибка при обновлении данных производственной "
+                    "линии %1. ")
+                .arg(Context->productionLine().get("id")));
     return false;
   }
 
@@ -340,10 +479,9 @@ bool TransponderReleaseSystem::updateProductionLine(
           "production_lines",
           QString("id = %1").arg(Context->productionLine().get("id")),
           Context->productionLine())) {
-    sendLog(
-        QString(
-            "Получена ошибка при получении данных производственной линии %1. ")
-            .arg(Context->productionLine().get("id")));
+    sendLog(QString("Получена ошибка при получении данных производственной "
+                    "линии %1. ")
+                .arg(Context->productionLine().get("id")));
     return false;
   }
 

@@ -11,7 +11,7 @@ class GetCurrentTransponderDataCommand : public AbstractClientCommand {
   const size_t CommandSize = COMMAND_GETCURRENTTRANSPONDERDATA_SIZE;
 
   StringDictionary Parameters;
-  StringDictionary Result;
+  StringDictionary TransponderData;
   ReturnStatus Status;
 
  public:
