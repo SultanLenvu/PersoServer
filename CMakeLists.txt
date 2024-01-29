@@ -85,14 +85,15 @@ add_executable(PersoServer
     ClientConnection/Commands/print_last_box_sticker_command.h ClientConnection/Commands/print_last_box_sticker_command.cpp
     ClientConnection/Commands/print_pallet_sticker_command.h ClientConnection/Commands/print_pallet_sticker_command.cpp
     ClientConnection/Commands/print_last_pallet_sticker_command.h ClientConnection/Commands/print_last_pallet_sticker_command.cpp
-    ClientConnection/Commands/log_in_command.h ClientConnection/Commands/log_in_command.cpp
-    ClientConnection/Commands/log_out_command.h ClientConnection/Commands/log_out_command.cpp
+    ClientConnection/Commands/launch_production_line_command.h ClientConnection/Commands/launch_production_line_command.cpp
+    ClientConnection/Commands/shutdown_production_line_command.h ClientConnection/Commands/shutdown_production_line_command.cpp
     ClientConnection/Commands/get_current_transponder_data_command.h ClientConnection/Commands/get_current_transponder_data_command.cpp
     ClientConnection/Commands/get_transponder_data_command.h ClientConnection/Commands/get_transponder_data_command.cpp
     ClientConnection/Commands/request_box_command.h ClientConnection/Commands/request_box_command.cpp
     ClientConnection/Commands/get_current_box_data_command.h ClientConnection/Commands/get_current_box_data_command.cpp
     ClientConnection/Commands/refund_current_box_command.h ClientConnection/Commands/refund_current_box_command.cpp
     ClientConnection/Commands/complete_current_box_command.h ClientConnection/Commands/complete_current_box_command.cpp
+    ClientConnection/Commands/get_production_line_data_command.h ClientConnection/Commands/get_production_line_data_command.cpp
 
     Security/des.cpp Security/des.h
 

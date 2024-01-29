@@ -61,7 +61,7 @@ class PersoServer : public QTcpServer {
   PersoServer();
   Q_DISABLE_COPY_MOVE(PersoServer);
   void loadSettings(void);
-  void sendLog(const QString& log) const;
+  void sendLog(const QString& log);
 
   void processCriticalError(const QString& log);
 

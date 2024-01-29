@@ -1,22 +1,22 @@
-#ifndef LogOutCommand_H
-#define LogOutCommand_H
+#ifndef SHUTDOWNPRODUCTIONLINE_H
+#define SHUTDOWNPRODUCTIONLINE_H
 
 #include "abstract_client_command.h"
 #include "definitions.h"
 
-class LogOutCommand : public AbstractClientCommand {
+class ShutdownProductionLineCommand : public AbstractClientCommand {
   Q_OBJECT
  private:
-  const QString CommandName = COMMAND_LOGOUT_NAME;
-  const size_t CommandSize = COMMAND_LOGOUT_SIZE;
+  const QString CommandName = COMMAND_SHUTDOWNPRODUCTIONLINE_NAME;
+  const size_t CommandSize = COMMAND_SHUTDOWNPRODUCTIONLINE_SIZE;
 
   StringDictionary Parameters;
   StringDictionary Result;
   ReturnStatus Status;
 
  public:
-  explicit LogOutCommand(const QString& name);
-  ~LogOutCommand();
+  explicit ShutdownProductionLineCommand(const QString& name);
+  ~ShutdownProductionLineCommand();
 
   // AbstractClientCommand interface
  public:
@@ -25,11 +25,11 @@ class LogOutCommand : public AbstractClientCommand {
   virtual void reset(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(LogOutCommand)
+  Q_DISABLE_COPY_MOVE(ShutdownProductionLineCommand)
 
  signals:
   void shutdownProductionLine_signal(ReturnStatus& status);
   void deauthorized(void);
 };
 
-#endif  // LogOutCommand_H
+#endif  // SHUTDOWNPRODUCTIONLINE_H

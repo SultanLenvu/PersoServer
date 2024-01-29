@@ -17,6 +17,7 @@
 /* Определения системы логгирования */
 //===============================================================
 #define LOG_FILE_DEFAULT_MAX_NUMBER 10
+#define LOG_MESSAGE_MAX_SIZE 250
 
 #define UDP_LOG_DESTINATION_DEFAULT_IP "127.0.0.1"
 #define UDP_LOG_DESTINATION_DEFAULT_PORT 6665
@@ -160,8 +161,9 @@
 /* Определения для команд клиента */
 //===============================================================
 #define COMMAND_ECHO_SIZE 2
-#define COMMAND_LOGIN_SIZE 3
-#define COMMAND_LOGOUT_SIZE 2
+#define COMMAND_LAUNCHPRODUCTIONLINE_SIZE 3
+#define COMMAND_SHUTDOWNPRODUCTIONLINE_SIZE 2
+#define COMMAND_GETNPRODUCTIONLINEDATA_SIZE 1
 
 #define COMMAND_REQUESTBOX_SIZE 1
 #define COMMAND_GETCURRENTBOXDATA_SIZE 1
@@ -183,8 +185,9 @@
 #define COMMAND_PRINTLASTPALLETSTICKER_SIZE 1
 
 #define COMMAND_ECHO_NAME "echo"
-#define COMMAND_LOGIN_NAME "log_in"
-#define COMMAND_LOGOUT_NAME "log_out"
+#define COMMAND_LAUNCHPRODUCTIONLINE_NAME "launch_production_line"
+#define COMMAND_SHUTDOWNPRODUCTIONLINE_NAME "shutdown_production_line"
+#define COMMAND_GETPRODUCTIONLINEDATA_NAME "get_production_line_data"
 
 #define COMMAND_REQUESTBOX_NAME "request_box"
 #define COMMAND_GETCURRENTBOXDATA_NAME "get_current_box_data"

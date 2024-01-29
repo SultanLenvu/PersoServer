@@ -47,7 +47,7 @@ bool ProductionLineContext::isAuthorized() const {
 }
 
 bool ProductionLineContext::isInProcess() const {
-  if (ProductionLine.isEmpty() || Box.isEmpty()) {
+  if (!isLaunched() || Box.isEmpty()) {
     return false;
   }
 

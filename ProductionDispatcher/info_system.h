@@ -24,10 +24,14 @@ class InfoSystem : public AbstractInfoSystem {
   virtual QString getTransponderPalletId(const QString& key,
                                          const QString& value) override;
 
+  virtual ReturnStatus generateProductionLineData(
+      StringDictionary& data) override;
+
   virtual ReturnStatus generateTransponderData(StringDictionary& data) override;
   virtual ReturnStatus generateTransponderData(const QString& key,
                                                const QString& value,
                                                StringDictionary& data) override;
+
   virtual ReturnStatus generateFirmwareSeed(StringDictionary& seed) override;
   virtual ReturnStatus generateFirmwareSeed(const QString& key,
                                             const QString& value,
@@ -36,6 +40,7 @@ class InfoSystem : public AbstractInfoSystem {
   virtual ReturnStatus generateBoxData(StringDictionary& data) override;
   virtual ReturnStatus generateBoxData(const QString& id,
                                        StringDictionary& data) override;
+
   virtual ReturnStatus generatePalletData(StringDictionary& data) override;
   virtual ReturnStatus generatePalletData(const QString& id,
                                           StringDictionary& data) override;

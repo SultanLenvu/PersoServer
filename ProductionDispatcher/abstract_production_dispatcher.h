@@ -18,6 +18,8 @@ class AbstractProductionDispatcher : public QObject {
 
   virtual void launchProductionLine(ReturnStatus& ret) = 0;
   virtual void shutdownProductionLine(ReturnStatus& ret) = 0;
+  virtual void getProductinoLineData(StringDictionary& data,
+                                     ReturnStatus& ret) = 0;
 
   virtual void requestBox(ReturnStatus& ret) = 0;
   virtual void getCurrentBoxData(StringDictionary& result,

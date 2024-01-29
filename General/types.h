@@ -31,7 +31,6 @@ enum class ReturnStatus {
 
   ProductionLineLaunchSystemInitError,
   FirmwareGeneratorInitError,
-  StickerPrinterInitError,
 
   RecordMissed,
   ProductionLineMissed,
@@ -71,6 +70,8 @@ enum class ReturnStatus {
 
   FirmwareGenerationError,
 
+  StickerPrinterDriverMissed,
+  StickerPrinterLibraryMissing,
   StickerPrinterConnectionError,
   BoxStickerPrintError,
   PalletStickerPrintError,

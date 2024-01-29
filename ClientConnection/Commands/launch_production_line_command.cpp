@@ -1,11 +1,11 @@
-#include "log_in_command.h"
+#include "launch_production_line_command.h"
 #include "abstract_production_dispatcher.h"
 #include "global_environment.h"
 
-LogInCommand::LogInCommand(const QString& name) : AbstractClientCommand(name) {
+LaunchProductionLineCommand::LaunchProductionLineCommand(const QString& name) : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
-  connect(this, &LogInCommand::launchProductionLine_signal,
+  connect(this, &LaunchProductionLineCommand::launchProductionLine_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
               GlobalEnvironment::instance()->getObject(
                   "ProductionDispatcher")),
@@ -13,9 +13,9 @@ LogInCommand::LogInCommand(const QString& name) : AbstractClientCommand(name) {
           Qt::BlockingQueuedConnection);
 }
 
-LogInCommand::~LogInCommand() {}
+LaunchProductionLineCommand::~LaunchProductionLineCommand() {}
 
-void LogInCommand::process(const QJsonObject& command) {
+void LaunchProductionLineCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) || !command.contains("login") ||
       !command.contains("password")) {
@@ -36,7 +36,7 @@ void LogInCommand::process(const QJsonObject& command) {
   }
 }
 
-void LogInCommand::generateResponse(QJsonObject& response) {
+void LaunchProductionLineCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   //  if (Status == ReturnStatus::NoError) {
@@ -52,7 +52,7 @@ void LogInCommand::generateResponse(QJsonObject& response) {
   response["return_status"] = QString::number(static_cast<size_t>(Status));
 }
 
-void LogInCommand::reset() {
+void LaunchProductionLineCommand::reset() {
   Parameters.clear();
   Result.clear();
   Status = ReturnStatus::Unknown;

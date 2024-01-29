@@ -22,7 +22,7 @@ class AbstractStickerPrinter : public QObject {
   AbstractStickerPrinter(const QString& name);
   virtual ~AbstractStickerPrinter();
 
-  virtual bool init(void) = 0;
+  virtual ReturnStatus checkConfig(void) = 0;
   virtual StickerPrinterType type(void) = 0;
 
   virtual ReturnStatus printTransponderSticker(

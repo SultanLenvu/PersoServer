@@ -48,19 +48,13 @@ void ProductionDispatcher::start(ReturnStatus& ret) {
   }
 
 #ifdef PRINTERS_ENABLE
-  if (!BoxStickerPrinter->init()) {
-    sendLog(
-        "Инициализация принтера для печати стикеров на боксы "
-        "провалена. ");
-    ret = ReturnStatus::StickerPrinterInitError;
+  ret = BoxStickerPrinter->checkConfig();
+  if (ret != != ReturnStatus::NoError) {
     return;
   }
 
-  if (!PalletStickerPrinter->init()) {
-    sendLog(
-        "Инициализация принтера для печати стикеров на паллеты "
-        "провалена. ");
-    ret = ReturnStatus::StickerPrinterInitError;
+  ret = PalletStickerPrinter->checkConfig();
+  if (ret != != ReturnStatus::NoError) {
     return;
   }
 #endif
@@ -106,6 +100,23 @@ void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
   }
 
   completeOperation("shutdownProductionLine");
+}
+
+void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
+                                                 ReturnStatus& ret) {
+  initOperation("getProductinoLineData");
+  if (!loadContext(sender())) {
+    ret = ReturnStatus::ProductionLineContextNotAuthorized;
+    return;
+  }
+
+  ret = Informer->generateProductionLineData(data);
+  if (ret != ReturnStatus::NoError) {
+    processOperationError("getProductinoLineData", ret);
+    return;
+  }
+
+  completeOperation("getProductinoLineData");
 }
 
 void ProductionDispatcher::requestBox(ReturnStatus& ret) {

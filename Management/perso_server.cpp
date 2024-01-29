@@ -123,8 +123,8 @@ void PersoServer::loadSettings() {
   ListeningPort = settings.value("perso_server/listen_port").toInt();
 }
 
-void PersoServer::sendLog(const QString& log) const {
-  emit const_cast<PersoServer*>(this)->logging(objectName() + " - " + log);
+void PersoServer::sendLog(const QString& log) {
+  emit logging(QString("%1 - %2").arg(objectName(), log));
 }
 
 void PersoServer::processCriticalError(const QString& log) {

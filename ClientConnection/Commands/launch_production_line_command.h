@@ -1,22 +1,22 @@
-#ifndef LogInCommand_H
-#define LogInCommand_H
+#ifndef LAUNCHPRODUCTIONLINE_H
+#define LAUNCHPRODUCTIONLINE_H
 
 #include "abstract_client_command.h"
 #include "definitions.h"
 
-class LogInCommand : public AbstractClientCommand {
+class LaunchProductionLineCommand : public AbstractClientCommand {
   Q_OBJECT
  private:
-  const QString CommandName = COMMAND_LOGIN_NAME;
-  const size_t CommandSize = COMMAND_LOGIN_SIZE;
+  const QString CommandName = COMMAND_LAUNCHPRODUCTIONLINE_NAME;
+  const size_t CommandSize = COMMAND_LAUNCHPRODUCTIONLINE_SIZE;
 
   StringDictionary Parameters;
   StringDictionary Result;
   ReturnStatus Status;
 
  public:
-  explicit LogInCommand(const QString& name);
-  ~LogInCommand();
+  explicit LaunchProductionLineCommand(const QString& name);
+  ~LaunchProductionLineCommand();
 
   // AbstractClientCommand interface
  public:
@@ -25,11 +25,11 @@ class LogInCommand : public AbstractClientCommand {
   virtual void reset(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(LogInCommand)
+  Q_DISABLE_COPY_MOVE(LaunchProductionLineCommand)
 
  signals:
   void launchProductionLine_signal(ReturnStatus& status);
   void authorized();
 };
 
-#endif  // LogInCommand_H
+#endif  // LAUNCHPRODUCTIONLINE_H

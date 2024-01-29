@@ -19,8 +19,9 @@ GetTransponderDataCommand::~GetTransponderDataCommand() {}
 void GetTransponderDataCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) ||
-      command.contains("transponder_pan")) {
+      (!command.contains("transponder_pan"))) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка");
     return;
   }
 

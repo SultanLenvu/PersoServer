@@ -8,9 +8,9 @@
 #include "echo_comand.h"
 #include "get_current_box_data_command.h"
 #include "get_current_transponder_data_command.h"
+#include "get_production_line_data_command.h"
 #include "get_transponder_data_command.h"
-#include "log_in_command.h"
-#include "log_out_command.h"
+#include "launch_production_line_command.h"
 #include "print_box_sticker_command.h"
 #include "print_last_box_sticker_command.h"
 #include "print_last_pallet_sticker_command.h"
@@ -20,6 +20,7 @@
 #include "request_box_command.h"
 #include "rerelease_transponder_command.h"
 #include "rollback_transponder_command.h"
+#include "shutdown_production_line_command.h"
 
 ClientConnection::ClientConnection(const QString& name,
                                    int32_t id,
@@ -89,6 +90,8 @@ void ClientConnection::createTransmittedDataBlock() {
   sendLog("Формирование ответного блока данных. ");
   sendLog(QString("Размер ответного блока данных: %1.")
               .arg(QString::number(responseDocument.toJson().size())));
+  // Ограничиваем вывод в лог полученного блока данных, чтобы не было фризов при
+  // отрисовке
   sendLog(QString("Содержание ответного блока данных: %1")
               .arg(QString(responseDocument.toJson())));
 
@@ -216,15 +219,23 @@ void ClientConnection::createDataBlockWaitTimer() {
 void ClientConnection::createCommands() {
   Commands.insert("echo", std::shared_ptr<AbstractClientCommand>(
                               new EchoCommand("EchoCommand")));
-  Commands.insert("log_in", std::shared_ptr<AbstractClientCommand>(
-                                new LogInCommand("LogInCommand")));
-  connect(dynamic_cast<LogInCommand*>(Commands.value("log_in").get()),
-          &LogInCommand::authorized, this, &ClientConnection::authorized_slot);
-  Commands.insert("log_out", std::shared_ptr<AbstractClientCommand>(
-                                 new LogOutCommand("LogOutCommand")));
-  connect(dynamic_cast<LogOutCommand*>(Commands.value("log_out").get()),
-          &LogOutCommand::deauthorized, this,
+  Commands.insert("launch_production_line", std::shared_ptr<AbstractClientCommand>(
+                                new LaunchProductionLineCommand("LaunchProductionLineCommand")));
+  connect(dynamic_cast<LaunchProductionLineCommand*>(
+              Commands.value("launch_production_line").get()),
+          &LaunchProductionLineCommand::authorized, this,
+          &ClientConnection::authorized_slot);
+  Commands.insert(
+      "shutdown_production_line",
+      std::shared_ptr<AbstractClientCommand>(
+          new ShutdownProductionLineCommand("ShutdownProductionLineCommand")));
+  connect(dynamic_cast<ShutdownProductionLineCommand*>(Commands.value("shutdown_production_line").get()),
+          &ShutdownProductionLineCommand::deauthorized, this,
           &ClientConnection::deauthorized_slot);
+  Commands.insert(
+      "get_production_line_data",
+      std::shared_ptr<AbstractClientCommand>(
+          new GetProductionLineDataCommand("GetProductionLineDataCommand")));
 
   Commands.insert("request_box",
                   std::shared_ptr<AbstractClientCommand>(

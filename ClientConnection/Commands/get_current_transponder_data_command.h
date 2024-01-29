@@ -28,7 +28,7 @@ class GetCurrentTransponderDataCommand : public AbstractClientCommand {
   Q_DISABLE_COPY_MOVE(GetCurrentTransponderDataCommand)
 
  signals:
-  void getCurrentTransponderData_signal(StringDictionary& context,
+  void getCurrentTransponderData_signal(StringDictionary& data,
                                         ReturnStatus& status);
 };
 

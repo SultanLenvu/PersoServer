@@ -23,10 +23,14 @@ class AbstractInfoSystem : public QObject {
                                       const QString& value) = 0;
   virtual QString getTransponderPalletId(const QString& key,
                                          const QString& value) = 0;
+
+  virtual ReturnStatus generateProductionLineData(StringDictionary& data) = 0;
+
   virtual ReturnStatus generateTransponderData(StringDictionary& data) = 0;
   virtual ReturnStatus generateTransponderData(const QString& key,
                                                const QString& value,
                                                StringDictionary& data) = 0;
+
   virtual ReturnStatus generateFirmwareSeed(StringDictionary& seed) = 0;
   virtual ReturnStatus generateFirmwareSeed(const QString& key,
                                             const QString& value,
@@ -35,6 +39,7 @@ class AbstractInfoSystem : public QObject {
   virtual ReturnStatus generateBoxData(StringDictionary& data) = 0;
   virtual ReturnStatus generateBoxData(const QString& id,
                                        StringDictionary& data) = 0;
+
   virtual ReturnStatus generatePalletData(StringDictionary& data) = 0;
   virtual ReturnStatus generatePalletData(const QString& id,
                                           StringDictionary& data) = 0;

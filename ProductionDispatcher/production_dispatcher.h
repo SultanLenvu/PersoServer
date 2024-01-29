@@ -48,6 +48,8 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
 
   virtual void launchProductionLine(ReturnStatus& ret) override;
   virtual void shutdownProductionLine(ReturnStatus& ret) override;
+  virtual void getProductinoLineData(StringDictionary& data,
+                                     ReturnStatus& ret) override;
 
   virtual void requestBox(ReturnStatus& ret) override;
   virtual void getCurrentBoxData(StringDictionary& result,

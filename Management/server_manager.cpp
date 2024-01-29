@@ -161,6 +161,13 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
+  if (settings.value("log_system/message_max_size").toUInt() == 0) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: некорректный "
+        "максимальный размер сообщений лога. ");
+    return false;
+  }
+
   if (QHostAddress(settings.value("log_system/udp_destination_ip").toString())
           .isNull()) {
     qCritical(

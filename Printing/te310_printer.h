@@ -47,7 +47,7 @@ class TE310Printer : public AbstractStickerPrinter {
   explicit TE310Printer(QObject* parent, const QHostAddress& ip, int port);
 #endif /* __linux__ */
 
-  virtual bool init(void) override;
+  virtual ReturnStatus checkConfig(void) override;
   virtual StickerPrinterType type(void) override;
 
   virtual ReturnStatus printTransponderSticker(
@@ -70,12 +70,9 @@ class TE310Printer : public AbstractStickerPrinter {
   void loadSetting(void);
   void sendLog(const QString& log);
 
-  bool loadTscLib(void);
-  bool initConnectionByName();
-#ifdef __linux__
-  bool initConnectionByAddress();
-#endif /* __linux__ */
-  bool checkConfig(void);
+  void loadTscLib(void);
+
+  bool initConnection(void);
 
   void printNkdSticker(const StringDictionary& param);
   void printZsdSticker(const StringDictionary& param);

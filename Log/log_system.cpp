@@ -1,5 +1,6 @@
 #include "log_system.h"
 #include "console_log_backend.h"
+#include "definitions.h"
 #include "file_log_backend.h"
 #include "global_environment.h"
 #include "udp_log_backend.h"
@@ -31,8 +32,14 @@ void LogSystem::generate(const QString& log) {
     return;
   }
 
-  QTime time = QDateTime::currentDateTime().time();
-  QString LogData = time.toString("hh:mm:ss.zzz - ") + log;
+  QString logMsg = log;
+  if (log.size() > LOG_MESSAGE_MAX_SIZE) {
+    logMsg.truncate(LOG_MESSAGE_MAX_SIZE);
+  }
+
+  QString LogData = QString("%1 - %2").arg(
+      QDateTime::currentDateTime().time().toString("hh:mm:ss.zzz"), logMsg);
+
   for (auto it = Backends.begin(); it != Backends.end(); it++) {
     (*it)->writeLogLine(LogData);
   }
@@ -48,4 +55,5 @@ void LogSystem::loadSettings() {
   QSettings settings;
 
   LogEnable = settings.value("log_system/global_enable").toBool();
+  MessageMaxSize = settings.value("log_system/message_max_size").toInt();
 }

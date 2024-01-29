@@ -52,6 +52,38 @@ QString InfoSystem::getTransponderPalletId(const QString& key,
   return transponder.get("pallet_id");
 }
 
+ReturnStatus InfoSystem::generateProductionLineData(StringDictionary& data) {
+  if (!Context->isLaunched()) {
+    sendLog(QString("Производственная линия '%1' не запущена.")
+                .arg(Context->login()));
+    return ReturnStatus::ProductionLineNotLaunched;
+  }
+
+  // Данные переносимые без изменений
+  data.insert("production_line_id", Context->productionLine().get("id"));
+  data.insert("production_line_login", Context->productionLine().get("login"));
+  data.insert("production_line_ns",
+              QString("%1 %2").arg(Context->productionLine().get("surname"),
+                                   Context->productionLine().get("name")));
+  data.insert("production_line_in_process",
+              Context->productionLine().get("in_process"));
+
+  Database->setRecordMaxCount(1);
+  Database->setCurrentOrder(Qt::AscendingOrder);
+  SqlQueryValues response;
+  if (!Database->execCustomRequest(
+          QString("SELECT COUNT(*) FROM boxes WHERE DATE(assembling_end) = "
+                  "CURRENT_DATE AND production_line_id = %1")
+              .arg(Context->productionLine().get("id")),
+          response)) {
+    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+  data.insert("today_assembled_boxes", response.get(0));
+
+  return ReturnStatus::NoError;
+}
+
 ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
   if (!Context->isInProcess()) {
     sendLog(
