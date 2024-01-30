@@ -114,7 +114,7 @@ ReturnStatus TransponderReleaseSystem::findNext() {
       sendLog(QString("Не удалось найти очередной транспондер в боксе %1.")
                   .arg(Context->box().get("id")));
 
-      return ReturnStatus::TranspoderMissed;
+      return ReturnStatus::TransponderMissed;
     }
 
     if (!attachTransponder()) {
@@ -226,7 +226,7 @@ ReturnStatus TransponderReleaseSystem::rerelease(const QString& key,
 
   if (transponder.isEmpty()) {
     sendLog(QString("Транспондер с %1 = '%2' не найден.").arg(key, value));
-    return ReturnStatus::TranspoderMissed;
+    return ReturnStatus::TransponderMissed;
   }
 
   // Проверка, что транспондер уже был выпущен ранее
@@ -263,7 +263,7 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
 
   if (transponder.isEmpty()) {
     sendLog(QString("Транспондер с %1 = '%2' не найден.").arg(key, value));
-    return ReturnStatus::TranspoderMissed;
+    return ReturnStatus::TransponderMissed;
   }
 
   // Проверка, что транспондер ожидает подтверждения
@@ -382,7 +382,7 @@ ReturnStatus TransponderReleaseSystem::checkContext() {
         QString(
             "В контексте производственной линии %1 отсутствует транспондер.")
             .arg(Context->login()));
-    return ReturnStatus::TranspoderMissed;
+    return ReturnStatus::TransponderMissed;
   }
 
   return ReturnStatus::NoError;

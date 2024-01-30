@@ -26,7 +26,7 @@ void GetTransponderDataCommand::process(const QJsonObject& command) {
   }
 
   Parameters.insert("personal_account_number",
-                    command.value("transpoder_pan").toString() + "F");
+                    command.value("transponder_pan").toString() + "F");
 
   // Запрашиваем печать бокса
   emit getTransponderData_signal(Parameters, TransponderData, Status);

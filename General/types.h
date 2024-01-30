@@ -29,12 +29,12 @@ enum class ReturnStatus {
   DatabaseTransactionError,
   DatabaseQueryError,
 
-  ProductionLineLaunchSystemInitError,
   FirmwareGeneratorInitError,
+  FirmwareGenerationError,
 
   RecordMissed,
   ProductionLineMissed,
-  TranspoderMissed,
+  TransponderMissed,
   BoxMissed,
   PalletMissed,
   OrderMissed,
@@ -47,8 +47,11 @@ enum class ReturnStatus {
   BoxAlreadyRequested,
   BoxNotRequested,
   FreeBoxMissed,
+  BoxIsEmty,
   BoxCompletelyAssembled,
   BoxNotCompletelyAssembled,
+
+  PalletIsEmpty,
 
   TransponderRepeatRelease,
   TransponderNotReleasedEarlier,
@@ -58,6 +61,7 @@ enum class ReturnStatus {
   CurrentOrderAssembled,
   TransponderRollbackLimit,
 
+  ProductionLineLaunchSystemInitError,
   ProductionLineContextNotAuthorized,
   ProductionLineNotActive,
   ProductionLineNotLaunched,
@@ -67,8 +71,6 @@ enum class ReturnStatus {
   ProductionLineAlreadyInProcess,
   ProductionLineCompleted,
   ProductionLineShutdownError,
-
-  FirmwareGenerationError,
 
   StickerPrinterDriverMissed,
   StickerPrinterLibraryMissing,

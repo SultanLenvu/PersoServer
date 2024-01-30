@@ -85,13 +85,6 @@ ReturnStatus InfoSystem::generateProductionLineData(StringDictionary& data) {
 }
 
 ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
-  if (!Context->isInProcess()) {
-    sendLog(
-        QString("Производственная линия '%1' не находится в процессе сборки.")
-            .arg(Context->login()));
-    return ReturnStatus::ProductionLineNotInProcess;
-  }
-
   if (Context->transponder().isEmpty()) {
     sendLog(
         QString(
@@ -124,31 +117,37 @@ ReturnStatus InfoSystem::generateTransponderData(const QString& key,
                                                  const QString& value,
                                                  StringDictionary& data) {
   // Сохраняем контекст
-  stashCurrentContext();
+  saveContext();
 
-  loadTransponderContext(key, value);
-  ReturnStatus ret = generateTransponderData(data);
+  ReturnStatus ret = loadTransponderContext(key, value);
+  if (ret != ReturnStatus::NoError) {
+    sendLog(
+        QString("Получена ошибка при загрузке контекста транспондера с %1=%2.")
+            .arg(key, value));
+    return ret;
+  }
+  ret = generateTransponderData(data);
 
   // Восстанавливаем контекст
   setContext(StashedContext);
+
+  if (ret != ReturnStatus::NoError) {
+    sendLog(
+        QString("Получена ошибка при генерации данных транспондера с %1=%2.")
+            .arg(key, value));
+    return ret;
+  }
 
   return ret;
 }
 
 ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& seed) {
-  if (!Context->isInProcess()) {
-    sendLog(
-        QString("Производственная линия '%1' не находится в процессе сборки.")
-            .arg(Context->login()));
-    return ReturnStatus::ProductionLineNotInProcess;
-  }
-
   if (Context->transponder().isEmpty()) {
     sendLog(
         QString(
             "Производственная линия %1 не связана ни с каким транспондером.")
             .arg(Context->login()));
-    return ReturnStatus::NoError;
+    return ReturnStatus::TransponderMissed;
   }
 
   // DSRC атрибуты
@@ -190,29 +189,35 @@ ReturnStatus InfoSystem::generateFirmwareSeed(const QString& key,
                                               const QString& value,
                                               StringDictionary& seed) {
   // Сохраняем контекст
-  stashCurrentContext();
+  saveContext();
 
-  loadTransponderContext(key, value);
-  ReturnStatus ret = generateFirmwareSeed(seed);
+  ReturnStatus ret = loadTransponderContext(key, value);
+  if (ret != ReturnStatus::NoError) {
+    sendLog(
+        QString("Получена ошибка при загрузке контекста транспондера с %1=%2.")
+            .arg(key, value));
+    return ret;
+  }
+  ret = generateFirmwareSeed(seed);
 
   // Восстанавливаем контекст
   setContext(StashedContext);
+
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Получена ошибка при генерации сида прошивки для "
+                    "транспондера с %1=%2.")
+                .arg(key, value));
+    return ret;
+  }
 
   return ret;
 }
 
 ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
-  if (!Context->isInProcess()) {
-    sendLog(
-        QString("Производственная линия '%1' не находится в процессе сборки.")
-            .arg(Context->login()));
-    return ReturnStatus::ProductionLineNotInProcess;
-  }
-
   if (Context->box().isEmpty()) {
     sendLog(QString("Производственная линия %1 не связана ни с каким боксом.")
                 .arg(Context->login()));
-    return ReturnStatus::NoError;
+    return ReturnStatus::BoxMissed;
   }
 
   Database->setRecordMaxCount(0);
@@ -229,7 +234,7 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
   if (transponders.isEmpty()) {
     sendLog(QString("В боксе %1 не найдено ни одного транспондера.")
                 .arg(Context->box().get("id")));
-    return ReturnStatus::TranspoderMissed;
+    return ReturnStatus::BoxIsEmty;
   }
 
   // Данные бокса
@@ -262,45 +267,47 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
 ReturnStatus InfoSystem::generateBoxData(const QString& id,
                                          StringDictionary& data) {
   // Сохраняем контекст
-  stashCurrentContext();
+  saveContext();
 
-  loadBoxContext(id);
-  ReturnStatus ret = generateBoxData(data);
+  ReturnStatus ret = loadBoxContext(id);
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Получена ошибка при загрузке контекста бокса с id=%1.")
+                .arg(id));
+    return ret;
+  }
+  ret = generateBoxData(data);
 
   // Восстанавливаем контекст
   setContext(StashedContext);
+
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Получена ошибка при генерации данных паллеты с id=%1.")
+                .arg(id));
+    return ret;
+  }
 
   return ret;
 }
 
 ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
-  if (Context->isInProcess()) {
-    sendLog(
-        QString("Производственная линия '%1' не находится в процессе сборки.")
-            .arg(Context->login()));
-    return ReturnStatus::ProductionLineNotInProcess;
-  }
-
   if (Context->pallet().isEmpty()) {
     sendLog(QString("Производственная линия %1 не связана ни с какой паллетой.")
                 .arg(Context->login()));
-    return ReturnStatus::NoError;
+    return ReturnStatus::PalletMissed;
   }
 
   SqlQueryValues boxes;
   if (!Database->readRecords(
-          "boxes",
-          QString("pallet_id = %1 AND assembled_units = quantity")
-              .arg(Context->box().get("id")),
+          "boxes", QString("pallet_id = %1").arg(Context->box().get("id")),
           boxes)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;
   }
 
   if (boxes.isEmpty()) {
-    sendLog(QString("В паллете %1 не найдено ни одного собранного бокса.")
+    sendLog(QString("В паллете %1 не найдено ни одного бокса.")
                 .arg(Context->box().get("id")));
-    return ReturnStatus::BoxMissed;
+    return ReturnStatus::PalletIsEmpty;
   }
 
   // Идентификатор паллеты
@@ -333,13 +340,24 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
 ReturnStatus InfoSystem::generatePalletData(const QString& id,
                                             StringDictionary& data) {
   // Сохраняем контекст
-  stashCurrentContext();
+  saveContext();
 
-  loadPalletContext(id);
-  ReturnStatus ret = generatePalletData(data);
+  ReturnStatus ret = loadPalletContext(id);
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Получена ошибка при загрузке контекста паллеты с id=%1.")
+                .arg(id));
+    return ret;
+  }
+  ret = generatePalletData(data);
 
   // Восстанавливаем контекст
   setContext(StashedContext);
+
+  if (ret != ReturnStatus::NoError) {
+    sendLog(QString("Получена ошибка при генерации данных паллеты с id=%1.")
+                .arg(id));
+    return ret;
+  }
 
   return ret;
 }
@@ -352,8 +370,9 @@ void InfoSystem::sendLog(const QString& log) const {
   emit const_cast<InfoSystem*>(this)->logging(objectName() + " - " + log);
 }
 
-void InfoSystem::stashCurrentContext() {
+void InfoSystem::saveContext() {
   StashedContext = Context;
+  Context = std::shared_ptr<ProductionLineContext>(new ProductionLineContext());
 }
 
 ReturnStatus InfoSystem::loadTransponderContext(const QString& key,
@@ -367,24 +386,21 @@ ReturnStatus InfoSystem::loadTransponderContext(const QString& key,
 
   if (Context->transponder().isEmpty()) {
     sendLog(QString("Транспондер c %1 = '%2' не существует.").arg(key, value));
-    return ReturnStatus::TranspoderMissed;
+    return ReturnStatus::TransponderMissed;
   }
 
   return loadBoxContext(Context->transponder().get("box_id"));
 }
 
 ReturnStatus InfoSystem::loadBoxContext(const QString& id) {
-  if (!Database->readRecords(
-          "boxes",
-          QString("id = %1").arg(Context->productionLine().get("box_id")),
-          Context->box())) {
-    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
+  if (!Database->readRecords("boxes", QString("id = %1").arg(id),
+                             Context->box())) {
+    sendLog(QString("Получена ошибка при поиске данных бокса %1.").arg(id));
     return ReturnStatus::DatabaseQueryError;
   }
 
   if (Context->box().isEmpty()) {
-    sendLog(QString("Бокс '%1' не существует.")
-                .arg(Context->productionLine().get("box_id")));
+    sendLog(QString("Бокс '%1' не существует.").arg(id));
     return ReturnStatus::BoxMissed;
   }
 

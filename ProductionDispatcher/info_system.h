@@ -52,7 +52,7 @@ class InfoSystem : public AbstractInfoSystem {
   void loadSettings(void);
   void sendLog(const QString& log) const;
 
-  void stashCurrentContext(void);
+  void saveContext(void);
 
   ReturnStatus loadTransponderContext(const QString& key, const QString& value);
   ReturnStatus loadBoxContext(const QString& id);
