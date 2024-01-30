@@ -22,13 +22,13 @@ void ConfirmTransponderRereleaseCommand::process(const QJsonObject& command) {
       !command.contains("transpoder_ucid") ||
       !command.contains("transpoder_pan")) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка.");
     return;
   }
 
   Parameters.insert("personal_account_number",
                     command.value("transpoder_pan").toString());
-  Parameters.insert("transponder_ucid",
-                    command.value("transpoder_ucid").toString());
+  Parameters.insert("ucid", command.value("transpoder_ucid").toString());
 
   // Подтверждение выпуска транспондера
   emit confirmTransponderRerelease_signal(Parameters, Status);

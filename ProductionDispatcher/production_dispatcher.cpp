@@ -253,7 +253,7 @@ void ProductionDispatcher::confirmTransponderRelease(
   }
   initOperation("confirmTransponderRelease");
 
-  ret = Releaser->confirmRelease(param.value("transponder_ucid"));
+  ret = Releaser->confirmRelease(param.value("ucid"));
   if (ret != ReturnStatus::NoError) {
     processOperationError("confirmTransponderRelease", ret);
     return;
@@ -271,16 +271,16 @@ void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
   }
   initOperation("rereleaseTransponder");
 
-  QString pan = param.value("transponder_pan")
-                    .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
-  ret = Releaser->rerelease("personal_account_number", pan);
+  ret = Releaser->rerelease("personal_account_number",
+                            param.value("personal_account_number"));
   if (ret != ReturnStatus::NoError) {
     processOperationError("rereleaseTransponder", ret);
     return;
   }
 
   StringDictionary seed;
-  ret = Informer->generateFirmwareSeed("personal_account_number", pan, seed);
+  ret = Informer->generateFirmwareSeed(
+      "personal_account_number", param.value("personal_account_number"), seed);
   if (ret != ReturnStatus::NoError) {
     processOperationError("rereleaseTransponder", ret);
     return;
@@ -304,10 +304,9 @@ void ProductionDispatcher::confirmTransponderRerelease(
     return;
   }
 
-  QString pan = param.value("transponder_pan")
-                    .leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F'));
-  ret = Releaser->confirmRerelease("personal_account_number", pan,
-                                   param.value("transponder_ucid"));
+  ret = Releaser->confirmRerelease("personal_account_number",
+                                   param.value("personal_account_number"),
+                                   param.value("ucid"));
   if (ret != ReturnStatus::NoError) {
     processOperationError("confirmTransponderRerelease", ret);
     return;

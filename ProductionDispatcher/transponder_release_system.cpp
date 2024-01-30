@@ -23,14 +23,6 @@ ReturnStatus TransponderReleaseSystem::findLastReleased() {
     return ReturnStatus::ProductionLineNotInProcess;
   }
 
-  // Если сборка бокса завершена
-  if (Context->box().get("completed") == "true") {
-    sendLog(QString("Сборка бокса %1 была завершена. Поиск очередного "
-                    "транспондера невозможен.")
-                .arg(Context->box().get("id")));
-    return ReturnStatus::BoxCompletelyAssembled;
-  }
-
   Database->setRecordMaxCount(1);
   Database->setCurrentOrder(Qt::DescendingOrder);
   if (!Database->readRecords("transponders",
@@ -41,6 +33,11 @@ ReturnStatus TransponderReleaseSystem::findLastReleased() {
                     "транспондера в боксе %1.")
                 .arg(Context->box().get("id")));
     return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (Context->transponder().isEmpty()) {
+    sendLog(QString("В боксе %1 нет собранных транспондеров. ")
+                .arg(Context->box().get("id")));
   }
 
   return ReturnStatus::NoError;
@@ -200,6 +197,24 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
                     "выпуска невозможно. ")
                 .arg(Context->transponder().get("id")));
     return ReturnStatus::TransponderNotAwaitingConfirmation;
+  }
+
+  SqlQueryValues checkTransponder;
+
+  Database->setCurrentOrder(Qt::AscendingOrder);
+  Database->setRecordMaxCount(1);
+
+  if (!Database->readRecords("transponders", QString("ucid = '%1'").arg(ucid),
+                             checkTransponder)) {
+    sendLog(QString("Получена ошибка при поиске транспондера с UCID=%1. ")
+                .arg(ucid));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (!checkTransponder.isEmpty()) {
+    sendLog(QString("Печатная плата с UCID=%1 уже была использована ранее. ")
+                .arg(ucid));
+    return ReturnStatus::IdenticalUcidError;
   }
 
   // Подтверждаем сборку транспондера

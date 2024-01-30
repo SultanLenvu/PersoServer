@@ -2,13 +2,13 @@
 #include "abstract_production_dispatcher.h"
 #include "global_environment.h"
 
-LaunchProductionLineCommand::LaunchProductionLineCommand(const QString& name) : AbstractClientCommand(name) {
+LaunchProductionLineCommand::LaunchProductionLineCommand(const QString& name)
+    : AbstractClientCommand(name) {
   Status = ReturnStatus::Unknown;
 
   connect(this, &LaunchProductionLineCommand::launchProductionLine_signal,
           dynamic_cast<AbstractProductionDispatcher*>(
-              GlobalEnvironment::instance()->getObject(
-                  "ProductionDispatcher")),
+              GlobalEnvironment::instance()->getObject("ProductionDispatcher")),
           &AbstractProductionDispatcher::launchProductionLine,
           Qt::BlockingQueuedConnection);
 }
@@ -20,6 +20,7 @@ void LaunchProductionLineCommand::process(const QJsonObject& command) {
       (command["command_name"] != CommandName) || !command.contains("login") ||
       !command.contains("password")) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка.");
     return;
   }
 

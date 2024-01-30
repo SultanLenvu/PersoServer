@@ -21,13 +21,14 @@ RereleaseTransponderCommand::~RereleaseTransponderCommand() {}
 void RereleaseTransponderCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) ||
-      !command.contains("transpoder_pan")) {
+      !command.contains("transponder_pan")) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка.");
     return;
   }
 
   Parameters.insert("personal_account_number",
-                    command.value("transpoder_pan").toString() + "F");
+                    command.value("transponder_pan").toString() + "F");
 
   // Запрашиваем печать бокса
   emit rereleaseTransponder_signal(Parameters, *Firmware.get(), Status);
@@ -37,7 +38,7 @@ void RereleaseTransponderCommand::generateResponse(QJsonObject& response) {
   response["command_name"] = CommandName;
 
   if (Status == ReturnStatus::NoError) {
-    response["firmware"] = QString(*Firmware);
+    response["transponder_firmware"] = QString(Firmware->toBase64());
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));

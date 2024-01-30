@@ -21,11 +21,11 @@ void ConfirmTransponderReleaseCommand::process(const QJsonObject& command) {
       (command["command_name"] != CommandName) ||
       !command.contains("transponder_ucid")) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка.");
     return;
   }
 
-  Parameters.insert("transponder_ucid",
-                    command.value("transponder_ucid").toString());
+  Parameters.insert("ucid", command.value("transponder_ucid").toString());
 
   // Подтверждение выпуска транспондера
   emit confirmTransponderRelease_signal(Parameters, Status);

@@ -21,6 +21,7 @@ void GetCurrentTransponderDataCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName)) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка.");
     return;
   }
 

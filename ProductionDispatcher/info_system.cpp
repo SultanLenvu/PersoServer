@@ -90,7 +90,7 @@ ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
         QString(
             "Производственная линия %1 не связана ни с каким транспондером.")
             .arg(Context->login()));
-    return ReturnStatus::NoError;
+    return ReturnStatus::TransponderMissed;
   }
 
   // Данные переносимые без изменений

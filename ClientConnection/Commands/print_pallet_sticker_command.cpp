@@ -21,6 +21,7 @@ void PrintPalletStickerCommand::process(const QJsonObject& command) {
       (command["command_name"] != CommandName) ||
       !command.contains("personal_account_number")) {
     Status = ReturnStatus::SyntaxError;
+    sendLog("Получена синтаксическая ошибка.");
     return;
   }
 
