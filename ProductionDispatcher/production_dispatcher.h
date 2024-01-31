@@ -1,6 +1,8 @@
 #ifndef PRODUCTIONDISPATCHER_H
 #define PRODUCTIONDISPATCHER_H
 
+#include <QHostAddress>
+
 #include "Database/abstract_sql_database.h"
 #include "Printing/abstract_sticker_printer.h"
 #include "abstract_firmware_generation_system.h"

@@ -44,7 +44,7 @@ class TE310Printer : public AbstractStickerPrinter {
  public:
   explicit TE310Printer(const QString& name);
 #ifdef __linux__
-  explicit TE310Printer(QObject* parent, const QHostAddress& ip, int port);
+  explicit TE310Printer(const QString& name, const QHostAddress& ip, int port);
 #endif /* __linux__ */
 
   virtual ReturnStatus checkConfig(void) override;
