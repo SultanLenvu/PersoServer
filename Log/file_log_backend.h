@@ -22,7 +22,7 @@ class FileLogBackend : public LogBackend {
   QTextStream LogTextStream;
 
  public:
-  explicit FileLogBackend(QObject* parent);
+  explicit FileLogBackend(const QString& name);
   ~FileLogBackend();
 
   virtual void writeLogLine(const QString& str) override;

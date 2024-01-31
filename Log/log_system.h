@@ -10,10 +10,7 @@
 #include <QTime>
 #include <QUdpSocket>
 
-#include "Log/console_log_backend.h"
-#include "Log/file_log_backend.h"
-#include "Log/log_backend.h"
-#include "Log/udp_log_backend.h"
+#include "log_backend.h"
 
 /* Глобальная система логгирования */
 //==================================================================================
@@ -22,21 +19,22 @@ class LogSystem : public QObject {
   Q_OBJECT
 
  private:
-  QList<LogBackend*> Backends;
-  UdpLogBackend* UdpLogger;
-  FileLogBackend* FileLogger;
-  ConsolerLogBackend* ConsoleLogger;
+  bool LogEnable;
+  bool ExtendedLogEnable;
+  int32_t MessageMaxSize;
+
+  std::vector<std::shared_ptr<LogBackend>> Backends;
 
  public:
+  explicit LogSystem(const QString& name);
   ~LogSystem();
-  static LogSystem* instance(void);
 
  public slots:
-  void clear(void) const;
-  void generate(const QString& log) const;
+  void clear(void);
+  void generate(const QString& log);
 
  private:
-  LogSystem(QObject* parent);
+  LogSystem();
   Q_DISABLE_COPY_MOVE(LogSystem)
   void loadSettings(void);
 };

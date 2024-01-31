@@ -1,23 +1,32 @@
-#include <cstdlib>
+#include <QCommandLineParser>
+#include <QCoreApplication>
 
+#include "General/definitions.h"
+#include "General/types.h"
 #include "server_manager.h"
 
-ServerManager::ServerManager(QObject* parent) : QObject(parent) {
-  setObjectName("ServerManager");
+ServerManager::ServerManager(const QString& name) : QObject(nullptr) {
+  setObjectName(name);
   loadSettings();
   registerMetaType();
 }
 
-ServerManager::~ServerManager() {
-  LoggerThread->quit();
-  LoggerThread->wait();
-}
+ServerManager::~ServerManager() {}
 
-void ServerManager::processCommandArguments(const QStringList* args) {
-  if (args->contains("-generate_default_config")) {
-    generateDefaultSettings();
-    exit(0);
+bool ServerManager::init() {
+  processCommandArguments();
+
+  if (!checkSettings()) {
+    return false;
   }
+
+  Logger = std::unique_ptr<LogSystem>(new LogSystem("LogSystem"));
+  GlobalEnv = GlobalEnvironment::instance();
+
+  createServerInstance();
+  Server->start();
+
+  return true;
 }
 
 void ServerManager::loadSettings() const {
@@ -74,37 +83,42 @@ bool ServerManager::checkSettings() const {
   }
 
 #ifdef __linux__
-    if (!settings.contains("perso_server/box_sticker_printer_ip")
-        || !settings.contains("perso_server/box_sticker_printer_port")) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-          "Не указаны имя или IP-адрес принтера стикеров на боксы");
-      return false;
-    }
-    QHostAddress boxIP(
-        settings.value("perso_server/box_sticker_printer_ip").toString());
-    int boxPort = settings.value(
-        "perso_server/box_sticker_printer_port").toInt();
+  if (!settings.contains("perso_server/box_sticker_printer_ip") ||
+      !settings.contains("perso_server/box_sticker_printer_port")) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "Не указаны имя или IP-адрес принтера стикеров на боксы");
+    return false;
+  }
+  QHostAddress boxIP(
+      settings.value("perso_server/box_sticker_printer_ip").toString());
+  int boxPort = settings.value("perso_server/box_sticker_printer_port").toInt();
 
-    if (boxIP.isNull() || boxPort <= 0 || boxPort > 65535) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-          "неверный IP-адрес или порт принтера стикеров на боксы");
-      return false;
-    }
+  if (boxIP.isNull() || boxPort <= 0 || boxPort > 65535) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "неверный IP-адрес или порт принтера стикеров на боксы");
+    return false;
+  }
 
-    if (!settings.contains("perso_server/pallet_sticker_printer_ip")
-        || !settings.contains("perso_server/pallet_sticker_printer_port")) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-                "Не указаны имя или IP-адрес принтера стикеров на паллеты.");
-      return false;
-    }
-    QHostAddress palletIP(settings.value("perso_server/pallet_sticker_printer_ip").toString());
-    int palletPort = settings.value("perso_server/pallet_sticker_printer_port").toInt();
+  if (!settings.contains("perso_server/pallet_sticker_printer_ip") ||
+      !settings.contains("perso_server/pallet_sticker_printer_port")) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "Не указаны имя или IP-адрес принтера стикеров на паллеты.");
+    return false;
+  }
+  QHostAddress palletIP(
+      settings.value("perso_server/pallet_sticker_printer_ip").toString());
+  int palletPort =
+      settings.value("perso_server/pallet_sticker_printer_port").toInt();
 
-    if (palletIP.isNull() || palletPort <= 0 || palletPort > 6553500) {
-      qCritical("Получена ошибка при обработке файла конфигурации: "
-                "неверный IP-адрес или порт принтера стикеров на паллеты.");
-      return false;
-    }
+  if (palletIP.isNull() || palletPort <= 0 || palletPort > 6553500) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: "
+        "неверный IP-адрес или порт принтера стикеров на паллеты.");
+    return false;
+  }
 #else
   if (settings.value("perso_server/box_sticker_printer_name")
           .toString()
@@ -131,7 +145,8 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (settings.value("perso_client/connection_max_duration").toUInt() == 0) {
+  if (settings.value("perso_client/unauthorized_access_expiration_time")
+          .toUInt() == 0) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "значение максимальной длительности клиентского "
@@ -143,6 +158,13 @@ bool ServerManager::checkSettings() const {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректное "
         "максимальное количество лог-файлов. ");
+    return false;
+  }
+
+  if (settings.value("log_system/message_max_size").toUInt() == 0) {
+    qCritical(
+        "Получена ошибка при обработке файла конфигурации: некорректный "
+        "максимальный размер сообщений лога. ");
     return false;
   }
 
@@ -162,7 +184,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  if (QHostAddress(settings.value("postgres_controller/server_ip").toString())
+  if (QHostAddress(settings.value("postgre_sql_database/server_ip").toString())
           .isNull()) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
@@ -170,7 +192,7 @@ bool ServerManager::checkSettings() const {
     return false;
   }
 
-  temp = settings.value("postgres_controller/server_port").toUInt();
+  temp = settings.value("postgre_sql_database/server_port").toUInt();
   if ((temp <= IP_PORT_MIN_VALUE) || (temp > IP_PORT_MAX_VALUE)) {
     qCritical(
         "Получена ошибка при обработке файла конфигурации: некорректный "
@@ -222,9 +244,9 @@ void ServerManager::generateDefaultSettings() const {
   settings.setValue("perso_server/pallet_sticker_printer_name",
                     PRINTER_FOR_PALLET_DEFAULT_NAME);
 
-  // PersoClientConnection
-  settings.setValue("perso_client/connection_max_duration",
-                    CLIENT_CONNECTION_MAX_DURATION);
+  // ClientConnection
+  settings.setValue("perso_client/unauthorized_access_expiration_time",
+                    CLIENT_IDLE_EXPIRATION_TIME);
 
   // LogSystem
   settings.setValue("log_system/global_enable", true);
@@ -240,15 +262,15 @@ void ServerManager::generateDefaultSettings() const {
                     UDP_LOG_DESTINATION_DEFAULT_PORT);
 
   // Postgres
-  settings.setValue("postgres_controller/server_ip",
+  settings.setValue("postgre_sql_database/server_ip",
                     POSTGRES_DEFAULT_SERVER_IP);
-  settings.setValue("postgres_controller/server_port",
+  settings.setValue("postgre_sql_database/server_port",
                     POSTGRES_DEFAULT_SERVER_PORT);
-  settings.setValue("postgres_controller/database_name",
+  settings.setValue("postgre_sql_database/database_name",
                     POSTGRES_DEFAULT_DATABASE_NAME);
-  settings.setValue("postgres_controller/user_name",
+  settings.setValue("postgre_sql_database/user_name",
                     POSTGRES_DEFAULT_USER_NAME);
-  settings.setValue("postgres_controller/user_password",
+  settings.setValue("postgre_sql_database/user_password",
                     POSTGRES_DEFAULT_USER_PASSWORD);
 
   // TransponderReleaseSystem
@@ -266,27 +288,17 @@ void ServerManager::generateDefaultSettings() const {
                     TSC_TE310_LIBRARY_DEFAULT_PATH);
 }
 
-void ServerManager::start() {
-  createLoggerInstance();
-  createServerInstance();
-  Server->start();
+void ServerManager::processCommandArguments() {
+  QStringList args = QCoreApplication::arguments();
+
+  if (args.contains("-generate_default_config")) {
+    generateDefaultSettings();
+    QCoreApplication::exit(0);
+  }
 }
 
 void ServerManager::createServerInstance() {
-  Server = new PersoServer(this);
-  connect(Server, &PersoServer::logging, Logger, &LogSystem::generate);
-}
-
-void ServerManager::createLoggerInstance() {
-  Logger = LogSystem::instance();
-  connect(this, &ServerManager::logging, Logger, &LogSystem::generate);
-
-  LoggerThread = new QThread(this);
-  connect(LoggerThread, &QThread::finished, LoggerThread,
-          &QThread::deleteLater);
-
-  Logger->moveToThread(LoggerThread);
-  LoggerThread->start();
+  Server = std::unique_ptr<PersoServer>(new PersoServer("PersoServer"));
 }
 
 void ServerManager::registerMetaType() {
@@ -296,6 +308,6 @@ void ServerManager::registerMetaType() {
       "QSharedPointer<QHash<QString, QString> >");
   qRegisterMetaType<QSharedPointer<QStringList>>("QSharedPointer<QStringList>");
   qRegisterMetaType<QSharedPointer<QFile>>("QSharedPointer<QFile>");
-  qRegisterMetaType<TransponderReleaseSystem::ReturnStatus>(
-      "TransponderReleaseSystem::ReturnStatus");
+  qRegisterMetaType<ReturnStatus>("ReturnStatus");
+  qRegisterMetaType<StringDictionary>("StringDictionary");
 }

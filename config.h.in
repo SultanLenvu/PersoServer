@@ -1,0 +1,8 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#cmakedefine PROJECT_VERSION "@PROJECT_VERSION@"
+#cmakedefine PRINTERS_ENABLE
+#cmakedefine SERVER_PANIC_STATE_ENABLE
+#cmakedefine UNAUTHORIZE_EXPIRATION
+#endif  // CONFIG_H

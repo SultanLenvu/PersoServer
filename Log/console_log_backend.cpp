@@ -1,23 +1,20 @@
 #include "console_log_backend.h"
 
-ConsolerLogBackend::ConsolerLogBackend(QObject *parent) : LogBackend(parent)
-{
-  setObjectName("ConsolerLogBackend");
-
+ConsoleLogBackend::ConsoleLogBackend(const QString& name) : LogBackend(name) {
   loadSettings();
 }
 
-ConsolerLogBackend::~ConsolerLogBackend() {}
+ConsoleLogBackend::~ConsoleLogBackend() {}
 
-void ConsolerLogBackend::writeLogLine(const QString& str) {
+void ConsoleLogBackend::writeLogLine(const QString& str) {
   if (LogEnable) {
     QTextStream(stdout) << str << "\n";
   }
 }
 
-void ConsolerLogBackend::clear() {}
+void ConsoleLogBackend::clear() {}
 
-void ConsolerLogBackend::loadSettings() {
+void ConsoleLogBackend::loadSettings() {
   QSettings settings;
 
   LogEnable = settings.value("log_system/console_log_enable").toBool();

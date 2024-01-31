@@ -1,27 +1,14 @@
-#include <QHostAddress>
-
 #include "te310_printer.h"
 
 TE310Printer::TE310Printer(QObject* parent, const QString& name)
     : IStickerPrinter(parent, TE310) {
-  setObjectName(name);
+  setObjectName("TE310Printer");
+  Name = name;
   loadSetting();
 
   TscLib = new QLibrary(TscLibPath, this);
   loadTscLib();
 }
-
-#ifdef __linux__
-TE310Printer::TE310Printer(QObject* parent, const QHostAddress& ip, int port)
-    : IStickerPrinter(parent, TE310), IPAddress(ip) {
-  setObjectName("TE310");
-  Port = port;
-  loadSetting();
-
-  TscLib = new QLibrary(TscLibPath, this);
-  loadTscLib();
-}
-#endif /* __linux__ */
 
 bool TE310Printer::checkConfiguration() {
   sendLog("Проверка конфигурации. ");
@@ -31,15 +18,35 @@ bool TE310Printer::checkConfiguration() {
     return false;
   }
 
-#ifdef __linux__
-  return checkConfigurationByAddress();
-#else
-  return checkConfigurationByName();
-#endif /* __linux__ */
+  QList<QString> printers = QPrinterInfo::availablePrinterNames();
+  if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
+        return p == Name;
+      }) == printers.end()) {
+    sendLog("Не найден драйвер операционной системы. ");
+    return false;
+  }
+  if (QPrinterInfo::printerInfo(Name).state() == QPrinter::Error) {
+    sendLog("Не доступен. ");
+    return false;
+  }
+
+  if (openPort(Name.toUtf8().constData()) == 0) {
+    sendLog("Не доступен.");
+    return false;
+  }
+  closePort();
+
+  sendLog("Проверка конфигурации успешно завершена. ");
+  return true;
 }
 
 IStickerPrinter::ReturnStatus TE310Printer::printTransponderSticker(
     const QHash<QString, QString>* parameters) {
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
   if (!checkConfiguration()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
     return ConnectionError;
@@ -81,8 +88,13 @@ IStickerPrinter::ReturnStatus TE310Printer::printLastTransponderSticker() {
 
 IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
     const QHash<QString, QString>* parameters) {
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
   if (!checkConfiguration()) {
-    sendLog(QString("Ошибка конфигурации. Сброс"));
+    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
     return ConnectionError;
   }
 
@@ -94,17 +106,9 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
-
-  // Сохраняем данные о стикере
-  LastBoxSticker = *parameters;
-
   sendLog(QString("Печать стикера для бокса %1.").arg(parameters->value("id")));
 
-#ifdef __linux__
-  openEthernet(IPAddress.toString().toUtf8().data(), Port);
-#else
-  openPort(objectName().toUtf8().data());
-#endif /* __linux__ */
+  openPort(Name.toUtf8().data());
   sendCommand("SIZE 100 mm, 50 mm");
   sendCommand("GAP 2 mm,2 mm");
   sendCommand("REFERENCE 0,0");
@@ -150,14 +154,15 @@ IStickerPrinter::ReturnStatus TE310Printer::printBoxSticker(
   return Completed;
 }
 
-IStickerPrinter::ReturnStatus TE310Printer::printLastBoxSticker() {
-  return printBoxSticker(&LastBoxSticker);
-}
-
 IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
     const QHash<QString, QString>* parameters) {
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
   if (!checkConfiguration()) {
-    sendLog(QString("Ошибка конфигурации. Сброс"));
+    sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
     return ConnectionError;
   }
 
@@ -170,18 +175,12 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ParameterError;
   }
-
-  // Сохраняем данные о стикере
-  LastPalletSticker = *parameters;
-
   sendLog(
       QString("Печать стикера для паллеты %1.").arg(parameters->value("id")));
 
-#ifdef __linux__
-  openEthernet(IPAddress.toString().toUtf8().data(), Port);
-#else
-  openPort(objectName().toUtf8().data());
-#endif /* __linux__ */
+  // Debug
+  sendLog(QString("openPort = %1")
+              .arg(QString::number(openPort(Name.toUtf8().data()))));
 
   sendCommand("SIZE 100 mm,100 mm");
   sendCommand("GAP 2 mm,2 mm");
@@ -234,26 +233,24 @@ IStickerPrinter::ReturnStatus TE310Printer::printPalletSticker(
   return Completed;
 }
 
-IStickerPrinter::ReturnStatus TE310Printer::printLastPalletSticker() {
-  return printPalletSticker(&LastPalletSticker);
-}
-
 IStickerPrinter::ReturnStatus TE310Printer::exec(
     const QStringList* commandScript) {
+  if (LibError) {
+    sendLog(QString("Отсутствует библиотека для работы с принтером. Сброс"));
+    return LibraryMissed;
+  }
+
   if (!checkConfiguration()) {
     sendLog(QString("Не удалось подключиться к принтеру. Сброс"));
     return ConnectionError;
   }
 
-#ifdef __linux__
-  openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  openPort(objectName().toUtf8().data());
-#else
-  openPort(objectName().toUtf8().data());
-#endif /* __linux__ */
+  openPort(Name.toUtf8().data());
+
   for (int32_t i = 0; i < commandScript->size(); i++) {
     sendCommand(commandScript->at(i).toUtf8().data());
   }
+
   closePort();
 
   return Completed;
@@ -263,6 +260,8 @@ void TE310Printer::applySetting() {
   sendLog("Применение новых настроек.");
 
   loadSetting();
+  TscLib->setFileName(TscLibPath);
+  loadTscLib();
 }
 
 void TE310Printer::loadSetting() {
@@ -272,30 +271,22 @@ void TE310Printer::loadSetting() {
   TscLibPath = settings.value("te310_printer/library_path").toString();
 }
 
-void TE310Printer::sendLog(const QString& log) {
-  if (LogEnable) {
-    emit logging("TE310Printer - " + log);
-  }
-}
-
 bool TE310Printer::loadTscLib() {
   if (!TscLib->load()) {
-    sendLog(TscLib->errorString());
+    LibError = true;
+
     about = nullptr;
     openPort = nullptr;
-#ifdef __linux__
-    openEthernet = nullptr;
-#endif /* __linux__ */
     sendCommand = nullptr;
     closePort = nullptr;
 
     return false;
   }
+
+  LibError = false;
+
   about = (TscAbout)TscLib->resolve("about");
   openPort = (TscOpenPort)TscLib->resolve("openport");
-#ifdef __linux__
-  openEthernet = (TscOpenEthernet)TscLib->resolve("openethernet");
-#endif /* __linux__ */
   sendCommand = (TscSendCommand)TscLib->resolve("sendcommand");
   closePort = (TscClosePort)TscLib->resolve("closeport");
 
@@ -303,11 +294,7 @@ bool TE310Printer::loadTscLib() {
 }
 
 void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
-#ifdef __linux__
-  openEthernet(IPAddress.toString().toUtf8().data(), Port);
-#else
-  openPort(objectName().toUtf8().data());
-#endif /* __linux__ */
+  openPort(Name.toUtf8().data());
   sendCommand("SIZE 27 mm, 27 mm");
   sendCommand("GAP 2 mm,2 mm");
   sendCommand("REFERENCE 0,0");
@@ -318,12 +305,17 @@ void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
                   .toUtf8()
                   .data());
   sendCommand(QString("QRCODE "
-                      "60,60,H,10,A,0,X204,J1,M2,\"%1\n\r%2\"")
-                  .arg(parameters->value("pan"), parameters->value("sn"))
+                      "60,60,H,10,A,0,X204,J1,M2,\"%1\n\r%2%3%4\"")
+                  .arg(parameters->value("pan"),
+                       parameters->value("manufacturer_id"),
+                       parameters->value("battery_insertation_date"),
+                       parameters->value("sn"))
                   .toUtf8()
                   .data());
-  sendCommand(QString("TEXT 162,276,\"D.FNT\",0,1,1,2,\"SN: %1\"")
-                  .arg(parameters->value("sn"))
+  sendCommand(QString("TEXT 162,276,\"D.FNT\",0,1,1,2,\"SN: %1 %2 %3\"")
+                  .arg(parameters->value("manufacturer_id"),
+                       parameters->value("battery_insertation_date"),
+                       parameters->value("sn"))
                   .toUtf8()
                   .data());
   sendCommand("PRINT 1");
@@ -331,17 +323,15 @@ void TE310Printer::printNkdSticker(const QHash<QString, QString>* parameters) {
 }
 
 void TE310Printer::printZsdSticker(const QHash<QString, QString>* parameters) {
-#ifdef __linux__
-  openEthernet(IPAddress.toString().toUtf8().data(), Port);
-#else
-  openPort(objectName().toUtf8().data());
-#endif /* __linux__ */
+  openPort(Name.toUtf8().data());
   sendCommand("SIZE 30 mm, 20 mm");
   sendCommand("GAP 2 mm, 1 mm");
   sendCommand("DIRECTION 1");
   sendCommand("CLS");
-  sendCommand(QString("TEXT 180,12,\"D.FNT\",0,1,1,2,\"SN: %1\"")
-                  .arg(parameters->value("sn"))
+  sendCommand(QString("TEXT 180,12,\"D.FNT\",0,1,1,2,\"SN: %1 %2 %3\"")
+                  .arg(parameters->value("manufacturer_id"),
+                       parameters->value("battery_insertation_date"),
+                       parameters->value("sn"))
                   .toUtf8()
                   .data());
   sendCommand(QString("BARCODE 18,36,\"128\",144,2,0,2,2,\"%1\"")
@@ -351,40 +341,3 @@ void TE310Printer::printZsdSticker(const QHash<QString, QString>* parameters) {
   sendCommand("PRINT 1");
   closePort();
 }
-
-bool TE310Printer::checkConfigurationByName() {
-  QList<QString> printers = QPrinterInfo::availablePrinterNames();
-  if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
-        return p == objectName();
-      }) == printers.end()) {
-    sendLog("Не найден драйвер операционной системы. ");
-    return false;
-  }
-  if (QPrinterInfo::printerInfo(objectName()).state() == QPrinter::Error) {
-    sendLog("Не доступен.");
-    return false;
-  }
-
-  if (openPort(objectName().toUtf8().constData()) == 0) {
-    sendLog("Не доступен.");
-    return false;
-  }
-  closePort();
-
-  sendLog("Проверка конфигурации успешно завершена. ");
-  return true;
-}
-
-#ifdef __linux__
-bool TE310Printer::checkConfigurationByAddress() {
-  int32_t result = openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  if (result == 0) {
-    sendLog("Не доступен.");
-    return false;
-  }
-  closePort();
-
-  sendLog("Проверка конфигурации успешно завершена. ");
-  return true;
-}
-#endif /* __linux__ */
