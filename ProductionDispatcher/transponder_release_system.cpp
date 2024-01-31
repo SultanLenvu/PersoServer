@@ -38,6 +38,12 @@ ReturnStatus TransponderReleaseSystem::findLastReleased() {
   if (Context->transponder().isEmpty()) {
     sendLog(QString("В боксе %1 нет собранных транспондеров. ")
                 .arg(Context->box().get("id")));
+    return ReturnStatus::TransponderMissed;
+  }
+
+  // Связываем транспондер с производственной линией
+  if (!attachTransponder()) {
+    return ReturnStatus::DatabaseQueryError;
   }
 
   return ReturnStatus::NoError;

@@ -133,10 +133,12 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
   }
 
   ret = Releaser->findLastReleased();
-  if (ret != ReturnStatus::NoError) {
+  if ((ret != ReturnStatus::NoError) &&
+      (ret != ReturnStatus::TransponderMissed)) {
     processOperationError("requestBox", ret);
     return;
   }
+  ret = ReturnStatus::NoError;
 
   completeOperation("requestBox");
 }
@@ -511,8 +513,9 @@ void ProductionDispatcher::completeOperation(const QString& name) {
 }
 
 bool ProductionDispatcher::loadContext(QObject* obj) {
-  ProductionContextOwner* owner = dynamic_cast<ProductionContextOwner*>(obj);
-  assert(owner);
+  ProductionContextOwner* owner = static_cast<ProductionContextOwner*>(obj);
+  //  ProductionContextOwner* owner =
+  //  dynamic_cast<ProductionContextOwner*>(obj); assert(owner);
 
   Context = owner->context();
   if (!Context->isAuthorized()) {

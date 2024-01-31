@@ -19,16 +19,16 @@ ConfirmTransponderRereleaseCommand::~ConfirmTransponderRereleaseCommand() {}
 void ConfirmTransponderRereleaseCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) ||
-      !command.contains("transpoder_ucid") ||
-      !command.contains("transpoder_pan")) {
+      !command.contains("transponder_ucid") ||
+      !command.contains("transponder_pan")) {
     Status = ReturnStatus::SyntaxError;
     sendLog("Получена синтаксическая ошибка.");
     return;
   }
 
   Parameters.insert("personal_account_number",
-                    command.value("transpoder_pan").toString());
-  Parameters.insert("ucid", command.value("transpoder_ucid").toString());
+                    command.value("transponder_pan").toString() + "F");
+  Parameters.insert("ucid", command.value("transponder_ucid").toString());
 
   // Подтверждение выпуска транспондера
   emit confirmTransponderRerelease_signal(Parameters, Status);

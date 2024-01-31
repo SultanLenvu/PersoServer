@@ -5,7 +5,7 @@
 
 #include "sql_query_values.h"
 
-class ProductionLineContext {
+class ProductionLineContext final {
  private:
   QString Login;
   QString Password;
