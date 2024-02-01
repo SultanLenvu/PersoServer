@@ -33,13 +33,11 @@ AbstractStickerPrinter::StickerPrinterType TE310Printer::type() {
 }
 
 #ifdef __linux__
-TE310Printer::TE310Printer(QObject* parent, const QHostAddress& ip, int port)
-    : AbstractStickerPrinter(parent, TE310), IPAddress(ip) {
-  setObjectName("TE310");
+TE310Printer::TE310Printer(const QString& name, const QHostAddress& ip, int port)
+    : AbstractStickerPrinter(name), IPAddress(ip) {
   Port = port;
   loadSetting();
 
-  TscLib = new QLibrary(TscLibPath, this);
   loadTscLib();
 }
 #endif /* __linux__ */

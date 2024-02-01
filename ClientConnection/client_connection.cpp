@@ -98,7 +98,7 @@ void ClientConnection::createTransmittedDataBlock() {
   // Инициализируем блок данных и сериализатор
   TransmittedDataBlock.clear();
   QDataStream serializator(&TransmittedDataBlock, QIODevice::WriteOnly);
-  serializator.setVersion(QDataStream::Qt_6_5);
+  serializator.setVersion(QDataStream::Qt_6_4);
 
   // Формируем единый блок данных для отправки
   serializator << uint32_t(0) << responseDocument.toJson();
@@ -309,7 +309,7 @@ void ClientConnection::createContext() {
 void ClientConnection::socketReadyRead_slot() {
   QDataStream deserializator(Socket.get());  // Дессериализатор
   deserializator.setVersion(
-      QDataStream::Qt_6_5);  // Настраиваем версию десериализатора
+      QDataStream::Qt_6_4);  // Настраиваем версию десериализатора
 
   // Если блок данных еще не начал формироваться
   if (ReceivedDataBlockSize == 0) {
