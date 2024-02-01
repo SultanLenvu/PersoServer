@@ -8,10 +8,10 @@
 #include <QSharedPointer>
 #include <QTimer>
 
-#include "abstract_release_system.h"
+#include "abstract_transponder_release_system.h"
 #include "abstract_sql_database.h"
 
-class TransponderReleaseSystem : public AbstractReleaseSystem {
+class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
   Q_OBJECT
 
  public:
@@ -19,7 +19,7 @@ class TransponderReleaseSystem : public AbstractReleaseSystem {
                                     std::shared_ptr<AbstractSqlDatabase> db);
   ~TransponderReleaseSystem();
 
-  // AbstractReleaseSystem interface
+  // AbstractTransponderReleaseSystem interface
  public:
   virtual void setContext(
       std::shared_ptr<ProductionLineContext> context) override;

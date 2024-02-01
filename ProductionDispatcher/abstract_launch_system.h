@@ -25,19 +25,12 @@ class AbstractLaunchSystem : public QObject {
   virtual ReturnStatus launch(void) = 0;
   virtual ReturnStatus shutdown(void) = 0;
 
-  virtual ReturnStatus requestBox(void) = 0;
-  virtual ReturnStatus refundBox(void) = 0;
-  virtual ReturnStatus completeBox(void) = 0;
-
  private:
   AbstractLaunchSystem();
   Q_DISABLE_COPY_MOVE(AbstractLaunchSystem)
 
  signals:
   void logging(const QString& log);
-  void boxAssemblyCompleted(const std::shared_ptr<QString> id);
-  void palletAssemblyCompleted(const std::shared_ptr<QString> id);
-  void orderAssemblyCompleted(const std::shared_ptr<QString> id);
 };
 
 #endif  // AbstractLaunchSystem_H

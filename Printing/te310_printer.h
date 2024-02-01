@@ -15,37 +15,31 @@ class TE310Printer : public AbstractStickerPrinter {
   typedef int (*TscOpenPort)(const char*);
   typedef int (*TscSendCommand)(const char*);
   typedef int (*TscClosePort)(void);
-#ifdef __linux__
   typedef int (*TscOpenEthernet)(const char*, int);
-#endif /* __linux__ */
 
  private:
-#ifdef __linux__
+  QString SystemName;
+
+  bool UseEthernet;
   QHostAddress IPAddress;
-  int Port;
-#endif /* __linux__ */
+  int32_t Port;
 
   QString TscLibPath;
   std::unique_ptr<QLibrary> TscLib;
 
-  QHash<QString, QString> LastTransponderSticker;
-  QHash<QString, QString> LastBoxSticker;
-  QHash<QString, QString> LastPalletSticker;
+  StringDictionary LastTransponderSticker;
+  StringDictionary LastBoxSticker;
+  StringDictionary LastPalletSticker;
 
   // Библиотечные функции
   TscAbout about;
   TscOpenPort openPort;
   TscSendCommand sendCommand;
   TscClosePort closePort;
-#ifdef __linux__
   TscOpenEthernet openEthernet;
-#endif /* __linux__ */
 
  public:
   explicit TE310Printer(const QString& name);
-#ifdef __linux__
-  explicit TE310Printer(const QString& name, const QHostAddress& ip, int port);
-#endif /* __linux__ */
 
   virtual ReturnStatus checkConfig(void) override;
   virtual StickerPrinterType type(void) override;

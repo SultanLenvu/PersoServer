@@ -32,16 +32,6 @@ AbstractStickerPrinter::StickerPrinterType TE310Printer::type() {
   return TE310;
 }
 
-#ifdef __linux__
-TE310Printer::TE310Printer(const QString& name, const QHostAddress& ip, int port)
-    : AbstractStickerPrinter(name), IPAddress(ip) {
-  Port = port;
-  loadSetting();
-
-  loadTscLib();
-}
-#endif /* __linux__ */
-
 ReturnStatus TE310Printer::printTransponderSticker(
     const StringDictionary& param) {
   sendLog(QString("Печать стикера для транспондера."));
@@ -226,14 +216,14 @@ ReturnStatus TE310Printer::printLastPalletSticker() {
 }
 
 ReturnStatus TE310Printer::exec(const QStringList& commandScript) {
-#ifdef __linux__
-  openEthernet(IPAddress.toString().toUtf8().data(), Port);
-#else
-  openPort(objectName().toUtf8().data());
-#endif /* __linux__ */
+  if (!initConnection()) {
+    return ReturnStatus::StickerPrinterConnectionError;
+  }
+
   for (int32_t i = 0; i < commandScript.size(); i++) {
     sendCommand(commandScript.at(i).toUtf8().data());
   }
+
   closePort();
 
   return ReturnStatus::NoError;
@@ -249,7 +239,18 @@ void TE310Printer::applySetting() {
 void TE310Printer::loadSetting() {
   QSettings settings;
 
-  TscLibPath = settings.value("te310_printer/library_path").toString();
+  TscLibPath =
+      settings.value(QString("%1/library_path").arg(objectName())).toString();
+  SystemName =
+      settings.value(QString("%1/system_name").arg(objectName())).toString();
+
+  UseEthernet =
+      settings.value(QString("%1/use_ethernet").arg(objectName())).toBool();
+  if (UseEthernet) {
+    IPAddress = QHostAddress(
+        settings.value(QString("%1/ip_address").arg(objectName())).toString());
+    Port = settings.value(QString("%1/port").arg(objectName())).toInt();
+  }
 }
 
 void TE310Printer::sendLog(const QString& log) {
@@ -262,34 +263,30 @@ void TE310Printer::loadTscLib() {
   if (!TscLib->load()) {
     about = nullptr;
     openPort = nullptr;
-#ifdef __linux__
     openEthernet = nullptr;
-#endif /* __linux__ */
     sendCommand = nullptr;
     closePort = nullptr;
   }
   about = (TscAbout)TscLib->resolve("about");
   openPort = (TscOpenPort)TscLib->resolve("openport");
-#ifdef __linux__
   openEthernet = (TscOpenEthernet)TscLib->resolve("openethernet");
-#endif /* __linux__ */
   sendCommand = (TscSendCommand)TscLib->resolve("sendcommand");
   closePort = (TscClosePort)TscLib->resolve("closeport");
 }
 
 bool TE310Printer::initConnection() {
-  if (openPort(objectName().toUtf8().constData()) == 0) {
-    sendLog("Не удалось установить соединение.");
-    return false;
+  if (!UseEthernet) {
+    if (openPort(SystemName.toUtf8().constData()) == 0) {
+      sendLog("Не удалось установить соединение.");
+      return false;
+    }
+  } else {
+    int32_t result = openEthernet(IPAddress.toString().toUtf8().data(), Port);
+    if (result == 0) {
+      sendLog("Не удалось установить соединение.");
+      return false;
+    }
   }
-
-#ifdef __linux__
-  int32_t result = openEthernet(IPAddress.toString().toUtf8().data(), Port);
-  if (result == 0) {
-    sendLog("Не удалось установить соединение.");
-    return false;
-  }
-#endif /* __linux__ */
 
   sendLog("Соединение установлено. ");
   return true;

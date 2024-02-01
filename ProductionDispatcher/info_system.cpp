@@ -297,11 +297,8 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
   }
 
   SqlQueryValues boxes;
-  Database->setRecordMaxCount(0);
-  Database->setCurrentOrder(Qt::AscendingOrder);
   if (!Database->readRecords(
-          "boxes",
-          QString("pallet_id = %1").arg(Context->box().get("pallet_id")),
+          "boxes", QString("pallet_id = %1").arg(Context->box().get("id")),
           boxes)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;

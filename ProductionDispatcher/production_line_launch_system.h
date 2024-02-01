@@ -19,10 +19,6 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   virtual ReturnStatus launch(void) override;
   virtual ReturnStatus shutdown(void) override;
 
-  virtual ReturnStatus requestBox(void) override;
-  virtual ReturnStatus refundBox(void) override;
-  virtual ReturnStatus completeBox(void) override;
-
  private:
   Q_DISABLE_COPY_MOVE(ProductionLineLaunchSystem)
   void loadSettings(void);
@@ -30,32 +26,10 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
 
   ReturnStatus checkProductionLineState(void);
 
-  ReturnStatus refundBoxSubprocess(void);
-
-  ReturnStatus findOrderInProcess(void);
-  ReturnStatus findBox(void);
-
-  bool attachBox(void);
-  bool detachBox(void);
-
-  ReturnStatus startBoxAssembly(void);
-  ReturnStatus startPalletAssembly(void);
-
-  bool stopBoxAssembly(void);
-  bool stopPalletAssembly(void);
-
-  ReturnStatus completePallet(void);
-  ReturnStatus completeOrder(void);
-
-  ReturnStatus loadBoxContext(void);
   ReturnStatus loadProductionLine(void);
   ReturnStatus loadOrderInProcess(void);
 
   bool updateProductionLine(const SqlQueryValues& newValues);
-  bool updateTransponder(const SqlQueryValues& newValues);
-  bool updateBox(const SqlQueryValues& newValues);
-  bool updatePallet(const SqlQueryValues& newValues);
-  bool updateOrder(const SqlQueryValues& newValues);
 };
 
 #endif  // PRODUCTIONLINELAUNCHSYSTEM_H
