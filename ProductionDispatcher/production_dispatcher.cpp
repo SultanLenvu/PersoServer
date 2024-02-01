@@ -207,6 +207,23 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
     return;
   }
 
+  // Если паллета целиком собрана
+  if (Context->pallet().get("assembled_units").toInt() ==
+      Context->pallet().get("quantity").toInt()) {
+    StringDictionary palletData;
+    ret = Informer->generatePalletData(palletData);
+    if (ret != ReturnStatus::NoError) {
+      processOperationError("completeBox", ret);
+      return;
+    }
+
+    ret = PalletStickerPrinter->printPalletSticker(palletData);
+    if (ret != ReturnStatus::NoError) {
+      processOperationError("completeBox", ret);
+      return;
+    }
+  }
+
   completeOperation("completeBox");
 }
 

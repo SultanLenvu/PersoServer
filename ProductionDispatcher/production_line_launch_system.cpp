@@ -179,7 +179,6 @@ ReturnStatus ProductionLineLaunchSystem::completeBox() {
   newPallet.add(
       "assembled_units",
       QString::number(Context->pallet().get("assembled_units").toInt() + 1));
-  newPallet.add("assembling_end", "NULL");
   if (!updatePallet(newPallet)) {
     return ReturnStatus::DatabaseQueryError;
   }
@@ -318,8 +317,8 @@ ReturnStatus ProductionLineLaunchSystem::findBox() {
   if (!Database->readMergedRecords(
           tables,
           QString("boxes.production_line_id = %1 AND orders.id = %2 AND "
-                  "boxes.completed = false AND boxes.assembled_units < "
-                  "boxes.quantity")
+                  "boxes.completed = false AND boxes.assembled_units <= "
+                  "boxes.quantity AND boxes.completed = false")
               .arg(Context->productionLine().get("id"),
                    Context->order().get("id")),
           Context->box())) {
@@ -483,7 +482,6 @@ ReturnStatus ProductionLineLaunchSystem::completePallet() {
   newOrder.add(
       "assembled_units",
       QString::number(Context->order().get("assembled_units").toInt() + 1));
-  newOrder.add("assembling_end", "NULL");
   if (!updateOrder(newOrder)) {
     return ReturnStatus::DatabaseQueryError;
   }
