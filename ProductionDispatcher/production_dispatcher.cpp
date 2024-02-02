@@ -140,7 +140,9 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
 
   ret = BoxReleaser->request();
   if (ret != ReturnStatus::NoError) {
-    processOperationError("requestBox", ret);
+    if (ret != ReturnStatus::OrderCompletelyAssembled) {
+      processOperationError("requestBox", ret);
+    }
     return;
   }
 
