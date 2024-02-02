@@ -21,9 +21,10 @@ class AbstractBoxReleaseSystem : public QObject {
 
   virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
 
-  virtual ReturnStatus requestBox(void) = 0;
-  virtual ReturnStatus refundBox(void) = 0;
-  virtual ReturnStatus completeBox(void) = 0;
+  virtual ReturnStatus request(void) = 0;
+  virtual ReturnStatus refund(void) = 0;
+  virtual ReturnStatus complete(void) = 0;
+  virtual void clearContext(void) = 0;
 
  private:
   AbstractBoxReleaseSystem();

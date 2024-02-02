@@ -1,13 +1,13 @@
 #ifndef PRODUCTIONDISPATCHER_H
 #define PRODUCTIONDISPATCHER_H
 
-#include "Database/abstract_sql_database.h"
-#include "Printing/abstract_sticker_printer.h"
 #include "abstract_box_release_system.h"
 #include "abstract_firmware_generation_system.h"
 #include "abstract_info_system.h"
 #include "abstract_launch_system.h"
 #include "abstract_production_dispatcher.h"
+#include "abstract_sql_database.h"
+#include "abstract_sticker_printer.h"
 #include "abstract_transponder_release_system.h"
 
 class ProductionDispatcher : public AbstractProductionDispatcher {

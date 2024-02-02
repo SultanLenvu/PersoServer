@@ -1,3 +1,6 @@
+#include <QMessageBox>
+#include <QStandardPaths>
+
 #include "file_log_backend.h"
 
 FileLogBackend::FileLogBackend(const QString& name) : LogBackend(name) {
@@ -6,13 +9,16 @@ FileLogBackend::FileLogBackend(const QString& name) : LogBackend(name) {
 }
 
 FileLogBackend::~FileLogBackend() {
-  CurrentLogFile.close();
+  CurrentFile.close();
 }
 
 void FileLogBackend::writeLogLine(const QString& str) {
-  if (LogEnable) {
-    LogTextStream << str << "\n";
+  if (!Enable) {
+    return;
   }
+
+  FileStream << str << "\n";
+  FileStream.flush();
 }
 
 void FileLogBackend::clear() { /* No-op */
@@ -21,49 +27,51 @@ void FileLogBackend::clear() { /* No-op */
 void FileLogBackend::loadSettings() {
   QSettings settings;
 
-  CurrentLogDir = QCoreApplication::applicationDirPath() + "/logs";
-  LogEnable = settings.value("log_system/file_log_enable").toBool();
-  LogFileMaxNumber = settings.value("log_system/log_file_max_number").toInt();
+  Enable = settings.value("log_system/file_log_enable").toBool();
+  FileMaxNumber = settings.value("log_system/file_max_number").toInt();
+  CurrentDir = settings.value("log_system/file_directory").toString();
 }
 
 void FileLogBackend::initialize() {
-  QDir logDir;
-  if (!logDir.mkpath(QCoreApplication::applicationDirPath() + "/logs")) {
-    LogEnable = false;
-    QTextStream(stdout) << "Не удалось создать директорию для логгирования. ";
-    return;
-  }
+  CurrentFile.close();
 
-  if (CurrentLogFile.isOpen()) {
-    CurrentLogFile.close();
-  }
-  CurrentLogFile.setFileName(
-      CurrentLogDir + "/log " +
-      QDateTime::currentDateTime().toString("dd.MM.yyyy hh.mm.ss"));
-  if (!CurrentLogFile.open(QIODevice::WriteOnly)) {
-    LogEnable = false;
-    QTextStream(stdout) << "Не удалось открыть файл для логгирования. ";
+  QFileInfo info(CurrentDir.path());
+  if (!info.isDir() || !info.isWritable() || !info.isReadable()) {
+    Enable = false;
+    QMessageBox::critical(nullptr, "Ошибка",
+                          "Некоррректная директория для логгирования. ",
+                          QMessageBox::Ok);
     return;
   }
 
   removeOldestLogFiles();
 
-  LogEnable = true;
-  LogTextStream.setDevice(&CurrentLogFile);
+  CurrentFile.setFileName(
+      CurrentDir.path() +
+      QDateTime::currentDateTime().toString("/log-dd.MM.yyyy-hh.mm.ss"));
+  if (!CurrentFile.open(QIODevice::WriteOnly)) {
+    Enable = false;
+    QMessageBox::critical(nullptr, "Ошибка",
+                          "Не удалось открыть файл для логгирования. ",
+                          QMessageBox::Ok);
+    return;
+  }
+
+  FileStream.setDevice(&CurrentFile);
 }
 
 void FileLogBackend::removeOldestLogFiles() {
-  QDir directory(CurrentLogDir);
-
   // Получаем список файлов в директории
-  QFileInfoList fileList =
-      directory.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Time);
+  QFileInfoList fileList = CurrentDir.entryInfoList(
+      QDir::Files | QDir::NoDotAndDotDot, QDir::Time | QDir::Reversed);
 
-  if (fileList.size() > LogFileMaxNumber) {
-    int filesToDeleteCount = fileList.size() - LogFileMaxNumber;
+  int32_t fileCount = fileList.size();
+
+  if (fileCount > FileMaxNumber) {
+    int32_t filesToDeleteCount = fileCount - FileMaxNumber + 1;
 
     // Удаляем самые старые файлы
-    for (int i = 0; i < filesToDeleteCount; ++i) {
+    for (int32_t i = 0; i < filesToDeleteCount; ++i) {
       const QFileInfo& fileInfo = fileList.at(i);
       QString filePath = fileInfo.absoluteFilePath();
 

@@ -1,5 +1,6 @@
 #include "production_dispatcher.h"
 #include "box_release_system.h"
+#include "config.h"
 #include "definitions.h"
 #include "firmware_generation_system.h"
 #include "global_environment.h"
@@ -51,12 +52,12 @@ void ProductionDispatcher::start(ReturnStatus& ret) {
 
 #ifdef PRINTERS_ENABLE
   ret = BoxStickerPrinter->checkConfig();
-  if (ret != != ReturnStatus::NoError) {
+  if (ret != ReturnStatus::NoError) {
     return;
   }
 
   ret = PalletStickerPrinter->checkConfig();
-  if (ret != != ReturnStatus::NoError) {
+  if (ret != ReturnStatus::NoError) {
     return;
   }
 #endif
@@ -95,17 +96,20 @@ void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
   }
   initOperation("shutdownProductionLine");
 
+  ret = BoxReleaser->refund();
+  if ((ret != ReturnStatus::NoError) &&
+      (ret != ReturnStatus::BoxNotRequested)) {
+    processOperationError("shutdownProductionLine", ret);
+    return;
+  }
+
   ret = Launcher->shutdown();
   if (ret != ReturnStatus::NoError) {
     processOperationError("shutdownProductionLine", ret);
     return;
   }
 
-  ret = BoxReleaser->refundBox();
-  if (ret != ReturnStatus::NoError) {
-    processOperationError("shutdownProductionLine", ret);
-    return;
-  }
+  BoxReleaser->clearContext();
 
   completeOperation("shutdownProductionLine");
 }
@@ -134,7 +138,7 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
   }
   initOperation("requestBox");
 
-  ret = BoxReleaser->requestBox();
+  ret = BoxReleaser->request();
   if (ret != ReturnStatus::NoError) {
     processOperationError("requestBox", ret);
     return;
@@ -175,7 +179,7 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
   }
   initOperation("refundBox");
 
-  ret = BoxReleaser->refundBox();
+  ret = BoxReleaser->refund();
   if (ret != ReturnStatus::NoError) {
     processOperationError("refundBox", ret);
     return;
@@ -191,7 +195,7 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
   }
   initOperation("completeBox");
 
-  ret = BoxReleaser->completeBox();
+  ret = BoxReleaser->complete();
   if (ret != ReturnStatus::NoError) {
     processOperationError("completeBox", ret);
     return;
@@ -209,6 +213,24 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
     processOperationError("completeBox", ret);
     return;
   }
+
+  if (Context->pallet().get("assembled_units") ==
+      Context->pallet().get("quantity")) {
+    StringDictionary palletData;
+    ret = Informer->generatePalletData(palletData);
+    if (ret != ReturnStatus::NoError) {
+      processOperationError("completeBox", ret);
+      return;
+    }
+
+    ret = PalletStickerPrinter->printPalletSticker(palletData);
+    if (ret != ReturnStatus::NoError) {
+      processOperationError("completeBox", ret);
+      return;
+    }
+  }
+
+  BoxReleaser->clearContext();
 
   completeOperation("completeBox");
 }
@@ -503,6 +525,7 @@ bool ProductionDispatcher::loadContext(QObject* obj) {
   }
 
   TransponderReleaser->setContext(Context);
+  BoxReleaser->setContext(Context);
   Informer->setContext(Context);
   Launcher->setContext(Context);
 
@@ -533,7 +556,7 @@ void ProductionDispatcher::createInfoSystem() {
 
 void ProductionDispatcher::createStickerPrinters() {
   BoxStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
-      new TE310Printer("pallet_sticker_printer"));
+      new TE310Printer("box_sticker_printer"));
   PalletStickerPrinter = std::unique_ptr<AbstractStickerPrinter>(
       new TE310Printer("pallet_sticker_printer"));
 }
@@ -563,43 +586,3 @@ void ProductionDispatcher::on_CheckTimerTemeout() {
     emit errorDetected(ReturnStatus::DatabaseConnectionError);
   }
 }
-
-// void ProductionDispatcher::TransponderReleaserBoxAssemblyComleted_slot(
-//     const std::shared_ptr<QString> id) {
-//   StringDictionary boxData;
-//   ReturnStatus ret;
-
-//  sendLog("Обработка сигнала для печати стикера для бокса.");
-
-//  ret = Informer->generateBoxData(*id, boxData);
-//  if (ret != ReturnStatus::NoError) {
-//    emit errorDetected(ret);
-//    return;
-//  }
-
-//  ret = BoxStickerPrinter->printBoxSticker(boxData);
-//  if (ret != ReturnStatus::NoError) {
-//    emit errorDetected(ret);
-//    return;
-//  }
-//}
-
-// void ProductionDispatcher::TransponderReleaserPalletAssemblyComleted_slot(
-//     const std::shared_ptr<QString> id) {
-//   StringDictionary palletData;
-//   ReturnStatus ret;
-
-//  sendLog("Обработка сигнала для печати стикера для паллеты.");
-
-//  ret = Informer->generatePalletData(*id, palletData);
-//  if (ret != ReturnStatus::NoError) {
-//    emit errorDetected(ret);
-//    return;
-//  }
-
-//  ret = PalletStickerPrinter->printPalletSticker(palletData);
-//  if (ret != ReturnStatus::NoError) {
-//    emit errorDetected(ret);
-//    return;
-//  }
-//}

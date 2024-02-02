@@ -42,6 +42,7 @@ class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
 
   ReturnStatus checkContext(void);
 
+  ReturnStatus checkUcid(const QString& ucid);
   bool confirmTransponder(const QString& ucid);
   bool attachTransponder(void);
 

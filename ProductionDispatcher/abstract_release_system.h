@@ -1,5 +1,5 @@
-#ifndef AbstractReleaseSystem_H
-#define AbstractReleaseSystem_H
+#ifndef ABSTRACTTRANSPONDERRELEASESYSTEM_H
+#define ABSTRACTTRANSPONDERRELEASESYSTEM_H
 
 #include <QObject>
 
@@ -7,7 +7,7 @@
 #include "production_line_context.h"
 #include "types.h"
 
-class AbstractReleaseSystem : public QObject {
+class AbstractTransponderReleaseSystem : public QObject {
   Q_OBJECT
 
  protected:
@@ -15,9 +15,10 @@ class AbstractReleaseSystem : public QObject {
   std::shared_ptr<AbstractSqlDatabase> Database;
 
  public:
-  explicit AbstractReleaseSystem(const QString& name,
-                                 std::shared_ptr<AbstractSqlDatabase> db);
-  virtual ~AbstractReleaseSystem();
+  explicit AbstractTransponderReleaseSystem(
+      const QString& name,
+      std::shared_ptr<AbstractSqlDatabase> db);
+  virtual ~AbstractTransponderReleaseSystem();
 
   virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
 
@@ -32,11 +33,11 @@ class AbstractReleaseSystem : public QObject {
   virtual ReturnStatus rollback(void) = 0;
 
  private:
-  AbstractReleaseSystem();
-  Q_DISABLE_COPY_MOVE(AbstractReleaseSystem)
+  AbstractTransponderReleaseSystem();
+  Q_DISABLE_COPY_MOVE(AbstractTransponderReleaseSystem)
 
  signals:
   void logging(const QString& log);
 };
 
-#endif  // AbstractReleaseSystem_H
+#endif  // ABSTRACTTRANSPONDERRELEASESYSTEM_H

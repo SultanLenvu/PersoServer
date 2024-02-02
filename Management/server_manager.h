@@ -7,8 +7,8 @@
 #include <QTextCodec>
 #include <QThread>
 
-#include "Log/log_system.h"
 #include "global_environment.h"
+#include "log_system.h"
 #include "perso_server.h"
 
 class ServerManager : public QObject {
@@ -30,7 +30,16 @@ class ServerManager : public QObject {
   ServerManager();
   Q_DISABLE_COPY_MOVE(ServerManager);
   void loadSettings(void) const;
+
   bool checkSettings(void) const;
+  bool checkPersoServerSettings(const QSettings& settings) const;
+  bool checkBoxStickerPrinterSettings(const QSettings& settings) const;
+  bool checkPalletStickerPrinterSettings(const QSettings& settings) const;
+  bool checkClientConnectionSettings(const QSettings& settings) const;
+  bool checkLogSystemSettings(const QSettings& settings) const;
+  bool checkPostgreSqlDatabaseSettings(const QSettings& settings) const;
+  bool checkFirmwareGenerationSystemSettings(const QSettings& settings) const;
+
   void generateDefaultSettings(void) const;
   void processCommandArguments(void);
 

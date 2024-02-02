@@ -111,13 +111,6 @@ ReturnStatus ProductionLineLaunchSystem::checkProductionLineState() {
     return ReturnStatus::ProductionLineAlreadyInProcess;
   }
 
-  if (Context->productionLine().get("completed") == "true") {
-    sendLog(QString("Производственная линия '%1' завершила свою работу. Запуск "
-                    "невозможен.")
-                .arg(Context->login()));
-    return ReturnStatus::ProductionLineCompleted;
-  }
-
   return ReturnStatus::NoError;
 }
 
@@ -146,10 +139,8 @@ ReturnStatus ProductionLineLaunchSystem::loadProductionLine() {
 }
 
 ReturnStatus ProductionLineLaunchSystem::loadOrderInProcess() {
-  Context->order().clear();
-  Context->issuer().clear();
-  Context->masterKeys().clear();
   Database->setRecordMaxCount(0);
+  Database->setCurrentOrder(Qt::AscendingOrder);
 
   if (!Database->readRecords("orders", QString("in_process = true"),
                              Context->order())) {

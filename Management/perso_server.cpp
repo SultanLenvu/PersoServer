@@ -1,12 +1,11 @@
 #include <QHostAddress>
 
 #include "client_connection.h"
-#include "log_system.h"
-#include "production_dispatcher.h"
-// #include "config.h"
+#include "config.h"
 #include "global_environment.h"
 #include "log_system.h"
 #include "perso_server.h"
+#include "production_dispatcher.h"
 
 PersoServer::PersoServer(const QString& name) : QTcpServer() {
   setObjectName(name);
@@ -132,7 +131,33 @@ void PersoServer::processCriticalError(const QString& log) {
   sendLog(msg + log);
 #ifdef SERVER_PANIC_STATE_ENABLE
   CurrentState = Panic;
+  deleteAllClientInstances();
 #endif
+}
+
+void PersoServer::deleteAllClientInstances() {
+  sendLog("Отключение всех клиентов.");
+  for (auto it1 = Clients.begin(), it2 = Clients.end(); it1 != it2; ++it1) {
+    deleteClientInstance(it1.key());
+  }
+}
+
+void PersoServer::deleteClientInstance(int32_t id) {
+  // Освобождаем занятый идентификатор
+  FreeClientIds.push(id);
+
+  // Удаляем отключившегося клиента и его поток из соответствующих реестров
+  ClientThreads.value(id)->quit();
+  if (!ClientThreads.value(id)->wait()) {
+    processCriticalError(
+        "Не удалось остановить поток отключившегося клиента. ");
+  } else {
+    sendLog(QString("Поток клиента %1 остановлен. ").arg(QString::number(id)));
+  }
+  ClientThreads.remove(id);
+  Clients.remove(id);
+
+  sendLog(QString("Клиент %1 удален из реестра. ").arg(QString::number(id)));
 }
 
 void PersoServer::createDispatcherInstance() {
@@ -145,7 +170,7 @@ void PersoServer::createDispatcherInstance() {
           &AbstractProductionDispatcher::stop, Qt::BlockingQueuedConnection);
   connect(Dispatcher.get(), &AbstractProductionDispatcher::errorDetected, this,
           &PersoServer::productionDispatcherErrorDetected,
-          Qt::BlockingQueuedConnection);
+          Qt::QueuedConnection);
 
   // Создаем отдельный поток для системы выпуска транспондеров
   DispatcherThread = std::unique_ptr<QThread>(new QThread());
@@ -214,24 +239,9 @@ void PersoServer::clientDisconnected_slot() {
         "Не удалось получить доступ к данным отключившегося клиента. ");
     return;
   }
-  // Освобождаем занятый идентификатор
+  // Удаляем клиента
   int32_t clientId = disconnectedClient->id();
-  FreeClientIds.push(clientId);
-
-  // Удаляем отключившегося клиента и его поток из соответствующих реестров
-  disconnectedClient->thread()->quit();
-  if (!disconnectedClient->thread()->wait()) {
-    processCriticalError(
-        "Не удалось остановить поток отключившегося клиента. ");
-  } else {
-    sendLog(QString("Поток клиента %1 остановлен. ")
-                .arg(QString::number(clientId)));
-  }
-  ClientThreads.remove(clientId);
-  Clients.remove(clientId);
-
-  sendLog(
-      QString("Клиент %1 удален из реестра. ").arg(QString::number(clientId)));
+  deleteClientInstance(clientId);
 
   // Если ранее был достигнут лимит подключений
   if (CurrentState == Paused) {

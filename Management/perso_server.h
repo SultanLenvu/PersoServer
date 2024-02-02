@@ -64,6 +64,8 @@ class PersoServer : public QTcpServer {
   void sendLog(const QString& log);
 
   void processCriticalError(const QString& log);
+  void deleteAllClientInstances(void);
+  void deleteClientInstance(int32_t id);
 
   void createDispatcherInstance(void);
   void createClientIdentifiers(void);

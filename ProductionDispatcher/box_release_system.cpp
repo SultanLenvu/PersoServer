@@ -14,7 +14,7 @@ void BoxReleaseSystem::setContext(
   Context = context;
 }
 
-ReturnStatus BoxReleaseSystem::requestBox() {
+ReturnStatus BoxReleaseSystem::request() {
   if (!Context->isLaunched()) {
     sendLog(QString("Производственная линия '%1' не была запущена.")
                 .arg(Context->login()));
@@ -24,7 +24,8 @@ ReturnStatus BoxReleaseSystem::requestBox() {
   if (!Context->box().isEmpty() ||
       (Context->productionLine().get("box_id") != "0") ||
       (Context->productionLine().get("transponder_id") != "0")) {
-    sendLog(QString("Производственная линия %1 уже имеет бокс для сборки."));
+    sendLog(QString("Производственная линия %1 уже имеет бокс для сборки.")
+                .arg(Context->login()));
     return ReturnStatus::BoxAlreadyRequested;
   }
 
@@ -64,7 +65,7 @@ ReturnStatus BoxReleaseSystem::requestBox() {
   return ReturnStatus::NoError;
 }
 
-ReturnStatus BoxReleaseSystem::refundBox() {
+ReturnStatus BoxReleaseSystem::refund() {
   if (!Context->isLaunched()) {
     sendLog(QString("Производственная линия '%1' не была запущена.")
                 .arg(Context->login()));
@@ -113,7 +114,9 @@ ReturnStatus BoxReleaseSystem::refundBox() {
   return ReturnStatus::NoError;
 }
 
-ReturnStatus BoxReleaseSystem::completeBox() {
+ReturnStatus BoxReleaseSystem::complete() {
+  ReturnStatus ret = ReturnStatus::NoError;
+
   if (!Context->isLaunched()) {
     sendLog(QString("Производственная линия '%1' не была запущена.")
                 .arg(Context->login()));
@@ -130,6 +133,15 @@ ReturnStatus BoxReleaseSystem::completeBox() {
                     "нем были собраны.")
                 .arg(Context->box().get("id")));
     return ReturnStatus::BoxNotCompletelyAssembled;
+  }
+
+  // Проверка на переполнение паллеты
+  if (Context->pallet().get("assembled_units") >=
+      Context->pallet().get("quantity")) {
+    sendLog(
+        QString("Палета %1 переполнена. Завершить сборку бокса %1 невозможно.")
+            .arg(Context->pallet().get("id"), Context->box().get("id")));
+    return ReturnStatus::PalletOverflow;
   }
 
   // Завершаем процесс сборки бокса
@@ -154,18 +166,35 @@ ReturnStatus BoxReleaseSystem::completeBox() {
   if (Context->pallet().get("assembled_units").toInt() ==
       Context->pallet().get("quantity").toInt()) {
     // Завершаем сборку паллеты
-    return completePallet();
+    ret = completePallet();
+    if (ret != ReturnStatus::NoError) {
+      return ret;
+    }
   }
 
   // Если заказ целиком собран
   if (Context->order().get("assembled_units").toInt() ==
       Context->order().get("quantity").toInt()) {
     // Завершаем сборку заказа
-    return completeOrder();
+    ret = completeOrder();
+    if (ret != ReturnStatus::NoError) {
+      return ret;
+    }
+  }
+
+  // Отвязываем производственную линию от бокса
+  if (!detachBox()) {
+    return ReturnStatus::DatabaseQueryError;
   }
 
   // В противном случае возвращаемся
   return ReturnStatus::NoError;
+}
+
+void BoxReleaseSystem::clearContext() {
+  Context->box().clear();
+  Context->transponder().clear();
+  Context->pallet().clear();
 }
 
 void BoxReleaseSystem::loadSettings() {}
@@ -204,11 +233,18 @@ ReturnStatus BoxReleaseSystem::findBox() {
   Database->setRecordMaxCount(1);
   Database->setRecordMaxCount(Qt::AscendingOrder);
 
+  if (Context->order().get("assembled_units") ==
+      Context->order().get("quantity")) {
+    sendLog(
+        QString("Заказ %1 полностью собран.").arg(Context->order().get("id")));
+    return ReturnStatus::OrderCompletelyAssembled;
+  }
+
   if (!Database->readMergedRecords(
           tables,
           QString("boxes.production_line_id = %1 AND orders.id = %2 AND "
-                  "boxes.completed = false AND boxes.assembled_units < "
-                  "boxes.quantity")
+                  "boxes.completed = false AND boxes.assembled_units <= "
+                  "boxes.quantity AND boxes.completed = false")
               .arg(Context->productionLine().get("id"),
                    Context->order().get("id")),
           Context->box())) {

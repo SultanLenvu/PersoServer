@@ -16,9 +16,10 @@ class BoxReleaseSystem : public AbstractBoxReleaseSystem
   virtual void setContext(
       std::shared_ptr<ProductionLineContext> context) override;
 
-  virtual ReturnStatus requestBox(void) override;
-  virtual ReturnStatus refundBox(void) override;
-  virtual ReturnStatus completeBox(void) override;
+  virtual ReturnStatus request(void) override;
+  virtual ReturnStatus refund(void) override;
+  virtual ReturnStatus complete(void) override;
+  virtual void clearContext(void) override;
 
  private:
   Q_DISABLE_COPY_MOVE(BoxReleaseSystem)

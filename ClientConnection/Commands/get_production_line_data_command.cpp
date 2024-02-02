@@ -41,6 +41,8 @@ void GetProductionLineDataCommand::generateResponse(QJsonObject& response) {
         ProductionLineData.value("production_line_in_process");
     response["today_assembled_boxes"] =
         ProductionLineData.value("today_assembled_boxes");
+    response["transponder_id"] = ProductionLineData.value("transponder_id");
+    response["box_id"] = ProductionLineData.value("box_id");
   }
 
   response["return_status"] = QString::number(static_cast<size_t>(Status));

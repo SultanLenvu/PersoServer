@@ -373,14 +373,14 @@ void ClientConnection::socketReadyRead_slot() {
 void ClientConnection::socketDisconnected_slot() {
   sendLog("Сетевое соединение оборвалось. ");
 
-  // Отправляем сигналы об отключении клиента
-  emit disconnected();
-
   // Если клиент запустил производственную линию
   if (Context->isAuthorized()) {
     ReturnStatus ret;
     emit shutdownProductionLine_signal(ret);
   }
+
+  // Отправляем сигналы об отключении клиента
+  emit disconnected();
 }
 
 void ClientConnection::socketError_slot(

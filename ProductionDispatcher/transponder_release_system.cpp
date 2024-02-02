@@ -57,10 +57,12 @@ ReturnStatus TransponderReleaseSystem::findNext() {
   }
 
   // Если сборка бокса завершена
-  if (Context->box().get("completed") == "true") {
-    sendLog(QString("Сборка бокса %1 была завершена. Поиск очередного "
-                    "транспондера невозможен.")
-                .arg(Context->box().get("id")));
+  if ((Context->box().get("assembled_units") ==
+       Context->box().get("quantity"))) {
+    sendLog(
+        QString("Все транспондеры в боксе %1 были выпущены. Поиск очередного "
+                "транспондера невозможен.")
+            .arg(Context->box().get("id")));
     return ReturnStatus::BoxCompletelyAssembled;
   }
 
@@ -205,22 +207,18 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
     return ReturnStatus::TransponderNotAwaitingConfirmation;
   }
 
-  SqlQueryValues checkTransponder;
-
-  Database->setCurrentOrder(Qt::AscendingOrder);
-  Database->setRecordMaxCount(1);
-
-  if (!Database->readRecords("transponders", QString("ucid = '%1'").arg(ucid),
-                             checkTransponder)) {
-    sendLog(QString("Получена ошибка при поиске транспондера с UCID=%1. ")
-                .arg(ucid));
-    return ReturnStatus::DatabaseQueryError;
+  // Проверка на переполнение бокса
+  if (Context->box().get("assembled_units") >= Context->box().get("quantity")) {
+    sendLog(
+        QString("Бокс %1 переполнен. Подтверждение выпуска транспондера %1 "
+                "невозможно.")
+            .arg(Context->box().get("id"), Context->transponder().get("id")));
+    return ReturnStatus::BoxOverflow;
   }
 
-  if (!checkTransponder.isEmpty()) {
-    sendLog(QString("Печатная плата с UCID=%1 уже была использована ранее. ")
-                .arg(ucid));
-    return ReturnStatus::IdenticalUcidError;
+  ret = checkUcid(ucid);
+  if (ret != ReturnStatus::NoError) {
+    return ret;
   }
 
   // Подтверждаем сборку транспондера
@@ -300,7 +298,7 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
     sendLog(QString("Новый UCID идентичен предыдущему, подтверждение "
                     "перевыпуска невозможно. ")
                 .arg(transponder.get("id")));
-    return ReturnStatus::IdenticalUcidError;
+    return ReturnStatus::TransponderIdenticalUcidError;
   }
 
   // Сохраняем UCID и увеличиваем счетчик выпусков
@@ -404,6 +402,28 @@ ReturnStatus TransponderReleaseSystem::checkContext() {
             "В контексте производственной линии %1 отсутствует транспондер.")
             .arg(Context->login()));
     return ReturnStatus::TransponderMissed;
+  }
+
+  return ReturnStatus::NoError;
+}
+
+ReturnStatus TransponderReleaseSystem::checkUcid(const QString& ucid) {
+  SqlQueryValues checkTransponder;
+
+  Database->setCurrentOrder(Qt::AscendingOrder);
+  Database->setRecordMaxCount(1);
+
+  if (!Database->readRecords("transponders", QString("ucid = '%1'").arg(ucid),
+                             checkTransponder)) {
+    sendLog(QString("Получена ошибка при поиске транспондера с UCID=%1. ")
+                .arg(ucid));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (!checkTransponder.isEmpty()) {
+    sendLog(QString("Печатная плата с UCID=%1 уже была использована ранее. ")
+                .arg(ucid));
+    return ReturnStatus::TransponderIdenticalUcidError;
   }
 
   return ReturnStatus::NoError;

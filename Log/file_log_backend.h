@@ -1,7 +1,7 @@
 #ifndef FILELOGBACKEND_H
 #define FILELOGBACKEND_H
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -15,11 +15,11 @@
 class FileLogBackend : public LogBackend {
   Q_OBJECT
  private:
-  bool LogEnable;
-  int32_t LogFileMaxNumber;
-  QString CurrentLogDir;
-  QFile CurrentLogFile;
-  QTextStream LogTextStream;
+  bool Enable;
+  int32_t FileMaxNumber;
+  QDir CurrentDir;
+  QFile CurrentFile;
+  QTextStream FileStream;
 
  public:
   explicit FileLogBackend(const QString& name);
@@ -29,13 +29,10 @@ class FileLogBackend : public LogBackend {
   virtual void clear() override;
 
  private:
-  Q_DISABLE_COPY_MOVE(FileLogBackend);
+  Q_DISABLE_COPY(FileLogBackend);
   void loadSettings(void);
   void initialize();
   void removeOldestLogFiles(void);
-
- signals:
-  void notifyAboutError(const QString& log);
 };
 
 #endif /* FILELOGBACKEND_H */

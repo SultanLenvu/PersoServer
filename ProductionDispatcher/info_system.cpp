@@ -67,6 +67,9 @@ ReturnStatus InfoSystem::generateProductionLineData(StringDictionary& data) {
                                    Context->productionLine().get("name")));
   data.insert("production_line_in_process",
               Context->productionLine().get("in_process"));
+  data.insert("transponder_id",
+              Context->productionLine().get("transponder_id"));
+  data.insert("box_id", Context->productionLine().get("box_id"));
 
   Database->setRecordMaxCount(1);
   Database->setCurrentOrder(Qt::AscendingOrder);
@@ -298,7 +301,7 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
 
   SqlQueryValues boxes;
   if (!Database->readRecords(
-          "boxes", QString("pallet_id = %1").arg(Context->box().get("id")),
+          "boxes", QString("pallet_id = %1").arg(Context->pallet().get("id")),
           boxes)) {
     sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
     return ReturnStatus::DatabaseQueryError;

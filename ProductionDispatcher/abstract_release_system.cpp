@@ -2,20 +2,20 @@
 #include "global_environment.h"
 #include "log_system.h"
 
-AbstractReleaseSystem::AbstractReleaseSystem(
+AbstractTransponderReleaseSystem::AbstractTransponderReleaseSystem(
     const QString& name,
     std::shared_ptr<AbstractSqlDatabase> db)
     : QObject(nullptr) {
   setObjectName(name);
   Database = db;
 
-  connect(this, &AbstractReleaseSystem::logging,
+  connect(this, &AbstractTransponderReleaseSystem::logging,
           dynamic_cast<LogSystem*>(
               GlobalEnvironment::instance()->getObject("LogSystem")),
           &LogSystem::generate);
 }
 
-AbstractReleaseSystem::~AbstractReleaseSystem() {}
+AbstractTransponderReleaseSystem::~AbstractTransponderReleaseSystem() {}
 
-AbstractReleaseSystem::AbstractReleaseSystem()
+AbstractTransponderReleaseSystem::AbstractTransponderReleaseSystem()
     : QObject{nullptr} {}

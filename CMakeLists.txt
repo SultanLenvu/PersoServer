@@ -13,8 +13,8 @@ qt_standard_project_setup()
 
 #=========================== Project configuration ================================#
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(PRINTERS_ENABLE OFF)
-set(UNAUTHORIZE_EXPIRATION OFF)
+set(PRINTERS_ENABLE ON)
+set(UNAUTHORIZE_EXPIRATION ON)
 set(SERVER_PANIC_STATE_ENABLE OFF)
 configure_file(
     config.h.in config.h @ONLY)
@@ -60,11 +60,13 @@ add_executable(PersoServer
     ProductionDispatcher/transponder_release_system.cpp ProductionDispatcher/transponder_release_system.h
     ProductionDispatcher/abstract_launch_system.h ProductionDispatcher/abstract_launch_system.cpp
     ProductionDispatcher/abstract_info_system.h ProductionDispatcher/abstract_info_system.cpp
-    ProductionDispatcher/abstract_release_system.h ProductionDispatcher/abstract_release_system.cpp
+    ProductionDispatcher/abstract_transponder_release_system.cpp ProductionDispatcher/abstract_transponder_release_system.h
     ProductionDispatcher/info_system.h ProductionDispatcher/info_system.cpp
     ProductionDispatcher/production_line_launch_system.h ProductionDispatcher/production_line_launch_system.cpp
     ProductionDispatcher/abstract_firmware_generation_system.h ProductionDispatcher/abstract_firmware_generation_system.cpp
     ProductionDispatcher/firmware_generation_system.cpp ProductionDispatcher/firmware_generation_system.h
+    ProductionDispatcher/abstract_box_release_system.cpp ProductionDispatcher/abstract_box_release_system.h
+    ProductionDispatcher/box_release_system.cpp ProductionDispatcher/box_release_system.h
 
     Printing/abstract_sticker_printer.cpp Printing/abstract_sticker_printer.h
     Printing/te310_printer.cpp Printing/te310_printer.h

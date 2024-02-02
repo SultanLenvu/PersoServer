@@ -31,7 +31,7 @@ bool ProductionLineContext::isActive() const {
 }
 
 bool ProductionLineContext::isLaunched() const {
-  if (ProductionLine.isEmpty()) {
+  if (ProductionLine.isEmpty() || Order.isEmpty()) {
     return false;
   }
 
