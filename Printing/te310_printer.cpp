@@ -11,12 +11,14 @@ TE310Printer::TE310Printer(const QString& name) : AbstractStickerPrinter(name) {
 ReturnStatus TE310Printer::checkConfig() {
   sendLog("Проверка конфигурации.");
 
-  QList<QString> printers = QPrinterInfo::availablePrinterNames();
-  if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
-        return p == SystemName;
-      }) == printers.end()) {
-    sendLog("Не найден драйвер операционной системы. ");
-    return ReturnStatus::StickerPrinterDriverMissed;
+  if (UseEthernet) {
+    QList<QString> printers = QPrinterInfo::availablePrinterNames();
+    if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
+          return p == SystemName;
+        }) == printers.end()) {
+      sendLog("Не найден драйвер операционной системы. ");
+      return ReturnStatus::StickerPrinterDriverMissed;
+    }
   }
 
   if (!TscLib->isLoaded()) {
