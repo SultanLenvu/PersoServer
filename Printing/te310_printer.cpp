@@ -11,7 +11,7 @@ TE310Printer::TE310Printer(const QString& name) : AbstractStickerPrinter(name) {
 ReturnStatus TE310Printer::checkConfig() {
   sendLog("Проверка конфигурации.");
 
-  if (UseEthernet) {
+  if (!UseEthernet) {
     QList<QString> printers = QPrinterInfo::availablePrinterNames();
     if (std::find_if(printers.begin(), printers.end(), [this](const QString p) {
           return p == SystemName;
