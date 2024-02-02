@@ -2,8 +2,8 @@ name: build and deploy PersoServer
 run-name: build and deploy PersoServer
 on:
   push:
-    branches:
-      - 'main'
+    tags:
+      - '*'
 
 jobs:
   build:
