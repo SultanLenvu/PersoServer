@@ -187,6 +187,8 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
     return;
   }
 
+  BoxReleaser->clearContext();
+
   completeOperation("refundBox");
 }
 
