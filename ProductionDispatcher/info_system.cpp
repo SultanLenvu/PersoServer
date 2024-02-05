@@ -58,6 +58,7 @@ ReturnStatus InfoSystem::generateProductionLineData(StringDictionary& data) {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
+  sendLog("Генерация данных производственной линии.");
 
   // Данные переносимые без изменений
   data.insert("production_line_id", Context->productionLine().get("id"));
@@ -95,6 +96,7 @@ ReturnStatus InfoSystem::generateTransponderData(StringDictionary& data) {
             .arg(Context->login()));
     return ReturnStatus::TransponderMissed;
   }
+  sendLog("Генерация данных транспондера.");
 
   // Данные переносимые без изменений
   data.insert("box_id", Context->box().get("id"));
@@ -152,6 +154,7 @@ ReturnStatus InfoSystem::generateFirmwareSeed(StringDictionary& seed) {
             .arg(Context->login()));
     return ReturnStatus::TransponderMissed;
   }
+  sendLog("Генерация сида прошивки.");
 
   // DSRC атрибуты
   seed.insert("personal_account_number",
@@ -222,6 +225,7 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
                 .arg(Context->login()));
     return ReturnStatus::BoxMissed;
   }
+  sendLog("Генерация данных бокса.");
 
   Database->setRecordMaxCount(0);
   Database->setCurrentOrder(Qt::AscendingOrder);
@@ -298,6 +302,7 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
                 .arg(Context->login()));
     return ReturnStatus::PalletMissed;
   }
+  sendLog("Генерация данных паллеты.");
 
   SqlQueryValues boxes;
   if (!Database->readRecords(

@@ -20,6 +20,7 @@ ReturnStatus BoxReleaseSystem::request() {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
+  sendLog("Запрос.");
 
   if (!Context->box().isEmpty() ||
       (Context->productionLine().get("box_id") != "0") ||
@@ -71,6 +72,7 @@ ReturnStatus BoxReleaseSystem::refund() {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
+  sendLog("Возврат.");
 
   if (Context->box().isEmpty() &&
       (Context->productionLine().get("box_id") == "0") &&
@@ -122,6 +124,7 @@ ReturnStatus BoxReleaseSystem::complete() {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
+  sendLog("Завершить сборку.");
 
   SqlQueryValues newBox;
   SqlQueryValues newPallet;
@@ -191,6 +194,8 @@ ReturnStatus BoxReleaseSystem::complete() {
 }
 
 void BoxReleaseSystem::clearContext() {
+  sendLog(QString("Очистка контекста бокса %1.").arg(Context->box().get("id")));
+
   Context->box().clear();
   Context->transponder().clear();
   Context->pallet().clear();

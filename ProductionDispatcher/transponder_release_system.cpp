@@ -22,6 +22,7 @@ ReturnStatus TransponderReleaseSystem::findLastReleased() {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
   }
+  sendLog("Поиск последнего выпущенного транспондера.");
 
   Database->setRecordMaxCount(1);
   Database->setCurrentOrder(Qt::DescendingOrder);
@@ -55,6 +56,7 @@ ReturnStatus TransponderReleaseSystem::findNext() {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
   }
+  sendLog("Поиск следующего транспондера для выпуска.");
 
   // Если сборка бокса завершена
   if ((Context->box().get("assembled_units") ==
@@ -150,6 +152,7 @@ ReturnStatus TransponderReleaseSystem::release() {
   if (ret != ReturnStatus::NoError) {
     return ret;
   }
+  sendLog("Выпуск транспондера.");
 
   if (Context->transponder().get("box_id") !=
       Context->productionLine().get("box_id")) {
@@ -190,6 +193,7 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
   if (ret != ReturnStatus::NoError) {
     return ret;
   }
+  sendLog("Подтверждение выпуска транспондера.");
 
   // Проверка того, что транспондер не был выпущен ранее
   if (Context->transponder().get("release_counter").toInt() > 0) {
@@ -234,6 +238,8 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
 
 ReturnStatus TransponderReleaseSystem::rerelease(const QString& key,
                                                  const QString& value) {
+  sendLog("Перевыпуск транспондера.");
+
   SqlQueryValues transponder;
   SqlQueryValues newTransponder;
 
@@ -271,6 +277,8 @@ ReturnStatus TransponderReleaseSystem::rerelease(const QString& key,
 ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
                                                         const QString& value,
                                                         const QString& ucid) {
+  sendLog("Подтверждение перевыпуска транспондера.");
+
   SqlQueryValues transponder;
   SqlQueryValues newTransponder;
 
@@ -325,6 +333,7 @@ ReturnStatus TransponderReleaseSystem::rollback() {
                 .arg(Context->login()));
     return ReturnStatus::ProductionLineNotInProcess;
   }
+  sendLog("Откат транспондера.");
 
   SqlQueryValues newTransponder;
   SqlQueryValues transponder;
@@ -384,9 +393,8 @@ void TransponderReleaseSystem::loadSettings() {
   QSettings settings;
 }
 
-void TransponderReleaseSystem::sendLog(const QString& log) const {
-  emit const_cast<TransponderReleaseSystem*>(this)->logging(objectName() +
-                                                            " - " + log);
+void TransponderReleaseSystem::sendLog(const QString& log) {
+  emit logging(QString("%1 - %1").arg(objectName(), log));
 }
 
 ReturnStatus TransponderReleaseSystem::checkContext() {

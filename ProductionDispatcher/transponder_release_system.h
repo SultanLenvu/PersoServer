@@ -38,7 +38,7 @@ class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
  private:
   Q_DISABLE_COPY_MOVE(TransponderReleaseSystem)
   void loadSettings(void);
-  void sendLog(const QString& log) const;
+  void sendLog(const QString& log);
 
   ReturnStatus checkContext(void);
 

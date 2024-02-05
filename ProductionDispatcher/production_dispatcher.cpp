@@ -220,6 +220,9 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
 
   if (Context->pallet().get("assembled_units") ==
       Context->pallet().get("quantity")) {
+    sendLog(
+        QString("Паллета полностью собрана").arg(Context->pallet().get("id")));
+
     StringDictionary palletData;
     ret = Informer->generatePalletData(palletData);
     if (ret != ReturnStatus::NoError) {
