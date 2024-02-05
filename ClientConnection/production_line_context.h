@@ -57,7 +57,7 @@ class ProductionLineContext final {
   void addBoxDataToJson(QJsonObject& json) const;
 
  private:
-  //  Q_DISABLE_COPY_MOVE(ProductionLineContext)
+  Q_DISABLE_COPY_MOVE(ProductionLineContext)
 
   QString generateTransponderSerialNumber(const QString& id) const;
 };

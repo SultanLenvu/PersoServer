@@ -138,15 +138,6 @@ ReturnStatus BoxReleaseSystem::complete() {
     return ReturnStatus::BoxNotCompletelyAssembled;
   }
 
-  // Проверка на переполнение паллеты
-  if (Context->pallet().get("assembled_units") >=
-      Context->pallet().get("quantity")) {
-    sendLog(
-        QString("Палета %1 переполнена. Завершить сборку бокса %1 невозможно.")
-            .arg(Context->pallet().get("id"), Context->box().get("id")));
-    return ReturnStatus::PalletOverflow;
-  }
-
   // Завершаем процесс сборки бокса
   newBox.add("in_process", "false");
   newBox.add("completed", "true");
@@ -154,6 +145,15 @@ ReturnStatus BoxReleaseSystem::complete() {
                                    POSTGRES_TIMESTAMP_TEMPLATE));
   if (!updateBox(newBox)) {
     return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Проверка на переполнение паллеты
+  if (Context->pallet().get("assembled_units") >=
+      Context->pallet().get("quantity")) {
+    sendLog(
+        QString("Палета %1 переполнена. Завершить сборку бокса %2 невозможно.")
+            .arg(Context->pallet().get("id"), Context->box().get("id")));
+    return ReturnStatus::PalletOverflow;
   }
 
   // Увеличиваем счетчик выпущенных боксов в паллете
@@ -263,7 +263,7 @@ ReturnStatus BoxReleaseSystem::findBox() {
                      Context->box().get("id")));
     return ReturnStatus::NoError;
   }
-  sendLog(QString("В заказе %1 у производственной линии '%1' нет "
+  sendLog(QString("В заказе %1 у производственной линии '%2' нет "
                   "незавершенных боксов.")
               .arg(Context->order().get("id"), Context->login()));
 

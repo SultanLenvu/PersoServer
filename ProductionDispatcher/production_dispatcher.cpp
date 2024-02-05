@@ -74,7 +74,7 @@ void ProductionDispatcher::stop() {
 }
 
 void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -90,7 +90,7 @@ void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
 }
 
 void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -117,7 +117,7 @@ void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
 void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
                                                  ReturnStatus& ret) {
   initOperation("getProductinoLineData");
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -132,7 +132,7 @@ void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
 }
 
 void ProductionDispatcher::requestBox(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -160,7 +160,7 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
 void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
                                              ReturnStatus& ret) {
   initOperation("getCurrentBoxData");
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -175,7 +175,7 @@ void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
 }
 
 void ProductionDispatcher::refundBox(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -193,7 +193,7 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
 }
 
 void ProductionDispatcher::completeBox(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -220,8 +220,8 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
 
   if (Context->pallet().get("assembled_units") ==
       Context->pallet().get("quantity")) {
-    sendLog(
-        QString("Паллета полностью собрана").arg(Context->pallet().get("id")));
+    sendLog(QString("Паллета %1 полностью собрана")
+                .arg(Context->pallet().get("id")));
 
     StringDictionary palletData;
     ret = Informer->generatePalletData(palletData);
@@ -244,7 +244,7 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
 
 void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
                                               ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -281,7 +281,7 @@ void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
 void ProductionDispatcher::confirmTransponderRelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -299,7 +299,7 @@ void ProductionDispatcher::confirmTransponderRelease(
 void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
                                                 QByteArray& firmware,
                                                 ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -333,7 +333,7 @@ void ProductionDispatcher::confirmTransponderRerelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
   initOperation("confirmTransponderRerelease");
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -350,7 +350,7 @@ void ProductionDispatcher::confirmTransponderRerelease(
 }
 
 void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -367,7 +367,7 @@ void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
 
 void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
                                                      ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -385,7 +385,7 @@ void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
 void ProductionDispatcher::getTransponderData(const StringDictionary& param,
                                               StringDictionary& data,
                                               ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -404,7 +404,7 @@ void ProductionDispatcher::getTransponderData(const StringDictionary& param,
 void ProductionDispatcher::printBoxStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -431,7 +431,7 @@ void ProductionDispatcher::printBoxStickerManually(
 }
 
 void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -449,7 +449,7 @@ void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
 void ProductionDispatcher::printPalletStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -476,7 +476,7 @@ void ProductionDispatcher::printPalletStickerManually(
 }
 
 void ProductionDispatcher::printLastPalletStickerManually(ReturnStatus& ret) {
-  if (!loadContext(sender())) {
+  if (!ProductionLineContext(sender())) {
     ret = ReturnStatus::ProductionLineContextNotAuthorized;
     return;
   }
@@ -519,7 +519,7 @@ void ProductionDispatcher::completeOperation(const QString& name) {
   Database->commitTransaction();
 }
 
-bool ProductionDispatcher::loadContext(QObject* obj) {
+bool ProductionDispatcher::ProductionLineContext(QObject* obj) {
   ProductionContextOwner* owner = static_cast<ProductionContextOwner*>(obj);
   //  ProductionContextOwner* owner =
   //  dynamic_cast<ProductionContextOwner*>(obj); assert(owner);

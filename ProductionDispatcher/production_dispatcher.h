@@ -9,6 +9,7 @@
 #include "abstract_sql_database.h"
 #include "abstract_sticker_printer.h"
 #include "abstract_transponder_release_system.h"
+#include "production_dispatcher_context.h"
 
 class ProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
@@ -17,7 +18,8 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   std::unique_ptr<QTimer> CheckTimer;
 
   std::shared_ptr<AbstractSqlDatabase> Database;
-  std::shared_ptr<ProductionLineContext> Context;
+  std::shared_ptr<ProductionDispatcherContext> SharedContext;
+  std::shared_ptr<ProductionLineContext> ParticularContext;
 
   std::unique_ptr<AbstractInfoSystem> Informer;
   std::unique_ptr<AbstractLaunchSystem> Launcher;
@@ -84,7 +86,7 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   void processOperationError(const QString& name, ReturnStatus ret);
   void completeOperation(const QString& name);
 
-  bool loadContext(QObject* obj);
+  bool loadProductionLineContext(QObject* obj);
 
   void createLaunchSystem(void);
   void createBoxReleaseSystem(void);
