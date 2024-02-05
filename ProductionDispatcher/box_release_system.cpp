@@ -157,7 +157,6 @@ ReturnStatus BoxReleaseSystem::complete() {
   newPallet.add(
       "assembled_units",
       QString::number(Context->pallet().get("assembled_units").toInt() + 1));
-  newPallet.add("assembling_end", "NULL");
   if (!updatePallet(newPallet)) {
     return ReturnStatus::DatabaseQueryError;
   }
@@ -408,7 +407,6 @@ ReturnStatus BoxReleaseSystem::completePallet() {
   newOrder.add(
       "assembled_units",
       QString::number(Context->order().get("assembled_units").toInt() + 1));
-  newOrder.add("assembling_end", "NULL");
   if (!updateOrder(newOrder)) {
     return ReturnStatus::DatabaseQueryError;
   }

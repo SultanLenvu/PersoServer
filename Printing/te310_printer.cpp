@@ -128,7 +128,7 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
                   .data());
   sendCommand("TEXT 50, 490, \"D.FNT\", 0, 2, 2, 1, \"BOX NO:\"");
   sendCommand(QString("BARCODE 600, 475, \"128M\", 50, 2, 0, 2, 4, 1, \"%1\"")
-                  .arg(param.value("id"))
+                  .arg(param.value("box_id"))
                   .toUtf8()
                   .data());
   sendCommand("PRINT 1");
@@ -145,12 +145,12 @@ ReturnStatus TE310Printer::printLastBoxSticker() {
 ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
   sendLog(QString("Печать стикера для паллеты."));
 
-  if (param.value("id").isEmpty() ||
+  if (param.value("pallet_id").isEmpty() ||
       param.value("transponder_model").isEmpty() ||
-      param.value("quantity").isEmpty() ||
+      param.value("pallet_quantity").isEmpty() ||
       param.value("first_box_id").isEmpty() ||
       param.value("last_box_id").isEmpty() ||
-      param.value("assembly_date").isEmpty()) {
+      param.value("pallet_assembly_date").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ReturnStatus::ParameterError;
   }
@@ -177,7 +177,7 @@ ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
 
   sendCommand("TEXT 50, 300, \"D.FNT\", 0, 3, 3, 1, \"QUANTITY:\"");
   sendCommand(QString("TEXT 600, 300, \"D.FNT\", 0, 3, 3, 1, \"%1\"")
-                  .arg(param.value("quantity"))
+                  .arg(param.value("pallet_quantity"))
                   .toUtf8()
                   .constData());
 
@@ -195,13 +195,13 @@ ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
 
   sendCommand("TEXT 50, 750, \"D.FNT\", 0, 3, 3, 1, \"PALLET NO:\"");
   sendCommand(QString("BARCODE 600, 725, \"128M\", 75, 2, 0, 3, 6, 1, \"%1\"")
-                  .arg(param.value("id"))
+                  .arg(param.value("pallet_id"))
                   .toUtf8()
                   .constData());
 
   sendCommand("TEXT 50, 900, \"D.FNT\", 0, 3, 3, 1,\"ASSEMBLY DATE:\"");
   sendCommand(QString("TEXT 600, 900, \"D.FNT\", 0, 3, 3, 1, \"%1\"")
-                  .arg(param.value("assembly_date"))
+                  .arg(param.value("pallet_assembly_date"))
                   .toUtf8()
                   .constData());
 

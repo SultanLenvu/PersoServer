@@ -314,12 +314,12 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
   }
 
   // Идентификатор паллеты
-  data.insert("id", Context->pallet().get("id"));
+  data.insert("pallet_id", Context->pallet().get("id"));
 
   // Дата окончания сборки
   QStringList tempDate = Context->pallet().get("assembling_end").split("T");
   data.insert(
-      "assembly_date",
+      "pallet_assembly_date",
       QDate::fromString(tempDate.first(), "yyyy-MM-dd").toString("dd.MM.yyyy"));
 
   // Модель транспондеров в паллете
