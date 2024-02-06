@@ -3,9 +3,10 @@
 
 #include <QJsonObject>
 
+#include "abstract_context.h"
 #include "sql_query_values.h"
 
-class ProductionLineContext final {
+class ProductionLineContext final : AbstractContext {
  private:
   QString Login;
   QString Password;
@@ -23,6 +24,10 @@ class ProductionLineContext final {
  public:
   ProductionLineContext();
   ~ProductionLineContext();
+
+ public:  // AbstractContext interface
+  void stash(void);
+  void applyStash(void);
 
  public:
   const QString& login(void) const;
@@ -45,10 +50,6 @@ class ProductionLineContext final {
   SqlQueryValues& order(void);
   SqlQueryValues& issuer(void);
   SqlQueryValues& masterKeys(void);
-
- public:
-  void stash(void);
-  void applyStash(void);
 
  public:
   void generateFirmwareSeed(StringDictionary seed) const;

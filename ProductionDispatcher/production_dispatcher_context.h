@@ -3,9 +3,10 @@
 
 #include <QJsonObject>
 
+#include "abstract_context.h"
 #include "sql_query_values.h"
 
-class ProductionDispatcherContext final {
+class ProductionDispatcherContext final : public AbstractContext {
  private:
   std::unordered_map<QString, SqlQueryValues> Pallets;
   SqlQueryValues Order;
@@ -18,6 +19,11 @@ class ProductionDispatcherContext final {
   ProductionDispatcherContext();
   ~ProductionDispatcherContext();
 
+ public:  // AbstractContext interface
+  virtual void stash() override;
+  virtual void applyStash() override;
+
+ public:
   void addPallet(const SqlQueryValues& pallet);
   void removePallet(const QString id);
 

@@ -68,6 +68,7 @@ add_executable(PersoServer
     ProductionDispatcher/abstract_box_release_system.cpp ProductionDispatcher/abstract_box_release_system.h
     ProductionDispatcher/box_release_system.cpp ProductionDispatcher/box_release_system.h
     ProductionDispatcher/production_dispatcher_context.h ProductionDispatcher/production_dispatcher_context.cpp
+    ProductionDispatcher/abstract_context.h ProductionDispatcher/abstract_context.cpp
 
     Printing/abstract_sticker_printer.cpp Printing/abstract_sticker_printer.h
     Printing/te310_printer.cpp Printing/te310_printer.h

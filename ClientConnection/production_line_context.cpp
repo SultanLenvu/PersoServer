@@ -2,9 +2,41 @@
 
 #include "production_line_context.h"
 
-ProductionLineContext::ProductionLineContext() {}
+ProductionLineContext::ProductionLineContext() : AbstractContext() {}
 
 ProductionLineContext::~ProductionLineContext() {}
+
+void ProductionLineContext::stash() {
+  Stash = std::unique_ptr<ProductionLineContext>(new ProductionLineContext());
+
+  Stash->setLogin(Login);
+  Stash->setPassword(Password);
+
+  Stash->ProductionLine = ProductionLine;
+  Stash->Transponder = Transponder;
+  Stash->Box = Box;
+  Stash->Pallet = Pallet;
+  Stash->Order = Order;
+  Stash->Issuer = Issuer;
+  Stash->MasterKeys = MasterKeys;
+}
+
+void ProductionLineContext::applyStash() {
+  if (!Stash) {
+    return;
+  }
+
+  Login = Stash->Login;
+  Password = Stash->Password;
+
+  ProductionLine = Stash->ProductionLine;
+  Transponder = Stash->Transponder;
+  Box = Stash->Box;
+  Pallet = Stash->Pallet;
+  Order = Stash->Order;
+  Issuer = Stash->Issuer;
+  MasterKeys = Stash->MasterKeys;
+}
 
 const QString& ProductionLineContext::login() const {
   return Login;
@@ -80,38 +112,6 @@ SqlQueryValues& ProductionLineContext::issuer() {
 
 SqlQueryValues& ProductionLineContext::masterKeys() {
   return MasterKeys;
-}
-
-void ProductionLineContext::stash() {
-  Stash = std::unique_ptr<ProductionLineContext>(new ProductionLineContext());
-
-  Stash->setLogin(Login);
-  Stash->setPassword(Password);
-
-  Stash->ProductionLine = ProductionLine;
-  Stash->Transponder = Transponder;
-  Stash->Box = Box;
-  Stash->Pallet = Pallet;
-  Stash->Order = Order;
-  Stash->Issuer = Issuer;
-  Stash->MasterKeys = MasterKeys;
-}
-
-void ProductionLineContext::applyStash() {
-  if (!Stash) {
-    return;
-  }
-
-  Login = Stash->Login;
-  Password = Stash->Password;
-
-  ProductionLine = Stash->ProductionLine;
-  Transponder = Stash->Transponder;
-  Box = Stash->Box;
-  Pallet = Stash->Pallet;
-  Order = Stash->Order;
-  Issuer = Stash->Issuer;
-  MasterKeys = Stash->MasterKeys;
 }
 
 void ProductionLineContext::generateFirmwareSeed(StringDictionary seed) const {
