@@ -333,45 +333,7 @@ ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
   }
   sendLog("Генерация данных паллеты.");
 
-  SqlQueryValues boxes;
-  if (!Database->readRecords("boxes", QString("pallet_id = %1").arg(palletId),
-                             boxes)) {
-    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  if (boxes.isEmpty()) {
-    sendLog(QString("В паллете %1 не найдено ни одного бокса.").arg(palletId));
-    return ReturnStatus::PalletIsEmpty;
-  }
-
-  // Идентификатор паллеты
-  data.insert("pallet_id", palletId);
-
-  // Дата окончания сборки
-  QStringList tempDate =
-      MainContext->pallet(palletId).get("assembling_end").split("T");
-  data.insert(
-      "pallet_assembly_date",
-      QDate::fromString(tempDate.first(), "yyyy-MM-dd").toString("dd.MM.yyyy"));
-
-  // Модель транспондеров в паллете
-  QString tempModel = MainContext->order().get("transponder_model");
-  data.insert("transponder_model", tempModel.remove(" "));
-
-  // Сохраняем идентификатор первого бокса
-  data.insert("first_box_id", boxes.get("id"));
-
-  // Сохраняем идентификатор последнего бокса
-  data.insert("last_box_id", boxes.getLast("id"));
-
-  // Общее количество транспондеров в паллете
-  uint32_t totalQuantity =
-      MainContext->pallet(palletId).get("assembled_units").toInt() *
-      SubContext->box().get("quantity").toInt();
-  data.insert("pallet_quantity", QString::number(totalQuantity));
-
-  return ReturnStatus::NoError;
+  return generatePalletDataSubprocess(palletId, data);
 }
 
 ReturnStatus InfoSystem::generatePalletData(const QString& id,
@@ -385,7 +347,7 @@ ReturnStatus InfoSystem::generatePalletData(const QString& id,
                 .arg(id));
     return ret;
   }
-  ret = generatePalletData(data);
+  ret = generatePalletDataSubprocess(id, data);
 
   // Восстанавливаем контекст
   restoreSavedContexts();
@@ -422,6 +384,7 @@ QString InfoSystem::getTransponderPalletId(const QString& key,
   SqlQueryValues transponder;
   QStringList tables{"transponders", "boxes", "pallets"};
 
+  transponder.addField("pallet_id");
   if (!Database->readMergedRecords(
           tables, QString("transponders.%1 = '%2'").arg(key, value),
           transponder)) {
@@ -449,6 +412,52 @@ void InfoSystem::saveContexts() {
 void InfoSystem::restoreSavedContexts() {
   MainContext = SavedMainContext;
   SubContext = SavedSubContext;
+}
+
+ReturnStatus InfoSystem::generatePalletDataSubprocess(const QString& id,
+                                                      StringDictionary& data) {
+  SqlQueryValues boxes;
+  if (!Database->readRecords("boxes", QString("pallet_id = %1").arg(id),
+                             boxes)) {
+    sendLog(QString("Получена ошибка при выполнении запроса в базу данных."));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (boxes.isEmpty()) {
+    sendLog(QString("В паллете %1 не найдено ни одного бокса.").arg(id));
+    return ReturnStatus::PalletIsEmpty;
+  }
+
+  // Идентификатор паллеты
+  data.insert("pallet_id", id);
+
+  // Дата окончания сборки
+  QStringList tempDate =
+      MainContext->pallet(id).get("assembling_end").split("T");
+  data.insert(
+      "pallet_assembly_date",
+      QDate::fromString(tempDate.first(), "yyyy-MM-dd").toString("dd.MM.yyyy"));
+  if (data["pallet_assembly_date"] == "") {
+    data["pallet_assembly_date"] = "NaN";
+  }
+
+  // Модель транспондеров в паллете
+  QString tempModel = MainContext->order().get("transponder_model");
+  data.insert("transponder_model", tempModel.remove(" "));
+
+  // Сохраняем идентификатор первого бокса
+  data.insert("first_box_id", boxes.get("id"));
+
+  // Сохраняем идентификатор последнего бокса
+  data.insert("last_box_id", boxes.getLast("id"));
+
+  // Общее количество транспондеров в паллете
+  uint32_t totalQuantity =
+      MainContext->pallet(id).get("assembled_units").toInt() *
+      SubContext->box().get("quantity").toInt();
+  data.insert("pallet_quantity", QString::number(totalQuantity));
+
+  return ReturnStatus::NoError;
 }
 
 ReturnStatus InfoSystem::loadTransponderContext(const QString& key,

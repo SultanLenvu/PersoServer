@@ -15,6 +15,8 @@ ReturnStatus BoxReleaseSystem::request() {
   sendLog("Запрос.");
 
   ReturnStatus ret;
+  SubContext->box().clear();
+  SubContext->transponder().clear();
 
   ret = findBox();
   if (ret != ReturnStatus::NoError) {
@@ -99,6 +101,9 @@ ReturnStatus BoxReleaseSystem::refund() {
   if (!detachBox()) {
     return ReturnStatus::DatabaseQueryError;
   }
+
+  SubContext->box().clear();
+  SubContext->transponder().clear();
 
   return ReturnStatus::NoError;
 }

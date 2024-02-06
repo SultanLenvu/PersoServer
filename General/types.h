@@ -77,8 +77,9 @@ enum class ReturnStatus {
   StickerPrinterDriverMissed,
   StickerPrinterLibraryMissing,
   StickerPrinterConnectionError,
-  BoxStickerPrintError,
-  PalletStickerPrintError,
+  StickerPrintError,
+  LastStickerMissed,
+
   Unknown,
 };
 

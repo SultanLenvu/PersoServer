@@ -19,13 +19,14 @@ BoxStickerPrintCommand::~BoxStickerPrintCommand() {}
 void BoxStickerPrintCommand::process(const QJsonObject& command) {
   if (command.size() != CommandSize ||
       (command["command_name"] != CommandName) ||
-      !command.contains("personal_account_number")) {
+      !command.contains("transponder_pan")) {
     Status = ReturnStatus::SyntaxError;
     sendLog("Получена синтаксическая ошибка.");
     return;
   }
 
-  Parameters.insert("personal_account_number", command.value("pan").toString());
+  Parameters.insert("personal_account_number",
+                    command.value("transponder_pan").toString() + "F");
 
   // Запрашиваем печать бокса
   emit printBoxSticker_signal(Parameters, Status);

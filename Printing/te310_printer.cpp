@@ -70,6 +70,13 @@ ReturnStatus TE310Printer::printTransponderSticker(
 }
 
 ReturnStatus TE310Printer::printLastTransponderSticker() {
+  if (LastPalletSticker.isEmpty()) {
+    sendLog(
+        "Ранее не было распечатано ни одного стикера на транспондер. Повтор "
+        "печати невозможен.");
+    return ReturnStatus::LastStickerMissed;
+  }
+
   return printTransponderSticker(LastTransponderSticker);
 }
 
@@ -139,6 +146,13 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
 }
 
 ReturnStatus TE310Printer::printLastBoxSticker() {
+  if (LastBoxSticker.isEmpty()) {
+    sendLog(
+        "Ранее не было распечатано ни одного стикера на бокс. Повтор печати "
+        "невозможен.");
+    return ReturnStatus::LastStickerMissed;
+  }
+
   return printBoxSticker(LastBoxSticker);
 }
 
@@ -214,6 +228,13 @@ ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
 }
 
 ReturnStatus TE310Printer::printLastPalletSticker() {
+  if (LastPalletSticker.isEmpty()) {
+    sendLog(
+        "Ранее не было распечатано ни одного стикера на паллету. Повтор печати "
+        "невозможен.");
+    return ReturnStatus::LastStickerMissed;
+  }
+
   return printPalletSticker(LastPalletSticker);
 }
 

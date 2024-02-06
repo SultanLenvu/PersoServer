@@ -138,9 +138,6 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
   }
   initOperation("requestBox");
 
-  SubContext->box().clear();
-  SubContext->transponder().clear();
-
   ret = BoxReleaser->request();
   if (ret != ReturnStatus::NoError) {
     if (ret != ReturnStatus::OrderCompletelyAssembled) {
@@ -189,9 +186,6 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
     processOperationError("refundBox", ret);
     return;
   }
-
-  SubContext->box().clear();
-  SubContext->transponder().clear();
 
   completeOperation("refundBox");
 }
@@ -381,8 +375,7 @@ void ProductionDispatcher::printBoxStickerManually(
   initOperation("printBoxStickerManually");
 
   QString boxId = Informer->getTransponderBoxId(
-      "personal_account_number",
-      param.value("pan").leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F')));
+      "personal_account_number", param.value("personal_account_number"));
 
   StringDictionary boxData;
   ret = Informer->generateBoxData(boxId, boxData);
@@ -426,8 +419,7 @@ void ProductionDispatcher::printPalletStickerManually(
   initOperation("printPalletStickerManually");
 
   QString palletId = Informer->getTransponderPalletId(
-      "personal_account_number",
-      param.value("pan").leftJustified(FULL_PAN_CHAR_LENGTH, QChar('F')));
+      "personal_account_number", param.value("personal_account_number"));
 
   StringDictionary palletData;
   ret = Informer->generatePalletData(palletId, palletData);

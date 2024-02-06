@@ -49,6 +49,9 @@ class InfoSystem : public AbstractInfoSystem {
   void saveContexts(void);
   void restoreSavedContexts(void);
 
+  ReturnStatus generatePalletDataSubprocess(const QString& id,
+                                            StringDictionary& data);
+
   ReturnStatus loadTransponderContext(const QString& key, const QString& value);
   ReturnStatus loadBoxContext(const QString& id);
   ReturnStatus loadPalletContext(const QString& id);
