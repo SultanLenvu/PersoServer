@@ -76,11 +76,11 @@ void ProductionDispatcher::stop() {
 }
 
 void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
-  initOperation("launchProductionLine");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("launchProductionLine");
 
   ret = Launcher->launch();
   if (ret != ReturnStatus::NoError) {
@@ -92,11 +92,11 @@ void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
 }
 
 void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
-  initOperation("shutdownProductionLine");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("shutdownProductionLine");
 
   ret = BoxReleaser->refund();
   if ((ret != ReturnStatus::NoError) &&
@@ -116,11 +116,11 @@ void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
 
 void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
                                                  ReturnStatus& ret) {
-  initOperation("getProductinoLineData");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("getProductinoLineData");
 
   ret = Informer->generateProductionLineData(data);
   if (ret != ReturnStatus::NoError) {
@@ -132,11 +132,14 @@ void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
 }
 
 void ProductionDispatcher::requestBox(ReturnStatus& ret) {
-  initOperation("requestBox");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("requestBox");
+
+  SubContext->box().clear();
+  SubContext->transponder().clear();
 
   ret = BoxReleaser->request();
   if (ret != ReturnStatus::NoError) {
@@ -159,11 +162,11 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
 
 void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
                                              ReturnStatus& ret) {
-  initOperation("getCurrentBoxData");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("getCurrentBoxData");
 
   ret = Informer->generateBoxData(data);
   if (ret != ReturnStatus::NoError) {
@@ -175,11 +178,11 @@ void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
 }
 
 void ProductionDispatcher::refundBox(ReturnStatus& ret) {
-  initOperation("refundBox");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("refundBox");
 
   ret = BoxReleaser->refund();
   if (ret != ReturnStatus::NoError) {
@@ -187,15 +190,18 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
     return;
   }
 
+  SubContext->box().clear();
+  SubContext->transponder().clear();
+
   completeOperation("refundBox");
 }
 
 void ProductionDispatcher::completeBox(ReturnStatus& ret) {
-  initOperation("completeBox");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("completeBox");
 
   ret = BoxReleaser->complete();
   if (ret != ReturnStatus::NoError) {
@@ -208,11 +214,11 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
 
 void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
                                               ReturnStatus& ret) {
-  initOperation("releaseTransponder");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("releaseTransponder");
 
   ret = TransponderReleaser->findNext();
   if (ret != ReturnStatus::NoError) {
@@ -245,11 +251,11 @@ void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
 void ProductionDispatcher::confirmTransponderRelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  initOperation("confirmTransponderRelease");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("confirmTransponderRelease");
 
   ret = TransponderReleaser->confirmRelease(param.value("ucid"));
   if (ret != ReturnStatus::NoError) {
@@ -263,11 +269,11 @@ void ProductionDispatcher::confirmTransponderRelease(
 void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
                                                 QByteArray& firmware,
                                                 ReturnStatus& ret) {
-  initOperation("rereleaseTransponder");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("rereleaseTransponder");
 
   ret = TransponderReleaser->rerelease("personal_account_number",
                                        param.value("personal_account_number"));
@@ -296,11 +302,11 @@ void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
 void ProductionDispatcher::confirmTransponderRerelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  initOperation("confirmTransponderRerelease");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("confirmTransponderRerelease");
 
   ret = TransponderReleaser->confirmRerelease(
       "personal_account_number", param.value("personal_account_number"),
@@ -314,11 +320,11 @@ void ProductionDispatcher::confirmTransponderRerelease(
 }
 
 void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
-  initOperation("rollbackTransponder");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("rollbackTransponder");
 
   ret = TransponderReleaser->rollback();
   if (ret != ReturnStatus::NoError) {
@@ -331,11 +337,11 @@ void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
 
 void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
                                                      ReturnStatus& ret) {
-  initOperation("getCurrentTransponderData");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("getCurrentTransponderData");
 
   ret = Informer->generateTransponderData(data);
   if (ret != ReturnStatus::NoError) {
@@ -349,11 +355,11 @@ void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
 void ProductionDispatcher::getTransponderData(const StringDictionary& param,
                                               StringDictionary& data,
                                               ReturnStatus& ret) {
-  initOperation("getTransponderData");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("getTransponderData");
 
   ret = Informer->generateTransponderData(
       "personal_account_number", param.value("personal_account_number"), data);
@@ -368,11 +374,11 @@ void ProductionDispatcher::getTransponderData(const StringDictionary& param,
 void ProductionDispatcher::printBoxStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  initOperation("printBoxStickerManually");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("printBoxStickerManually");
 
   QString boxId = Informer->getTransponderBoxId(
       "personal_account_number",
@@ -395,11 +401,11 @@ void ProductionDispatcher::printBoxStickerManually(
 }
 
 void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
-  initOperation("printLastBoxStickerManually");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("printLastBoxStickerManually");
 
   ret = BoxStickerPrinter->printLastBoxSticker();
   if (ret != ReturnStatus::NoError) {
@@ -413,11 +419,11 @@ void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
 void ProductionDispatcher::printPalletStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  initOperation("printPalletStickerManually");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("printPalletStickerManually");
 
   QString palletId = Informer->getTransponderPalletId(
       "personal_account_number",
@@ -440,11 +446,11 @@ void ProductionDispatcher::printPalletStickerManually(
 }
 
 void ProductionDispatcher::printLastPalletStickerManually(ReturnStatus& ret) {
-  initOperation("printLastPalletStickerManually");
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
+  initOperation("printLastPalletStickerManually");
 
   ret = PalletStickerPrinter->printLastPalletSticker();
   if (ret != ReturnStatus::NoError) {
@@ -591,9 +597,6 @@ void ProductionDispatcher::processBoxAssemblyCompletion() {
     processOperationError("completeBox", ret);
     return;
   }
-
-  SubContext->box().clear();
-  SubContext->transponder().clear();
 }
 
 void ProductionDispatcher::processPalletAssemblyCompletion() {
@@ -604,7 +607,7 @@ void ProductionDispatcher::processPalletAssemblyCompletion() {
   ReturnStatus ret = ReturnStatus::NoError;
   QString palletId = SubContext->box().get("pallet_id");
 
-  ret = Informer->generatePalletData(palletId, palletData);
+  ret = Informer->generatePalletData(palletData);
   if (ret != ReturnStatus::NoError) {
     processOperationError("completeBox", ret);
     return;
@@ -622,6 +625,4 @@ void ProductionDispatcher::processPalletAssemblyCompletion() {
 void ProductionDispatcher::processOrderAssemblyCompletion() {
   sendLog(QString("Обработка завершения сборки заказа %1.")
               .arg(MainContext->order().get("id")));
-
-  MainContext->clear();
 }

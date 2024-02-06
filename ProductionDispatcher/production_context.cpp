@@ -37,7 +37,7 @@ void ProductionContext::applyStash() {
 }
 
 bool ProductionContext::isValid() {
-  if (Pallet->isEmpty() || Order.isEmpty() || Issuer.isEmpty() ||
+  if (!Pallet || Pallet->isEmpty() || Order.isEmpty() || Issuer.isEmpty() ||
       MasterKeys.isEmpty()) {
     return false;
   }

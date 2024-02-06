@@ -14,14 +14,6 @@ ReturnStatus BoxReleaseSystem::request() {
   }
   sendLog("Запрос.");
 
-  if (!SubContext->box().isEmpty() ||
-      (SubContext->productionLine().get("box_id") != "0") ||
-      (SubContext->productionLine().get("transponder_id") != "0")) {
-    sendLog(QString("Производственная линия %1 уже имеет бокс для сборки.")
-                .arg(SubContext->login()));
-    return ReturnStatus::BoxAlreadyRequested;
-  }
-
   ReturnStatus ret;
 
   ret = findBox();
@@ -143,7 +135,15 @@ ReturnStatus BoxReleaseSystem::complete() {
     return ReturnStatus::DatabaseQueryError;
   }
 
+  // Отвязываем производственную линию от бокса
+  if (!detachBox()) {
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  // Запоминаем идентификатор паллеты и отправляем сигнал о завершении сборки
+  // бокса
   QString palletId = SubContext->box().get("pallet_id");
+  emit boxAssemblyCompleted();
 
   // Проверка на переполнение паллеты
   if (MainContext->pallet(palletId).get("assembled_units") >=
@@ -182,14 +182,6 @@ ReturnStatus BoxReleaseSystem::complete() {
       return ret;
     }
   }
-
-  // Отвязываем производственную линию от бокса
-  if (!detachBox()) {
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Отправляем сигнал о завершении сборки бокса
-  emit boxAssemblyCompleted();
 
   // В противном случае возвращаемся
   return ReturnStatus::NoError;

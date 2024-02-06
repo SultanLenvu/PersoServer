@@ -324,7 +324,7 @@ ReturnStatus InfoSystem::generateBoxData(const QString& id,
 }
 
 ReturnStatus InfoSystem::generatePalletData(StringDictionary& data) {
-  QString palletId = SubContext->box().get("id");
+  QString palletId = SubContext->box().get("pallet_id");
 
   if (MainContext->pallet(palletId).isEmpty()) {
     sendLog(QString("Производственная линия %1 не связана ни с какой паллетой.")
