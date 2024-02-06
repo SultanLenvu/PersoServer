@@ -8,45 +8,37 @@ class BoxReleaseSystem : public AbstractBoxReleaseSystem
   Q_OBJECT
 
  public:
-  explicit BoxReleaseSystem(const QString& name,
-                            std::shared_ptr<AbstractSqlDatabase> db);
+  explicit BoxReleaseSystem(const QString& name);
   ~BoxReleaseSystem();
 
  public:  // AbstractBoxReleaseSystem interface
-  virtual void setContext(
-      std::shared_ptr<ProductionLineContext> context) override;
-
   virtual ReturnStatus request(void) override;
   virtual ReturnStatus refund(void) override;
   virtual ReturnStatus complete(void) override;
-  virtual void clearContext(void) override;
 
  private:
   Q_DISABLE_COPY_MOVE(BoxReleaseSystem)
-  void loadSettings(void);
-  void sendLog(const QString& log);
 
-  ReturnStatus findOrderInProcess(void);
   ReturnStatus findBox(void);
 
   bool attachBox(void);
   bool detachBox(void);
 
   ReturnStatus startBoxAssembly(void);
-  ReturnStatus startPalletAssembly(void);
+  ReturnStatus startPalletAssembly(const QString& id);
 
   bool stopBoxAssembly(void);
-  bool stopPalletAssembly(void);
+  bool stopPalletAssembly(const QString& id);
 
-  ReturnStatus completePallet(void);
+  ReturnStatus completePallet(const QString& id);
   ReturnStatus completeOrder(void);
 
-  ReturnStatus loadBoxContext(void);
+  ReturnStatus loadPalletData(const QString& id);
 
   bool updateProductionLine(const SqlQueryValues& newValues);
   bool updateTransponder(const SqlQueryValues& newValues);
   bool updateBox(const SqlQueryValues& newValues);
-  bool updatePallet(const SqlQueryValues& newValues);
+  bool updatePallet(const QString& id, const SqlQueryValues& newValues);
   bool updateOrder(const SqlQueryValues& newValues);
 };
 

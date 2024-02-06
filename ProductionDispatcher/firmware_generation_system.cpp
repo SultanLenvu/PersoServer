@@ -229,7 +229,7 @@ void FirmwareGenerationSystem::generateCommonKeys(
   // Генерируем ключи
   uint8_t* init;
   QByteArray masterKeyValue;
-  for (QHash<QString, QString>::const_iterator it = seed.begin();
+  for (StringDictionary::const_iterator it = seed.begin();
        it != seed.end(); it++) {
     uint8_t* result = new uint8_t[COMMON_KEY_SIZE];
 

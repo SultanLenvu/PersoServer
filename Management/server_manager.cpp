@@ -311,10 +311,10 @@ void ServerManager::createServerInstance() {
 void ServerManager::createLoggerInstance() {}
 
 void ServerManager::registerMetaType() {
-  qRegisterMetaType<QSharedPointer<QHash<QString, QString>>>(
-      "QSharedPointer<QHash<QString, QString> >");
-  qRegisterMetaType<QSharedPointer<QHash<QString, QString>>>(
-      "QSharedPointer<QHash<QString, QString> >");
+  qRegisterMetaType<QSharedPointer<StringDictionary>>(
+      "QSharedPointer<StringDictionary >");
+  qRegisterMetaType<QSharedPointer<StringDictionary>>(
+      "QSharedPointer<StringDictionary >");
   qRegisterMetaType<QSharedPointer<QStringList>>("QSharedPointer<QStringList>");
   qRegisterMetaType<QSharedPointer<QFile>>("QSharedPointer<QFile>");
   qRegisterMetaType<ReturnStatus>("ReturnStatus");

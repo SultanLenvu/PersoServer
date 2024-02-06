@@ -9,6 +9,7 @@ class AbstractContext
   AbstractContext();
   virtual ~AbstractContext();
 
+  virtual void clear(void) = 0;
   virtual void stash(void) = 0;
   virtual void applyStash(void) = 0;
 

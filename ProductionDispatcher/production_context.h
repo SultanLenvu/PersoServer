@@ -6,34 +6,40 @@
 #include "abstract_context.h"
 #include "sql_query_values.h"
 
-class ProductionDispatcherContext final : public AbstractContext {
+class ProductionContext final : public AbstractContext {
  private:
-  std::unordered_map<QString, SqlQueryValues> Pallets;
+  std::unordered_map<QString, std::shared_ptr<SqlQueryValues>> PalletStorage;
+
+  std::shared_ptr<SqlQueryValues> Pallet;
   SqlQueryValues Order;
   SqlQueryValues Issuer;
   SqlQueryValues MasterKeys;
 
-  std::unique_ptr<ProductionDispatcherContext> Stash;
+  std::unique_ptr<ProductionContext> Stash;
 
  public:
-  ProductionDispatcherContext();
-  ~ProductionDispatcherContext();
+  ProductionContext();
+  ~ProductionContext();
 
  public:  // AbstractContext interface
+  virtual void clear(void) override;
   virtual void stash() override;
   virtual void applyStash() override;
 
  public:
-  void addPallet(const SqlQueryValues& pallet);
+  bool isValid(void);
+
+ public:
   void removePallet(const QString id);
 
+ public:
   SqlQueryValues& pallet(const QString& id);
   SqlQueryValues& order(void);
   SqlQueryValues& issuer(void);
   SqlQueryValues& masterKeys(void);
 
  private:
-  Q_DISABLE_COPY_MOVE(ProductionDispatcherContext)
+  Q_DISABLE_COPY_MOVE(ProductionContext)
 };
 
 #endif  // PRODUCTIONDISPATCHERCONTEXT_H

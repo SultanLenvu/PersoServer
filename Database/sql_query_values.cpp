@@ -86,8 +86,8 @@ QString SqlQueryValues::getLast(const QString& field) const {
   return Values.at(FieldIndex.value(field))->back();
 }
 
-QHash<QString, QString> SqlQueryValues::getRecord(uint32_t num) const {
-  QHash<QString, QString> record;
+StringDictionary SqlQueryValues::getRecord(uint32_t num) const {
+  StringDictionary record;
 
   if (num >= Values.size()) {
     return record;
@@ -173,8 +173,8 @@ void SqlQueryValues::extractRecords(QSqlQuery& request) {
   endResetModel();
 }
 
-void SqlQueryValues::add(const QHash<QString, QString>& record) {
-  for (QHash<QString, QString>::const_iterator it = record.constBegin();
+void SqlQueryValues::add(const StringDictionary& record) {
+  for (StringDictionary::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     add(it.key(), it.value());
   }
@@ -214,7 +214,7 @@ void SqlQueryValues::addField(const QString& field,
   }
 }
 
-void SqlQueryValues::addRecord(const QHash<QString, QString> record) {
+void SqlQueryValues::addRecord(const StringDictionary record) {
   if (record.empty()) {
     return;
   }

@@ -24,16 +24,9 @@ class SqlQueryValues : public QAbstractTableModel {
   SqlQueryValues();
   ~SqlQueryValues();
 
-  // Конструктор копирования
   SqlQueryValues(const SqlQueryValues& other);
-
-  // Конструктор перемещения
   SqlQueryValues(SqlQueryValues&& other) noexcept;
-
-  // Оператор присваивания
   SqlQueryValues& operator=(const SqlQueryValues& other);
-
-  // Оператор присваивания перемещением
   SqlQueryValues& operator=(SqlQueryValues&& other) noexcept;
 
  public:
@@ -43,7 +36,7 @@ class SqlQueryValues : public QAbstractTableModel {
   QString get(uint32_t field) const;
   QString get(const QString& field) const;
   QString getLast(const QString& field) const;
-  QHash<QString, QString> getRecord(uint32_t num) const;
+  StringDictionary getRecord(uint32_t num) const;
 
   size_t recordCount(void) const;
   size_t fieldCount(void) const;
@@ -51,11 +44,11 @@ class SqlQueryValues : public QAbstractTableModel {
   void appendToInsert(QString& queryText) const;
 
   void extractRecords(QSqlQuery& request);
-  void add(const QHash<QString, QString>& record);
+  void add(const StringDictionary& record);
   void add(const QString& field, const QString& value);
   void addField(const QString& field);
   void addField(const QString& name, const SharedVector<QString> values);
-  void addRecord(const QHash<QString, QString> record);
+  void addRecord(const StringDictionary record);
   void clear();
 
   // Интерфейс модели

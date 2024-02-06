@@ -42,6 +42,7 @@ add_executable(PersoServer
 
     General/definitions.h
     General/types.h
+    General/psobject.h General/psobject.cpp
 
     Log/console_log_backend.cpp Log/console_log_backend.h
     Log/file_log_backend.cpp Log/file_log_backend.h
@@ -67,8 +68,9 @@ add_executable(PersoServer
     ProductionDispatcher/firmware_generation_system.cpp ProductionDispatcher/firmware_generation_system.h
     ProductionDispatcher/abstract_box_release_system.cpp ProductionDispatcher/abstract_box_release_system.h
     ProductionDispatcher/box_release_system.cpp ProductionDispatcher/box_release_system.h
-    ProductionDispatcher/production_dispatcher_context.h ProductionDispatcher/production_dispatcher_context.cpp
+    ProductionDispatcher/production_context.h ProductionDispatcher/production_context.cpp
     ProductionDispatcher/abstract_context.h ProductionDispatcher/abstract_context.cpp
+    ProductionDispatcher/abstract_production_system.h ProductionDispatcher/abstract_production_system.cpp
 
     Printing/abstract_sticker_printer.cpp Printing/abstract_sticker_printer.h
     Printing/te310_printer.cpp Printing/te310_printer.h

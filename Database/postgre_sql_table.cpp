@@ -50,7 +50,7 @@ const QVector<QString>* PostgreSqlTable::columns() const {
   return &Columns;
 }
 
-const QHash<QString, QString>* PostgreSqlTable::relations() const {
+const StringDictionary* PostgreSqlTable::relations() const {
   return &Relations;
 }
 
@@ -335,8 +335,8 @@ bool PostgreSqlTable::checkFieldNames(const SqlQueryValues& records) const {
 }
 
 bool PostgreSqlTable::checkFieldNames(
-    const QHash<QString, QString>& record) const {
-  for (QHash<QString, QString>::const_iterator it = record.constBegin();
+    const StringDictionary& record) const {
+  for (StringDictionary::const_iterator it = record.constBegin();
        it != record.constEnd(); it++) {
     if (!Columns.contains(it.key())) {
       return false;

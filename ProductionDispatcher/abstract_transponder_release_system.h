@@ -1,26 +1,14 @@
 #ifndef ABSTRACTTRANSPONDERELEASESYSTEM_H
 #define ABSTRACTTRANSPONDERELEASESYSTEM_H
 
-#include <QObject>
+#include "abstract_production_system.h"
 
-#include "abstract_sql_database.h"
-#include "production_line_context.h"
-#include "types.h"
-
-class AbstractTransponderReleaseSystem : public QObject {
+class AbstractTransponderReleaseSystem : public AbstractProductionSystem {
   Q_OBJECT
 
- protected:
-  std::shared_ptr<ProductionLineContext> Context;
-  std::shared_ptr<AbstractSqlDatabase> Database;
-
  public:
-  explicit AbstractTransponderReleaseSystem(
-      const QString& name,
-      std::shared_ptr<AbstractSqlDatabase> db);
+  explicit AbstractTransponderReleaseSystem(const QString& name);
   virtual ~AbstractTransponderReleaseSystem();
-
-  virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
 
   virtual ReturnStatus findLastReleased(void) = 0;
   virtual ReturnStatus findNext(void) = 0;
@@ -33,11 +21,7 @@ class AbstractTransponderReleaseSystem : public QObject {
   virtual ReturnStatus rollback(void) = 0;
 
  private:
-  AbstractTransponderReleaseSystem();
   Q_DISABLE_COPY_MOVE(AbstractTransponderReleaseSystem)
-
- signals:
-  void logging(const QString& log);
 };
 
 #endif  // ABSTRACTTRANSPONDERELEASESYSTEM_H

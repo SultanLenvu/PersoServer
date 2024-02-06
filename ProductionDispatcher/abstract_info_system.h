@@ -1,28 +1,15 @@
 #ifndef ABCTRACTINFOSYSTEM_H
 #define ABCTRACTINFOSYSTEM_H
 
-#include <QObject>
+#include "abstract_production_system.h"
 
-#include "abstract_sql_database.h"
-#include "production_line_context.h"
-#include "types.h"
-
-class AbstractInfoSystem : public QObject {
+class AbstractInfoSystem : public AbstractProductionSystem {
   Q_OBJECT
- protected:
-  std::shared_ptr<ProductionLineContext> Context;
-  std::shared_ptr<AbstractSqlDatabase> Database;
-
  public:
-  explicit AbstractInfoSystem(const QString& name,
-                              const std::shared_ptr<AbstractSqlDatabase> db);
+  explicit AbstractInfoSystem(const QString& name);
   virtual ~AbstractInfoSystem();
 
-  virtual void setContext(std::shared_ptr<ProductionLineContext> context) = 0;
-  virtual QString getTransponderBoxId(const QString& key,
-                                      const QString& value) = 0;
-  virtual QString getTransponderPalletId(const QString& key,
-                                         const QString& value) = 0;
+  virtual ReturnStatus updateMainContext(void) = 0;
 
   virtual ReturnStatus generateProductionLineData(StringDictionary& data) = 0;
 
@@ -43,14 +30,14 @@ class AbstractInfoSystem : public QObject {
   virtual ReturnStatus generatePalletData(StringDictionary& data) = 0;
   virtual ReturnStatus generatePalletData(const QString& id,
                                           StringDictionary& data) = 0;
-  virtual void reset(void) = 0;
+
+  virtual QString getTransponderBoxId(const QString& key,
+                                      const QString& value) = 0;
+  virtual QString getTransponderPalletId(const QString& key,
+                                         const QString& value) = 0;
 
  private:
-  AbstractInfoSystem();
   Q_DISABLE_COPY_MOVE(AbstractInfoSystem)
-
- signals:
-  void logging(const QString& log);
 };
 
 #endif  // ABCTRACTINFOSYSTEM_H

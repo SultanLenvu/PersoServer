@@ -7,22 +7,15 @@ class InfoSystem : public AbstractInfoSystem {
   Q_OBJECT
 
  private:
-  std::shared_ptr<ProductionLineContext> StashedContext;
+  std::shared_ptr<ProductionContext> SavedMainContext;
+  std::shared_ptr<ProductionLineContext> SavedSubContext;
 
  public:
-  explicit InfoSystem(const QString& name,
-                      const std::shared_ptr<AbstractSqlDatabase> db);
+  explicit InfoSystem(const QString& name);
   ~InfoSystem();
 
-  // AbstractInfoSystem interface
- public:
-  virtual void setContext(
-      std::shared_ptr<ProductionLineContext> context) override;
-
-  virtual QString getTransponderBoxId(const QString& key,
-                                      const QString& value) override;
-  virtual QString getTransponderPalletId(const QString& key,
-                                         const QString& value) override;
+ public:  // AbstractInfoSystem interface
+  virtual ReturnStatus updateMainContext(void) override;
 
   virtual ReturnStatus generateProductionLineData(
       StringDictionary& data) override;
@@ -45,20 +38,21 @@ class InfoSystem : public AbstractInfoSystem {
   virtual ReturnStatus generatePalletData(const QString& id,
                                           StringDictionary& data) override;
 
-  virtual void reset(void) override;
+  virtual QString getTransponderBoxId(const QString& key,
+                                      const QString& value) override;
+  virtual QString getTransponderPalletId(const QString& key,
+                                         const QString& value) override;
 
  private:
   Q_DISABLE_COPY_MOVE(InfoSystem)
-  void loadSettings(void);
-  void sendLog(const QString& log) const;
 
-  void saveContext(void);
+  void saveContexts(void);
+  void restoreSavedContexts(void);
 
   ReturnStatus loadTransponderContext(const QString& key, const QString& value);
   ReturnStatus loadBoxContext(const QString& id);
   ReturnStatus loadPalletContext(const QString& id);
 
-  void initContext(void);
   QString generateTransponderSerialNumber(const QString& id) const;
 };
 

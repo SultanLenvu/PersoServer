@@ -14,10 +14,6 @@ class ProductionLineContext final : AbstractContext {
   SqlQueryValues ProductionLine;
   SqlQueryValues Transponder;
   SqlQueryValues Box;
-  SqlQueryValues Pallet;
-  SqlQueryValues Order;
-  SqlQueryValues Issuer;
-  SqlQueryValues MasterKeys;
 
   std::unique_ptr<ProductionLineContext> Stash;
 
@@ -26,8 +22,9 @@ class ProductionLineContext final : AbstractContext {
   ~ProductionLineContext();
 
  public:  // AbstractContext interface
-  void stash(void);
-  void applyStash(void);
+  virtual void clear(void) override;
+  virtual void stash(void) override;
+  virtual void applyStash(void) override;
 
  public:
   const QString& login(void) const;
@@ -46,16 +43,6 @@ class ProductionLineContext final : AbstractContext {
   SqlQueryValues& productionLine(void);
   SqlQueryValues& transponder(void);
   SqlQueryValues& box(void);
-  SqlQueryValues& pallet(void);
-  SqlQueryValues& order(void);
-  SqlQueryValues& issuer(void);
-  SqlQueryValues& masterKeys(void);
-
- public:
-  void generateFirmwareSeed(StringDictionary seed) const;
-
-  void addTransponderDataToJson(QJsonObject& json) const;
-  void addBoxDataToJson(QJsonObject& json) const;
 
  private:
   Q_DISABLE_COPY_MOVE(ProductionLineContext)

@@ -1,6 +1,8 @@
 #ifndef PRODUCTIONDISPATCHER_H
 #define PRODUCTIONDISPATCHER_H
 
+#include <set>
+
 #include "abstract_box_release_system.h"
 #include "abstract_firmware_generation_system.h"
 #include "abstract_info_system.h"
@@ -9,17 +11,14 @@
 #include "abstract_sql_database.h"
 #include "abstract_sticker_printer.h"
 #include "abstract_transponder_release_system.h"
-#include "production_dispatcher_context.h"
+#include "production_context.h"
 
 class ProductionDispatcher : public AbstractProductionDispatcher {
   Q_OBJECT
  private:
-  size_t CheckPeriod;
-  std::unique_ptr<QTimer> CheckTimer;
-
   std::shared_ptr<AbstractSqlDatabase> Database;
-  std::shared_ptr<ProductionDispatcherContext> SharedContext;
-  std::shared_ptr<ProductionLineContext> ParticularContext;
+  std::shared_ptr<ProductionContext> MainContext;
+  std::shared_ptr<ProductionLineContext> SubContext;
 
   std::unique_ptr<AbstractInfoSystem> Informer;
   std::unique_ptr<AbstractLaunchSystem> Launcher;
@@ -29,6 +28,8 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
 
   std::unique_ptr<AbstractStickerPrinter> BoxStickerPrinter;
   std::unique_ptr<AbstractStickerPrinter> PalletStickerPrinter;
+
+  std::set<ReturnStatus> NoneCriticalError;
 
  public:
   explicit ProductionDispatcher(const QString& name);
@@ -86,7 +87,7 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   void processOperationError(const QString& name, ReturnStatus ret);
   void completeOperation(const QString& name);
 
-  bool loadProductionLineContext(QObject* obj);
+  ReturnStatus loadContext(QObject* obj);
 
   void createLaunchSystem(void);
   void createBoxReleaseSystem(void);
@@ -95,15 +96,13 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   void createStickerPrinters(void);
   void createDatabase(void);
   void createFirmwareGenerator(void);
-  void createCheckTimer(void);
+
+  void updateMainContext(ReturnStatus& ret);
 
  private slots:
-  void on_CheckTimerTemeout(void);
-
-  //  void releaserBoxAssemblyComleted_slot(const std::shared_ptr<QString> id);
-  //  void releaserPalletAssemblyComleted_slot(const std::shared_ptr<QString>
-  //  id); void releaserOrderAssemblyComleted_slot(const
-  //  std::shared_ptr<QString> id);
+  void processBoxAssemblyCompletion(void);
+  void processPalletAssemblyCompletion(void);
+  void processOrderAssemblyCompletion(void);
 };
 
 #endif  // PRODUCTIONDISPATCHER_H

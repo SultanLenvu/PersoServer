@@ -14,7 +14,7 @@ class PostgreSqlTable : public AbstractSqlTable {
 
   QString PrimaryKey;
   QVector<QString> Columns;
-  QHash<QString, QString> Relations;
+  StringDictionary Relations;
 
   uint32_t RecordMaxCount;
   QString CurrentOrder;
@@ -34,7 +34,7 @@ class PostgreSqlTable : public AbstractSqlTable {
   void setCurrentOrder(Qt::SortOrder order);
 
   const QVector<QString>* columns() const;
-  const QHash<QString, QString>* relations() const;
+  const StringDictionary* relations() const;
 
   // AbstractSqlTable interface
  public:
@@ -62,7 +62,7 @@ class PostgreSqlTable : public AbstractSqlTable {
   void loadSettings(void);
 
   bool checkFieldNames(const SqlQueryValues& record) const;
-  bool checkFieldNames(const QHash<QString, QString>& record) const;
+  bool checkFieldNames(const StringDictionary& record) const;
 
  signals:
 };
