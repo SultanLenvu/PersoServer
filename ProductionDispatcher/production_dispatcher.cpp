@@ -633,4 +633,6 @@ void ProductionDispatcher::processPalletAssemblyCompletion() {
 void ProductionDispatcher::processOrderAssemblyCompletion() {
   sendLog(QString("Обработка завершения сборки заказа %1.")
               .arg(MainContext->order().get("id")));
+
+  MainContext->clear();
 }
