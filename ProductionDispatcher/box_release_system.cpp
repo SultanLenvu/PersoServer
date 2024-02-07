@@ -148,7 +148,10 @@ ReturnStatus BoxReleaseSystem::complete() {
   // Запоминаем идентификатор паллеты и отправляем сигнал о завершении сборки
   // бокса
   QString palletId = SubContext->box().get("pallet_id");
-  emit boxAssemblyCompleted();
+  emit boxAssemblyCompleted(ret);
+  if (ret != ReturnStatus::NoError) {
+    return ret;
+  }
 
   // Проверка на переполнение паллеты
   if (MainContext->pallet(palletId).get("assembled_units") >=
@@ -373,6 +376,7 @@ bool BoxReleaseSystem::stopPalletAssembly(const QString& id) {
 }
 
 ReturnStatus BoxReleaseSystem::completePallet(const QString& id) {
+  ReturnStatus ret = ReturnStatus::NoError;
   SqlQueryValues newPallet;
   SqlQueryValues newOrder;
 
@@ -392,14 +396,18 @@ ReturnStatus BoxReleaseSystem::completePallet(const QString& id) {
     return ReturnStatus::DatabaseQueryError;
   }
 
-  // Отправляем сигнал о завершении сборки паллеты
-  emit palletAssemblyCompleted();
+  // Отправляем сигнал о завершении сборки паллетыS
+  emit palletAssemblyCompleted(ret);
+  if (ret != ReturnStatus::NoError) {
+    return ret;
+  }
 
   sendLog(QString("Процесс сборки паллеты %1 завершен.").arg(id));
   return ReturnStatus::NoError;
 }
 
 ReturnStatus BoxReleaseSystem::completeOrder() {
+  ReturnStatus ret = ReturnStatus::NoError;
   SqlQueryValues newOrder;
 
   // Установка даты окончания и завершение процесса сборки заказа
@@ -411,9 +419,13 @@ ReturnStatus BoxReleaseSystem::completeOrder() {
   }
 
   // Отправляем сигнал о завершении сборки заказа
-  emit orderAssemblyCompleted();
 
-  return ReturnStatus::NoError;
+  emit orderAssemblyCompleted(ret);
+  if (ret != ReturnStatus::NoError) {
+    return ret;
+  }
+
+  return ret;
 }
 
 ReturnStatus BoxReleaseSystem::loadPalletData(const QString& id) {

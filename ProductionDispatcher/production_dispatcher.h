@@ -101,9 +101,9 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   void updateMainContext(ReturnStatus& ret);
 
  private slots:
-  void processBoxAssemblyCompletion(void);
-  void processPalletAssemblyCompletion(void);
-  void processOrderAssemblyCompletion(void);
+  void processBoxAssemblyCompletion(ReturnStatus& ret);
+  void processPalletAssemblyCompletion(ReturnStatus& ret);
+  void processOrderAssemblyCompletion(ReturnStatus& ret);
 };
 
 #endif  // PRODUCTIONDISPATCHER_H

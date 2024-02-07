@@ -587,52 +587,56 @@ void ProductionDispatcher::updateMainContext(ReturnStatus& ret) {
   ret = Informer->updateMainContext();
 }
 
-void ProductionDispatcher::processBoxAssemblyCompletion() {
-  sendLog(QString("Обработка завершения сборки бокса %1.")
-              .arg(SubContext->box().get("id")));
+void ProductionDispatcher::processBoxAssemblyCompletion(ReturnStatus& ret) {
+  QString id = SubContext->box().get("id");
+  sendLog(QString("Обработка завершения сборки бокса %1.").arg(id));
 
   StringDictionary boxData;
-  ReturnStatus ret = ReturnStatus::NoError;
 
   ret = Informer->generateBoxData(boxData);
   if (ret != ReturnStatus::NoError) {
-    processOperationError("completeBox", ret);
+    sendLog(QString("Не удалось сгенерировать данные для бокса %1.").arg(id));
     return;
   }
 
   ret = BoxStickerPrinter->printBoxSticker(boxData);
   if (ret != ReturnStatus::NoError) {
-    processOperationError("completeBox", ret);
+    sendLog(QString("Не удалось распечатать стикер для бокса %1.").arg(id));
     return;
   }
+
+  ret = ReturnStatus::NoError;
 }
 
-void ProductionDispatcher::processPalletAssemblyCompletion() {
+void ProductionDispatcher::processPalletAssemblyCompletion(ReturnStatus& ret) {
+  QString id = SubContext->box().get("pallet_id");
   sendLog(QString("Обработка завершения сборки паллеты %1.")
               .arg(SubContext->box().get("pallet_id")));
 
   StringDictionary palletData;
-  ReturnStatus ret = ReturnStatus::NoError;
-  QString palletId = SubContext->box().get("pallet_id");
 
   ret = Informer->generatePalletData(palletData);
   if (ret != ReturnStatus::NoError) {
-    processOperationError("completeBox", ret);
+    sendLog(QString("Не удалось сгенерировать данные для паллеты %1.").arg(id));
     return;
   }
 
   ret = PalletStickerPrinter->printPalletSticker(palletData);
   if (ret != ReturnStatus::NoError) {
-    processOperationError("completeBox", ret);
+    sendLog(QString("Не удалось распечатать стикер для паллеты %1.").arg(id));
     return;
   }
 
-  MainContext->removePallet(palletId);
+  MainContext->removePallet(id);
+
+  ret = ReturnStatus::NoError;
 }
 
-void ProductionDispatcher::processOrderAssemblyCompletion() {
+void ProductionDispatcher::processOrderAssemblyCompletion(ReturnStatus& ret) {
   sendLog(QString("Обработка завершения сборки заказа %1.")
               .arg(MainContext->order().get("id")));
 
   MainContext->clear();
+
+  ret = ReturnStatus::NoError;
 }

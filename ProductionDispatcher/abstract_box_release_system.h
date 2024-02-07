@@ -15,9 +15,9 @@ class AbstractBoxReleaseSystem : public AbstractProductionSystem {
   virtual ReturnStatus complete(void) = 0;
 
  signals:
-  void boxAssemblyCompleted(void);
-  void palletAssemblyCompleted(void);
-  void orderAssemblyCompleted(void);
+  void boxAssemblyCompleted(ReturnStatus& ret);
+  void palletAssemblyCompleted(ReturnStatus& ret);
+  void orderAssemblyCompleted(ReturnStatus& ret);
 };
 
 #endif // ABSTRACTBOXRELEASESYSTEM_H
