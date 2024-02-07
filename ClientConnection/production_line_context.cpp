@@ -84,7 +84,13 @@ bool ProductionLineContext::isInProcess() const {
     return false;
   }
 
-  return ProductionLine.get("in_process") == "true" ? true : false;
+  if ((ProductionLine.get("in_process") == "false") &&
+      (ProductionLine.get("box_id") == "0") &&
+      (ProductionLine.get("transponder_id") == "0")) {
+    return false;
+  }
+
+  return true;
 }
 
 SqlQueryValues& ProductionLineContext::productionLine() {

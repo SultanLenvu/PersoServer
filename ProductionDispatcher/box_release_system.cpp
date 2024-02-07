@@ -67,16 +67,6 @@ ReturnStatus BoxReleaseSystem::refund() {
   }
   sendLog("Возврат.");
 
-  if ((SubContext->productionLine().get("box_id") == "0") &&
-      (SubContext->productionLine().get("transponder_id") == "0")) {
-    sendLog(
-        QString(
-            "Производственная линия '%1' не связана ни с каким боксом. Возврат "
-            "не требуется.")
-            .arg(SubContext->login()));
-    return ReturnStatus::BoxNotRequested;
-  }
-
   sendLog(QString("Осуществление возврата бокса %1.")
               .arg(SubContext->box().get("id")));
 
@@ -436,7 +426,6 @@ ReturnStatus BoxReleaseSystem::completeOrder() {
   }
 
   // Отправляем сигнал о завершении сборки заказа
-
   emit orderAssemblyCompleted(ret);
   if (ret != ReturnStatus::NoError) {
     return ret;

@@ -7,7 +7,9 @@ ProductionContext::~ProductionContext() {}
 
 void ProductionContext::clear() {
   PalletStorage.clear();
-  Pallet->clear();
+  if (Pallet) {
+    Pallet->clear();
+  }
   Order.clear();
   Issuer.clear();
   MasterKeys.clear();
@@ -37,8 +39,7 @@ void ProductionContext::applyStash() {
 }
 
 bool ProductionContext::isValid() {
-  if (!Pallet || Pallet->isEmpty() || Order.isEmpty() || Issuer.isEmpty() ||
-      MasterKeys.isEmpty()) {
+  if (Order.isEmpty() || Issuer.isEmpty() || MasterKeys.isEmpty()) {
     return false;
   }
 

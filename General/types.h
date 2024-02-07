@@ -32,6 +32,8 @@ enum class ReturnStatus {
   FirmwareGeneratorInitError,
   FirmwareGenerationError,
 
+  ProductionContextNotValid,
+
   RecordMissed,
   ProductionLineMissed,
   TransponderMissed,
@@ -46,7 +48,6 @@ enum class ReturnStatus {
   OrderCompletelyAssembled,
 
   BoxAlreadyRequested,
-  BoxNotRequested,
   FreeBoxMissed,
   BoxIsEmty,
   BoxOverflow,

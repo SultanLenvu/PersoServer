@@ -7,6 +7,8 @@ InfoSystem::InfoSystem(const QString& name) : AbstractInfoSystem{name} {}
 InfoSystem::~InfoSystem() {}
 
 ReturnStatus InfoSystem::updateMainContext() {
+  MainContext->clear();
+
   Database->setRecordMaxCount(0);
   Database->setCurrentOrder(Qt::AscendingOrder);
 

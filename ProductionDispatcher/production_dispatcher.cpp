@@ -67,6 +67,11 @@ void ProductionDispatcher::start(ReturnStatus& ret) {
   }
 #endif
 
+  ReturnStatus ret1 = Informer->updateMainContext();
+  if (ret1 != ReturnStatus::NoError) {
+    sendLog("Не удалось обновить производственный контекст.");
+  }
+
   ret = ReturnStatus::NoError;
   sendLog("Запущен.");
 }
@@ -101,7 +106,7 @@ void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
 
   ret = BoxReleaser->refund();
   if ((ret != ReturnStatus::NoError) &&
-      (ret != ReturnStatus::BoxNotRequested)) {
+      (ret != ReturnStatus::ProductionLineNotInProcess)) {
     processOperationError("shutdownProductionLine", ret);
     return;
   }
@@ -137,6 +142,7 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
   if (ret != ReturnStatus::NoError) {
     return;
   }
+
   initOperation("requestBox");
 
   ret = BoxReleaser->request();
@@ -485,6 +491,11 @@ void ProductionDispatcher::completeOperation(const QString& name) {
 }
 
 ReturnStatus ProductionDispatcher::loadContext(QObject* obj) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    return ReturnStatus::ProductionContextNotValid;
+  }
+
   ProductionContextOwner* owner = dynamic_cast<ProductionContextOwner*>(obj);
   assert(owner);
 
@@ -493,15 +504,6 @@ ReturnStatus ProductionDispatcher::loadContext(QObject* obj) {
     sendLog(QString(
         "Производственная линия не авторизирована. Контекст недоступен. "));
     return ReturnStatus::ProductionLineContextNotAuthorized;
-  }
-
-  if (!MainContext->isValid()) {
-    ReturnStatus ret = Informer->updateMainContext();
-    if (ret != ReturnStatus::NoError) {
-      sendLog("Не удалось обновить производственный контекст.");
-      return ret;
-    }
-    sendLog("Производственный контекст обновлен.");
   }
 
   TransponderReleaser->setSubContext(SubContext);
@@ -635,8 +637,6 @@ void ProductionDispatcher::processPalletAssemblyCompletion(ReturnStatus& ret) {
 void ProductionDispatcher::processOrderAssemblyCompletion(ReturnStatus& ret) {
   sendLog(QString("Обработка завершения сборки заказа %1.")
               .arg(MainContext->order().get("id")));
-
-  MainContext->clear();
 
   ret = ReturnStatus::NoError;
 }
