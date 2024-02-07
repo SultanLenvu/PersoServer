@@ -168,7 +168,6 @@ ReturnStatus TransponderReleaseSystem::release() {
     return ReturnStatus::TransponderRepeatRelease;
   }
 
-  // Увеличиваем счетчик выпусков транспондера и сохраняем ucid
   SqlQueryValues newTransponder;
   newTransponder.add("awaiting_confirmation", "true");
   if (!updateTransponder(newTransponder)) {
@@ -326,6 +325,13 @@ ReturnStatus TransponderReleaseSystem::rollback() {
     return ReturnStatus::ProductionLineNotInProcess;
   }
   sendLog("Откат транспондера.");
+
+  // Проверка, что бокс не был завершен ранее
+  if (SubContext->box().get("completed") == "true") {
+    sendLog(QString("Сборка бокса %1 уже была завершена ранее.")
+                .arg(SubContext->box().get("id")));
+    return ReturnStatus::BoxAlreadyCompleted;
+  }
 
   SqlQueryValues newTransponder;
   SqlQueryValues transponder;

@@ -72,6 +72,14 @@ ReturnStatus BoxReleaseSystem::refund() {
             .arg(SubContext->login()));
     return ReturnStatus::BoxNotRequested;
   }
+
+  // Проверка, что бокс не был завершен ранее
+  if (SubContext->box().get("completed") == "true") {
+    sendLog(QString("Сборка бокса %1 уже была завершена ранее.")
+                .arg(SubContext->box().get("id")));
+    return ReturnStatus::BoxAlreadyCompleted;
+  }
+
   sendLog(QString("Осуществление возврата бокса %1.")
               .arg(SubContext->box().get("id")));
 
@@ -117,6 +125,8 @@ ReturnStatus BoxReleaseSystem::refund() {
 
 ReturnStatus BoxReleaseSystem::complete() {
   ReturnStatus ret = ReturnStatus::NoError;
+  SqlQueryValues newBox;
+  SqlQueryValues newPallet;
 
   if (!SubContext->isLaunched()) {
     sendLog(QString("Производственная линия '%1' не была запущена.")
@@ -125,15 +135,18 @@ ReturnStatus BoxReleaseSystem::complete() {
   }
   sendLog("Завершить сборку.");
 
-  SqlQueryValues newBox;
-  SqlQueryValues newPallet;
+  // Проверка, что бокс не был завершен ранее
+  if (SubContext->box().get("completed") == "true") {
+    sendLog(QString("Сборка бокса %1 уже была завершена ранее.")
+                .arg(SubContext->box().get("id")));
+    return ReturnStatus::BoxAlreadyCompleted;
+  }
 
   // Проверка возможности завершения сборки бокса
   if (SubContext->box().get("assembled_units") !=
       SubContext->box().get("quantity")) {
     sendLog(QString("Не удалось завершить сборку бокса %1, поскольку не все "
-                    "транспондеры в "
-                    "нем были собраны.")
+                    "транспондеры в нем были собраны.")
                 .arg(SubContext->box().get("id")));
     return ReturnStatus::BoxNotCompletelyAssembled;
   }
