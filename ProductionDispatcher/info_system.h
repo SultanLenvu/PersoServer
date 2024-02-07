@@ -44,8 +44,6 @@ class InfoSystem : public AbstractInfoSystem {
                                          const QString& value) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(InfoSystem)
-
   void saveContexts(void);
   void restoreSavedContexts(void);
 

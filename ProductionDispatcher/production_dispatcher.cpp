@@ -463,7 +463,7 @@ void ProductionDispatcher::sendLog(const QString& log) {
 }
 
 void ProductionDispatcher::initOperation(const QString& name) {
-  sendLog(QString("Инициализация операции '%1'").arg(name));
+  sendLog(QString("Инициализация операции '%1'.").arg(name));
   SubContext->stash();
   MainContext->stash();
   Database->openTransaction();
@@ -495,12 +495,12 @@ ReturnStatus ProductionDispatcher::loadContext(QObject* obj) {
   }
 
   if (!MainContext->isValid()) {
-    sendLog("Производственный контекст не валиден. Обновление.");
     ReturnStatus ret = Informer->updateMainContext();
     if (ret != ReturnStatus::NoError) {
       sendLog("Не удалось инициализировать производственный контекст.");
       return ret;
     }
+    sendLog("Производственный контекст обновлен.");
   }
 
   TransponderReleaser->setSubContext(SubContext);

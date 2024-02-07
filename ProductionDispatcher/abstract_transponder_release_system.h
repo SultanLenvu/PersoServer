@@ -21,7 +21,6 @@ class AbstractTransponderReleaseSystem : public AbstractProductionSystem {
   virtual ReturnStatus rollback(void) = 0;
 
  private:
-  Q_DISABLE_COPY_MOVE(AbstractTransponderReleaseSystem)
 };
 
 #endif  // ABSTRACTTRANSPONDERELEASESYSTEM_H

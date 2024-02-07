@@ -31,9 +31,6 @@ class TransponderReleaseSystem : public AbstractTransponderReleaseSystem {
   virtual ReturnStatus rollback(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(TransponderReleaseSystem)
-  void sendLog(const QString& log);
-
   ReturnStatus checkContext(void);
 
   ReturnStatus checkUcid(const QString& ucid);

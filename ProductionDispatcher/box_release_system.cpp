@@ -240,6 +240,22 @@ ReturnStatus BoxReleaseSystem::findBox() {
   }
 
   if (SubContext->box().isEmpty()) {
+    //    SqlQueryValues boxInProcess;
+    //    if (!Database->readMergedRecords(
+    //            tables,
+    //            QString("orders.id = %1 AND boxes.in_process = true")
+    //                .arg(MainContext->order().get("id")),
+    //            boxInProcess)) {
+    //      sendLog(QString("Получена ошибка при выполнении запроса в базу
+    //      данных.")); return ReturnStatus::DatabaseQueryError;
+    //    }
+    //    // Если в заказе еще есть боксы в процессе сборки -> заказ собран
+    //    if (!boxInProcess.isEmpty()) {
+    //      sendLog(QString("Заказ %1 полностью собран.")
+    //                  .arg(MainContext->order().get("id")));
+    //      return ReturnStatus::OrderCompletelyAssembled;
+    //    }
+    // В противном случае в заказе нет свободных боксов
     sendLog(QString("Получена ошибка при поиске свободного бокса в заказе %1.")
                 .arg(MainContext->order().get("id")));
     return ReturnStatus::FreeBoxMissed;

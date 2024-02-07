@@ -14,10 +14,6 @@ class AbstractBoxReleaseSystem : public AbstractProductionSystem {
   virtual ReturnStatus refund(void) = 0;
   virtual ReturnStatus complete(void) = 0;
 
- private:
-  AbstractBoxReleaseSystem();
-  Q_DISABLE_COPY_MOVE(AbstractBoxReleaseSystem)
-
  signals:
   void boxAssemblyCompleted(void);
   void palletAssemblyCompleted(void);

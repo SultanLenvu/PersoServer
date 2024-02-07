@@ -381,10 +381,6 @@ ReturnStatus TransponderReleaseSystem::rollback() {
   return ReturnStatus::NoError;
 }
 
-void TransponderReleaseSystem::sendLog(const QString& log) {
-  emit logging(QString("%1 - %1").arg(objectName(), log));
-}
-
 ReturnStatus TransponderReleaseSystem::checkContext() {
   if (!SubContext->isInProcess()) {
     sendLog(QString("Производственная линия %1 не в процессе сборки.")

@@ -17,8 +17,6 @@ class ProductionLineLaunchSystem : public AbstractLaunchSystem {
   virtual ReturnStatus shutdown(void) override;
 
  private:
-  Q_DISABLE_COPY_MOVE(ProductionLineLaunchSystem)
-
   ReturnStatus checkProductionLineState(void);
   ReturnStatus loadProductionLine(void);
 
