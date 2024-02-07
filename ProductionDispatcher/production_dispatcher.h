@@ -1,7 +1,7 @@
 #ifndef PRODUCTIONDISPATCHER_H
 #define PRODUCTIONDISPATCHER_H
 
-#include <set>
+#include <unordered_set>
 
 #include "abstract_box_release_system.h"
 #include "abstract_firmware_generation_system.h"
@@ -29,7 +29,7 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   std::unique_ptr<AbstractStickerPrinter> BoxStickerPrinter;
   std::unique_ptr<AbstractStickerPrinter> PalletStickerPrinter;
 
-  std::set<ReturnStatus> NoneCriticalError;
+  std::unordered_set<ReturnStatus> CriticalErrors;
 
  public:
   explicit ProductionDispatcher(const QString& name);
@@ -96,6 +96,7 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   void createStickerPrinters(void);
   void createDatabase(void);
   void createFirmwareGenerator(void);
+  void createCriticalErrors(void);
 
   void updateMainContext(ReturnStatus& ret);
 

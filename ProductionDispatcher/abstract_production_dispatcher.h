@@ -55,7 +55,7 @@ class AbstractProductionDispatcher : public QObject {
 
  signals:
   void logging(const QString& log);
-  void errorDetected(ReturnStatus);
+  void criticalErrorDetected(ReturnStatus);
 };
 
 #endif  // ABSTRACTPRODUCTIONDISPATCHER_H

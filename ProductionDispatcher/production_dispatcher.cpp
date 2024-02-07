@@ -1,7 +1,6 @@
 #include "production_dispatcher.h"
 #include "box_release_system.h"
 #include "config.h"
-#include "definitions.h"
 #include "firmware_generation_system.h"
 #include "global_environment.h"
 #include "info_system.h"
@@ -33,6 +32,8 @@ void ProductionDispatcher::onInstanceThreadStarted() {
 
   createFirmwareGenerator();
   createStickerPrinters();
+
+  createCriticalErrors();
 }
 
 void ProductionDispatcher::start(ReturnStatus& ret) {
@@ -140,9 +141,7 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
 
   ret = BoxReleaser->request();
   if (ret != ReturnStatus::NoError) {
-    if (ret != ReturnStatus::OrderCompletelyAssembled) {
-      processOperationError("requestBox", ret);
-    }
+    processOperationError("requestBox", ret);
     return;
   }
 
@@ -152,8 +151,8 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
     processOperationError("requestBox", ret);
     return;
   }
-  ret = ReturnStatus::NoError;
 
+  ret = ReturnStatus::NoError;
   completeOperation("requestBox");
 }
 
@@ -216,7 +215,7 @@ void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
 
   ret = TransponderReleaser->findNext();
   if (ret != ReturnStatus::NoError) {
-    processOperationError("confirmTransponderRelease", ret);
+    processOperationError("releaseTransponder", ret);
     return;
   }
 
@@ -306,7 +305,7 @@ void ProductionDispatcher::confirmTransponderRerelease(
       "personal_account_number", param.value("personal_account_number"),
       param.value("ucid"));
   if (ret != ReturnStatus::NoError) {
-    processOperationError("confirmTransponderRerelease", ret);
+    processOperationError("confirmTransponderRelease", ret);
     return;
   }
 
@@ -475,7 +474,9 @@ void ProductionDispatcher::processOperationError(const QString& name,
   SubContext->applyStash();
   MainContext->applyStash();
   Database->rollbackTransaction();
-  emit errorDetected(ret);
+  if (CriticalErrors.count(ret) > 0) {
+    emit criticalErrorDetected(ret);
+  }
 }
 
 void ProductionDispatcher::completeOperation(const QString& name) {
@@ -497,7 +498,7 @@ ReturnStatus ProductionDispatcher::loadContext(QObject* obj) {
   if (!MainContext->isValid()) {
     ReturnStatus ret = Informer->updateMainContext();
     if (ret != ReturnStatus::NoError) {
-      sendLog("Не удалось инициализировать производственный контекст.");
+      sendLog("Не удалось обновить производственный контекст.");
       return ret;
     }
     sendLog("Производственный контекст обновлен.");
@@ -565,6 +566,21 @@ void ProductionDispatcher::createDatabase() {
 void ProductionDispatcher::createFirmwareGenerator() {
   Generator = std::unique_ptr<AbstractFirmwareGenerationSystem>(
       new FirmwareGenerationSystem("FirmwareGenerationSystem"));
+}
+
+void ProductionDispatcher::createCriticalErrors() {
+  CriticalErrors.insert(ReturnStatus::DynamicLibraryMissing);
+  CriticalErrors.insert(ReturnStatus::ParameterError);
+  CriticalErrors.insert(ReturnStatus::SyntaxError);
+  CriticalErrors.insert(ReturnStatus::ConsistencyViolation);
+  CriticalErrors.insert(ReturnStatus::FileOpenError);
+
+  CriticalErrors.insert(ReturnStatus::DatabaseConnectionError);
+  CriticalErrors.insert(ReturnStatus::DatabaseTransactionError);
+  CriticalErrors.insert(ReturnStatus::DatabaseQueryError);
+
+  CriticalErrors.insert(ReturnStatus::FirmwareGeneratorInitError);
+  CriticalErrors.insert(ReturnStatus::FirmwareGenerationError);
 }
 
 void ProductionDispatcher::updateMainContext(ReturnStatus& ret) {

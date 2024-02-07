@@ -168,7 +168,7 @@ void PersoServer::createDispatcherInstance() {
           Qt::BlockingQueuedConnection);
   connect(this, &PersoServer::stopProductionDispatcher_signal, Dispatcher.get(),
           &AbstractProductionDispatcher::stop, Qt::BlockingQueuedConnection);
-  connect(Dispatcher.get(), &AbstractProductionDispatcher::errorDetected, this,
+  connect(Dispatcher.get(), &AbstractProductionDispatcher::criticalErrorDetected, this,
           &PersoServer::productionDispatcherErrorDetected,
           Qt::QueuedConnection);
 
