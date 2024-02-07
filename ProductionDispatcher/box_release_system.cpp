@@ -80,6 +80,13 @@ ReturnStatus BoxReleaseSystem::refund() {
   }
 
   QString palletId = SubContext->box().get("pallet_id");
+  // Проверка на существование паллеты
+  if (MainContext->pallet(palletId).isEmpty()) {
+    sendLog(QString("Паллета %1 не опреределена в производственном контесте. ")
+                .arg(palletId));
+    return ReturnStatus::PalletMissed;
+  }
+
   SqlQueryValues boxesInProcess;
   if (!Database->readRecords(
           "boxes",
@@ -147,10 +154,17 @@ ReturnStatus BoxReleaseSystem::complete() {
 
   // Запоминаем идентификатор паллеты и отправляем сигнал о завершении сборки
   // бокса
-  QString palletId = SubContext->box().get("pallet_id");
   emit boxAssemblyCompleted(ret);
   if (ret != ReturnStatus::NoError) {
     return ret;
+  }
+
+  QString palletId = SubContext->box().get("pallet_id");
+  // Проверка на существование паллеты
+  if (MainContext->pallet(palletId).isEmpty()) {
+    sendLog(QString("Паллета %1 не опреределена в производственном контесте. ")
+                .arg(palletId));
+    return ReturnStatus::PalletMissed;
   }
 
   // Проверка на переполнение паллеты
