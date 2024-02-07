@@ -7,6 +7,8 @@ BoxReleaseSystem::BoxReleaseSystem(const QString& name)
 BoxReleaseSystem::~BoxReleaseSystem() {}
 
 ReturnStatus BoxReleaseSystem::request() {
+  ReturnStatus ret;
+
   if (!SubContext->isLaunched()) {
     sendLog(QString("Производственная линия '%1' не была запущена.")
                 .arg(SubContext->login()));
@@ -14,9 +16,11 @@ ReturnStatus BoxReleaseSystem::request() {
   }
   sendLog("Запрос.");
 
-  ReturnStatus ret;
-  SubContext->box().clear();
-  SubContext->transponder().clear();
+  if (!SubContext->box().isEmpty()) {
+    sendLog(QString("Производственная линия %1 уже связана с боксом %2.")
+                .arg(SubContext->login(), SubContext->box().get("id")));
+    return ReturnStatus::BoxAlreadyRequested;
+  }
 
   ret = findBox();
   if (ret != ReturnStatus::NoError) {
@@ -55,15 +59,15 @@ ReturnStatus BoxReleaseSystem::request() {
 }
 
 ReturnStatus BoxReleaseSystem::refund() {
-  if (!SubContext->isLaunched()) {
-    sendLog(QString("Производственная линия '%1' не была запущена.")
-                .arg(SubContext->login()));
+  if (!SubContext->isInProcess()) {
+    sendLog(
+        QString("Производственная линия '%1' не находится в процессе сборки.")
+            .arg(SubContext->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
   sendLog("Возврат.");
 
-  if (SubContext->box().isEmpty() &&
-      (SubContext->productionLine().get("box_id") == "0") &&
+  if ((SubContext->productionLine().get("box_id") == "0") &&
       (SubContext->productionLine().get("transponder_id") == "0")) {
     sendLog(
         QString(
@@ -71,13 +75,6 @@ ReturnStatus BoxReleaseSystem::refund() {
             "не требуется.")
             .arg(SubContext->login()));
     return ReturnStatus::BoxNotRequested;
-  }
-
-  // Проверка, что бокс не был завершен ранее
-  if (SubContext->box().get("completed") == "true") {
-    sendLog(QString("Сборка бокса %1 уже была завершена ранее.")
-                .arg(SubContext->box().get("id")));
-    return ReturnStatus::BoxAlreadyCompleted;
   }
 
   sendLog(QString("Осуществление возврата бокса %1.")
@@ -117,9 +114,6 @@ ReturnStatus BoxReleaseSystem::refund() {
     return ReturnStatus::DatabaseQueryError;
   }
 
-  SubContext->box().clear();
-  SubContext->transponder().clear();
-
   return ReturnStatus::NoError;
 }
 
@@ -128,19 +122,13 @@ ReturnStatus BoxReleaseSystem::complete() {
   SqlQueryValues newBox;
   SqlQueryValues newPallet;
 
-  if (!SubContext->isLaunched()) {
-    sendLog(QString("Производственная линия '%1' не была запущена.")
-                .arg(SubContext->login()));
+  if (!SubContext->isInProcess()) {
+    sendLog(
+        QString("Производственная линия '%1' не находится в процессе сборки.")
+            .arg(SubContext->login()));
     return ReturnStatus::ProductionLineNotLaunched;
   }
   sendLog("Завершить сборку.");
-
-  // Проверка, что бокс не был завершен ранее
-  if (SubContext->box().get("completed") == "true") {
-    sendLog(QString("Сборка бокса %1 уже была завершена ранее.")
-                .arg(SubContext->box().get("id")));
-    return ReturnStatus::BoxAlreadyCompleted;
-  }
 
   // Проверка возможности завершения сборки бокса
   if (SubContext->box().get("assembled_units") !=
@@ -160,20 +148,14 @@ ReturnStatus BoxReleaseSystem::complete() {
     return ReturnStatus::DatabaseQueryError;
   }
 
-  // Отвязываем производственную линию от бокса
-  if (!detachBox()) {
-    return ReturnStatus::DatabaseQueryError;
-  }
-
-  // Запоминаем идентификатор паллеты и отправляем сигнал о завершении сборки
-  // бокса
+  // Оправляем сигнал о завершении сборки бокса
   emit boxAssemblyCompleted(ret);
   if (ret != ReturnStatus::NoError) {
     return ret;
   }
 
-  QString palletId = SubContext->box().get("pallet_id");
   // Проверка на существование паллеты
+  QString palletId = SubContext->box().get("pallet_id");
   if (MainContext->pallet(palletId).isEmpty()) {
     sendLog(QString("Паллета %1 не опреределена в производственном контесте. ")
                 .arg(palletId));
@@ -216,6 +198,11 @@ ReturnStatus BoxReleaseSystem::complete() {
     if (ret != ReturnStatus::NoError) {
       return ret;
     }
+  }
+
+  // Отвязываем производственную линию от бокса
+  if (!detachBox()) {
+    return ReturnStatus::DatabaseQueryError;
   }
 
   // В противном случае возвращаемся
@@ -327,6 +314,9 @@ bool BoxReleaseSystem::detachBox() {
                 .arg(SubContext->login(), SubContext->box().get("id")));
     return false;
   }
+
+  SubContext->box().clear();
+  SubContext->transponder().clear();
 
   sendLog(QString("Производственная линия '%1' успешно отвязана от "
                   "бокса %2.")

@@ -326,13 +326,6 @@ ReturnStatus TransponderReleaseSystem::rollback() {
   }
   sendLog("Откат транспондера.");
 
-  // Проверка, что бокс не был завершен ранее
-  if (SubContext->box().get("completed") == "true") {
-    sendLog(QString("Сборка бокса %1 уже была завершена ранее.")
-                .arg(SubContext->box().get("id")));
-    return ReturnStatus::BoxAlreadyCompleted;
-  }
-
   SqlQueryValues newTransponder;
   SqlQueryValues transponder;
   SqlQueryValues newBox;

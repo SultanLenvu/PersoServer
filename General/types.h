@@ -52,7 +52,6 @@ enum class ReturnStatus {
   BoxOverflow,
   BoxCompletelyAssembled,
   BoxNotCompletelyAssembled,
-  BoxAlreadyCompleted,
 
   PalletIsEmpty,
   PalletOverflow,
