@@ -63,7 +63,7 @@ ReturnStatus BoxReleaseSystem::refund() {
     sendLog(
         QString("Производственная линия '%1' не находится в процессе сборки.")
             .arg(SubContext->login()));
-    return ReturnStatus::ProductionLineNotLaunched;
+    return ReturnStatus::ProductionLineNotInProcess;
   }
   sendLog("Возврат.");
 
@@ -126,7 +126,7 @@ ReturnStatus BoxReleaseSystem::complete() {
     sendLog(
         QString("Производственная линия '%1' не находится в процессе сборки.")
             .arg(SubContext->login()));
-    return ReturnStatus::ProductionLineNotLaunched;
+    return ReturnStatus::ProductionLineNotInProcess;
   }
   sendLog("Завершить сборку.");
 
