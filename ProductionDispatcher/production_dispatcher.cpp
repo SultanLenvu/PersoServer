@@ -138,6 +138,12 @@ void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
 }
 
 void ProductionDispatcher::requestBox(ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -164,6 +170,12 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
 
 void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
                                              ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -180,6 +192,12 @@ void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
 }
 
 void ProductionDispatcher::refundBox(ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -196,6 +214,12 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
 }
 
 void ProductionDispatcher::completeBox(ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -213,6 +237,12 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
 
 void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
                                               ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -250,6 +280,12 @@ void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
 void ProductionDispatcher::confirmTransponderRelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -319,6 +355,12 @@ void ProductionDispatcher::confirmTransponderRerelease(
 }
 
 void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -336,6 +378,12 @@ void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
 
 void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
                                                      ReturnStatus& ret) {
+  if (!MainContext->isValid()) {
+    sendLog("Производственный контекст недоступен.");
+    ret = ReturnStatus::ProductionContextNotValid;
+    return;
+  }
+
   ret = loadContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
@@ -491,11 +539,6 @@ void ProductionDispatcher::completeOperation(const QString& name) {
 }
 
 ReturnStatus ProductionDispatcher::loadContext(QObject* obj) {
-  if (!MainContext->isValid()) {
-    sendLog("Производственный контекст недоступен.");
-    return ReturnStatus::ProductionContextNotValid;
-  }
-
   ProductionContextOwner* owner = dynamic_cast<ProductionContextOwner*>(obj);
   assert(owner);
 
