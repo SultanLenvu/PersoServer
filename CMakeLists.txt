@@ -78,7 +78,7 @@ add_executable(PersoServer
     ClientConnection/abstract_client_connection.h ClientConnection/abstract_client_connection.cpp
     ClientConnection/client_connection.cpp ClientConnection/client_connection.h
     ClientConnection/production_line_context.h ClientConnection/production_line_context.cpp
-    ClientConnection/production_context_owner.h ClientConnection/production_context_owner.cpp
+    ClientConnection/production_line_context_owner.h ClientConnection/production_line_context_owner.cpp
 
     ClientConnection/Commands/abstract_client_command.h ClientConnection/Commands/abstract_client_command.cpp
     ClientConnection/Commands/echo_comand.h ClientConnection/Commands/echo_comand.cpp

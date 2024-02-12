@@ -87,7 +87,7 @@ class ProductionDispatcher : public AbstractProductionDispatcher {
   void processOperationError(const QString& name, ReturnStatus ret);
   void completeOperation(const QString& name);
 
-  ReturnStatus loadContext(QObject* obj);
+  ReturnStatus loadSubContext(QObject* obj);
 
   void createLaunchSystem(void);
   void createBoxReleaseSystem(void);

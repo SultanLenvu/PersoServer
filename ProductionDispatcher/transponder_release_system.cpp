@@ -304,8 +304,7 @@ ReturnStatus TransponderReleaseSystem::confirmRerelease(const QString& key,
   newTransponder.add("awaiting_confirmation", "false");
   newTransponder.add(
       "release_counter",
-      QString::number(SubContext->transponder().get("release_counter").toInt() +
-                      1));
+      QString::number(transponder.get("release_counter").toInt() + 1));
   newTransponder.add("ucid", ucid);
   if (!Database->updateRecords("transponders",
                                QString("id = %1").arg(transponder.get("id")),

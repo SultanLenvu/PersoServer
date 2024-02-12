@@ -1,10 +1,10 @@
 #ifndef ABSTARCTPERSOCLIENT_H
 #define ABSTARCTPERSOCLIENT_H
 
-#include "production_context_owner.h"
+#include "production_line_context_owner.h"
 #include "types.h"
 
-class AbstractClientConnection : public ProductionContextOwner {
+class AbstractClientConnection : public ProductionLineContextOwner {
   Q_OBJECT
  public:
   explicit AbstractClientConnection(const QString& name);

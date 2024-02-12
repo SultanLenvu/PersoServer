@@ -3,7 +3,7 @@
 #include "log_system.h"
 
 AbstractClientCommand::AbstractClientCommand(const QString& name)
-    : ProductionContextOwner{name} {
+    : ProductionLineContextOwner{name} {
   setObjectName(name);
 
   connect(this, &AbstractClientCommand::logging,

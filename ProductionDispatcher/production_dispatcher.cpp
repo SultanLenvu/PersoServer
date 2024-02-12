@@ -5,7 +5,7 @@
 #include "global_environment.h"
 #include "info_system.h"
 #include "postgre_sql_database.h"
-#include "production_context_owner.h"
+#include "production_line_context_owner.h"
 #include "production_line_launch_system.h"
 #include "te310_printer.h"
 #include "transponder_release_system.h"
@@ -82,7 +82,7 @@ void ProductionDispatcher::stop() {
 }
 
 void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -98,7 +98,7 @@ void ProductionDispatcher::launchProductionLine(ReturnStatus& ret) {
 }
 
 void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -122,7 +122,7 @@ void ProductionDispatcher::shutdownProductionLine(ReturnStatus& ret) {
 
 void ProductionDispatcher::getProductinoLineData(StringDictionary& data,
                                                  ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -144,7 +144,7 @@ void ProductionDispatcher::requestBox(ReturnStatus& ret) {
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -176,7 +176,7 @@ void ProductionDispatcher::getCurrentBoxData(StringDictionary& data,
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -198,7 +198,7 @@ void ProductionDispatcher::refundBox(ReturnStatus& ret) {
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -220,7 +220,7 @@ void ProductionDispatcher::completeBox(ReturnStatus& ret) {
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -243,7 +243,7 @@ void ProductionDispatcher::releaseTransponder(QByteArray& firmware,
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -286,7 +286,7 @@ void ProductionDispatcher::confirmTransponderRelease(
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -304,7 +304,7 @@ void ProductionDispatcher::confirmTransponderRelease(
 void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
                                                 QByteArray& firmware,
                                                 ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -337,7 +337,7 @@ void ProductionDispatcher::rereleaseTransponder(const StringDictionary& param,
 void ProductionDispatcher::confirmTransponderRerelease(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -361,7 +361,7 @@ void ProductionDispatcher::rollbackTransponder(ReturnStatus& ret) {
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -384,7 +384,7 @@ void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
     return;
   }
 
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -402,7 +402,7 @@ void ProductionDispatcher::getCurrentTransponderData(StringDictionary& data,
 void ProductionDispatcher::getTransponderData(const StringDictionary& param,
                                               StringDictionary& data,
                                               ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -421,7 +421,7 @@ void ProductionDispatcher::getTransponderData(const StringDictionary& param,
 void ProductionDispatcher::printBoxStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -447,7 +447,7 @@ void ProductionDispatcher::printBoxStickerManually(
 }
 
 void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -465,7 +465,7 @@ void ProductionDispatcher::printLastBoxStickerManually(ReturnStatus& ret) {
 void ProductionDispatcher::printPalletStickerManually(
     const StringDictionary& param,
     ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -491,7 +491,7 @@ void ProductionDispatcher::printPalletStickerManually(
 }
 
 void ProductionDispatcher::printLastPalletStickerManually(ReturnStatus& ret) {
-  ret = loadContext(sender());
+  ret = loadSubContext(sender());
   if (ret != ReturnStatus::NoError) {
     return;
   }
@@ -538,9 +538,9 @@ void ProductionDispatcher::completeOperation(const QString& name) {
   Database->commitTransaction();
 }
 
-ReturnStatus ProductionDispatcher::loadContext(QObject* obj) {
-  ProductionContextOwner* owner = dynamic_cast<ProductionContextOwner*>(obj);
-  assert(owner);
+ReturnStatus ProductionDispatcher::loadSubContext(QObject* obj) {
+  ProductionLineContextOwner* owner =
+      static_cast<ProductionLineContextOwner*>(obj);
 
   SubContext = owner->context();
   if (!SubContext->isAuthorized()) {

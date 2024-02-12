@@ -4,7 +4,7 @@
 #include "log_system.h"
 
 AbstractClientConnection::AbstractClientConnection(const QString& name)
-    : ProductionContextOwner{name} {
+    : ProductionLineContextOwner{name} {
   connectDependencies();
 }
 

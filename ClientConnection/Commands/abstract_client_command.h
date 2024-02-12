@@ -5,9 +5,9 @@
 #include <QObject>
 
 #include <types.h>
-#include "production_context_owner.h"
+#include "production_line_context_owner.h"
 
-class AbstractClientCommand : public ProductionContextOwner {
+class AbstractClientCommand : public ProductionLineContextOwner {
   Q_OBJECT
 
  public:
