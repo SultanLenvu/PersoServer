@@ -2,7 +2,7 @@
 
 #include "sql_query_values.h"
 
-SqlQueryValues::SqlQueryValues() : QAbstractTableModel{nullptr} {}
+SqlQueryValues::SqlQueryValues() {}
 
 SqlQueryValues::~SqlQueryValues() {}
 

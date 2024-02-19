@@ -68,7 +68,7 @@ void FileLogBackend::removeOldestLogFiles() {
   int32_t fileCount = fileList.size();
 
   if (fileCount > FileMaxNumber) {
-    int32_t filesToDeleteCount = fileCount - FileMaxNumber + 1;
+    int32_t filesToDeleteCount = fileCount - FileMaxNumber;
 
     // Удаляем самые старые файлы
     for (int32_t i = 0; i < filesToDeleteCount; ++i) {
