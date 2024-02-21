@@ -165,11 +165,6 @@ bool ServerManager::checkLogSystemSettings(const QSettings& settings) const {
   uint32_t temp = 0;
   QFileInfo info;
 
-  if (settings.value("log_system/file_max_number").toUInt() == 0) {
-    qCritical("Некорректное максимальное количество лог-файлов. ");
-    return false;
-  }
-
   if (settings.value("log_system/message_max_size").toUInt() == 0) {
     qCritical("Некорректный максимальный размер сообщений лога. ");
     return false;

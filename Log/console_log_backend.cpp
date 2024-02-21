@@ -6,13 +6,11 @@ ConsoleLogBackend::ConsoleLogBackend(const QString& name) : LogBackend(name) {
 
 ConsoleLogBackend::~ConsoleLogBackend() {}
 
-void ConsoleLogBackend::writeLogLine(const QString& str) {
+void ConsoleLogBackend::writeLogMessage(const QString& str) {
   if (LogEnable) {
     QTextStream(stdout) << str << "\n";
   }
 }
-
-void ConsoleLogBackend::clear() {}
 
 void ConsoleLogBackend::loadSettings() {
   QSettings settings;

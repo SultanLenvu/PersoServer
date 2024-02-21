@@ -21,12 +21,6 @@ LogSystem::LogSystem(const QString& name) : QObject(nullptr) {
 
 LogSystem::~LogSystem() {}
 
-void LogSystem::clear() {
-  for (auto it = Backends.begin(); it != Backends.end(); it++) {
-    (*it)->clear();
-  }
-}
-
 void LogSystem::generate(const QString& log) {
   if (!LogEnable) {
     return;
@@ -41,7 +35,7 @@ void LogSystem::generate(const QString& log) {
       QDateTime::currentDateTime().time().toString("hh:mm:ss.zzz"), logMsg);
 
   for (auto it = Backends.begin(); it != Backends.end(); it++) {
-    (*it)->writeLogLine(LogData);
+    (*it)->writeLogMessage(LogData);
   }
 }
 

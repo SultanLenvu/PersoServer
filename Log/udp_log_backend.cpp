@@ -6,13 +6,11 @@ UdpLogBackend::UdpLogBackend(const QString& name) : LogBackend(name) {
   LogSocket = new QUdpSocket(this);
 }
 
-void UdpLogBackend::writeLogLine(const QString& str) {
+void UdpLogBackend::writeLogMessage(const QString& str) {
   if (LogEnable) {
     LogSocket->writeDatagram(str.toUtf8(), DestIp, DestPort);
   }
 }
-
-void UdpLogBackend::clear() {}
 
 void UdpLogBackend::loadSettings() {
   QSettings settings;

@@ -30,7 +30,6 @@ class LogSystem : public QObject {
   ~LogSystem();
 
  public slots:
-  void clear(void);
   void generate(const QString& log);
 
  private:

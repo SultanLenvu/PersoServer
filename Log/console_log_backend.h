@@ -15,8 +15,7 @@ class ConsoleLogBackend : public LogBackend {
   explicit ConsoleLogBackend(const QString& name);
   ~ConsoleLogBackend();
 
-  virtual void writeLogLine(const QString& str) override;
-  virtual void clear() override;
+  virtual void writeLogMessage(const QString& str) override;
 
  private:
   Q_DISABLE_COPY_MOVE(ConsoleLogBackend);

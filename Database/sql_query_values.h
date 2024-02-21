@@ -13,8 +13,6 @@
 #include "types.h"
 
 class SqlQueryValues final {
-  Q_OBJECT
-
  private:
   QVector<QString> Fields;
   QHash<QString, int32_t> FieldIndex;

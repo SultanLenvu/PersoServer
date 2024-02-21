@@ -136,8 +136,6 @@ void SqlQueryValues::appendToInsert(QString& queryText) const {
 }
 
 void SqlQueryValues::extractRecords(QSqlQuery& request) {
-  beginResetModel();
-
   Values.clear();
   Fields.clear();
   FieldIndex.clear();
@@ -169,8 +167,6 @@ void SqlQueryValues::extractRecords(QSqlQuery& request) {
       Values[i]->push_back(request.value(i).toString());
     }
   }
-
-  endResetModel();
 }
 
 void SqlQueryValues::add(const StringDictionary& record) {
@@ -228,46 +224,4 @@ void SqlQueryValues::clear() {
   Values.clear();
   Fields.clear();
   FieldIndex.clear();
-}
-
-int SqlQueryValues::rowCount(const QModelIndex& parent) const {
-  if ((Values.size() == 0) || (!Values.front())) {
-    return 0;
-  }
-
-  return static_cast<int32_t>(Values.front()->size());
-}
-
-int SqlQueryValues::columnCount(const QModelIndex& parent) const {
-  return Fields.size();
-}
-
-QVariant SqlQueryValues::data(const QModelIndex& index, int role) const {
-  if (index.column() > Fields.size())
-    return QVariant();
-
-  if (index.row() > Values.front()->size())
-    return QVariant();
-
-  if (role == Qt::DisplayRole) {
-    return Values.at(index.column())->at(index.row());
-  } else
-    return QVariant();
-}
-
-QVariant SqlQueryValues::headerData(int section,
-                                    Qt::Orientation orientation,
-                                    int role) const {
-  if (section > Fields.size()) {
-    return QVariant();
-  }
-
-  if (role != Qt::DisplayRole)
-    return QVariant();
-
-  if (orientation == Qt::Horizontal) {
-    return Fields.at(section);
-  } else {
-    return QVariant();
-  }
 }

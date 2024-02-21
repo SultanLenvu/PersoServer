@@ -18,8 +18,7 @@ class UdpLogBackend : public LogBackend {
  public:
   explicit UdpLogBackend(const QString& name);
 
-  virtual void writeLogLine(const QString& str) override;
-  virtual void clear() override;
+  virtual void writeLogMessage(const QString& str) override;
 
  private:
   Q_DISABLE_COPY_MOVE(UdpLogBackend);

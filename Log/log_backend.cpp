@@ -7,3 +7,5 @@ LogBackend::LogBackend(const QString& name) : QObject(nullptr) {
 }
 
 LogBackend::~LogBackend() {}
+
+LogBackend::LogBackend() {}
