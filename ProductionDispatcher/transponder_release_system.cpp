@@ -202,9 +202,9 @@ ReturnStatus TransponderReleaseSystem::confirmRelease(const QString& ucid) {
   }
 
   // Проверка на переполнение бокса
-  if (SubContext->box().get("assembled_units") >=
-      SubContext->box().get("quantity")) {
-    sendLog(QString("Бокс %1 переполнен. Подтверждение выпуска транспондера %1 "
+  if (SubContext->box().get("assembled_units").toInt() >=
+      SubContext->box().get("quantity").toInt()) {
+    sendLog(QString("Бокс %1 переполнен. Подтверждение выпуска транспондера %2 "
                     "невозможно.")
                 .arg(SubContext->box().get("id"),
                      SubContext->transponder().get("id")));

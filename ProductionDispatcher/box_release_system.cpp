@@ -153,8 +153,8 @@ ReturnStatus BoxReleaseSystem::complete() {
   }
 
   // Проверка на переполнение паллеты
-  if (MainContext->pallet(palletId).get("assembled_units") >=
-      MainContext->pallet(palletId).get("quantity")) {
+  if (MainContext->pallet(palletId).get("assembled_units").toInt() >=
+      MainContext->pallet(palletId).get("quantity").toInt()) {
     sendLog(
         QString("Палета %1 переполнена. Завершить сборку бокса %2 невозможно.")
             .arg(palletId, SubContext->box().get("id")));
