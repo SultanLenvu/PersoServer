@@ -202,7 +202,7 @@ ReturnStatus BoxReleaseSystem::complete() {
 ReturnStatus BoxReleaseSystem::findBox() {
   QStringList tables{"boxes", "pallets", "orders"};
   Database->setRecordMaxCount(1);
-  Database->setRecordMaxCount(Qt::AscendingOrder);
+  Database->setCurrentOrder(Qt::AscendingOrder);
 
   if (MainContext->order().get("assembled_units") ==
       MainContext->order().get("quantity")) {

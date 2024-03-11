@@ -87,7 +87,8 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
       param.value("transponder_model").isEmpty() ||
       param.value("box_assembled_units").isEmpty() ||
       param.value("first_transponder_sn").isEmpty() ||
-      param.value("last_transponder_sn").isEmpty()) {
+      param.value("last_transponder_sn").isEmpty() ||
+      param.value("employee_data").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ReturnStatus::ParameterError;
   }
@@ -99,45 +100,84 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
     return ReturnStatus::StickerPrinterConnectionError;
   }
 
+  /* Командный скрипт:
+    SIZE 100 mm, 50 mm
+    GAP 2 mm,2 mm
+    REFERENCE 0,0
+    DIRECTION 1
+    CLS
+
+    TEXT 600,10,"D.FNT",0,2,2,2,"JSC PowerSyntez"
+    BOX 25, 50, 1150, 525, 4
+
+    TEXT 50, 75, "D.FNT", 0, 2, 2, 1,"MODEL:"
+    TEXT 600, 75, "D.FNT", 0, 2, 2, 1, "TC1001"
+
+    TEXT 50, 150, "D.FNT", 0, 2, 2, 1, "QUANTITY:"
+    TEXT 600, 150, "D.FNT", 0, 2, 2, 1, "50"
+
+    TEXT 50, 225, "D.FNT", 0, 2, 2, 1, "SERIAL NO FROM:"
+    TEXT 600, 225, "D.FNT", 0, 2, 2, 1, "501234NNNNNNNNNN"
+
+    TEXT 50, 300, "D.FNT", 0, 2, 2, 1, "SERIAL NO TO:"
+    TEXT 600, 300, "D.FNT", 0, 2, 2, 1, "501234NNNNNNNNNN"
+
+    TEXT 50, 375, "D.FNT", 0, 2, 2, 1, "BOX NO:"
+    TEXT 600, 375, "D.FNT", 0, 2, 2, 1, "1000555"
+
+    TEXT 50, 450, "D.FNT", 0, 2, 2, 1, "EMPLOYEE:"
+    TEXT 600, 450, "D.FNT", 0, 2, 2, 1, "NAME SURNAME"
+
+    TEXT 600, 535, "D.FNT", 0, 2, 2, 2,"Made in Russia"
+
+    PRINT 1
+   */
+
   sendCommand("SIZE 100 mm, 50 mm");
   sendCommand("GAP 2 mm,2 mm");
   sendCommand("REFERENCE 0,0");
   sendCommand("DIRECTION 1");
   sendCommand("CLS");
   sendCommand("TEXT 600,10,\"D.FNT\",0,2,2,2,\"JSC PowerSyntez\"");
-  sendCommand("BOX 25, 50, 1150, 560, 4 ");
-  sendCommand("TEXT 50, 90, \"D.FNT\", 0, 2, 2, 1,\"MODEL:\"");
-  sendCommand(QString("TEXT 600, 90, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
+  sendCommand("BOX 25, 50, 1150, 525, 4 ");
+
+  sendCommand("TEXT 50, 75, \"D.FNT\", 0, 2, 2, 1,\"MODEL:\"");
+  sendCommand(QString("TEXT 600, 75, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
                   .arg(param.value("transponder_model"))
                   .toUtf8()
                   .data());
-  /* На случай если модель будет заменена на артикул */
-  //  sendCommand("TEXT 50, 90, \"D.FNT\", 0, 2, 2, 1,\"ARTICLE NO:\"");
-  //  sendCommand(QString("BARCODE 600, 75, \"128M\", 50, 2, 0, 2, 4, 1,
-  //  \"%1\"")
-  //                  .arg(param.value("transponder_model"))
-  //                  .toUtf8()
-  //                  .data());
-  sendCommand("TEXT 50, 190, \"D.FNT\", 0, 2, 2, 1, \"QUANTITY:\"");
-  sendCommand(QString("TEXT 600, 190, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
+
+  sendCommand("TEXT 50, 150, \"D.FNT\", 0, 2, 2, 1, \"QUANTITY:\"");
+  sendCommand(QString("TEXT 600, 150, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
                   .arg(param.value("box_assembled_units"))
                   .toUtf8()
                   .data());
-  sendCommand("TEXT 50, 290, \"D.FNT\", 0, 2, 2, 1, \"SERIAL NO FROM:\"");
-  sendCommand(QString("BARCODE 600, 275, \"128M\", 50, 2, 0, 2, 4, 1, \"%1\"")
+
+  sendCommand("TEXT 50, 225, \"D.FNT\", 0, 2, 2, 1, \"SERIAL NO FROM:\"");
+  sendCommand(QString("TEXT 600, 225, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
                   .arg(param.value("first_transponder_sn"))
                   .toUtf8()
                   .data());
-  sendCommand("TEXT 50, 390, \"D.FNT\", 0, 2, 2, 1, \"SERIAL NO TO:\"");
-  sendCommand(QString("BARCODE 600, 375, \"128M\", 50, 2, 0, 2, 4, 1, \"%1\"")
+
+  sendCommand("TEXT 50, 300, \"D.FNT\", 0, 2, 2, 1, \"SERIAL NO TO:\"");
+  sendCommand(QString("TEXT 600, 300, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
                   .arg(param.value("last_transponder_sn"))
                   .toUtf8()
                   .data());
-  sendCommand("TEXT 50, 490, \"D.FNT\", 0, 2, 2, 1, \"BOX NO:\"");
-  sendCommand(QString("BARCODE 600, 475, \"128M\", 50, 2, 0, 2, 4, 1, \"%1\"")
+
+  sendCommand("TEXT 50, 375, \"D.FNT\", 0, 2, 2, 1, \"BOX NO:\"");
+  sendCommand(QString("TEXT 600, 375, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
                   .arg(param.value("box_id"))
                   .toUtf8()
                   .data());
+
+  sendCommand("TEXT 50, 450, \"D.FNT\", 0, 2, 2, 1, \"EMPLOYEE:\"");
+  sendCommand(QString("TEXT 600, 450, \"D.FNT\", 0, 2, 2, 1, \"%1\"")
+                  .arg(param.value("employee_data"))
+                  .toUtf8()
+                  .data());
+
+  sendCommand("TEXT 600, 535, \"D.FNT\", 0, 2, 2, 2,\"Made in Russia\"");
   sendCommand("PRINT 1");
 
   closePort();
@@ -176,6 +216,37 @@ ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
     return ReturnStatus::StickerPrinterConnectionError;
   }
 
+  /* Командный скрипт:
+    SIZE 100 mm,100 mm
+    GAP 2 mm,2 mm
+    REFERENCE 0,0
+    DIRECTION 1
+    CLS
+    TEXT 600, 25, "D.FNT", 0, 3, 3, 2, "JSC PowerSyntez"
+    BOX 25, 100, 1150, 1075, 4
+
+    TEXT 50, 150, "D.FNT", 0, 3, 3, 1,"MODEL:"
+    TEXT 600, 150,"D.FNT", 0, 3, 3, 1, "PS1001"
+
+    TEXT 50, 300, "D.FNT", 0, 3, 3, 1, "QUANTITY:"
+    TEXT 600, 300, "D.FNT", 0, 3, 3, 1, "500"
+
+    TEXT 50, 450, "D.FNT", 0, 3, 3, 1, "BOX NO FROM:"
+    TEXT 600, 450, "D.FNT", 0, 3, 3, 1, "1000001"
+
+    TEXT 50, 600, "D.FNT", 0, 3, 3, 1, "BOX NO TO:"
+    TEXT 600, 600, "D.FNT", 0, 3, 3, 1, "1000010"
+
+    TEXT 50, 750, "D.FNT", 0, 3, 3, 1, "PALLET NO:"
+    TEXT 600, 750, "D.FNT", 0, 3, 3, 1, "1000001"
+
+    TEXT 50, 900, "D.FNT", 0, 3, 3, 1,"ASSEMBLY DATE:"
+    TEXT 600, 900, "D.FNT", 0, 3, 3, 1, "11.03.2024"
+
+    TEXT 600, 1090, "D.FNT", 0, 3, 3, 2, "Made in Russia"
+    PRINT 1
+   */
+
   sendCommand("SIZE 100 mm,100 mm");
   sendCommand("GAP 2 mm,2 mm");
   sendCommand("REFERENCE 0,0");
@@ -196,19 +267,19 @@ ReturnStatus TE310Printer::printPalletSticker(const StringDictionary& param) {
                   .constData());
 
   sendCommand("TEXT 50, 450, \"D.FNT\", 0, 3, 3, 1, \"BOX NO FROM:\"");
-  sendCommand(QString("BARCODE 600, 425, \"128M\", 75, 2, 0, 3, 6, 1, \"%1\"")
+  sendCommand(QString("TEXT 600, 450, \"D.FNT\", 0, 3, 3, 1, \"%1\"")
                   .arg(param.value("first_box_id"))
                   .toUtf8()
                   .constData());
 
   sendCommand("TEXT 50, 600, \"D.FNT\", 0, 3, 3, 1, \"BOX NO TO:\"");
-  sendCommand(QString("BARCODE 600, 575, \"128M\", 75, 2, 0, 3, 6, 1, \"%1\"")
+  sendCommand(QString("TEXT 600, 600, \"D.FNT\", 0, 3, 3, 1, \"%1\"")
                   .arg(param.value("last_box_id"))
                   .toUtf8()
                   .constData());
 
   sendCommand("TEXT 50, 750, \"D.FNT\", 0, 3, 3, 1, \"PALLET NO:\"");
-  sendCommand(QString("BARCODE 600, 725, \"128M\", 75, 2, 0, 3, 6, 1, \"%1\"")
+  sendCommand(QString("TEXT 600, 750, \"D.FNT\", 0, 3, 3, 1, \"%1\"")
                   .arg(param.value("pallet_id"))
                   .toUtf8()
                   .constData());
