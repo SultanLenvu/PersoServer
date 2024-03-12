@@ -455,7 +455,7 @@ ReturnStatus InfoSystem::generatePalletDataSubprocess(const QString& id,
   // Общее количество транспондеров в паллете
   uint32_t totalQuantity =
       MainContext->pallet(id).get("assembled_units").toInt() *
-      SubContext->box().get("quantity").toInt();
+      boxes.get("quantity").toInt();
   data.insert("pallet_quantity", QString::number(totalQuantity));
 
   return ReturnStatus::NoError;
