@@ -62,6 +62,7 @@ class TE310Printer : public AbstractStickerPrinter {
  private:
   Q_DISABLE_COPY_MOVE(TE310Printer);
   void loadSetting(void);
+  void doLoadSettings(void);
   void sendLog(const QString& log);
 
   void loadTscLib(void);

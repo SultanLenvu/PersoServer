@@ -107,7 +107,7 @@ bool ServerManager::checkBoxStickerPrinterSettings(
     return false;
   }
 
-  if (QHostAddress(settings.value("box_sticker_printer/ip_address").toString())
+  if (QHostAddress(settings.value("box_sticker_printer/ip").toString())
           .isNull()) {
     qCritical("Некорректный IP-адрес принтера стикеров для боксов. ");
     return false;
@@ -132,8 +132,7 @@ bool ServerManager::checkPalletStickerPrinterSettings(
     return false;
   }
 
-  if (QHostAddress(
-          settings.value("pallet_sticker_printer/ip_address").toString())
+  if (QHostAddress(settings.value("pallet_sticker_printer/ip").toString())
           .isNull()) {
     qCritical("Некорректный IP-адрес принтера стикеров для боксов. ");
     return false;

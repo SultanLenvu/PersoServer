@@ -290,8 +290,7 @@ ReturnStatus InfoSystem::generateBoxData(StringDictionary& data) {
               generateTransponderSerialNumber(transponders.getLast("id")));
 
   data.insert("pallet_id", SubContext->box().get("pallet_id"));
-  data.insert("production_line_id",
-              SubContext->box().get("production_line_id"));
+  data.insert("production_unit", SubContext->productionLine().get("login"));
 
   // Сохраняем модель транспондера
   QString model = MainContext->order().get("transponder_model");
