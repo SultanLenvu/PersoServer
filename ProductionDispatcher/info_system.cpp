@@ -490,6 +490,22 @@ ReturnStatus InfoSystem::loadBoxContext(const QString& id) {
     return ReturnStatus::BoxMissed;
   }
 
+  QString plId = SubContext->box().get("production_line_id");
+
+  if (!Database->readRecords("production_lines", QString("id = %1").arg(plId),
+                             SubContext->productionLine())) {
+    sendLog(
+        QString(
+            "Получена ошибка при поиске данных производственной линии '%1'.")
+            .arg(plId));
+    return ReturnStatus::DatabaseQueryError;
+  }
+
+  if (SubContext->productionLine().isEmpty()) {
+    sendLog(QString("Производственная линия '%1' не существует.").arg(plId));
+    return ReturnStatus::BoxMissed;
+  }
+
   return loadPalletContext(SubContext->box().get("pallet_id"));
 }
 
