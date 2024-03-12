@@ -88,7 +88,7 @@ ReturnStatus TE310Printer::printBoxSticker(const StringDictionary& param) {
       param.value("box_assembled_units").isEmpty() ||
       param.value("first_transponder_sn").isEmpty() ||
       param.value("last_transponder_sn").isEmpty() ||
-      param.value("employee_data").isEmpty()) {
+      param.value("production_unit").isEmpty()) {
     sendLog(QString("Получены некорректные параметры. Сброс."));
     return ReturnStatus::ParameterError;
   }
