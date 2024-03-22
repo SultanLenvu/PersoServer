@@ -46,6 +46,18 @@ bool ProductionContext::isValid() {
   return true;
 }
 
+bool ProductionContext::isOrderReady() {
+  if (!isValid()) {
+    return false;
+  }
+
+  if (Order.get("assembled_units") == Order.get("quantity")) {
+    return false;
+  }
+
+  return true;
+}
+
 void ProductionContext::removePallet(const QString id) {
   PalletStorage.erase(id);
 }

@@ -62,7 +62,7 @@ ReturnStatus TE310Printer::printTransponderSticker(
   if (param.value("issuer_name") == "Новое качество дорог") {
     printNkdSticker(param);
   } else if (param.value("issuer_name") == "Магистраль северной столицы") {
-    printZsdSticker(param);
+    printMssSticker(param);
   }
 
   closePort();
@@ -416,7 +416,17 @@ void TE310Printer::printNkdSticker(const StringDictionary& param) {
   sendCommand("PRINT 1");
 }
 
-void TE310Printer::printZsdSticker(const StringDictionary& param) {
+void TE310Printer::printMssSticker(const StringDictionary& param) {
+  /* Командный скрипт:
+    SIZE 30 mm, 20 mm
+    GAP 2 mm, 1 mm
+    DIRECTION 1
+    CLS
+    TEXT 180,12,"D.FNT",0,1,1,2,"SN: %1"
+    BARCODE 18,36,"128",144,2,0,2,2,"%1"
+    PRINT 1
+  */
+
   sendCommand("SIZE 30 mm, 20 mm");
   sendCommand("GAP 2 mm, 1 mm");
   sendCommand("DIRECTION 1");

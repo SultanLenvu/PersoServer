@@ -556,6 +556,17 @@ ReturnStatus ProductionDispatcher::loadSubContext(QObject* obj) {
 
   sendLog(QString("Контекст производственной линии '%1' загружен.")
               .arg(SubContext->login()));
+
+  ReturnStatus ret = ReturnStatus::NoError;
+  if (!MainContext->isOrderReady()) {
+    sendLog("Текущий заказ собран. Обновление контекста производства.");
+    updateMainContext(ret);
+    if (ret != ReturnStatus::NoError) {
+      sendLog("Получена ошибка при обновлении контекста производства.");
+      return ret;
+    }
+  }
+
   return ReturnStatus::NoError;
 }
 

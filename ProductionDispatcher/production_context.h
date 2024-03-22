@@ -28,6 +28,7 @@ class ProductionContext final : public AbstractContext {
 
  public:
   bool isValid(void);
+  bool isOrderReady(void);
 
  public:
   void removePallet(const QString id);
